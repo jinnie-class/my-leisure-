@@ -175,7 +175,9 @@
       else if (pt.id === 'alone') cur = ['alone'];
       else cur = cur.filter(function (x) { return x !== 'alone'; }).concat([pt.id]);
       patch({ partnerIds: cur, partnerId: cur[0] || null });
-      if (i < 0) App.speakFor(student, pt.name);
+      /* ★ 낱말 하나(`엄마`)가 아니라 짧은 문장(`엄마와 함께 했어요`)으로 읽습니다.
+           까닭은 korean.js 의 App.partnerSpeechPast 주석을 보세요. */
+      if (i < 0) App.speakFor(student, App.partnerSpeechPast(pt));
     }
 
     /* --------------------- 저장 --------------------- */
@@ -278,7 +280,7 @@
             ${partners.map(function (pt) {
               var on = whoIds().indexOf(pt.id) >= 0;
               return html`<${C.Pick} key=${pt.id} selected=${on}
-                label=${pt.name} speakText=${pt.name} portrait=${true}
+                label=${pt.name} speakText=${App.partnerSpeechPast(pt)} portrait=${true}
                 onClick=${function () { toggleWho(pt); }}
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
@@ -582,11 +584,12 @@
           <${C.PickGrid} cols=${partners.length}>
             ${partners.map(function (pt) {
               var on = f.f1a === pt.name;
-              return html`<${C.Pick} key=${pt.id} selected=${on} label=${pt.name} speakText=${pt.name}
+              return html`<${C.Pick} key=${pt.id} selected=${on} label=${pt.name}
+                speakText=${App.partnerSpeechPast(pt)}
                 portrait=${true}
                 onClick=${function () {
                   setF('f1a', pt.name, { partnerId: pt.id });
-                  App.speakFor(student, pt.name); goNext();
+                  App.speakFor(student, App.partnerSpeechPast(pt)); goNext();
                 }}
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}

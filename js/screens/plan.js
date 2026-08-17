@@ -154,7 +154,10 @@
       else if (pt.id === 'alone') cur = ['alone'];              // 혼자를 고르면 혼자만
       else cur = cur.filter(function (x) { return x !== 'alone'; }).concat([pt.id]);
       patch({ partnerIds: cur, partnerId: cur[0] || null });
-      if (i < 0) App.speakFor(student, pt.name);
+      /* ★ 낱말 하나(`엄마`)가 아니라 짧은 문장(`엄마와 함께 할 거예요`)으로 읽습니다.
+           까닭은 korean.js 의 App.partnerSpeech 주석을 보세요 — 윈도우 한국어
+           목소리가 두 글자 낱말을 이상한 가락으로 읽습니다. */
+      if (i < 0) App.speakFor(student, App.partnerSpeech(pt));
     }
 
     function canNext() {
@@ -289,7 +292,7 @@
             ${partners.map(function (pt) {
               var on = who().indexOf(pt.id) >= 0;
               return html`<${C.Pick} key=${pt.id} selected=${on}
-                label=${pt.name} speakText=${pt.name} portrait=${true}
+                label=${pt.name} speakText=${App.partnerSpeech(pt)} portrait=${true}
                 onClick=${function () { toggleWho(pt); }}
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
