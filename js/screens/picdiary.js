@@ -317,8 +317,9 @@
                같은 말이 그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
                읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
           : html`<div class="pd-art">
-              <div class="pd-art-main">
-                <${C.ActivityArt} activity=${a} size=${200} />
+              <!-- 무엇을 했는지는 왼쪽 위에 작게 (제목처럼 붙는 표시) -->
+              <div class="pd-art-main" role="img" aria-label=${a ? a.name : '한 활동'}>
+                <${C.ActivityArt} activity=${a} />
               </div>
               <div class="pd-art-row">
                 ${partner && html`<span class="pd-art-item" role="img" aria-label=${partner.name}>
@@ -389,6 +390,31 @@
 
   /* ------------------------- 그림일기 화면 -------------------------
      종이를 남는 자리에 맞추어 축소해서 통째로 보여 줍니다. */
+  /* ------------------- 완성 미리보기 (기록하GO! 마지막 화면) -------------------
+     저장하기 전에 **완성된 그림일기를 작게 그대로** 보여 줍니다.
+     예전에는 노란 문장 칸만 있어서, 학생이 자기 일기가 어떻게 됐는지 모르고
+     저장했습니다. 완성품은 저장 뒤 여러 창을 지나서야 나왔습니다.
+     눌러서 크게 볼 수도 있습니다 — 작은 그림만으로는 글자를 읽기 어렵습니다.
+     `draft` 는 아직 저장 안 된 일기지만 모양이 같아서 그대로 넣을 수 있습니다. */
+  C.DiaryPreview = function (p) {
+    var bigS = useState(false);
+    var d = p.draft;
+    if (!d || !d.activityId) return null;
+    var sheet = html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />`;
+    return html`<${React.Fragment}>
+      <button type="button" class="dv" aria-label="완성된 그림일기 — 눌러서 크게 보기"
+          onClick=${function () { bigS[1](true); }}>
+        <span class="dv-paper">${sheet}</span>
+        <span class="dv-cap">눌러서 크게 보기</span>
+      </button>
+      ${bigS[0] && html`<${C.Modal} title="완성된 그림일기" wide=${true}
+        onClose=${function () { bigS[1](false); }}
+        actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
+        <div class="dv-big">${sheet}</div>
+      <//>`}
+    <//>`;
+  };
+
   C.PicDiaryScreen = function (p) {
     App.useStore();
     var params = p.params || {};

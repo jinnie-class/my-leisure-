@@ -313,15 +313,26 @@
         <//>`;
       }
 
-      /* 확인 */
+      /* 완성 */
+      return confirmStep();
+    }
+
+    /* --------------------- 완성 (1·2단계 마지막) ---------------------
+       ★ 문장만 보여 주지 않고 **완성된 그림일기를 작게 그대로** 보여 줍니다.
+         예전에는 노란 문장 칸만 있어서, 학생이 "내 일기가 어떻게 됐는지" 를
+         모르고 저장했습니다. 저장한 뒤 여러 창을 지나서야 완성품이 나왔고,
+         그 사이에 `글 → 그림 → 완성` 흐름이 끊겼습니다.
+         이제 이 한 화면에서 끝납니다. */
+    function confirmStep(madeText) {
       return html`<${React.Fragment}>
-        <${C.Question} hint="맞으면 저장해요" speakText="완성된 일기를 확인해요">완성된 일기를 확인해요<//>
+        <${C.Question} hint="맞으면 저장해요" speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <${C.SentenceEdit}
-          made=${App.sentences.diaryMade(draft)}
+          made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
           value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
           placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
           onChange=${function (v) { patch({ bodyEdit: v }); }}
           onReset=${function () { patch({ bodyEdit: null }); }} />
+        <${C.DiaryPreview} draft=${draft} student=${student} />
       <//>`;
     }
 
@@ -574,16 +585,8 @@
         <//>`;
       }
 
-      /* 확인 */
-      return html`<${React.Fragment}>
-        ${metaBar()}
-        <${C.Question} hint="맞으면 저장해요" speakText="완성된 일기를 확인해요">완성된 일기를 확인해요<//>
-        <${C.SentenceEdit}
-          made=${App.sentences.diaryFramesLines(Object.assign({}, draft, { frames: f })).join('\n')}
-          value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
-          onChange=${function (v) { patch({ bodyEdit: v }); }}
-          onReset=${function () { patch({ bodyEdit: null }); }} />
-      <//>`;
+      /* 완성 — 1단계와 같은 화면을 씁니다 (완성된 그림일기를 함께 보여 줍니다) */
+      return confirmStep(App.sentences.diaryFramesLines(Object.assign({}, draft, { frames: f })).join('\n'));
     }
 
 

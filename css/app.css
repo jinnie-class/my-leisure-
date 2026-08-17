@@ -1133,10 +1133,28 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* ※ 그림칸에는 **그림만** 넣습니다 — 이름표(`.pd-art-name`·`.pd-art-cap`)와
      안내 글(`.pd-art-note`)은 없앴습니다. 같은 말이 아래 원고지에 이미 있어서
      그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
-     읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
-.pd-art-row{ display:flex; flex-wrap:wrap; gap:22px; justify-content:center; }
-.pd-art-item{ display:inline-flex; align-items:center; }
-.pd-art-thumb{ width:64px; height:64px; display:block; }
+     읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다.
+
+   ★ 자리 나누기 — **무엇을 했는지는 왼쪽 위에 작게**, 고른 그림들은 가운데 크게.
+     활동 그림은 '무슨 활동인가' 를 알려 주는 표시라 작아도 됩니다.
+     학생이 고른 사람·기분·장소는 그림일기의 그림 노릇을 하니 크게 보여 줍니다. */
+.pd-art{ position:relative; }
+.pd-art-main{
+  position:absolute; left:0; top:0;
+  width:96px; height:96px;           /* 왼쪽 위 작은 표시 */
+  display:block; z-index:1;
+}
+.pd-art-main img,.pd-art-main svg,.pd-art-main > span{
+  width:100%; height:100%; object-fit:contain; display:block;
+}
+/* 고른 그림들은 가운데. 활동 그림은 **맨 위**에만 있어서 좌우 여백을 비워 둘
+   필요가 없습니다 (위아래로 떨어져 있어 겹치지 않습니다).
+   네 장까지 한 줄에 들어갑니다 : 4×150 + 3×26 = 678 ≤ 766 */
+.pd-art-row{
+  display:flex; flex-wrap:wrap; gap:26px; justify-content:center; align-items:center;
+  align-content:center; padding:0 12px;
+}
+.pd-art-thumb{ width:150px; height:150px; display:block; }
 .pd-art-thumb svg,.pd-art-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
 
 /* 4. 제 목 */
@@ -1169,6 +1187,33 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-sheet.t-empty .pd-lines .pd-ch{ visibility:hidden; }
 .pd-sheet.t-trace .pd-titlebar .pd-ch{ color:#c9c9d2; }
 .pd-sheet.t-empty .pd-titlebar .pd-ch{ visibility:hidden; }
+
+/* ======================= 완성 미리보기 (기록하GO! 마지막) =======================
+   저장하기 전에 완성된 그림일기를 작게 그대로 보여 줍니다.
+   종이는 794×1123 로 크기가 고정이라 `transform:scale` 로 줄여 담습니다.
+   ★ 배율을 고치려면 `--dv` 하나만 고치세요. 칸 높이가 함께 따라옵니다. */
+.dv{
+  --dv:.30;
+  display:flex; flex-direction:column; align-items:center; gap:.3rem;
+  margin:.7rem auto 0; padding:0; border:0; background:transparent;
+}
+.dv-paper{
+  width:calc(794px * var(--dv)); height:calc(1123px * var(--dv));
+  overflow:hidden; display:block; flex:0 0 auto;
+  border:2px solid var(--line); border-radius:10px; background:#fff;
+  box-shadow:var(--shadow);
+}
+.dv-paper .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
+.dv:hover .dv-paper{ border-color:var(--sel-line); box-shadow:var(--shadow-2); }
+.dv-cap{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
+/* 크게 보기 (팝업 안) */
+.dv-big{
+  --dv:.62;
+  width:calc(794px * var(--dv)); height:calc(1123px * var(--dv));
+  overflow:hidden; margin:0 auto; background:#fff;
+}
+.dv-big .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
+@media (max-height: 900px){ .dv{ --dv:.24; } .dv-big{ --dv:.5; } }
 
 /* 손글씨로 쓴 일기를 그림일기에 그대로 넣습니다 (3단계).
    손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
