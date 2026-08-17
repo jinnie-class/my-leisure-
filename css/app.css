@@ -452,7 +452,17 @@ ul{ margin:0; padding:0; list-style:none; }
   display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
   margin-bottom:.7rem; break-inside:avoid;
 }
-.q h2{ font-size:clamp(1.3rem,1rem + 1.5vh,2.2rem); font-weight:900; letter-spacing:-.03em; }
+/* 창 안 질문 (`어디에서 할까요?` `무엇을 할까요?` …).
+   ★ 맨 위 화면 제목(`여가 계획하기`)보다 **작아야** 합니다.
+     예전에는 `1rem + 1.5vh` (최대 2.2rem) 로 제목보다 오히려 커서,
+     무엇이 큰 제목인지 헷갈렸습니다.
+     지금은 제목의 **약 82%** 가 되도록 맞췄습니다.
+       제목    : clamp(1.3rem, .85rem + 1.30vh, 1.85rem)   ← .topbar .title
+       질문    : clamp(1.05rem, .7rem + 1.05vh, 1.5rem)    ← 여기
+     기울기(vh)까지 같은 비로 줄여서 **어느 화면 크기에서나** 제목이 더 큽니다.
+     (1024×768 → 제목 23.6px · 질문 19.3px / 1920×1080 → 27.6px · 22.5px)
+   이 한 줄이 계획·일기·캐릭터 고르기·팝업의 질문을 **모두** 같이 바꿉니다. */
+.q h2{ font-size:clamp(1.05rem,.7rem + 1.05vh,1.5rem); font-weight:900; letter-spacing:-.03em; }
 .q .hint{ font-size:.95rem; color:var(--ink-soft); font-weight:700; }
 
 /* 큰 점 진행 표시 */

@@ -75,28 +75,96 @@
     { id: 'empty', name: '빈칸',    desc: '칸만 나와요 — 보고 옮겨 써요' }
   ];
 
-  var PUNCT = /[.,!?…‥·:;]/;
+  /* ==================== 「나의 여가 일기 — 원고지 작성 규칙」 ====================
+     ★ 이 규칙은 앱의 고정 규칙입니다. 원고지 화면을 고칠 때 반드시 지켜 주세요.
+       자세한 조항은 `인수인계.md` 의 `5-1-1. 원고지 작성 규칙` 에 있습니다.
 
+     ※ 절대 하지 말 것 — 글자를 한 글자씩 잘라 칸에 순서대로 넣기.
+       그렇게 하면 아래 4가지가 모두 틀립니다.
+         ① 문단 첫 칸 비우기        ② 자동 줄바꿈은 첫 칸부터
+         ③ 줄 첫 칸에 마침표 금지    ④ 줄바꿈으로 생긴 띄어쓰기 버리기
+       그래서 칸 번호·줄 번호·문단 시작 여부를 **판단하며** 놓는 함수로 만들었습니다. */
+
+  /* 줄 첫 칸에 혼자 올 수 없는 문장부호 (원고지 '행두 금칙').
+     이런 글자가 줄 첫 칸에 오게 되면 앞 줄 마지막 칸에 함께 넣습니다.
+     닫는 따옴표·닫는 괄호도 포함합니다 (규칙 6). */
+  var NO_LINE_START = /[.,!?…‥·:;”’'")\]}〉》」』>]/;
+
+  /* 뒤에 문장이 이어지면 한 칸을 비우는 문장부호 (규칙 5) */
+  var GAP_AFTER = /[!?]/;
+
+  /* lines : 문단 배열. 한 칸(원소)이 한 문단입니다.
+     cols  : 한 줄의 칸 수 */
   function gridRows(lines, cols) {
     var rows = [];
-    (lines || []).forEach(function (line) {
-      var chars = String(line).split('');
-      var row = [''];                                    // 문단 첫 칸은 비웁니다
+
+    (lines || []).forEach(function (para) {
+      /* 문단 끝의 군더더기 공백만 떼어 냅니다 (글자는 건드리지 않습니다) */
+      var chars = String(para == null ? '' : para).replace(/\s+$/, '').split('');
+
+      /* ── 규칙 2 : 새 문단은 첫 칸을 비우고 두 번째 칸부터 ── */
+      var row = [''];
+
+      /* 줄을 끝내고 다음 줄로 (규칙 7 : 자동 줄바꿈은 다음 줄 **첫 칸부터**) */
+      function nextLine() {
+        while (row.length < cols) row.push('');
+        rows.push(row);
+        row = [];
+      }
+
       for (var i = 0; i < chars.length; i++) {
         var ch = chars[i];
-        if (row.length >= cols) {
-          /* 문장부호는 줄 첫 칸에 올 수 없습니다 → 앞 줄 마지막 칸에 함께 넣습니다 */
-          if (PUNCT.test(ch)) { row[cols - 1] = row[cols - 1] + ch; continue; }
-          rows.push(row); row = [];
-          if (ch === ' ') continue;                      // 줄 끝 띄어쓰기는 넘기지 않습니다
+        var isSpace = (ch === ' ');
+        var atLineEnd = (row.length >= cols);          // 이미 꽉 찼다 = 다음은 새 줄 첫 칸
+
+        if (atLineEnd) {
+          /* ── 규칙 4 · 6 · 7 : 마침표·쉼표·닫는따옴표가 줄 첫 칸에 혼자 오면 안 됩니다.
+                앞 줄 마지막 칸에 글자와 **함께** 넣습니다 ── */
+          if (NO_LINE_START.test(ch)) { row[cols - 1] += ch; continue; }
+
+          nextLine();
+
+          /* ── 규칙 3 · 7 : 줄이 바뀌어 생긴 띄어쓰기는 버립니다.
+                (새 줄 첫 칸을 띄어쓰기로 비우지 않습니다) ── */
+          if (isSpace) continue;
         }
-        row.push(ch);
+
+        /* 띄어쓰기가 줄의 마지막 칸에 놓이려 하면, 그 칸을 쓰지 않고 줄을 끝냅니다.
+           줄바꿈 자체가 낱말을 갈라 주므로 빈 칸을 하나 낭비할 필요가 없습니다. */
+        if (isSpace && row.length === cols - 1) { nextLine(); continue; }
+
+        row.push(ch);                                   // ── 규칙 1 : 한 칸에 한 글자 ──
+
+        /* ── 규칙 5 : ? ! 뒤에 문장이 이어지면 한 칸 비웁니다 ──
+           학생이 `재미있었어?그리고` 처럼 붙여 써도 원고지에서는 띄웁니다. */
+        if (GAP_AFTER.test(ch)) {
+          var nx = chars[i + 1];
+          if (nx && nx !== ' ' && !NO_LINE_START.test(nx) && row.length < cols) row.push('');
+        }
       }
-      while (row.length < cols) row.push('');            // 남는 칸은 빈 칸으로
-      rows.push(row);
+
+      nextLine();                                       // 문단 마지막 줄 마감
     });
+
     return rows;
   }
+
+  /* ── 규칙 13 : 내놓기 전에 스스로 검사합니다 ──
+     글자가 빠지거나 겹치거나 순서가 바뀌지 않았는지 확인합니다.
+     띄어쓰기는 줄바꿈이 대신하기도 하므로 **공백을 뺀 글자**로 견줍니다. */
+  function verifyGrid(lines, rows) {
+    var want = (lines || []).join('').replace(/\s+/g, '');
+    var got = rows.map(function (r) { return r.join(''); }).join('').replace(/\s+/g, '');
+    if (want !== got && window.console) {
+      console.warn('[원고지] 글자가 어긋났습니다.\n원문:', want, '\n원고지:', got);
+    }
+    return want === got;
+  }
+  /* 점검용으로 밖에서도 부를 수 있게 내놓습니다.
+     브라우저 콘솔에서 `App.manuscriptRows(['오늘은 공원에 갔다.'], 10)` 처럼
+     원고지 배치를 바로 확인할 수 있습니다. */
+  App.manuscriptRows = gridRows;
+  App.verifyManuscript = verifyGrid;
 
   /* 줄 수가 MAX_ROWS 를 넘지 않는 가장 큰 글씨(= 가장 적은 칸 수)를 고릅니다.
      모자라면 빈 줄을 채워 늘 5줄 이상 보이게 합니다. */
@@ -105,6 +173,7 @@
       var cols = COL_OPTIONS[i];
       var rows = gridRows(lines, cols);
       if (rows.length <= MAX_ROWS || i === COL_OPTIONS.length - 1) {
+        verifyGrid(lines, rows);                         // 규칙 13 : 스스로 검사
         while (rows.length < MIN_ROWS) {
           var blank = [];
           for (var c = 0; c < cols; c++) blank.push('');
