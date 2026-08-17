@@ -255,7 +255,8 @@
           <${C.PickGrid} cols=${3}>
             ${sug.slice(0, 5).map(function (s) {
               return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${s}
-                onClick=${function () { patch({ place: s }); }} art=${html`<${C.Art} iconKey="map" />`} />`;
+                onClick=${function () { patch({ place: s }); }}
+                art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
             <div class="pick" style=${{ cursor: 'default' }}>
               <span class="thumb"><${C.Art} iconKey="pencil" /></span>

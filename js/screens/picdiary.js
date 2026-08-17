@@ -325,8 +325,9 @@
                   </span>`;
                 })}
                 ${d.place && html`<span class="pd-art-item">
-                  <span class="pd-art-thumb" aria-hidden="true"
-                    dangerouslySetInnerHTML=${{ __html: App.icon('map') }} />
+                  <span class="pd-art-thumb">
+                    <${C.PickArt} kind="place" word=${d.place} iconKey="map" />
+                  </span>
                   <span class="pd-art-cap">${d.place}</span>
                 </span>`}
               </div>
