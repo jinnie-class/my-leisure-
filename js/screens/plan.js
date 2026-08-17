@@ -459,13 +459,15 @@
     } else if (key === 'supplies') {
       action = html`<${C.Btn} icon="next" onClick=${next}>다 골랐어요<//>`;
     } else if (key === 'who') {
-      /* '한 사람 골라요' 안내를 없애고 그 자리에 이 바를 둡니다.
-         여러 명을 고를 수 있으니 학생이 '다 골랐다' 고 알려 주어야 넘어갑니다. */
+      /* ★ **여러 개 고르는 화면**은 `다 골랐어요`, 한 개 고르는 화면은 `다음`.
+           한 명 고르고 바로 `다음` 을 누르면 '더 고를 수 있다' 는 것을 모르고
+           지나갑니다. 단추 글씨가 그것을 알려 줍니다. */
       action = html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
-        onClick=${next}>선택했어요<//>`;
+        onClick=${next}>다 골랐어요<//>`;
     } else if (key === 'when' || key === 'time') {
+      /* 날짜·시간대는 한 개만 고르므로 그냥 `다음` */
       action = html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
-        onClick=${next}>선택했어요<//>`;
+        onClick=${next}>다음<//>`;
     } else if (key === 'place') {
       action = html`<${C.Btn} icon="next" disabled=${!canNext()} onClick=${next}>다음<//>`;
     }

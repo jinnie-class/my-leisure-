@@ -792,6 +792,11 @@
         onClick=${function () { colorS[1](c.v); eraserS[1](false); }} />`;
     }
 
+    /* ★ 자리 잡기 — **스크롤이 생기지 않게** 합니다.
+         예전에는 [도구] → [그림판] → [안내글 + 다 그렸어요] 로 위아래로 쌓여서
+         팝업에 스크롤이 생겼습니다.
+         이제 `다 그렸어요` · `그만두기` 를 **맨 위 도구 줄 오른쪽**에 두고,
+         안내글은 **도구 바로 아랫줄**에 둡니다. 그림판이 남는 자리를 다 씁니다. */
     return html`<div class="dp">
       <div class="dp-tools">
         ${DRAW_COLORS.map(swatch)}
@@ -807,18 +812,19 @@
         })}
         <span class="dp-gap"></span>
         <${C.Btn} size="small" icon="trash" onClick=${clearAll}>다 지우기<//>
+        <span class="grow"></span>
+        ${p.onCancel && html`<${C.Btn} size="small" onClick=${p.onCancel}>그만두기<//>`}
+        <${C.Btn} size="small" kind="ok" icon="check" disabled=${!dirtyS[0]}
+          onClick=${done}>${p.doneText || '그림 다 그렸어요'}<//>
       </div>
+
+      <p class="small muted dp-hint">
+        ${p.hintText || '손가락·펜·마우스로 그려요. 색과 굵기를 고를 수 있어요.'}</p>
 
       <canvas class="dp-canvas" ref=${cvRef} width=${W} height=${H}
         aria-label="그림 그리는 곳"
         onPointerDown=${begin} onPointerMove=${move}
         onPointerUp=${end} onPointerCancel=${end} onPointerLeave=${end} />
-
-      <div class="dp-foot">
-        <span class="small muted grow">${p.hintText || '손가락·펜·마우스로 그려요. 색과 굵기를 고를 수 있어요.'}</span>
-        <${C.Btn} kind="ok" icon="check" disabled=${!dirtyS[0]}
-          onClick=${done}>${p.doneText || '그림 다 그렸어요'}<//>
-      </div>
     </div>`;
   };
 

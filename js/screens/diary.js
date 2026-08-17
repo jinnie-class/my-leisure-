@@ -136,6 +136,8 @@
     var editMetaS = useState(false);
     var drawS = useState(false);       // 직접 그리기 판이 열려 있는지
     var photoS = useState(false);      // 사진 고르기 팝업이 열려 있는지
+    var madeS = useState(null);        // 방금 그린 그림 (완성 확인 창에서 보여 줍니다)
+    var reDrawS = useState(null);      // '다시 그릴래요' 로 돌아갈 때 이어서 그릴 그림
     var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
 
     /* 고르면 0.45초 뒤 다음 질문으로 넘어갑니다 (규칙 2).
@@ -196,11 +198,25 @@
       var id;
       if (editing) {
         App.store.updateDiary(editing.id, payload);
-        App.store.setMapState(student.id, payload.cardId, { tried: true });
         id = editing.id;
       } else {
         id = App.store.addDiary(payload);
       }
+
+      /* ★ 지도 표시를 **일기 답에서 바로** 만듭니다.
+           예전에는 저장한 뒤에 `이 활동을 좋아하나요?` `또 하거나 도전하고
+           싶나요?` 를 다시 물었습니다. 하지만 일기 안에서 이미
+           `또 하고 싶나요?` 를 물었으니 **같은 것을 두 번 묻는 것**이었습니다
+           (규칙 7 — 중복 금지).
+
+           또 하고 싶어요      → 좋아해요 ♥ + 도전하고 싶어요 ★
+                                (또 하고 싶다는 것은 좋아한다는 뜻입니다)
+           다른 것도 하고 싶어요 → 해봤어요 만 (싫다는 뜻이 아니라서 지우지 않습니다)
+           잘 모르겠어요       → 아직 잘 모르겠어요 ? */
+      var mark = { tried: true };
+      if (payload.againId === 'again')       { mark.like = true;  mark.challenge = true; mark.unsure = false; }
+      else if (payload.againId === 'unsure') { mark.unsure = true; }
+      App.store.setMapState(student.id, payload.cardId, mark);
       savedIdS[1](id);
       afterS[1](0);
       App.speakFor(student, '일기를 잘 기록했어요.');
@@ -844,10 +860,14 @@
       backBtn = step > 0
         ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
             onClick=${function () { stepS[1](step - 1); }}>앞 질문으로<//>` : null;
+      /* ★ **여러 개 고르는 단계**(누구와 · 기분)는 `다 골랐어요`.
+           한 개 고르고 바로 `다음` 을 누르면 더 고를 수 있다는 것을 모르고
+           지나갑니다. 단추 글씨가 그것을 알려 줍니다. */
+      var multi1 = (step === 1 || step === 4);      // 누구와 · 기분
       action = step === lastStep
         ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
         : html`<${C.Btn} kind="primary" icon="next" disabled=${step === 2 && !draft.activityId}
-            onClick=${function () { stepS[1](step + 1); }}>다음<//>`;
+            onClick=${function () { stepS[1](step + 1); }}>${multi1 ? '다 골랐어요' : '다음'}<//>`;
 
     } else if (level === 2) {
       /* 활동을 아직 안 골랐으면 활동부터 (그 다음에 한 칸씩 채웁니다) */
@@ -991,21 +1011,45 @@
           }} />
       <//>`}
 
+      <!-- 그림판. 단추는 판 안 맨 윗줄에 있어 팝업에 스크롤이 생기지 않습니다. -->
       ${drawS[0] && html`<${C.Modal} title="그림을 그려요" wide=${true}
-        onClose=${function () { drawS[1](false); }}
-        actions=${html`<${C.Btn} onClick=${function () { drawS[1](false); }}>그만두기<//>`}>
-        <${C.DrawPad} startFrom=${draft.drawPhotoId ? App.photos.url(draft.drawPhotoId) : null}
+        onClose=${function () { drawS[1](false); }}>
+        <${C.DrawPad} startFrom=${reDrawS[0]
+            || (draft.drawPhotoId ? App.photos.url(draft.drawPhotoId) : null)}
+          onCancel=${function () { drawS[1](false); reDrawS[1](null); }}
           onDone=${function (url) {
+            /* 곧바로 넣지 않고 **완성 확인 창**을 띄웁니다.
+               학생이 자기 그림을 보고 '이대로 할지 / 다시 그릴지' 를 정합니다. */
+            drawS[1](false); reDrawS[1](null);
+            madeS[1](url);
+          }} />
+      <//>`}
+
+      <!-- ★ 그림 완성 확인 — 그린 그림을 보여 주고 정하게 합니다.
+           그림일기에는 한 장만 들어가므로, 여러 장 그려 고르게 하지 않고
+           **한 장을 만족스럽게 완성**하는 쪽으로 만들었습니다. -->
+      ${madeS[0] && html`<${C.Modal} title="그림이 완성되었어요!" wide=${true}
+        speakText="그림이 완성되었어요. 이 그림으로 할까요?"
+        onClose=${function () { madeS[1](null); }}
+        actions=${html`<${React.Fragment}>
+          <${C.Btn} kind="ok" size="big" icon="check" onClick=${function () {
+            var url = madeS[0];
             App.photos.addDataUrl(url, student.id, 'draw').then(function (id) {
               var old = draft.drawPhotoId;
               patch({ drawPhotoId: id, picKind: 'draw' });
               if (old) App.photos.remove(old);
-              drawS[1](false);
+              madeS[1](null);
               App.ui.toast('그림을 넣었어요.');
             })['catch'](function (err) {
               App.ui.toast(err && err.message ? err.message : '그림을 저장하지 못했어요.');
             });
-          }} />
+          }}>이 그림으로 할래요<//>
+          <${C.Btn} className="pastel-yellow" icon="pencil" onClick=${function () {
+            /* 그린 것을 그대로 안고 그림판으로 돌아갑니다 (처음부터 다시 아님) */
+            reDrawS[1](madeS[0]); madeS[1](null); drawS[1](true);
+          }}>다시 그릴래요<//>
+        <//>`}>
+        <img src=${madeS[0]} alt="내가 그린 그림" class="made-shot" />
       <//>`}
 
       ${afterS[0] !== null && html`<${C.DiaryAfter} student=${student} diaryId=${savedIdS[0]}
@@ -1025,18 +1069,11 @@
     var name = card ? card.name : '이 활동';
     var st = App.store.statusOf(p.student.id, d.cardId);
 
-    function setLike(v) {
-      if (v === 'yes') App.store.setMapState(p.student.id, d.cardId, { like: true, unsure: false });
-      else if (v === 'no') App.store.setMapState(p.student.id, d.cardId, { like: false });
-      else App.store.setMapState(p.student.id, d.cardId, { unsure: true });
-      p.onStep(2);
-    }
-    function setChallenge(v) {
-      if (v === 'yes') App.store.setMapState(p.student.id, d.cardId, { challenge: true, unsure: false });
-      else if (v === 'no') App.store.setMapState(p.student.id, d.cardId, { challenge: false });
-      else App.store.setMapState(p.student.id, d.cardId, { unsure: true });
-      p.onStep(3);
-    }
+    /* ★ `좋아하나요?` `또 하거나 도전하고 싶나요?` 두 질문을 없앴습니다.
+         일기 안에서 이미 `또 하고 싶나요?` 를 물었으니 같은 것을 두 번
+         묻는 것이었습니다 (규칙 7). 지도 표시는 저장할 때 그 답에서
+         바로 만듭니다 (위 save 참고).
+         전시 질문만 남깁니다 — 이것은 일기를 쓰고 나서 정하는 새 질문입니다. */
     function setExhibit(v) {
       App.store.updateDiary(d.id, { exhibit: v });
       p.onStep(4);
@@ -1069,33 +1106,6 @@
       <//>`;
     }
     if (p.step === 1) {
-      var q1 = '이 활동을 좋아하나요?';
-      return html`<${C.Modal} title=${q1} speakText=${name + '. ' + q1}>
-        <p class="small muted">${name} 에 대해 스스로 골라 보아요.</p>
-        <${C.PickGrid} cols=${3} label=${q1}>
-          <${C.Pick} label="좋아해요" speakText="좋아해요" selected=${!!st.like}
-            onClick=${function () { setLike('yes'); }} art=${html`<${C.Art} iconKey="heart" />`} />
-          <${C.Pick} label="아직 잘 모르겠어요" speakText="아직 잘 모르겠어요" selected=${!!st.unsure}
-            onClick=${function () { setLike('unsure'); }} art=${html`<${C.Art} iconKey="question" />`} />
-          <${C.Pick} label="좋아하지 않아요" speakText="좋아하지 않아요"
-            onClick=${function () { setLike('no'); }} art=${html`<${C.Art} iconKey="dash" />`} />
-        <//>
-      <//>`;
-    }
-    if (p.step === 2) {
-      var q2 = '다음에 또 하거나 도전하고 싶나요?';
-      return html`<${C.Modal} title=${q2} speakText=${name + '. ' + q2}>
-        <${C.PickGrid} cols=${3} label=${q2}>
-          <${C.Pick} label="또 하고 싶어요" speakText="또 하고 싶어요" selected=${!!st.challenge}
-            onClick=${function () { setChallenge('yes'); }} art=${html`<${C.Art} iconKey="star" />`} />
-          <${C.Pick} label="잘 모르겠어요" speakText="잘 모르겠어요"
-            onClick=${function () { setChallenge('unsure'); }} art=${html`<${C.Art} iconKey="question" />`} />
-          <${C.Pick} label="아니요" speakText="아니요"
-            onClick=${function () { setChallenge('no'); }} art=${html`<${C.Art} iconKey="dash" />`} />
-        <//>
-      <//>`;
-    }
-    if (p.step === 3) {
       var q3 = '이 일기를 전시하고 싶어요?';
       return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}>
         <p class="small muted">전시하기로 고른 기록에는 큰 별이 붙고, 포트폴리오에 실려요.</p>
