@@ -775,6 +775,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   flex:0 0 auto;
   border:2px solid var(--line); border-radius:var(--radius); background:#fff;
   padding:.45rem .8rem; font-weight:800; font-size:1rem; line-height:1.45;
+  text-align:center;   /* 창 맨 아래 요약이라 가운데가 읽기 편합니다 */
 }
 
 /* 화면이 낮을 때에는 지도에 자리를 더 내어 줍니다 */
@@ -1577,36 +1578,113 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .blank.wide{ min-width:10em; }
 
 /* ===========================================================
-   여가 지도 : 모은 만큼 보여 주기
-   '몇 곳 다녀왔는지' 가 눈에 보여야 계속 모으고 싶어집니다
+   여가 지도 : 나의 여가 도장판
+   ★ 예전에는 진행 막대 하나뿐이라 30곳을 다 가야 뭔가 되는 구조였습니다.
+     너무 멀어서 학생이 목표를 느끼지 못했습니다.
+     이제 5곳마다 도장 하나를 찍습니다 (30곳 = 도장 6개).
+     문구마켓의 '참잘했어요' 도장처럼 **살짝 기울어 찍히고 날짜가 남습니다.**
    =========================================================== */
-.mprog{
-  flex:0 0 auto; display:flex; align-items:center; gap:.55rem;
-  padding:.35rem .7rem; border:2px solid var(--line); border-radius:999px;
+.stampcard{
+  flex:0 0 auto; display:flex; align-items:center; gap:.6rem;
+  padding:.35rem .6rem; border:2px solid var(--line); border-radius:18px;
   background:#fff;
 }
-.mprog-foot{ width:26px; height:26px; flex:0 0 auto; display:block; opacity:.85; }
-.mprog-foot img,.mprog-foot svg,.mprog-foot span{ width:100%; height:100%; display:block; object-fit:contain; }
-.mprog-num{ font-size:1.05rem; font-weight:900; white-space:nowrap; }
-.mprog-num span{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
-.mprog-bar{
-  flex:1 1 auto; min-width:60px; height:14px; border-radius:999px;
-  background:var(--paper-2); border:2px solid var(--line); overflow:hidden;
+.stampcard-lab{
+  flex:0 0 auto; font-size:.9rem; font-weight:900; color:var(--ink-soft);
+  display:flex; flex-direction:column; line-height:1.25;
 }
-.mprog-bar i{
-  display:block; height:100%; border-radius:999px;
-  background:linear-gradient(90deg,#7fd6a0,var(--ok));
-  transition:width .4s ease;
+.stampcard-lab b{ font-size:1.05rem; color:var(--ink); }
+.stamps{ flex:1 1 auto; display:flex; gap:.4rem; justify-content:space-between; }
+.stamp{
+  flex:1 1 0; min-width:0; position:relative;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  padding:.3rem .1rem; border-radius:14px;
+  border:2px dashed var(--line-strong); background:var(--paper-2);
 }
-.mprog-stamp{
-  width:28px; height:28px; flex:0 0 auto; border-radius:999px;
-  display:grid; place-items:center; font-size:1.05rem;
-  border:2px dashed var(--line-strong); color:var(--line-strong);
+/* 아직 안 받은 칸은 발자국을 아주 연하게 (자리를 미리 보여 줍니다) */
+.stamp .stamp-ink{ width:26px; height:26px; display:block; opacity:.14; }
+.stamp .stamp-ink img,.stamp .stamp-ink svg,.stamp .stamp-ink span{
+  width:100%; height:100%; display:block; object-fit:contain;
 }
-.mprog-stamp.on{
-  border-style:solid; border-color:#f0c33c; background:#fff8e2; color:inherit;
-  animation:cheer-pop .4s ease-out 1;
+.stamp-need{ font-size:.78rem; font-weight:800; color:var(--ink-soft); }
+.stamp-date{ font-size:.72rem; font-weight:800; color:#8a6a2f; min-height:.9em; }
+/* 지금 채우고 있는 칸 — 다음 목표가 어디인지 보여 줍니다 */
+.stamp.next{ border-color:var(--sel-line); background:#eaf6fe; }
+/* 도장을 받은 칸 — 살짝 기울어 찍힌 느낌 */
+.stamp.on{
+  border-style:solid; border-color:#e6bf4a; background:#fff8e2;
+  cursor:pointer;
 }
+.stamp.on .stamp-ink{ opacity:1; transform:rotate(-9deg); }
+.stamp.on:hover{ filter:brightness(.98); }
+.stamp[disabled]{ cursor:default; }
+
+/* 도장을 누르면 나오는 창 */
+.stamp-big{ width:84px; height:84px; margin:.2rem auto .4rem; transform:rotate(-9deg); }
+.stamp-big img,.stamp-big svg,.stamp-big span{ width:100%; height:100%; display:block; object-fit:contain; }
+.stamp-list{ margin:.4rem 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:.3rem; }
+.stamp-list li{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.4rem .7rem; border:2px solid var(--line); border-radius:12px; background:#fff;
+}
+.sl-no{
+  flex:0 0 auto; width:26px; height:26px; border-radius:999px;
+  display:grid; place-items:center; font-weight:900; font-size:.85rem;
+  background:#fff8e2; border:2px solid #e6bf4a; color:#6b5410;
+}
+.sl-name{ flex:1 1 auto; min-width:0; font-weight:800; }
+.sl-date{ flex:0 0 auto; font-size:.85rem; font-weight:800; color:var(--ink-soft); }
+
+/* 도움말 창의 요약 글 — 큰 글씨로 다섯 줄이면 창이 글자로 빽빽해집니다 */
+.map-sum{ font-size:1rem; line-height:1.5; }
+
+/* ===========================================================
+   나의 여가 모아보기 (지도 다음 화면)
+   해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요 를
+   2줄 2칸으로 두고, 누르면 그 표시를 한 활동만 모아 봅니다.
+   =========================================================== */
+.mymap-grid{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.7rem; break-inside:avoid;
+}
+.mymap-card{
+  display:flex; align-items:center; gap:.8rem;
+  min-height:var(--tap); padding:.8rem 1rem;
+  border:3px solid var(--line); border-radius:20px; background:#fff;
+  box-shadow:var(--shadow); text-align:left;
+}
+.mymap-card:hover{ border-color:var(--sel-line); box-shadow:var(--shadow-2); }
+.mymap-card.empty{ background:var(--paper-2); }
+.mymap-art{ width:clamp(44px,6.5vh,72px); height:clamp(44px,6.5vh,72px); flex:0 0 auto; }
+.mymap-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.mymap-txt{ display:flex; flex-direction:column; min-width:0; }
+.mymap-txt b{ font-size:1.1rem; font-weight:900; }
+.mymap-num{ font-size:.9rem; font-weight:800; color:var(--ink-soft); }
+
+.mymap-list{ display:flex; flex-direction:column; gap:.4rem; }
+.mymap-row{
+  display:flex; align-items:center; gap:.7rem;
+  padding:.4rem .8rem; border:2px solid var(--line); border-radius:14px; background:#fff;
+}
+.mymap-no{
+  flex:0 0 auto; width:28px; height:28px; border-radius:999px;
+  display:grid; place-items:center; font-weight:900; font-size:.88rem;
+  background:var(--paper-2); border:2px solid var(--line);
+}
+.mymap-thumb{ width:38px; height:38px; flex:0 0 auto; }
+.mymap-thumb > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.mymap-date{ flex:0 0 auto; font-size:.88rem; font-weight:800; color:var(--ink-soft); }
+
+/* 아직 아무것도 없을 때 — 빈 창으로 두지 않고 다음에 할 일을 알려 줍니다 */
+.mymap-empty{
+  display:flex; flex-direction:column; align-items:center; gap:.4rem;
+  padding:1.6rem 1rem; text-align:center;
+  border:3px dashed var(--line-strong); border-radius:20px; background:#fff;
+}
+.mymap-empty-art{ width:clamp(56px,9vh,96px); height:clamp(56px,9vh,96px); opacity:.5; }
+.mymap-empty-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.mymap-empty b{ font-size:1.15rem; font-weight:900; }
+.mymap-empty span{ font-weight:800; color:var(--ink-soft); }
 
 /* ===========================================================
    교실 TV 전시 모드

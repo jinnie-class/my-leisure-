@@ -193,17 +193,53 @@
     var summary = App.sentences.mapSummary(statusMap, cards);
     var shownCount = placed.filter(function (q) { return matches(q.card.id); }).length;
 
-    /* 모은 만큼 보여 주기 — '몇 곳 다녀왔는지' 가 눈에 보여야 계속 모으고 싶어집니다 */
-    var triedCount = cards.filter(function (c) { return statusOf(c.id).tried; }).length;
-    var pct = cards.length ? Math.round(triedCount / cards.length * 100) : 0;
-    /* 지금 보고 있는 두 섬의 쪽이 모두 '해봤어요' 인지 (다 채우면 도장) */
-    var islandDone = L.islands.map(function (is) {
-      var list = (is.key === 'in' ? indoor : outdoor).slice(is.page * PER, is.page * PER + PER);
-      return {
-        key: is.key, label: is.label, page: is.page + 1,
-        done: list.length > 0 && list.every(function (c) { return statusOf(c.id).tried; })
-      };
-    });
+    /* ================= 나의 여가 도장판 =================
+       ★ 예전에는 진행 막대 하나뿐이라 **30곳을 다 가야** 뭔가 되는 구조였습니다.
+         너무 멀어서 학생이 목표를 느끼지 못했습니다.
+         이제 **5곳마다 도장 1개**를 찍습니다 (30곳 = 도장 6개).
+         가까운 목표가 눈앞에 계속 보입니다.
+
+       도장을 누르면 **그때까지 해본 활동과 날짜**가 나옵니다.
+       문구마켓의 `참잘했어요` 도장처럼 날짜가 남는 것이 핵심입니다. */
+    var PER_STAMP = 5;
+
+    /* '해봤어요' 로 표시한 활동을 **처음 표시한 날짜 순서**로 모읍니다.
+       날짜는 그 활동으로 쓴 일기 가운데 가장 이른 날을 씁니다
+       (지도 표시만 눌렀고 일기가 없으면 날짜를 비워 둡니다). */
+    var triedList = (function () {
+      var diaries = App.store.diaries(student.id) || [];
+      var firstDate = {};
+      diaries.forEach(function (d) {
+        var cid = d.cardId || App.cardIdOf(d.activityId);
+        if (!cid) return;
+        if (!firstDate[cid] || d.date < firstDate[cid]) firstDate[cid] = d.date;
+      });
+      return cards
+        .filter(function (c) { return statusOf(c.id).tried; })
+        .map(function (c) { return { id: c.id, name: c.name, date: firstDate[c.id] || '' }; })
+        .sort(function (a, b) {
+          if (a.date && b.date) return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0);
+          if (a.date) return -1;
+          if (b.date) return 1;
+          return 0;
+        });
+    })();
+
+    var triedCount = triedList.length;
+    var stampTotal = Math.ceil(cards.length / PER_STAMP);       // 30곳 → 6칸
+    var stamps = [];
+    for (var si = 0; si < stampTotal; si++) {
+      var need = Math.min((si + 1) * PER_STAMP, cards.length);
+      var got = triedCount >= need;
+      var group = triedList.slice(si * PER_STAMP, si * PER_STAMP + PER_STAMP);
+      stamps.push({
+        no: si + 1, need: need, done: got, group: group,
+        /* 도장 찍은 날 = 그 묶음의 마지막 활동을 한 날 */
+        date: got && group.length ? (group[group.length - 1].date || '') : '',
+        next: !got && triedCount >= si * PER_STAMP    // 지금 채우고 있는 칸
+      });
+    }
+    var stampS = useState(null);      // 눌러서 열어 본 도장
 
     function toggle(cardId, key) {
       App.store.toggleMapState(student.id, cardId, key);
@@ -216,7 +252,8 @@
       <${C.TopBar} title="여가 지도"
         left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
           onClick=${function () { p.nav('home'); }} />`}>
-        <${C.Btn} size="small" icon="cornerDiary" onClick=${function () { p.nav('diary'); }}>일기 쓰기<//>
+        <!-- '일기 쓰기' 는 두지 않습니다. 여기는 지도를 보는 곳이고,
+             일기는 홈의 계획 카드나 기록하GO! 에서 씁니다 (규칙 7 — 중복 금지) -->
         <${C.Speak} text=${'나의 여가 탐험 지도. ' + summary.join(' ')} />
         <${C.WhoChip} student=${student} />
       <//>
@@ -227,19 +264,28 @@
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
         <div class="stage-fit" style=${{ display: 'flex', flexDirection: 'column', gap: '.45rem' }}>
 
-          <!-- 모은 만큼 눈에 보이게 : 발자국이 몇 곳에 찍혔는지 -->
-          <div class="mprog" role="group" aria-label=${'모두 ' + cards.length + '곳 가운데 ' + triedCount + '곳 다녀왔어요'}>
-            <span class="mprog-foot" aria-hidden="true">
-              ${footImg ? html`<img src=${footImg} alt="" />`
-                        : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
-            </span>
-            <b class="mprog-num">${triedCount}<span> / ${cards.length}곳</span></b>
-            <span class="mprog-bar"><i style=${{ width: pct + '%' }}></i></span>
-            ${islandDone.map(function (d) {
-              /* 섬 한 쪽(4장)을 다 채우면 도장이 찍힙니다 */
-              return html`<span key=${d.key} class=${'mprog-stamp' + (d.done ? ' on' : '')}
-                title=${d.label + ' ' + d.page + '쪽'}>${d.done ? '🏅' : '·'}</span>`;
-            })}
+          <!-- 나의 여가 도장판 : 5곳마다 발자국 도장 하나 -->
+          <div class="stampcard"
+              role="group" aria-label=${'나의 여가 도장판. 모두 ' + cards.length + '곳 가운데 ' + triedCount + '곳 다녀왔어요.'}>
+            <span class="stampcard-lab">나의 여가 도장판
+              <b>${triedCount} / ${cards.length}곳</b></span>
+            <div class="stamps">
+              ${stamps.map(function (s) {
+                var cls = 'stamp' + (s.done ? ' on' : '') + (s.next ? ' next' : '');
+                return html`<button key=${s.no} type="button" class=${cls}
+                    disabled=${!s.done}
+                    aria-label=${s.need + '곳 도장' + (s.done ? ' 받았어요' : ' 아직이에요')}
+                    title=${s.done ? '눌러서 해본 활동 보기' : s.need + '곳을 가면 도장을 받아요'}
+                    onClick=${function () { if (s.done) stampS[1](s); }}>
+                  <span class="stamp-ink" aria-hidden="true">
+                    ${footImg ? html`<img src=${footImg} alt="" />`
+                              : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
+                  </span>
+                  <span class="stamp-need">${s.need}곳</span>
+                  <span class="stamp-date">${s.done ? (s.date ? App.fmtDateShort(s.date) : '완성') : ''}</span>
+                </button>`;
+              })}
+            </div>
           </div>
 
 
@@ -344,13 +390,17 @@
             })}
           </div>
 
-          <!-- 요약은 첫 문장만 -->
+          <!-- 요약은 첫 문장만, **가운데 정렬**.
+               자세히 단추는 없앴습니다 — 위쪽 지도 도움말 과 똑같은 창을 열어
+               같은 곳으로 가는 단추가 두 개였습니다 (규칙 7 — 중복 금지). -->
           <div class="map-summary">
-            <div class="row" style=${{ flexWrap: 'nowrap' }}>
-              <span class="grow" style=${{ minWidth: 0 }}>${summary[0]}</span>
-              ${student && student.mapTools && summary.length > 1 && html`<${C.Btn} size="small"
-                onClick=${function () { helpS[1](true); }}>자세히<//>`}
-            </div>
+            <span>${summary[0]}</span>
+          </div>
+
+          <!-- 지도를 본 다음 : 내가 표시한 활동을 네 가지로 모아 봅니다 -->
+          <div class="wrap" style=${{ justifyContent: 'center' }}>
+            <${C.Btn} kind="primary" icon="next"
+              onClick=${function () { p.nav('mymap'); }}>내가 표시한 활동 모아보기<//>
           </div>
         </div>
         </div>
@@ -369,13 +419,38 @@
               <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('dash') }} />
               <span>표시가 없으면 아직 안 해봤어요</span></span>
           </div>
-          <div class="sentence">
+          <!-- 요약 글은 조금 작게 (map-sum). 큰 글씨로 다섯 줄이면 창이 글자로 빽빽해집니다 -->
+          <div class="sentence map-sum">
             ${summary.map(function (s, i) { return html`<div key=${i}>${s}</div>`; })}
           </div>
-          ${filter[0] !== 'all' && html`<p class="small muted">
+          <!-- 아래 두 줄은 **가운데**로 (창 맨 아래 안내라 가운데가 읽기 편합니다) -->
+          ${filter[0] !== 'all' && html`<p class="small muted" style=${{ textAlign: 'center' }}>
             지금 보이는 활동 : ${shownCount}가지 (${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name})</p>`}
-          <p class="small muted">활동카드를 누르면 표시를 고를 수 있어요.</p>
+          <p class="small muted" style=${{ textAlign: 'center' }}>활동카드를 누르면 표시를 고를 수 있어요.</p>
         </div>
+      <//>`}
+
+      <!-- 도장을 누르면 그때까지 해본 활동과 날짜가 나옵니다.
+           문구마켓의 '참잘했어요' 도장처럼 날짜가 남는 것이 핵심입니다. -->
+      ${stampS[0] && html`<${C.Modal} wide=${true}
+        title=${stampS[0].need + '곳 도장' + (stampS[0].date ? ' · ' + App.fmtDateShort(stampS[0].date) : '')}
+        speakText=${'도장을 받은 활동이에요. ' + stampS[0].group.map(function (g) { return g.name; }).join(', ')}
+        onClose=${function () { stampS[1](null); }}
+        actions=${html`<${C.Btn} kind="ok" onClick=${function () { stampS[1](null); }}>닫기<//>`}>
+        <div class="stamp-big" aria-hidden="true">
+          ${footImg ? html`<img src=${footImg} alt="" />`
+                    : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
+        </div>
+        <p class="small muted" style=${{ textAlign: 'center' }}>이때까지 해본 활동이에요</p>
+        <ol class="stamp-list">
+          ${stampS[0].group.map(function (g, i) {
+            return html`<li key=${g.id}>
+              <span class="sl-no">${(stampS[0].no - 1) * PER_STAMP + i + 1}</span>
+              <span class="sl-name">${g.name}</span>
+              <span class="sl-date">${g.date ? App.fmtDateShort(g.date) : ''}</span>
+            </li>`;
+          })}
+        </ol>
       <//>`}
 
       ${openCard[0] && html`<${C.MapCardPanel} card=${openCard[0]} student=${student}
@@ -406,5 +481,112 @@
         })}
       <//>
     <//>`;
+  };
+
+  /* ==================== 나의 여가 모아보기 (지도 다음 화면) ====================
+     지도는 30장을 한눈에 보여 주지만, **내가 어떻게 표시했는지**는
+     카드마다 눌러 봐야 알 수 있었습니다.
+     그래서 `해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요`
+     네 가지를 2줄 2칸으로 두고, 누르면 그 표시를 한 활동만 모아 보여 줍니다.
+
+     ★ 아직 아무것도 없을 때 **빈 창으로 두지 않습니다.**
+       '활동을 열심히 시작해 보아요!' 처럼 다음에 할 일을 알려 줍니다.
+     ★ 다 보고 나면 **일기가 아니라 홈**으로 갑니다 —
+       여기는 확인하는 곳이고, 일기는 활동을 마친 뒤에 씁니다. */
+  var EMPTY_WORD = {
+    tried:     { line: '아직 해본 활동이 없어요.',       tip: '활동을 열심히 시작해 보아요!' },
+    like:      { line: '아직 좋아하는 활동이 없어요.',   tip: '여러 가지를 해보고 마음에 드는 것을 골라 보아요!' },
+    challenge: { line: '아직 도전할 활동을 안 골랐어요.', tip: '해보고 싶은 활동을 하나 골라 보아요!' },
+    unsure:    { line: '아직 잘 모르겠다고 한 활동이 없어요.', tip: '해보고 나서 정해도 괜찮아요!' }
+  };
+
+  C.MyMapScreen = function (p) {
+    App.useStore();
+    var student = App.store.current();
+    var openS = useState(null);            // 열어 본 표시 (null 이면 네 칸 화면)
+    if (!student) return null;
+
+    var cards = App.visibleCards(student, null);
+    var statusMap = App.store.mapOf(student.id);
+    function statusOf(id) { return (statusMap && statusMap[id]) || {}; }
+
+    /* 활동마다 '처음 한 날' 을 일기에서 찾아 둡니다 */
+    var firstDate = (function () {
+      var m = {};
+      (App.store.diaries(student.id) || []).forEach(function (d) {
+        var cid = d.cardId || App.cardIdOf(d.activityId);
+        if (!cid) return;
+        if (!m[cid] || d.date < m[cid]) m[cid] = d.date;
+      });
+      return m;
+    })();
+
+    function listOf(key) {
+      return cards.filter(function (c) { return statusOf(c.id)[key]; })
+        .map(function (c) { return { card: c, date: firstDate[c.id] || '' }; });
+    }
+
+    var open = openS[0];
+    var body;
+
+    if (!open) {
+      body = html`<${React.Fragment}>
+        <${C.Question} bar=${true}
+          speakText="내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.">
+          내가 표시한 활동을 모아 볼까요?<//>
+        <div class="mymap-grid">
+          ${App.DATA.mapStates.map(function (m) {
+            var n = listOf(m.id).length;
+            return html`<button key=${m.id} type="button" class=${'mymap-card' + (n ? '' : ' empty')}
+                onClick=${function () { openS[1](m); App.speakFor(student, m.name); }}>
+              <span class="mymap-art"><${C.StateArt} state=${m} /></span>
+              <span class="mymap-txt">
+                <b>${m.name}</b>
+                <span class="mymap-num">${n ? n + '가지' : '아직 없어요'}</span>
+              </span>
+            </button>`;
+          })}
+        </div>
+      <//>`;
+    } else {
+      var list = listOf(open.id);
+      var e = EMPTY_WORD[open.id] || { line: '아직 없어요.', tip: '활동을 시작해 보아요!' };
+      body = html`<${React.Fragment}>
+        <${C.Question} bar=${true} speakText=${open.name + '. ' + open.help}>${open.name}<//>
+        ${list.length
+          ? html`<div class="mymap-list">
+              ${list.map(function (x, i) {
+                return html`<div key=${x.card.id} class="mymap-row">
+                  <span class="mymap-no">${i + 1}</span>
+                  <span class="mymap-thumb"><${C.ActivityArt} activity=${x.card} /></span>
+                  <b class="grow">${x.card.name}</b>
+                  <span class="mymap-date">${x.date ? App.fmtDateShort(x.date) : ''}</span>
+                </div>`;
+              })}
+            </div>`
+          : html`<div class="mymap-empty">
+              <span class="mymap-empty-art"><${C.StateArt} state=${open} /></span>
+              <b>${e.line}</b>
+              <span>${e.tip}</span>
+            </div>`}
+      <//>`;
+    }
+
+    return html`<div class="app" data-corner="map">
+      <${C.TopBar} title="나의 여가 모아보기"
+        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
+          onClick=${function () { p.nav('home'); }} />`}>
+        <${C.Speak} text=${open ? open.name + '. ' + open.help : '내가 표시한 활동을 모아 볼 수 있어요.'} />
+        <${C.WhoChip} student=${student} />
+      <//>
+
+      <${C.Stage}
+        top=${open ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
+          onClick=${function () { openS[1](null); }}>네 가지로 돌아가기<//>` : null}
+        action=${html`<${C.Btn} kind="ok" icon="home"
+          onClick=${function () { p.nav('home'); }}>다 봤어요 · 나의 여가로<//>`}>
+        ${body}
+      <//>
+    </div>`;
   };
 })();

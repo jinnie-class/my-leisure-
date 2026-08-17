@@ -88,6 +88,9 @@
     library: '<rect x="8" y="12" width="7" height="26" rx="2" fill="#fbcfd8"/><rect x="17" y="16" width="7" height="22" rx="2" fill="#bfe4f6"/><rect x="26" y="10" width="7" height="28" rx="2" fill="#fdeeb0"/><rect x="35" y="18" width="6" height="20" rx="2" fill="#c9e7bf"/>',
     store: '<path d="M8 18h32v20H8z" fill="#fff"/><path d="M6 10h36l-2 8H8z" fill="#fbcfd8"/><rect x="18" y="24" width="12" height="14" rx="2" fill="#bfe4f6"/>',
     mic: '<rect x="18" y="7" width="12" height="20" rx="6" fill="#ddd0f4"/><path d="M13 24c0 6 5 10 11 10s11-4 11-10"/><path d="M24 34v6M17 40h14"/>',
+    /* 음악 듣기 — 음표 두 개. 노래방(mic)과 헷갈리지 않게 모양을 다르게 그립니다 */
+    music: '<circle cx="14" cy="34" r="6" fill="#ddd0f4"/><circle cx="32" cy="30" r="6" fill="#ddd0f4"/>' +
+           '<path d="M20 34V12l18-4v22"/><path d="M20 16l18-4"/>',
     park: '<circle cx="16" cy="18" r="9" fill="#c9e7bf"/><path d="M16 27v13"/><path d="M34 12l7 12H27z" fill="#c9e7bf"/><path d="M34 24v16"/><path d="M6 40h36"/>',
     tent: '<path d="M24 8L6 38h36z" fill="#c9e7bf"/><path d="M24 8v30"/><path d="M24 20l-7 18h14z" fill="#fff6df"/>',
     food: '<path d="M12 8v14a4 4 0 0 0 8 0V8" /><path d="M16 22v18"/><path d="M34 8c-4 0-6 5-6 10s2 6 4 6v16" /><circle cx="24" cy="24" r="0" fill="none"/>',

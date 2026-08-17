@@ -213,6 +213,12 @@
     A({ id: 'gymnastics', area: 'indoor', name: '체조하기', icon: 'gym', imageKey: '체조하기',
         planText: '체조를 할 거예요', diaryText: '체조를 했어요',
         defaultPlace: '강당', defaultSupplies: ['편한 옷', '물통'] }),
+    /* ★ 활동을 30개로 맞추려고 넣었습니다 (실내 15 · 실외 15).
+         30개면 여가 지도 도장판이 **5곳마다 도장 1개 = 6칸**으로 딱 나뉩니다.
+         준비물이 거의 없어 누구나 할 수 있는 활동이라 골랐습니다. */
+    A({ id: 'music', area: 'indoor', name: '음악 듣기', icon: 'music', imageKey: '음악 듣기',
+        planText: '음악을 들을 거예요', diaryText: '음악을 들었어요',
+        defaultPlace: '교실', defaultSupplies: [] }),
 
     /* ------------------------------ 실외 ------------------------------ */
     A({ id: 'playground', area: 'outdoor', name: '놀이터 가기', icon: 'slide', imageKey: '놀이터',

@@ -64,6 +64,8 @@
       case 'avatar':    screen = html`<${C.AvatarScreen} ...${p} />`; break;
       case 'plan':      screen = html`<${C.PlanScreen} ...${p} />`; break;
       case 'map':       screen = html`<${C.MapScreen} ...${p} />`; break;
+      /* 지도 다음 화면 — 해봤어요·좋아해요·도전·모르겠어요를 모아 봅니다 */
+      case 'mymap':     screen = html`<${C.MyMapScreen} ...${p} />`; break;
       case 'diary':     screen = html`<${C.DiaryScreen} ...${p} />`; break;
       case 'picdiary':  screen = html`<${C.PicDiaryScreen} ...${p} />`; break;
       case 'portfolio': screen = html`<${C.PortfolioScreen} ...${p} />`; break;
