@@ -25,7 +25,19 @@
   /* 줄 수 : 짧게 써도 서식이 비어 보이지 않게 최소 5줄,
      3단계(자유쓰기)처럼 길어질 때를 위해 최대 7줄까지 늘립니다.
      7줄을 넘으면 칸 수를 늘려(글자를 줄여) 한 장에 맞춥니다. */
-  var MIN_ROWS = 5, MAX_ROWS = 7;
+  /* 원고지 줄 수.
+     ★ MAX_ROWS 를 7 에서 **8** 로 올렸습니다.
+       7줄에서 넘치면 다음 칸수(12칸)로 떨어져 **칸이 오히려 작아졌습니다.**
+       8줄까지 허용하면 글이 길어도 10칸(칸 79px)을 지킵니다.
+       8줄일 때 원고지는 8 × 79 = 632px, 그림칸은 909 − 632 = 277px 남습니다
+       (그림칸 최소 180px 보다 넉넉합니다). 이보다 더 올리면 그림칸이 찌그러집니다. */
+  var MIN_ROWS = 5, MAX_ROWS = 8;
+
+  /* 칸 안 글자가 칸을 얼마나 채우는지.
+     ★ 0.58 → **0.70** 으로 올렸습니다. 칸 크기(79px)는 그대로인데 글자만
+       46px → 55px 로 커집니다. **그림칸을 한 픽셀도 줄이지 않고** 시원해 보입니다.
+       0.75 를 넘으면 받침 있는 글자(`쌓`)가 칸 선에 닿습니다. */
+  var GLYPH_FILL = 0.70;
 
   /* 날씨 그림 — 인쇄해서 그날 날씨 하나에 동그라미 칩니다.
      글자를 못 읽는 학생도 알아볼 수 있게 모양을 뚜렷하게 그리고
@@ -66,14 +78,47 @@
       'stroke-linejoin="round"/>' }
   ];
 
-  /* 인쇄 모양 — 왼쪽에서 오른쪽으로 갈수록 쓰기가 어려워집니다.
-     학생마다 맞는 단계를 골라 인쇄하면 같은 일기로 여러 수준을 쓸 수 있습니다. */
-  var TRACE_MODES = [
-    { id: 'text',  name: '글자',    desc: '완성된 글자를 그대로 읽어요' },
-    { id: 'first', name: '첫글자만', desc: '줄마다 첫 글자만 진해요 — 나머지는 따라 써요' },
-    { id: 'trace', name: '따라쓰기', desc: '연한 글씨 위에 그대로 따라 써요' },
-    { id: 'empty', name: '빈칸',    desc: '칸만 나와요 — 보고 옮겨 써요' }
-  ];
+  /* ============== 「나의 여가 일기」 3단계 수준별 구성 ★고정 규칙★ ==============
+     단계가 올라갈수록 **글의 양**이 아니라 **학생이 스스로 하는 정도**가 늘어납니다.
+       보고 쓰기  →  따라 쓰거나 스스로 쓰기  →  자유롭게 일기 쓰기
+
+     | 단계 | 글쓰기 양식 | 글 제공 | 학생이 하는 일 |
+     |------|------------|---------|----------------|
+     | 1단계 | **칸**     | 완성된 글 전체 | 완성된 글을 보며 그림일기를 경험 |
+     | 2단계 | **칸**     | 선택적       | 따라 쓰기 또는 스스로 쓰기 |
+     | 3단계 | **줄**     | 주지 않음     | 자기 경험을 문장으로 자유롭게 |
+
+     ⛔ 1·2단계의 칸을 줄로 바꾸거나, 3단계를 칸으로 바꾸지 마세요.
+        자세한 조항은 `인수인계.md` 의 `2-2. 그림일기 3단계 구성 원칙` 에 있습니다. */
+  var LEVEL_INFO = {
+    1: { name: '보고 써요',                sub: '완성된 글을 보며 그림일기를 경험해요' },
+    2: { name: '따라 쓰거나 스스로 써요',   sub: '보고 따라 쓰거나, 빈 칸에 직접 써요' },
+    3: { name: '나의 일기를 써요',          sub: '내 경험을 문장으로 자유롭게 써요' }
+  };
+
+  /* 인쇄 모양 — **단계마다 고를 수 있는 것이 다릅니다.**
+     같은 기능(t-text / t-trace / t-empty)을 쓰지만, 단계에 맞는 것만 내놓고
+     이름도 그 단계의 말로 바꿉니다. */
+  var MODES_BY_LEVEL = {
+    1: [
+      { id: 'text',  name: '글자',        desc: '완성된 글이 칸에 모두 나와요 — 보고 읽어요' }
+    ],
+    2: [
+      { id: 'trace', name: '따라 쓰기',   desc: '연한 글씨가 칸에 나와요 — 그 위에 따라 써요' },
+      { id: 'empty', name: '스스로 쓰기', desc: '칸만 나와요 — 도움말을 보고 직접 써요' }
+    ],
+    3: [
+      { id: 'text',  name: '내가 쓴 글',  desc: '내가 쓴 일기가 줄에 나와요' },
+      { id: 'empty', name: '빈 줄',       desc: '줄만 나와요 — 생각 질문을 보고 직접 써요' }
+    ]
+  };
+
+  function levelOf(d, student) {
+    var lv = (d && d.level) || (student && student.diaryLevel) || 1;
+    return (lv === 2 || lv === 3) ? lv : 1;
+  }
+  function modesFor(lv) { return MODES_BY_LEVEL[lv] || MODES_BY_LEVEL[1]; }
+  function defaultModeFor(lv) { return modesFor(lv)[0].id; }
 
   /* ==================== 「나의 여가 일기 — 원고지 작성 규칙」 ====================
      ★ 이 규칙은 앱의 고정 규칙입니다. 원고지 화면을 고칠 때 반드시 지켜 주세요.
@@ -179,7 +224,12 @@
           for (var c = 0; c < cols; c++) blank.push('');
           rows.push(blank);
         }
-        if (rows.length > MAX_ROWS) rows = rows.slice(0, MAX_ROWS);
+        /* ※ 넘쳐도 **줄을 자르지 않습니다.** 자르면 학생이 쓴 글이 사라집니다
+           (원고지 규칙 13 — 글자 누락 금지). 가장 촘촘한 20칸에서도 넘치면
+           그림칸이 최소 높이까지 줄어들며 버티고, 콘솔에 알려 줍니다. */
+        if (rows.length > MAX_ROWS && window.console) {
+          console.warn('[원고지] 글이 ' + rows.length + '줄이라 한 장을 넘습니다. (최대 ' + MAX_ROWS + '줄)');
+        }
         return { cols: cols, rows: rows };
       }
     }
@@ -208,17 +258,20 @@
       .concat(d.text ? [d.text] : []).filter(function (s) { return s && s.trim(); });
     if (!lines.length) lines = [App.sentences.diaryBody(d)].filter(Boolean);
 
-    /* 3단계(자유쓰기)는 글이 길어서 원고지 칸에 다 담기지 않습니다.
-       그래서 3단계만 밑줄로 바꿔 줍니다. */
-    var useLines = d.level === 3;
+    /* ★ 고정 규칙 : 1·2단계는 **칸**, 3단계는 **줄**. 절대 바꾸지 마세요.
+       3단계는 학생이 자유롭게 써서 글이 길고, 칸에 다 담기지 않습니다. */
+    var lv = levelOf(d, p.student);
+    var useLines = (lv === 3);
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
     var dt = App.parseKey(d.date);
     var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
-    var mode = p.trace || 'text';        // text | first | trace | empty
+    /* 단계에 없는 모양이 넘어오면 그 단계의 기본 모양으로 되돌립니다 */
+    var mode = p.trace || defaultModeFor(lv);
+    if (!modesFor(lv).some(function (m) { return m.id === mode; })) mode = defaultModeFor(lv);
 
     /* 보통의 그림일기 양식 :
        날짜·날씨 줄 → 일어난·잠드는 시간 줄 → 그림 칸 → 제목 줄 → 원고지 칸 */
-    return html`<div class=${'pd-sheet t-' + mode}>
+    return html`<div class=${'pd-sheet t-' + mode + ' lv-' + lv}>
 
       <div class="pd-line pd-datebar">
         <span class="pd-date">
@@ -283,19 +336,19 @@
            글이 길어져도 한 장에 다 담기고, 칸에 맞춰 쓰는 부담도 없습니다. */
         ? html`<div class="pd-lines">
             ${lines.map(function (s, i) {
-              return html`<p key=${i} class=${'pd-ln pd-ch' + (i === 0 ? ' lead' : '')}>${s}</p>`;
+              return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
             })}
           </div>`
         /* 1·2단계는 원고지 칸에 한 글자씩 */
         : html`<div class="pd-grid" style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
-            fontSize: Math.round(790 / g.cols * 0.58) + 'px' }}>
+            fontSize: Math.round(790 / g.cols * GLYPH_FILL) + 'px' }}>
           ${g.rows.map(function (row, r) {
-            /* '첫 글자만' 판을 위해 줄마다 첫 글자가 어디인지 표시해 둡니다 */
-            var lead = -1;
-            for (var i = 0; i < row.length; i++) { if (row[i]) { lead = i; break; } }
             return row.map(function (ch, c) {
+              /* 한 칸에 글자+마침표가 함께 들어간 칸(원고지 규칙 4)은
+                 글자를 조금 줄여야 칸 선을 넘지 않습니다 */
+              var two = String(ch).length > 1;
               return html`<span key=${r + '-' + c} class="pd-box">
-                <span class=${'pd-ch' + (c === lead ? ' lead' : '')}>${ch}</span></span>`;
+                <span class=${'pd-ch' + (two ? ' two' : '')}>${ch}</span></span>`;
             });
           })}
         </div>`}
@@ -321,8 +374,13 @@
     var student = d ? App.store.student(d.studentId) : App.store.current();
     var boxRef = useRef(null);
     var fit = useState(0.5);
-    /* 인쇄 모양 : 글자 → 첫글자만 → 따라쓰기 → 빈칸 (오른쪽으로 갈수록 어려워집니다) */
-    var traceS = useState('text');
+    /* 인쇄 모양은 **단계마다 다릅니다** (위 MODES_BY_LEVEL).
+       처음 열 때는 그 단계의 첫 번째 모양으로 시작합니다. */
+    var lv = levelOf(d, student);
+    var traceS = useState(function () { return defaultModeFor(lv); });
+    /* 다른 학생(다른 단계)의 일기로 넘어가면 그 단계의 기본 모양으로 돌립니다 */
+    var lvRef = useRef(lv);
+    if (lvRef.current !== lv) { lvRef.current = lv; traceS[1](defaultModeFor(lv)); }
 
     useLayoutEffect(function () {
       function measure() {
@@ -341,10 +399,14 @@
 
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace=${traceS[0]} />`;
 
-    /* 인쇄 모양 단추 4개는 제목·단추와 한 줄에 두면 서로 밀려 제목이 잘립니다 → 아랫줄로 */
+    /* 인쇄 모양 단추는 제목·단추와 한 줄에 두면 서로 밀려 제목이 잘립니다 → 아랫줄로.
+       단추는 **그 학생의 단계에 있는 것만** 나옵니다 (1단계는 하나뿐). */
+    var myModes = modesFor(lv);
     var modeBar = html`<div class="wrap" style=${{ gap: '.25rem', justifyContent: 'center' }}>
-      <span class="small" style=${{ fontWeight: 900 }}>인쇄 모양</span>
-      ${TRACE_MODES.map(function (m) {
+      <span class="pd-lv" title=${LEVEL_INFO[lv].sub}>
+        <b>${lv}단계</b> ${LEVEL_INFO[lv].name}</span>
+      ${myModes.length > 1 && html`<span class="small" style=${{ fontWeight: 900 }}>인쇄 모양</span>`}
+      ${myModes.map(function (m) {
         var on = traceS[0] === m.id;
         return html`<button key=${m.id} type="button" class=${'tab' + (on ? ' on' : '')}
           style=${{ minHeight: '40px', padding: '.1rem .7rem', fontSize: '.85rem' }}

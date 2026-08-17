@@ -1141,21 +1141,32 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   aspect-ratio:1; min-width:0;
   border-right:1px solid #333; border-bottom:1px solid #333;
   display:flex; align-items:center; justify-content:center;
+  overflow:hidden;                 /* 글자가 칸 선을 넘어 삐져나오지 않게 */
 }
+/* 한 칸에 글자+마침표가 함께 들어간 칸 (원고지 규칙 4).
+   글자를 키운 뒤(칸의 70%)에는 두 글자가 칸을 넘으므로 이 칸만 줄입니다. */
+.pd-box .pd-ch.two{ font-size:.8em; letter-spacing:-.02em; }
 .pd-ch{ font-weight:800; line-height:1; white-space:pre; }
-/* 인쇄 모양 4가지 — 학생마다 쓰기 부담을 맞춥니다
-     t-text  글자   : 그대로 읽습니다
-     t-first 첫글자만: 줄마다 첫 글자만 진하고 나머지는 연하게
-     t-trace 따라쓰기: 모두 연한 회색 — 그 위에 따라 씁니다
-     t-empty 빈칸    : 칸만 나옵니다 — 보고 옮겨 씁니다 */
+/* 인쇄 모양 3가지 — **단계마다 고를 수 있는 것이 다릅니다** (`MODES_BY_LEVEL`)
+     t-text  1단계 `글자` · 3단계 `내가 쓴 글` : 글이 그대로 나옵니다
+     t-trace 2단계 `따라 쓰기`               : 연한 회색 — 그 위에 따라 씁니다
+     t-empty 2단계 `스스로 쓰기` · 3단계 `빈 줄` : 칸·줄만 나옵니다
+   ※ `t-first`(첫글자만) 는 없앴습니다. 2단계를 '따라 쓰기 / 스스로 쓰기'
+     두 가지로 못박은 고정 규칙과 어긋나서입니다. */
 .pd-sheet.t-trace .pd-ch{ color:#c9c9d2; }
-.pd-sheet.t-first .pd-ch{ color:#dcdce4; }
-.pd-sheet.t-first .pd-ch.lead{ color:#1f1f28; }
 .pd-sheet.t-empty .pd-grid .pd-ch,
 .pd-sheet.t-empty .pd-lines .pd-ch{ visibility:hidden; }
-.pd-sheet.t-trace .pd-titlebar .pd-ch,
-.pd-sheet.t-first .pd-titlebar .pd-ch{ color:#c9c9d2; }
+.pd-sheet.t-trace .pd-titlebar .pd-ch{ color:#c9c9d2; }
 .pd-sheet.t-empty .pd-titlebar .pd-ch{ visibility:hidden; }
+
+/* 위쪽 줄에 보이는 단계 표시 — 선생님이 인쇄 전에 단계를 확인합니다 */
+.pd-lv{
+  display:inline-flex; align-items:center; gap:.3rem;
+  padding:.2rem .7rem; border-radius:999px;
+  background:#fdf1c9; border:2px solid #e6bf4a; color:#4a3608;
+  font-size:.85rem; font-weight:800;
+}
+.pd-lv b{ font-weight:900; }
 
 /* 5-2. 밑줄 (일기 3단계 자유쓰기)
    글이 길어져도 다 담기도록 칸 대신 줄에 씁니다. */
