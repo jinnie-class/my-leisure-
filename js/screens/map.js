@@ -241,6 +241,25 @@
     }
     var stampS = useState(null);      // 눌러서 열어 본 도장
 
+    /* ---------- 도장 하나를 다 채우면 폭죽을 터뜨립니다 ----------
+       5곳을 채운 그 순간을 그냥 지나가게 두면 도장판이 그저 표가 됩니다.
+       **몇 번째 도장까지 축하했는지**를 학생 기록에 적어 두고
+       (`stampCheered`), 그보다 도장이 늘어나 있으면 축하합니다.
+       ▸ 축하는 **한 번만** : 지도를 다시 열어도 또 터지지 않습니다.
+       ▸ 일기를 쓰고 나면 지도에 저절로 표시되므로, 도장을 채운 학생은
+         다음에 지도를 열었을 때 폭죽을 보게 됩니다. */
+    var doneStamps = stamps.filter(function (s) { return s.done; }).length;
+    var cheerS = useState(null);        // 지금 축하하는 도장 (없으면 null)
+    useEffect(function () {
+      var seen = student.stampCheered || 0;
+      if (doneStamps > seen) {
+        var got = stamps.filter(function (s) { return s.done; })[doneStamps - 1];
+        cheerS[1](got);
+        App.store.updateStudent(student.id, { stampCheered: doneStamps });
+        App.speakFor(student, got.need + '곳을 다녀왔어요. 도장을 받았어요. 축하해요!');
+      }
+    }, [doneStamps, student.id]);
+
     function toggle(cardId, key) {
       App.store.toggleMapState(student.id, cardId, key);
       var st = App.store.statusOf(student.id, cardId);
@@ -289,40 +308,12 @@
           </div>
 
 
-          <!-- 학생 화면에는 지도와 활동카드만 둡니다.
-               필터·확대·도움말은 선생님이 켤 때에만 나옵니다. -->
-          ${student && student.mapTools ? html`<div class="row" style=${{ gap: '.4rem' }}>
-            <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
-              찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
-            ${filter[0] !== 'all' && html`<span class="chip">
-              ${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name} 만 보여요
-            </span>`}
-            <div class="grow"></div>
-            <${C.Btn} size="small" icon="question" onClick=${function () { helpS[1](true); }}>지도 도움말<//>
-          </div>` : null}
-
-          ${student && student.mapTools && toolsS[0] && html`<div class="map-toolbox">
-            <div class="map-tools">
-              ${FILTERS.map(function (f) {
-                return html`<button key=${f.id} type="button"
-                  class=${'tab' + (filter[0] === f.id ? ' on' : '')}
-                  aria-pressed=${filter[0] === f.id ? 'true' : 'false'}
-                  onClick=${function () { filter[1](f.id); }}>
-                  <span class="filter-art" aria-hidden="true">
-                    ${f.id === 'all' || f.id === 'none'
-                      ? html`<span dangerouslySetInnerHTML=${{ __html: App.icon(f.icon) }} />`
-                      : html`<${C.StateArt} state=${App.state(f.id)} />`}
-                  </span>
-                  ${f.name}${filter[0] === f.id ? ' ✓' : ''}</button>`;
-              })}
-            </div>
-            <div class="map-tools" style=${{ marginTop: '.4rem' }}>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.max(0.6, view[0].zoom - 0.2), px: 0, py: 0 }); }} ariaLabel="지도 작게">－ 작게<//>
-              <span class="chip">${Math.round(view[0].zoom * 100)}%</span>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.min(2.2, view[0].zoom + 0.2), px: 0, py: 0 }); }} ariaLabel="지도 크게">＋ 크게<//>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: 1, px: 0, py: 0 }); }}>처음 크기<//>
-            </div>
-          </div>`}
+          <!-- ★ 선생님 도구(찾아보기 · 지도 도움말)는 **지도 아래로 내렸습니다.**
+                 지도 위에 있으면 그만큼 지도와 활동 그림이 눌려서 작아졌습니다.
+                 지도가 이 화면의 주인공이니 위쪽 자리를 모두 지도에 줍니다.
+                 (도구 자체는 선생님이 켤 때에만 나옵니다 — 학생 화면에는 지도만.)
+                 실제로 그리는 곳은 아래 map-foot 입니다.
+                 ※ 이 주석은 html 템플릿 안이라 백틱을 쓰면 템플릿이 끊깁니다. -->
 
           <div class="map-wrap grow" ref=${wrapRef}>
             <div class="map-canvas" style=${{ width: W + 'px', height: H + 'px',
@@ -397,10 +388,50 @@
             <span>${summary[0]}</span>
           </div>
 
-          <!-- 지도를 본 다음 : 내가 표시한 활동을 네 가지로 모아 봅니다 -->
-          <div class="wrap" style=${{ justifyContent: 'center' }}>
+          ${student && student.mapTools && toolsS[0] && html`<div class="map-toolbox">
+            <div class="map-tools">
+              ${FILTERS.map(function (f) {
+                return html`<button key=${f.id} type="button"
+                  class=${'tab' + (filter[0] === f.id ? ' on' : '')}
+                  aria-pressed=${filter[0] === f.id ? 'true' : 'false'}
+                  onClick=${function () { filter[1](f.id); }}>
+                  <span class="filter-art" aria-hidden="true">
+                    ${f.id === 'all' || f.id === 'none'
+                      ? html`<span dangerouslySetInnerHTML=${{ __html: App.icon(f.icon) }} />`
+                      : html`<${C.StateArt} state=${App.state(f.id)} />`}
+                  </span>
+                  ${f.name}${filter[0] === f.id ? ' ✓' : ''}</button>`;
+              })}
+            </div>
+            <div class="map-tools" style=${{ marginTop: '.4rem' }}>
+              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.max(0.6, view[0].zoom - 0.2), px: 0, py: 0 }); }} ariaLabel="지도 작게">－ 작게<//>
+              <span class="chip">${Math.round(view[0].zoom * 100)}%</span>
+              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.min(2.2, view[0].zoom + 0.2), px: 0, py: 0 }); }} ariaLabel="지도 크게">＋ 크게<//>
+              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: 1, px: 0, py: 0 }); }}>처음 크기<//>
+            </div>
+          </div>`}
+
+          <!-- 맨 아래 한 줄 : 왼쪽 '찾아보기' · 가운데 '모아보기' · 오른쪽 '지도 도움말'.
+               가운데 단추는 늘 화면 가운데에 오도록 양옆 자리를 똑같이 나눠 둡니다
+               (선생님 도구가 꺼져 있어도 가운데가 흔들리지 않습니다). -->
+          <div class="map-foot">
+            <div class="map-foot-side">
+              ${student && student.mapTools ? html`<${React.Fragment}>
+                <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
+                  찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
+                ${filter[0] !== 'all' && html`<span class="chip">
+                  ${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name} 만 보여요
+                </span>`}
+              <//>` : null}
+            </div>
             <${C.Btn} kind="primary" icon="next"
               onClick=${function () { p.nav('mymap'); }}>내가 표시한 활동 모아보기<//>
+            <div class="map-foot-side end">
+              ${student && student.mapTools
+                ? html`<${C.Btn} size="small" icon="question"
+                    onClick=${function () { helpS[1](true); }}>지도 도움말<//>`
+                : null}
+            </div>
           </div>
         </div>
         </div>
@@ -432,7 +463,10 @@
 
       <!-- 도장을 누르면 그때까지 해본 활동과 날짜가 나옵니다.
            문구마켓의 '참잘했어요' 도장처럼 날짜가 남는 것이 핵심입니다. -->
-      ${stampS[0] && html`<${C.Modal} wide=${true}
+      <!-- ★ wide(넓은 창) 를 뺐습니다. 활동 이름 다섯 줄뿐인데 창이 화면 끝까지
+             넓어서 글자와 날짜 사이가 텅 비고, 한눈에 들어오지 않았습니다.
+             폭을 반으로 줄이면 발자국 · 이름 · 날짜가 한 덩어리로 보입니다. -->
+      ${stampS[0] && html`<${C.Modal}
         title=${stampS[0].need + '곳 도장' + (stampS[0].date ? ' · ' + App.fmtDateShort(stampS[0].date) : '')}
         speakText=${'도장을 받은 활동이에요. ' + stampS[0].group.map(function (g) { return g.name; }).join(', ')}
         onClose=${function () { stampS[1](null); }}
@@ -441,7 +475,8 @@
           ${footImg ? html`<img src=${footImg} alt="" />`
                     : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
         </div>
-        <p class="small muted" style=${{ textAlign: 'center' }}>이때까지 해본 활동이에요</p>
+        <!-- 작은 글씨(small) 를 뺐습니다 — 도장 창의 안내 한 줄인데 너무 작았습니다 -->
+        <p class="stamp-cap">이때까지 해본 활동이에요</p>
         <ol class="stamp-list">
           ${stampS[0].group.map(function (g, i) {
             return html`<li key=${g.id}>
@@ -451,6 +486,26 @@
             </li>`;
           })}
         </ol>
+      <//>`}
+
+      <!-- 도장 하나를 다 채운 순간의 축하 : 폭죽 + 칭찬 한 마디.
+           '어떤 활동인지 보기' 를 누르면 방금 받은 도장 속 활동 목록으로 이어집니다. -->
+      ${cheerS[0] && html`<${React.Fragment}>
+        <${C.Fireworks} />
+        <${C.Modal} title=${'축하해요! ' + cheerS[0].need + '곳 도장을 받았어요'}
+          speakText=${cheerS[0].need + '곳을 다녀왔어요. 도장을 받았어요. 축하해요!'}
+          onClose=${function () { cheerS[1](null); }}
+          actions=${html`<${React.Fragment}>
+            <${C.Btn} kind="ok" onClick=${function () {
+              var got = cheerS[0]; cheerS[1](null); stampS[1](got); }}>어떤 활동인지 보기<//>
+            <${C.Btn} onClick=${function () { cheerS[1](null); }}>닫기<//>
+          <//>`}>
+          <div class="stamp-big">
+            ${footImg ? html`<img src=${footImg} alt="" />`
+                      : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
+          </div>
+          <p class="stamp-cap">${cards.length}곳 가운데 ${triedCount}곳을 다녀왔어요</p>
+        <//>
       <//>`}
 
       ${openCard[0] && html`<${C.MapCardPanel} card=${openCard[0]} student=${student}
@@ -583,8 +638,8 @@
       <${C.Stage}
         top=${open ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { openS[1](null); }}>네 가지로 돌아가기<//>` : null}
-        action=${html`<${C.Btn} kind="ok" icon="home"
-          onClick=${function () { p.nav('home'); }}>다 봤어요 · 나의 여가로<//>`}>
+        action=${html`<${C.Btn} kind="ok" icon="back"
+          onClick=${function () { p.nav('map'); }}>다 봤어요 · 여가 지도로<//>`}>
         ${body}
       <//>
     </div>`;

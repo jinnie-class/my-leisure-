@@ -364,8 +364,22 @@ ul{ margin:0; padding:0; list-style:none; }
 .corner .art svg{ display:block; }
 /* 무엇을 하는 곳인지(여가 계획하기)를 크게, 코너 이름(계획하GO!)은 작게.
    학생이 먼저 읽어야 하는 것이 '무엇을 하는 곳인가' 이기 때문입니다. */
-.corner .desc{ display:block; font-size:clamp(1.15rem,1.7vh + .5rem,1.9rem); font-weight:900; letter-spacing:-.03em; color:var(--ink); }
-.corner .name{ display:block; font-size:.95rem; font-weight:800; color:var(--ink-soft); }
+/* ⛔ 여기서 **가장 큰 값은 반드시 px** 로 둡니다.
+     카드 폭은 `clamp(140px, 21vh, 250px)` 로 **250px 에서 멈추는데**,
+     글자를 `1.9rem` 으로 두면 rem(루트 글자)이 화면에 따라 계속 커져서
+     큰 화면에서 글자가 카드를 넘겨 `여가 / 계획하기` 처럼 두 줄로 깨졌습니다.
+     28px 이면 가장 긴 `여가 포트폴리오` (7글자 + 띄어쓰기) 가
+     카드 안쪽 228px 에 한 줄로 들어갑니다.
+     `white-space:nowrap` 은 그래도 안 깨지게 하는 안전장치입니다. */
+.corner .desc{
+  display:block; font-size:clamp(1.05rem, 1.7vh + .5rem, 28px);
+  font-weight:900; letter-spacing:-.03em; color:var(--ink);
+  white-space:nowrap;
+}
+.corner .name{
+  display:block; font-size:clamp(.85rem, .9vh + .3rem, 16px);
+  font-weight:800; color:var(--ink-soft); white-space:nowrap;
+}
 .corner .guide{ font-size:.88rem; color:var(--ink-soft); line-height:1.35; }
 
 /* 활동 카드 (선택용) */
@@ -456,17 +470,19 @@ ul{ margin:0; padding:0; list-style:none; }
    ★ 맨 위 화면 제목(`여가 계획하기`)보다 **작아야** 합니다.
      예전에는 `1rem + 1.5vh` (최대 2.2rem) 로 제목보다 오히려 커서,
      무엇이 큰 제목인지 헷갈렸습니다.
-     지금은 제목의 **약 73%** 가 되도록 맞췄습니다.
-       제목    : clamp(1.3rem, .85rem + 1.30vh, 1.85rem)   ← .topbar .title
-       질문    : clamp(.92rem, .62rem + .92vh, 1.32rem)    ← 여기
-     기울기(vh)까지 같은 비로 줄여서 **어느 화면 크기에서나** 제목이 더 큽니다.
-     (1024×768 → 제목 24px · 질문 18px / 1920×1080 → 33px · 24px)
-   ※ 두 번 줄였습니다. 처음에는 제목보다 커서(2.2rem) 무엇이 제목인지 헷갈렸고,
-     82% 로 줄인 뒤에도 **너무 커서 오히려 읽기 어려웠습니다.**
-     더 줄이려면 세 숫자를 **같은 비로** 줄이세요. 하나만 고치면 화면 크기에 따라
-     글자가 튑니다.
+     지금은 제목의 **약 85%** 가 되도록 맞췄습니다 — 제목보다는 작고,
+     아래 설명 글씨(1rem)보다는 큰 **그 중간**입니다.
+       제목    : clamp(1.30rem, .85rem + 1.30vh, 1.85rem)   ← .topbar .title
+       질문    : clamp(1.10rem, .72rem + 1.10vh, 1.57rem)   ← 여기
+       설명    : 1rem (본문) · .86rem (.small)
+     기울기(vh)까지 같은 비로 맞춰서 **어느 화면 크기에서나** 제목이 더 큽니다.
+     (1024×768 → 제목 24px · 질문 20px · 본문 16px)
+   ※ 세 번 고쳤습니다. 처음에는 제목보다 커서(2.2rem) 무엇이 제목인지 헷갈렸고,
+     82% → 73% 로 줄이니 이번에는 설명 글씨와 비슷해져 질문으로 안 보였습니다.
+     크기를 바꾸려면 세 숫자를 **같은 비로** 고치세요. 하나만 고치면
+     화면 크기에 따라 글자가 튑니다.
    이 한 줄이 계획·일기·캐릭터 고르기·팝업의 질문을 **모두** 같이 바꿉니다. */
-.q h2{ font-size:clamp(.92rem,.62rem + .92vh,1.32rem); font-weight:900; letter-spacing:-.03em; }
+.q h2{ font-size:clamp(1.1rem,.72rem + 1.1vh,1.57rem); font-weight:900; letter-spacing:-.03em; }
 .q .hint{ font-size:.95rem; color:var(--ink-soft); font-weight:700; }
 
 /* 질문을 동그란 흰 바에 담아 **가운데**에 놓는 모양 (`C.Question bar=`).
@@ -782,6 +798,19 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   padding:.45rem .8rem; font-weight:800; font-size:1rem; line-height:1.45;
   text-align:center;   /* 창 맨 아래 요약이라 가운데가 읽기 편합니다 */
 }
+/* 지도 화면 맨 아래 한 줄 — 왼쪽 도구 · 가운데 큰 단추 · 오른쪽 도움말.
+   양옆 자리(`1fr`)를 똑같이 나눠서, 선생님 도구가 꺼져 있어도
+   가운데 단추가 늘 화면 가운데에 옵니다. */
+.map-foot{
+  flex:0 0 auto; display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; gap:.5rem;
+}
+.map-foot-side{ display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; min-width:0; }
+.map-foot-side.end{ justify-content:flex-end; }
+@media (max-width: 620px){
+  .map-foot{ grid-template-columns:1fr; justify-items:center; }
+  .map-foot-side.end{ justify-content:center; }
+}
 
 /* 화면이 낮을 때에는 지도에 자리를 더 내어 줍니다 */
 @media (max-height: 820px), (max-width: 1100px){
@@ -798,17 +827,29 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   background:#fff; border:2px solid var(--line); border-radius:18px;
   padding:16px 18px; break-inside:avoid;
 }
-/* 계획표 머리 — 제목은 **가운데**, 활동 그림은 오른쪽에 작게.
+/* 계획표 — 제목(가운데) → 문장(가운데) → 표(왼쪽) + 활동 그림(오른쪽 큼직하게).
    ★ 제목을 1.9rem 에서 1.35rem 으로 줄였습니다. 너무 커서 종이가 제목에 눌렸습니다.
      이름·날짜 작은 글씨는 없앴습니다 — 바로 아래 표에 날짜가 다시 나오고,
-     이름은 화면 오른쪽 위 이름표에 늘 보입니다. */
-.sheet-head{ position:relative; display:flex; align-items:center; justify-content:center; }
+     이름은 화면 오른쪽 위 이름표에 늘 보입니다.
+   ★ 활동 그림은 제목 옆 오른쪽 위에 조그맣게 붙어 있었습니다. 제목을 가리고
+     무슨 활동인지 알아보기 어려웠습니다. 표 오른쪽 빈자리로 내려서 크게 키웠습니다. */
 .sheet .sheet-title{
   font-size:1.35rem; font-weight:900; letter-spacing:-.03em; text-align:center;
 }
+.sheet .sentence-center{ text-align:center; }
+.sheet-body{
+  display:grid; grid-template-columns:1fr auto; align-items:center;
+  gap:1rem; margin-top:.7rem;
+}
 .sheet-art{
-  position:absolute; right:0; top:50%; transform:translateY(-50%);
-  width:clamp(52px,7vh,84px); height:clamp(52px,7vh,84px);
+  width:clamp(120px, 20vh, 200px); height:clamp(120px, 20vh, 200px);
+  justify-self:center;
+}
+.sheet-art img, .sheet-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
+/* 좁은 화면에서는 그림을 표 아래로 내려 가운데에 둡니다. */
+@media (max-width: 620px){
+  .sheet-body{ grid-template-columns:1fr; }
+  .sheet-art{ width:clamp(110px,26vw,170px); height:clamp(110px,26vw,170px); }
 }
 .sheet .sheet-meta{ font-size:.92rem; font-weight:800; color:var(--ink-soft); }
 .exh-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.7rem; }
@@ -1721,7 +1762,12 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .stamp[disabled]{ cursor:default; }
 
 /* 도장을 누르면 나오는 창 */
-.stamp-big{ width:84px; height:84px; margin:.2rem auto .4rem; transform:rotate(-9deg); }
+/* 도장 창의 발자국 — 84px 에서 크게 키웠습니다.
+   도장을 받은 것을 칭찬하는 창인데, 발자국이 글자보다 작으면 칭찬으로 안 보입니다. */
+.stamp-big{ width:clamp(120px,18vh,170px); height:clamp(120px,18vh,170px);
+  margin:.2rem auto .4rem; transform:rotate(-9deg); }
+/* 도장 창 안내 한 줄 — `small`(.86rem) 은 너무 작아 따로 둡니다 */
+.stamp-cap{ margin:0; text-align:center; font-size:1.05rem; font-weight:800; color:var(--ink-soft); }
 .stamp-big img,.stamp-big svg,.stamp-big span{ width:100%; height:100%; display:block; object-fit:contain; }
 .stamp-list{ margin:.4rem 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:.3rem; }
 .stamp-list li{
@@ -1887,4 +1933,30 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .pick-grid.cols-6,.pick-grid.cols-7,.pick-grid.cols-8{
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
+}
+
+/* =========================================================== 
+   폭죽 — 도장 하나를 다 채웠을 때 터지는 축하 (C.Fireworks)
+   색종이 조각은 그냥 작은 네모입니다. `--dx` · `--dy` 로 날아갈 곳을,
+   `--c` 로 색을 정합니다. 그림 파일을 쓰지 않습니다.
+   =========================================================== */
+.fw{
+  position:fixed; inset:0; z-index:80;
+  pointer-events:none;   /* 폭죽 위로도 단추를 누를 수 있습니다 */
+}
+.fw-burst{ position:absolute; width:0; height:0; }
+.fw-bit{
+  position:absolute; left:0; top:0; width:11px; height:11px; border-radius:3px;
+  background:var(--c); opacity:0;
+  animation:fw-fly 1.15s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes fw-fly{
+  0%   { transform:translate(0,0) scale(.4) rotate(0deg); opacity:1; }
+  70%  { opacity:1; }
+  100% { transform:translate(var(--dx), calc(var(--dy) + 46px)) scale(1) rotate(260deg); opacity:0; }
+}
+/* 움직임을 줄여 달라고 한 학생에게는 조용히 나타났다 사라집니다 */
+@media (prefers-reduced-motion: reduce){
+  .fw-bit{ animation:fw-soft .9s ease-out both; }
+  @keyframes fw-soft{ 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
 }

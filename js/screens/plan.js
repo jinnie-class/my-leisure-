@@ -30,27 +30,33 @@
       ? plan.partnerIds : (plan.partnerId ? [plan.partnerId] : []);
     var whoList = whoIds.map(App.partner).filter(Boolean);
     var student = p.student;
+    /* ★ 짜임새를 바꿨습니다.
+         예전에는 활동 그림이 **제목 옆 오른쪽 위에 조그맣게** 붙어 있었습니다.
+         제목을 가리고, 그림이 너무 작아서 무슨 활동인지 알아보기 어려웠습니다.
+         이제는 제목 → 문장(가운데) → 아래를 **표(왼쪽) + 큰 그림(오른쪽)** 으로
+         나눕니다. 표 오른쪽이 비어 있던 자리에 그림이 큼직하게 들어갑니다. */
+    var rows = html`<div class="rows">
+      <div class="row"><span class="k">무엇을</span><b>${a ? a.name : '-'}</b></div>
+      <div class="row"><span class="k">누구와</span><b>${
+        whoList.length ? whoList.map(function (x) { return x.name; }).join(', ') : '-'}</b></div>
+      <div class="row"><span class="k">언제</span><b>${App.fmtDateLong(plan.date)}${
+        App.timeWord(plan.time) ? ' ' + App.timeWord(plan.time) : ''}</b></div>
+      ${plan.place ? html`<div class="row"><span class="k">어디에서</span><b>${plan.place}</b></div>` : null}
+      ${(plan.supplies && plan.supplies.length)
+        ? html`<div class="row"><span class="k">준비물</span>
+            <span class="wrap">${plan.supplies.map(function (s, i) {
+              return html`<span key=${i} class="chip">${s}</span>`; })}</span></div>`
+        : html`<div class="row"><span class="k">준비물</span><b>준비물이 없어요</b></div>`}
+      ${plan.memo ? html`<div class="row"><span class="k">메모</span><b>${plan.memo}</b></div>` : null}
+    </div>`;
+
     return html`<div class="sheet">
-      <!-- 제목은 가운데. 아래 작은 글씨(이름·날짜)는 두지 않습니다 —
-           바로 아래 표에 날짜가 다시 나오고, 이름은 오른쪽 위 이름표에 있습니다. -->
-      <div class="sheet-head">
-        <div class="sheet-title">오늘의 여가 계획표</div>
+      <div class="sheet-title">오늘의 여가 계획표</div>
+      <div class="sentence sentence-center" style=${{ marginTop: '.6rem' }}>
+        ${App.sentences.plan(plan)}</div>
+      <div class="sheet-body">
+        ${rows}
         <div class="sheet-art"><${C.ActivityArt} activity=${a} /></div>
-      </div>
-      <div class="sentence" style=${{ marginTop: '.6rem' }}>${App.sentences.plan(plan)}</div>
-      <div class="rows" style=${{ marginTop: '.7rem' }}>
-        <div class="row"><span class="k">무엇을</span><b>${a ? a.name : '-'}</b></div>
-        <div class="row"><span class="k">누구와</span><b>${
-          whoList.length ? whoList.map(function (x) { return x.name; }).join(', ') : '-'}</b></div>
-        <div class="row"><span class="k">언제</span><b>${App.fmtDateLong(plan.date)}${
-          App.timeWord(plan.time) ? ' ' + App.timeWord(plan.time) : ''}</b></div>
-        ${plan.place ? html`<div class="row"><span class="k">어디에서</span><b>${plan.place}</b></div>` : null}
-        ${(plan.supplies && plan.supplies.length)
-          ? html`<div class="row"><span class="k">준비물</span>
-              <span class="wrap">${plan.supplies.map(function (s, i) {
-                return html`<span key=${i} class="chip">${s}</span>`; })}</span></div>`
-          : html`<div class="row"><span class="k">준비물</span><b>준비물이 없어요</b></div>`}
-        ${plan.memo ? html`<div class="row"><span class="k">메모</span><b>${plan.memo}</b></div>` : null}
       </div>
     </div>`;
   };
@@ -95,20 +101,12 @@
       : ['area', 'what', 'who', 'when', 'confirm'];
     var key = KEYS[step];
 
-    /* 고르면 잠시 뒤 다음 질문으로 넘어갑니다.
-       (시간이 지나 저절로 넘어가는 것이 아니라, 학생이 고른 결과로 넘어갑니다.
-        고른 표시와 읽어주기를 확인할 만큼만 기다립니다.) */
-    var goTimer = React.useRef(null);
-    React.useEffect(function () {
-      return function () { if (goTimer.current) clearTimeout(goTimer.current); };
-    }, []);
-    function pickAndGo(fn) {
-      fn();
-      if (goTimer.current) clearTimeout(goTimer.current);
-      goTimer.current = setTimeout(function () {
-        stepS[1](function (s) { return Math.min(s + 1, KEYS.length - 1); });
-      }, 450);
-    }
+    /* ★ 예전에는 고르면 0.45초 뒤에 **저절로 다음 질문으로 넘어갔습니다.**
+         고른 것을 확인할 틈이 없고, 잘못 고르면 이미 다음 화면이라 당황합니다.
+         이제는 **고르기와 넘어가기를 나눕니다** — 골라서 확인하고,
+         아래 `다음` 을 눌렀을 때에만 넘어갑니다.
+         모든 질문이 똑같은 방식이라 학생이 규칙을 하나만 익히면 됩니다. */
+    function pick(fn) { fn(); }
 
     /* 하위 활동 선택 화면 */
     var subS = useState(null);
@@ -126,14 +124,14 @@
     function chooseCard(card) {
       var kids = App.visibleChildren(student, card);
       if (kids.length) { subS[1](card); App.speakFor(student, card.speechName); return; }
-      pickAndGo(function () {
+      pick(function () {
         patch({ cardId: card.id, activityId: card.id, place: draft.place || card.defaultPlace,
                 supplies: draft.supplies.length ? draft.supplies : card.defaultSupplies.slice() });
         App.speakFor(student, card.speechName);
       });
     }
     function chooseChild(card, child) {
-      pickAndGo(function () {
+      pick(function () {
         patch({ cardId: card.id, activityId: child.id, place: draft.place || child.defaultPlace,
                 supplies: draft.supplies.length ? draft.supplies : child.defaultSupplies.slice() });
         App.speakFor(student, child.speechName);
@@ -194,11 +192,11 @@
       if (savedS[0]) {
         var saved = App.store.plan(savedS[0]) || previewPlan;
         return html`<${React.Fragment}>
+          <!-- ★ 아래 작은 설명 글씨를 없앴습니다. 글씨가 작아서 학생은 읽지 않고,
+                 칭찬 한마디만 크게 보이는 것이 더 분명합니다. -->
           <${C.Banner} tone="ok" icon="check"
             speakText="계획을 잘 저장했어요. 활동을 마친 뒤에 홈에서 일기를 쓰면 돼요.">
             <b style=${{ fontSize: '1.2rem' }}>계획을 잘 저장했어요.</b>
-            <div class="small">홈 화면에 <b>오늘의 여가 계획</b>으로 나타나요.
-              활동을 마친 뒤에 <b>활동을 했어요</b> 를 누르면 일기를 써요.</div>
           <//>
           <div style=${{ height: '.7rem' }}></div>
           <${C.PlanSheet} plan=${saved} student=${student} />
@@ -238,12 +236,12 @@
           <${C.PickGrid} cols=${2} label="장소 종류">
             <${C.Pick} selected=${draft.area === 'indoor'} label="실내에서 해요" speakText="실내에서 해요"
               bare=${true}
-              onClick=${function () { pickAndGo(function () {
+              onClick=${function () { pick(function () {
                 patch({ area: 'indoor' }); pageS[1](0); App.speakFor(student, '실내에서 해요'); }); }}
               art=${html`<${C.Art} src=${App.uiImage('indoor')} iconKey="door" />`} />
             <${C.Pick} selected=${draft.area === 'outdoor'} label="실외에서 해요" speakText="실외에서 해요"
               bare=${true}
-              onClick=${function () { pickAndGo(function () {
+              onClick=${function () { pick(function () {
                 patch({ area: 'outdoor' }); pageS[1](0); App.speakFor(student, '실외에서 해요'); }); }}
               art=${html`<${C.Art} src=${App.uiImage('outdoor')} iconKey="tree" />`} />
           <//>
@@ -266,10 +264,15 @@
           ${addS[0] && html`<${C.AddActivityModal} area=${draft.area}
             onClose=${function () { addS[1](false); }}
             onAdded=${function () { pageS[1](Math.ceil((cards.length + 1) / PAGE_SIZE) - 1); }} />`}
+          <!-- ★ 쪽 넘기는 단추에서 '다음' 이라는 말을 뺐습니다.
+                 아래 넘어가는 단추도 '다음' 이라, 한 화면에 '다음' 이 둘이 되어
+                 학생이 어느 것을 눌러야 하는지 헷갈렸습니다.
+                 여기는 '활동을 더 본다', 아래는 '이 활동으로 정하고 넘어간다' 입니다.
+                 ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
           ${pageCount > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
             <${C.Btn} icon="back" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동 보기<//>
             <span class="chip">${page + 1} / ${pageCount}</span>
-            <${C.Btn} icon="next" disabled=${page >= pageCount - 1} onClick=${function () { pageS[1](page + 1); }}>다음 활동 보기<//>
+            <${C.Btn} icon="next" disabled=${page >= pageCount - 1} onClick=${function () { pageS[1](page + 1); }}>활동 더 보기<//>
           </div>`}
           ${draft.activityId && html`<div class="sentence" style=${{ marginTop: '.7rem' }}>
             고른 활동 : ${App.act(draft.activityId).name}
@@ -300,10 +303,10 @@
           <${C.Question} bar=${true} speakText="언제 할까요?">언제 할까요?<//>
           <${C.PickGrid} cols=${3} label="날짜">
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
-              onClick=${function () { pickAndGo(function () { patch({ date: t }); App.speakFor(student, '오늘'); }); }}
+              onClick=${function () { pick(function () { patch({ date: t }); App.speakFor(student, '오늘'); }); }}
               art=${html`<${C.PickArt} kind="when" word="오늘" iconKey="sun" />`} />
             <${C.Pick} selected=${draft.date === App.addDays(t, 1)} label="내일" speakText="내일"
-              onClick=${function () { pickAndGo(function () { patch({ date: App.addDays(t, 1) }); App.speakFor(student, '내일'); }); }}
+              onClick=${function () { pick(function () { patch({ date: App.addDays(t, 1) }); App.speakFor(student, '내일'); }); }}
               art=${html`<${C.PickArt} kind="when" word="내일" iconKey="calendar" />`} />
             <div class="pick" style=${{ cursor: 'default' }}>
               <span class="thumb"><${C.PickArt} kind="when" word="날짜 고르기" iconKey="pencil" /></span>
@@ -327,11 +330,11 @@
             ${TIMES.map(function (tm) {
               return html`<${C.Pick} key=${tm.id} selected=${draft.time === tm.id}
                 label=${tm.name} speakText=${tm.name}
-                onClick=${function () { pickAndGo(function () { patch({ time: tm.id }); App.speakFor(student, tm.name); }); }}
+                onClick=${function () { pick(function () { patch({ time: tm.id }); App.speakFor(student, tm.name); }); }}
                 art=${html`<${C.PickArt} kind="time" word=${tm.name} iconKey=${tm.icon} />`} />`;
             })}
             <${C.Pick} selected=${draft.time === ''} label="정하지 않아요" speakText="시간을 정하지 않아요"
-              onClick=${function () { pickAndGo(function () { patch({ time: '' }); }); }}
+              onClick=${function () { pick(function () { patch({ time: '' }); }); }}
               art=${html`<${C.PickArt} kind="time" word="정하지 않아요" iconKey="dash" />`} />
           <//>
         <//>`;
@@ -470,6 +473,17 @@
         onClick=${next}>다음<//>`;
     } else if (key === 'place') {
       action = html`<${C.Btn} icon="next" disabled=${!canNext()} onClick=${next}>다음<//>`;
+    } else if (key === 'area' || key === 'what') {
+      /* ★ 새로 넣었습니다. 예전에는 이 두 질문에만 넘어가는 단추가 없어서
+           고르면 저절로 넘어갔습니다. 이제 모든 질문이 같습니다 —
+           고르고 아래 단추를 눌러야 넘어갑니다.
+         ★ 글씨는 둘 다 `다음` 입니다. 한 화면에 `다음` 이 하나만 있도록
+           쪽 넘기는 단추는 `활동 더 보기` 로 바꿨습니다 (위를 보세요).
+           하위 활동을 고르는 화면(`subCard`)에서는 내보내지 않습니다:
+           그 화면은 활동을 아직 고르는 중이라 넘어갈 수 없습니다. */
+      action = subCard ? null
+        : html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
+            onClick=${next}>다음<//>`;
     }
 
     /* '다시 고르기' 는 흰 칸 안 맨 위에 둡니다.

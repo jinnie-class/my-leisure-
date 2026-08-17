@@ -117,6 +117,49 @@
     </div>`;
   };
 
+  /* ======================= 폭죽 =======================
+     도장 하나를 다 채웠을 때 터뜨리는 축하 폭죽입니다.
+
+     ▸ 왜 CSS 로만 만들었나 : 그림 파일도, 소리 파일도 더 받지 않습니다.
+       색종이 조각 하나하나가 그냥 작은 네모(`<i>`)이고, 날아가는 길은
+       `--dx` · `--dy` 두 값으로만 정해집니다 (아래 `.fw-bit` 를 보세요).
+     ▸ 화면을 가리지 않습니다 : `pointer-events:none` 이라 폭죽 위로도
+       단추를 누를 수 있고, 1.6초 뒤에 스스로 사라집니다.
+     ▸ 어지러움을 느끼는 학생을 위해, 운영체제에서 '움직임 줄이기' 를
+       켜 두면 (`prefers-reduced-motion`) 조용히 나타났다 사라집니다.
+     ▸ 소리는 내지 않습니다. 축하 말은 부르는 쪽에서 `App.speakFor` 로
+       읽어 주면 됩니다 — 소리를 둘이 겹치면 시끄럽습니다. */
+  var FW_COLORS = ['#ff6b6b', '#ffd23f', '#4dd4ac', '#5aa9f7', '#c58bf2', '#ff9f5a'];
+  C.Fireworks = function (p) {
+    var onDone = p.onDone;
+    useEffect(function () {
+      if (!onDone) return;
+      var t = setTimeout(onDone, 1700);
+      return function () { clearTimeout(t); };
+    }, [onDone]);
+
+    /* 터지는 자리 세 곳 · 자리마다 색종이 18조각 */
+    var bursts = [{ x: 24, y: 34, d: 0 }, { x: 76, y: 30, d: .22 }, { x: 50, y: 52, d: .44 }];
+    var PER = 18;
+    return html`<div class="fw" aria-hidden="true">
+      ${bursts.map(function (b, bi) {
+        return html`<div key=${bi} class="fw-burst"
+            style=${{ left: b.x + '%', top: b.y + '%' }}>
+          ${Array.apply(null, { length: PER }).map(function (_, i) {
+            var ang = (Math.PI * 2 * i) / PER;
+            var far = 70 + (i % 3) * 26;                 // 조각마다 날아가는 거리를 조금씩 다르게
+            return html`<i key=${i} class="fw-bit" style=${{
+              '--dx': Math.cos(ang) * far + 'px',
+              '--dy': Math.sin(ang) * far + 'px',
+              '--c': FW_COLORS[i % FW_COLORS.length],
+              animationDelay: b.d + 's'
+            }} />`;
+          })}
+        </div>`;
+      })}
+    </div>`;
+  };
+
   /* ======================= 그림 ======================= */
   /* PNG 파일이 있으면 PNG 를, 없으면 기본 SVG 를 보여 줍니다. */
   C.Art = function (p) {
