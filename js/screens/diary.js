@@ -291,7 +291,7 @@
               return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id}
                 label=${g.name} speakText=${g.name}
                 onClick=${function () { patch({ againId: g.id }); App.speakFor(student, g.name); }}
-                art=${html`<${C.Art} iconKey=${g.icon} />`} />`;
+                art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
             })}
           <//>
         <//>`;
@@ -591,7 +591,7 @@
             ${App.DATA.agains.map(function (g) {
               return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id} label=${g.name}
                 speakText=${g.name} onClick=${function () { patch({ againId: g.id }); }}
-                art=${html`<${C.Art} iconKey=${g.icon} />`} />`;
+                art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
             })}
           <//>
         <//>

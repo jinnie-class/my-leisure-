@@ -24,6 +24,7 @@
     time:  'images/시간/',           // 아침.png · 낮.png · 저녁.png
     place: 'images/장소/',           // 교실.png · 집.png · 조리실.png …
     again: 'images/또하기/',         // 또 하고 싶어요.png · … (일기 저장 뒤 질문)
+    corner: 'images/코너명/',        // 여가 계획하기.png · 여가 지도.png · 여가 일기.png · 여가 포트폴리오.png
     ext: '.png',
     cover: 'images/표지.png',        // 첫 화면 표지
     wallpaper: 'images/벽지.jpg',    // 모든 화면의 배경 무늬
@@ -366,6 +367,18 @@
     var base = App.IMAGE_BASE[kind];
     if (!base || !word) return null;
     return imgUrl(base + word + App.IMAGE_BASE.ext);
+  };
+
+  /* 또 하기 그림 — `또 하고 싶어요` · `다음에는 다른 활동을 하고 싶어요` · `잘 모르겠어요`.
+     ★ `잘 모르겠어요` 는 지도의 **`아직 잘 모르겠어요.png` 를 그대로 씁니다.**
+       뜻이 똑같은데 그림을 두 장 그리면 학생이 헷갈립니다.
+       `images/또하기/잘 모르겠어요.png` 를 따로 넣으면 그 파일이 먼저입니다.
+     ※ 하트·별 모양은 쓰지 마세요. 지도에서 **좋아해요·도전하고 싶어요**를 뜻해서
+       같은 그림이 서로 다른 뜻으로 두 번 보이게 됩니다. */
+  App.againImage = function (ag) {
+    if (!ag) return null;
+    if (ag.id === 'unsure') return App.uiImage('unsure');   // images/아직 잘 모르겠어요.png
+    return App.pickImage('again', ag.name);
   };
 
   App.partnerImage = function (p, student) {

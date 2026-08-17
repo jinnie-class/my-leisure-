@@ -88,8 +88,10 @@
               return html`<button key=${c.id} type="button" class="corner" style=${{ '--c': c.color }}
                   onClick=${function () { p.nav(c.route); }}
                   aria-label=${c.name + '. ' + c.desc + '. ' + c.guide}>
-                <span class="art" aria-hidden="true"
-                  dangerouslySetInnerHTML=${{ __html: App.icon(c.icon) }} />
+                <!-- 코너 그림 : images/코너명/<큰 제목>.png (없으면 코드로 그린 SVG) -->
+                <span class="art" aria-hidden="true">
+                  <${C.PickArt} kind="corner" word=${c.desc} iconKey=${c.icon} />
+                </span>
                 <span class="txt">
                   <span class="desc">${c.desc}</span>
                   <span class="name">${c.name}</span>
