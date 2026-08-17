@@ -1,0 +1,72 @@
+/* ===========================================================
+   나의 여가 — 인쇄 / PDF 저장용 스타일
+   화면의 조작 버튼은 감추고 인쇄 영역만 종이에 담습니다.
+   =========================================================== */
+
+@page{ size:A4; margin:12mm; }
+
+html,body{
+  height:auto !important;
+  overflow:visible !important;
+  background:#fff !important;
+}
+
+/* 화면 전용 요소 숨기기 */
+.topbar,.bottombar,.pager,.mask,.toast,.no-print{ display:none !important; }
+
+/* 앱 껍데기 해제 */
+.app{ height:auto !important; display:block !important; overflow:visible !important; background:#fff !important; }
+.stage{ height:auto !important; }
+.stage-track,.stage-fit{
+  height:auto !important;
+  overflow:visible !important;
+  column-width:auto !important;
+  columns:auto !important;
+  padding:0 !important;
+}
+
+/* 인쇄 영역만 보이기 */
+.app{ display:none !important; }
+#print-root{ display:block !important; }
+
+.print-area{
+  display:block !important;
+  color:#2f2318;
+}
+.print-area .sheet,
+.print-area .book-page{
+  border:2px solid #6b503a !important;
+  box-shadow:none !important;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+.book-page{ break-after:page; page-break-after:always; }
+.book-page:last-child{ break-after:auto; page-break-after:auto; }
+
+.print-area img{ max-width:100%; }
+.print-area .btn,.print-area .speak{ display:none !important; }
+
+/* --------------------- 그림일기 : A4 한 장 ---------------------
+   화면에서는 종이를 축소(transform:scale)해서 보여 주지만,
+   인쇄할 때에는 @page 여백(12mm) 안쪽을 그대로 채웁니다.
+   그래서 여기서는 축소를 풀고 종이 크기를 mm 로 다시 잡습니다. */
+.print-area .pd-fit{ display:block !important; overflow:visible !important; }
+.print-area .pd-scale{
+  transform:none !important;
+  width:auto !important; height:auto !important;
+}
+.print-area .pd-sheet{
+  width:186mm !important;      /* 210mm - 좌우 여백 12mm */
+  height:273mm !important;     /* 297mm - 위아래 여백 12mm */
+  padding:0 !important;
+  border-radius:0 !important;
+  page-break-inside:avoid; break-inside:avoid;
+}
+.print-area .pd-art-note{ display:none !important; }
+
+/* 나의 여가 일기장 : 그림일기를 A4 한 장씩 이어 붙여 한 권으로 */
+.print-area .pd-page{ break-after:page; page-break-after:always; }
+.print-area .pd-page:last-child{ break-after:auto; page-break-after:auto; }
+
+/* 잉크 절약 : 배경은 옅게 */
+*{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }

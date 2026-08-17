@@ -1,0 +1,23 @@
+# ── 만들어지는 파일 (소스가 아닙니다) ──────────────────────────
+# single-file.html 은 build-single-file.ps1 이 만들어 내는 결과물입니다.
+# 1.5MB 라서 고칠 때마다 저장소에 통째로 쌓입니다.
+# 필요할 때 아래 한 줄로 다시 만드세요.
+#   powershell -ExecutionPolicy Bypass -File .\build-single-file.ps1
+single-file.html
+
+# ── 임시 · 개인 파일 ──────────────────────────────────────────
+.claude/
+serve.ps1
+*.log
+*.tmp
+~$*
+
+# ── 윈도우 · 맥이 저절로 만드는 파일 ──────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ── 학생 자료 백업 (개인정보!) ────────────────────────────────
+# 선생님 설정에서 내보낸 백업 파일은 절대 올리지 마세요.
+나의여가_*.json
+*_백업_*.json

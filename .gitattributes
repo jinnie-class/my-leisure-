@@ -1,0 +1,9 @@
+# 글자 파일은 줄바꿈을 통일합니다 (윈도우·맥에서 같이 고쳐도 안 깨지도록)
+* text=auto eol=lf
+
+# 그림은 그대로 둡니다 (건드리면 깨집니다)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

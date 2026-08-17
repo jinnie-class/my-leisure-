@@ -1,0 +1,893 @@
+/* ===========================================================
+   나의 여가 — 다시 쓰는 화면 조각들
+   (버튼 · 읽어주기 · 활동카드 · 단계표시 · 무대(좌우 페이지) ·
+    확인창 · 성공 알림 · 학생 표시 · 상태 배지)
+   =========================================================== */
+(function () {
+  var App = (window.App = window.App || {});
+  var React = window.React;
+  var html = window.htm.bind(React.createElement);
+  var useState = React.useState, useEffect = React.useEffect,
+      useRef = React.useRef, useCallback = React.useCallback,
+      useLayoutEffect = React.useLayoutEffect, useMemo = React.useMemo;
+
+  App.html = html;
+  var C = (App.C = {});
+
+  /* ======================= 전역 상태 구독 ======================= */
+  App.useStore = function () {
+    var sub = useCallback(function (cb) { return App.store.subscribe(cb); }, []);
+    var get = useCallback(function () { return App.store.get(); }, []);
+    if (React.useSyncExternalStore) return React.useSyncExternalStore(sub, get);
+    var s = useState(App.store.get());
+    useEffect(function () { return App.store.subscribe(function () { s[1](App.store.get()); }); }, []);
+    return s[0];
+  };
+
+  /* ======================= 안내 · 확인창 ======================= */
+  var uiSubs = [];
+  var uiQueue = { confirm: null, toast: null };
+  function uiEmit() { uiSubs.slice().forEach(function (f) { try { f(); } catch (e) {} }); }
+
+  App.ui = {
+    subscribe: function (fn) { uiSubs.push(fn); return function () { uiSubs = uiSubs.filter(function (f) { return f !== fn; }); }; },
+    peek: function () { return uiQueue; },
+    /* 확인창 : Promise<boolean> */
+    confirm: function (opts) {
+      return new Promise(function (resolve) {
+        uiQueue.confirm = Object.assign({
+          title: '계속할까요?', body: '', okText: '네', cancelText: '아니요',
+          tone: 'normal', icon: 'question'
+        }, opts || {}, {
+          _done: function (v) { uiQueue.confirm = null; uiEmit(); resolve(v); }
+        });
+        uiEmit();
+      });
+    },
+    /* 두 번 확인 (삭제 · 초기화) */
+    confirmTwice: function (a, b) {
+      return App.ui.confirm(a).then(function (ok) {
+        if (!ok) return false;
+        return App.ui.confirm(b);
+      });
+    },
+    toast: function (msg) {
+      uiQueue.toast = { msg: msg, at: Date.now() };
+      uiEmit();
+      setTimeout(function () {
+        if (uiQueue.toast && Date.now() - uiQueue.toast.at >= 2400) { uiQueue.toast = null; uiEmit(); }
+      }, 2500);
+    }
+  };
+
+  C.UiHost = function () {
+    var sub = useCallback(function (cb) { return App.ui.subscribe(cb); }, []);
+    var tick = useState(0);
+    useEffect(function () { return sub(function () { tick[1](function (n) { return n + 1; }); }); }, []);
+    var q = App.ui.peek();
+    return html`<${React.Fragment}>
+      ${q.confirm && html`<${C.ConfirmModal} ...${q.confirm} />`}
+      ${q.toast && html`<div class="toast" role="status" aria-live="polite">${q.toast.msg}</div>`}
+    <//>`;
+  };
+
+  C.ConfirmModal = function (p) {
+    var okRef = useRef(null);
+    useEffect(function () { if (okRef.current) okRef.current.focus(); }, []);
+    function key(e) {
+      if (e.key === 'Escape') { e.stopPropagation(); p._done(false); }
+    }
+    return html`<div class="mask" onKeyDown=${key} onMouseDown=${function (e) { if (e.target === e.currentTarget) p._done(false); }}>
+      <div class="modal" role="dialog" aria-modal="true" aria-label=${p.title}>
+        <div style=${{ display: 'flex', gap: '.6rem', alignItems: 'flex-start' }}>
+          <${C.Art} iconKey=${p.icon} size=${44} />
+          <div class="grow">
+            <h2>${p.title}</h2>
+            ${p.body && html`<p style=${{ fontSize: '1.02rem', lineHeight: 1.55, fontWeight: 700 }}>${p.body}</p>`}
+          </div>
+        </div>
+        <div class="acts">
+          <button ref=${okRef} class=${'btn ' + (p.tone === 'danger' ? 'danger' : 'ok')} onClick=${function () { p._done(true); }}>${p.okText}</button>
+          <button class="btn" onClick=${function () { p._done(false); }}>${p.cancelText}</button>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  /* 화면 안에서 직접 쓰는 큰 팝업 */
+  C.Modal = function (p) {
+    var ref = useRef(null);
+    useEffect(function () {
+      var el = ref.current; if (!el) return;
+      var f = el.querySelector('button,[href],input,select,textarea,[tabindex]');
+      if (f) f.focus();
+    }, []);
+    return html`<div class="mask"
+        onMouseDown=${function (e) { if (e.target === e.currentTarget && p.onClose) p.onClose(); }}
+        onKeyDown=${function (e) { if (e.key === 'Escape' && p.onClose) p.onClose(); }}>
+      <div class=${'modal' + (p.wide ? ' wide' : '')} ref=${ref} role="dialog" aria-modal="true"
+          aria-label=${p.title || ''} style=${p.style}>
+        ${p.title && html`<div class="q" style=${{ marginBottom: '.4rem' }}>
+          <h2 class="grow">${p.title}</h2>
+          ${p.speak !== false && html`<${C.Speak} text=${p.speakText || p.title} />`}
+        </div>`}
+        ${p.children}
+        ${p.actions && html`<div class="acts">${p.actions}</div>`}
+      </div>
+    </div>`;
+  };
+
+  /* ======================= 그림 ======================= */
+  /* PNG 파일이 있으면 PNG 를, 없으면 기본 SVG 를 보여 줍니다. */
+  C.Art = function (p) {
+    var fail = useState(false);
+    useEffect(function () { fail[1](false); }, [p.src]);
+    var style = { width: p.size ? p.size + 'px' : '100%', height: p.size ? p.size + 'px' : '100%', display: 'block', objectFit: 'contain' };
+    if (p.src && !fail[0]) {
+      return html`<img src=${p.src} alt="" style=${style} onError=${function () { fail[1](true); }} />`;
+    }
+    return html`<span aria-hidden="true" style=${style}
+      dangerouslySetInnerHTML=${{ __html: App.icon(p.iconKey || 'question') }} />`;
+  };
+
+  /* 여가 지도의 활동 표시 (해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요).
+     images/<이름>.png 가 있으면 그 그림을, 없으면 코드로 그린 SVG 를 씁니다.
+     st 는 App.DATA.mapStates 의 한 항목입니다. */
+  C.StateArt = function (p) {
+    var st = p.state;
+    if (!st) return null;
+    return html`<${C.Art} src=${App.uiImage(st.id)} iconKey=${st.icon} size=${p.size} />`;
+  };
+
+  /* 기분 얼굴 — images/얼굴표정/<끝맺은 꼴>.png 가 있으면 그 그림을,
+     없으면 코드로 그린 SVG 얼굴을 씁니다. */
+  C.MoodArt = function (p) {
+    var m = p.mood || App.mood(p.moodId);
+    if (!m) return null;
+    return html`<${C.Art} src=${App.moodImage(m)} iconKey=${m.icon} size=${p.size} />`;
+  };
+
+  C.ActivityArt = function (p) {
+    var a = p.activity;
+    if (!a) return html`<${C.Art} iconKey="question" size=${p.size} />`;
+    return html`<${C.Art} src=${App.activityImage(a)} iconKey=${a.icon} size=${p.size} />`;
+  };
+
+  /* 학생이 캐릭터를 아직 고르지 않았으면 성별에 맞는 기본 캐릭터를 씁니다 */
+  App.avatarFor = function (student) {
+    var id = student && student.avatarId;
+    if (id) { var a = App.avatar(id); if (a) return a; }
+    var want = (student && student.gender === 'boy') ? 'boy' : 'girl';
+    return App.avatar(want) || App.DATA.avatars[0];
+  };
+
+  C.AvatarArt = function (p) {
+    /* '내 얼굴로 만들기' 로 넣은 사진이 있으면 캐릭터 대신 그 사진을 씁니다.
+       얼굴 사진은 동그란 칸에 꽉 차게(cover) 넣습니다. */
+    var face = p.student && p.student.facePhotoId ? App.photos.url(p.student.facePhotoId) : null;
+    if (face) {
+      var sz = p.size ? p.size + 'px' : '100%';
+      return html`<img src=${face} alt="" class="face-photo"
+        style=${{ width: sz, height: sz, display: 'block', objectFit: 'cover', borderRadius: '50%' }} />`;
+    }
+    var av = p.student ? App.avatarFor(p.student)
+                       : (App.avatar(p.avatarId) || App.DATA.avatars[0]);
+    return html`<${C.Art} src=${App.avatarImage(av)} iconKey=${av.icon} size=${p.size} />`;
+  };
+
+  /* 함께하는 사람 그림 (그림이 없으면 기본 SVG 로 대체) */
+  C.PartnerArt = function (p) {
+    var pt = p.partner || App.partner(p.partnerId);
+    if (!pt) return null;
+    var student = p.student !== undefined ? p.student : App.store.current();
+    return html`<${C.Art} src=${App.partnerImage(pt, student)} iconKey=${pt.icon} size=${p.size} />`;
+  };
+
+  /* 캐릭터 고르기 (갈래별로 나누어 보여 줍니다) */
+  C.AvatarPicker = function (p) {
+    var groups = App.DATA.avatarGroups;
+    var cur = App.avatar(p.value);
+    var gs = useState((cur && cur.group) || groups[0].id);
+    var list = App.DATA.avatars.filter(function (a) { return a.group === gs[0]; });
+    return html`<div>
+      <div class="wrap" style=${{ marginBottom: '.45rem' }}>
+        ${groups.map(function (g) {
+          return html`<button key=${g.id} type="button" class=${'tab' + (gs[0] === g.id ? ' on' : '')}
+            aria-pressed=${gs[0] === g.id ? 'true' : 'false'}
+            onClick=${function () { gs[1](g.id); }}>${gs[0] === g.id ? '✓ ' : ''}${g.name}</button>`;
+        })}
+      </div>
+      <${C.PickGrid} cols=${6} label="캐릭터">
+        ${list.map(function (a) {
+          return html`<${C.Pick} key=${a.id} selected=${p.value === a.id} label=${a.name} speak=${false}
+            onClick=${function () { p.onChange(a.id); }}
+            art=${html`<${C.AvatarArt} avatarId=${a.id} />`} />`;
+        })}
+      <//>
+    </div>`;
+  };
+
+  /* ======================= 읽어주기 ======================= */
+  App.speakFor = function (student, text) {
+    if (student && student.voice === false) return false;
+    if (!App.speech.supported()) { App.ui.toast('이 브라우저에서는 음성 안내를 사용할 수 없어요. 글자로 읽어 주세요.'); return false; }
+    var ok = App.speech.speak(text);
+    if (!ok) App.ui.toast('지금은 소리로 읽어 줄 수 없어요.');
+    return ok;
+  };
+
+  C.Speak = function (p) {
+    var st = App.store.current();
+    if (st && st.voice === false) return null;
+    /* 읽어주기는 어디서나 소리 그림 하나로만 보여 줍니다 (글자는 넣지 않아요).
+       화면 낭독기에는 aria-label 로 뜻이 전해집니다. */
+    var label = p.label || '읽어주기';
+    var src = App.uiImage('speaker');
+    var fail = useState(false);
+    var useImg = src && !fail[0];
+    return html`<button type="button" class=${'iconbtn' + (useImg ? ' has-img' : '')} title=${label}
+      aria-label=${label + ': ' + (p.text || '')}
+      onClick=${function (e) { e.stopPropagation(); App.speakFor(st, p.text); }}>
+      ${useImg
+        ? html`<img src=${src} alt="" onError=${function () { fail[1](true); }} />`
+        : html`<span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.uiIcon('speaker') }} />`}
+    </button>`;
+  };
+
+  /* 그림만 있는 둥근 단추.
+     uiKey 를 주면 images 폴더의 단추 그림(동그라미까지 그려진 PNG)을 씁니다.
+     그림이 없으면 코드로 그린 선 아이콘이 대신 나옵니다. */
+  C.IconBtn = function (p) {
+    var src = p.uiKey ? App.uiImage(p.uiKey) : null;
+    var fail = useState(false);
+    useEffect(function () { fail[1](false); }, [src]);
+    var useImg = src && !fail[0];
+    var inset = p.uiKey && (App.IMAGE_BASE.uiInset || {})[p.uiKey];
+    var cls = 'iconbtn' + (useImg ? ' has-img' : '') + (useImg && inset ? ' inset' : '') +
+              (p.off ? ' off' : '') + (p.className ? ' ' + p.className : '');
+    return html`<button type="button" class=${cls}
+        onClick=${p.onClick} aria-label=${p.label} title=${p.label}>
+      ${useImg
+        ? html`<img src=${src} alt="" onError=${function () { fail[1](true); }} />`
+        : html`<span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.uiIcon(p.icon) }} />`}
+    </button>`;
+  };
+
+  /* ======================= 버튼 ======================= */
+  C.Btn = function (p) {
+    var cls = ['btn'];
+    if (p.kind) cls.push(p.kind);
+    if (p.size) cls.push(p.size);
+    if (p.wide) cls.push('wide');
+    if (p.className) cls.push(p.className);
+    return html`<button type="button" class=${cls.join(' ')} disabled=${!!p.disabled}
+      onClick=${p.onClick} aria-label=${p.ariaLabel} title=${p.title}>
+      ${p.icon && html`<span class="ico" aria-hidden="true"
+        dangerouslySetInnerHTML=${{ __html: App.icon(p.icon) }} />`}
+      <span>${p.children}</span>
+    </button>`;
+  };
+
+  /* ======================= 위 / 아래 막대 ======================= */
+  /* 위쪽 줄.
+     p.below 를 주면 아랫줄이 하나 더 생깁니다 — 단계 표시처럼 길어서
+     제목·단추와 한 줄에 두면 서로 밀려 찌그러지는 것들을 내려놓는 자리입니다. */
+  C.TopBar = function (p) {
+    return html`<header class=${'topbar pagepad' + (p.below ? ' two' : '')}>
+      <div class="topbar-row">
+        ${p.left}
+        ${p.title && html`<div class="topbar-title">
+          ${p.sub && html`<div class="sub">${p.sub}</div>`}
+          <div class="title">${p.title}</div>
+        </div>`}
+        <div class="spacer"></div>
+        ${p.children}
+      </div>
+      ${p.below && html`<div class="topbar-row below">${p.below}</div>`}
+    </header>`;
+  };
+
+  C.BottomBar = function (p) {
+    return html`<footer class="bottombar pagepad">
+      ${p.onBack && html`<${C.Btn} icon="back" onClick=${p.onBack}>${p.backLabel || '이전'}<//>`}
+      ${p.extraLeft}
+      <div class="spacer"></div>
+      ${p.center}
+      <div class="spacer"></div>
+      ${p.extraRight}
+      ${p.onHome && html`<${C.Btn} icon="home" onClick=${p.onHome}>홈<//>`}
+      ${p.onNext && html`<${C.Btn} kind="primary" icon="next" disabled=${p.nextDisabled} onClick=${p.onNext}>${p.nextLabel || '다음'}<//>`}
+    </footer>`;
+  };
+
+  /* 큰 점으로 보여 주는 진행 표시 — 글씨를 못 읽어도 어디쯤인지 알 수 있어요 */
+  C.Dots = function (p) {
+    var total = p.total, cur = p.current;
+    return html`<div class="dots-bar" role="status"
+        aria-label=${'모두 ' + total + '단계 가운데 ' + (cur + 1) + '단계'}>
+      ${Array.apply(null, { length: total }).map(function (_, i) {
+        return html`<span key=${i} class=${'dot-big' + (i < cur ? ' done' : (i === cur ? ' on' : ''))}></span>`;
+      })}
+      <span class="dots-num">${cur + 1} / ${total}</span>
+    </div>`;
+  };
+
+  /* ======================= 단계 표시 ======================= */
+  C.Steps = function (p) {
+    return html`<nav class="steps" aria-label="진행 단계">
+      ${p.steps.map(function (s, i) {
+        var cls = 'dot' + (i === p.current ? ' on' : (i < p.current ? ' done' : ''));
+        return html`<span key=${i} class=${cls}
+          aria-current=${i === p.current ? 'step' : null}>${i < p.current ? '✓ ' : ''}${s}</span>`;
+      })}
+    </nav>`;
+  };
+
+  /* ======================= 무대 : 좌우로 넘기는 페이지 ======================= */
+  /* 세로 스크롤을 만들지 않고, 넘치는 내용은 오른쪽 페이지로 이어집니다.
+     ← → 방향키, 화면의 ‹ › 단추, 손가락 밀기로 페이지를 넘길 수 있습니다. */
+  C.Stage = function (p) {
+    var trackRef = useRef(null);
+    var st = useState({ pages: 1, page: 0 });
+    var s = st[0], setS = st[1];
+    var touch = useRef({ x: 0, y: 0 });
+
+    /* 한 페이지의 폭(=단 폭)과 페이지 수를 잽니다.
+       테두리 안쪽 여백을 뺀 '내용 폭'을 단 폭으로 써야 페이지가 정확히 맞습니다. */
+    function metrics(el) {
+      var cs = window.getComputedStyle(el);
+      var padL = parseFloat(cs.paddingLeft) || 0;
+      var padR = parseFloat(cs.paddingRight) || 0;
+      var gap = parseFloat(cs.columnGap) || 0;
+      var contentW = el.clientWidth - padL - padR;
+      return { padL: padL, padR: padR, gap: gap, contentW: contentW, stride: contentW + gap };
+    }
+
+    /* 같은 순간에 재는 일이 반복되지 않도록 막아 둡니다. */
+    var pass = useRef({ n: 0, t: 0 });
+
+    var measure = useCallback(function () {
+      var el = trackRef.current; if (!el) return;
+      if (!el.clientWidth) return;
+      var now = Date.now();
+      if (now - pass.current.t > 150) pass.current = { n: 0, t: now };
+      if (pass.current.n > 5) return;
+      pass.current.n++;
+
+      var m = metrics(el);
+      if (m.contentW <= 0) return;
+
+      /* 내용이 흰 칸 높이를 넘을 때에만 좌우 페이지로 나눕니다.
+         짧은 내용이면 단 나누기를 꺼서 흰 칸이 내용만큼만 차지하게 합니다.
+
+         ※ 단 나누기(column-fill:auto)는 높이가 '확정'되어야 동작합니다.
+            flex 로 정해진 높이는 확정으로 보지 않으므로, 넘칠 때에는
+            지금 높이를 픽셀로 직접 지정해 줍니다. */
+      el.style.columnWidth = 'auto';
+      el.style.height = '';
+      var avail = el.clientHeight;
+      var natural = el.scrollHeight;
+      var n = 1;
+      if (natural > avail + 2 && avail > 0) {
+        el.style.height = avail + 'px';
+        el.style.columnWidth = Math.floor(m.contentW) + 'px';
+        var span = el.scrollWidth - m.padL - m.padR;       // 단들이 차지한 전체 폭
+        n = Math.max(1, Math.round((span + m.gap) / m.stride));
+        if (n > 40) n = 40;
+      }
+      setS(function (prev) {
+        var page = Math.min(prev.page, n - 1);
+        return (prev.pages === n && prev.page === page) ? prev : { pages: n, page: page };
+      });
+    }, []);
+
+    useLayoutEffect(function () {
+      measure();
+      var raf = window.requestAnimationFrame(function () { pass.current = { n: 0, t: 0 }; measure(); });
+      var t = setTimeout(function () { pass.current = { n: 0, t: 0 }; measure(); }, 280);
+      return function () { window.cancelAnimationFrame(raf); clearTimeout(t); };
+    });
+
+    useEffect(function () {
+      var el = trackRef.current; if (!el) return;
+      var ro = window.ResizeObserver ? new window.ResizeObserver(measure) : null;
+      if (ro) ro.observe(el);
+      window.addEventListener('resize', measure);
+      return function () { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
+    }, [measure]);
+
+    /* 페이지 위치 적용 */
+    useEffect(function () {
+      var el = trackRef.current; if (!el) return;
+      el.style.scrollBehavior = 'auto';
+      el.scrollLeft = s.page * metrics(el).stride;
+    }, [s.page, s.pages]);
+
+    var go = useCallback(function (dir) {
+      setS(function (prev) {
+        var next = Math.max(0, Math.min(prev.pages - 1, prev.page + dir));
+        return next === prev.page ? prev : { pages: prev.pages, page: next };
+      });
+    }, []);
+
+    /* 좌우 방향키 */
+    useEffect(function () {
+      function onKey(e) {
+        if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        var t = e.target;
+        if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+        if (document.querySelector('.mask')) return;      // 팝업이 열려 있으면 넘기지 않음
+        e.preventDefault();
+        go(e.key === 'ArrowRight' ? 1 : -1);
+      }
+      window.addEventListener('keydown', onKey);
+      return function () { window.removeEventListener('keydown', onKey); };
+    }, [go]);
+
+    function onTouchStart(e) {
+      var t = e.touches && e.touches[0]; if (!t) return;
+      touch.current = { x: t.clientX, y: t.clientY };
+    }
+    function onTouchEnd(e) {
+      var t = e.changedTouches && e.changedTouches[0]; if (!t) return;
+      var dx = t.clientX - touch.current.x, dy = t.clientY - touch.current.y;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) go(dx < 0 ? 1 : -1);
+    }
+
+    return html`<div class="stage">
+      <div class="panel">
+      ${p.top && html`<div class="panel-top">${p.top}</div>`}
+      <div class="stage-track" ref=${trackRef} onTouchStart=${onTouchStart} onTouchEnd=${onTouchEnd}>
+        ${p.children}
+      </div>
+      ${s.pages > 1 && html`<div class="pager">
+        <button type="button" class="pager-btn" aria-label="앞 페이지" disabled=${s.page === 0}
+          onClick=${function () { go(-1); }}>‹</button>
+        <span class="dots" role="status" aria-live="polite">${s.page + 1} / ${s.pages}</span>
+        <button type="button" class="pager-btn" aria-label="다음 페이지" disabled=${s.page >= s.pages - 1}
+          onClick=${function () { go(1); }}>›</button>
+      </div>`}
+      ${p.action && html`<div class="panel-action">${p.action}</div>`}
+      </div>
+    </div>`;
+  };
+
+  /* 지도처럼 스스로 크기를 맞추는 화면용 (페이지 나눔 없음) */
+  C.StageFit = function (p) {
+    return html`<div class="stage"><div class="panel"><div class="stage-fit">${p.children}</div></div></div>`;
+  };
+
+  /* ======================= 질문 머리말 ======================= */
+  C.Question = function (p) {
+    return html`<div class="q">
+      <h2 class="grow">${p.children}</h2>
+      ${p.hint && html`<span class="hint">${p.hint}</span>`}
+      ${p.speak !== false && html`<${C.Speak} text=${p.speakText || (typeof p.children === 'string' ? p.children : '')} />`}
+    </div>`;
+  };
+
+  /* ======================= 고쳐 쓸 수 있는 문장 칸 =======================
+     낱말을 골라 만든 문장이 문맥에 안 맞을 때가 있어서,
+     점선 칸을 눌러 학생이 바로 고쳐 쓸 수 있게 했습니다.
+       p.made    : 고른 낱말로 저절로 만들어진 문장
+       p.value   : 고쳐 쓴 문장 (아직 안 고쳤으면 null)
+       p.onChange(v) / p.onReset()                                   */
+  C.SentenceEdit = function (p) {
+    var edited = p.value !== null && p.value !== undefined;
+    var text = edited ? p.value : (p.made || '');
+    var ta = useRef(null);
+
+    /* 글이 길어지면 칸이 저절로 늘어납니다 (안쪽 스크롤이 생기지 않게).
+       학생 화면에서는 스크롤을 만들지 않는 것이 규칙이라서요. */
+    useLayoutEffect(function () {
+      var el = ta.current; if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }, [text]);
+
+    return html`<div class="sentence-box">
+      <div class="sentence-head">
+        <span class="sentence-cap">${p.title || '완성된 문장'}</span>
+        <span class="sentence-hint">✎ 눌러서 고쳐 쓸 수 있어요</span>
+      </div>
+      <textarea class="sentence-edit" ref=${ta} value=${text}
+        placeholder=${p.placeholder || '빈칸을 채우면 문장이 저절로 만들어져요. 여기를 눌러 고쳐 쓸 수도 있어요.'}
+        aria-label="일기 문장. 눌러서 직접 고쳐 쓸 수 있어요."
+        onChange=${function (e) { p.onChange(e.target.value); }} />
+      <div class="sentence-tools">
+        <${C.Speak} text=${text.replace(/\n/g, ' ')} />
+        <div class="grow"></div>
+        ${edited && html`<${C.Btn} size="small" icon="back" onClick=${p.onReset}>고른 낱말로 되돌리기<//>`}
+      </div>
+    </div>`;
+  };
+
+  /* ======================= 선택 카드 ======================= */
+  C.Pick = function (p) {
+    /* bare : 그림이 카드를 꽉 채우는 경우 흰 카드 틀을 없앱니다.
+       (실내에서 해요 / 실외에서 해요 처럼 그림 자체가 장면일 때) */
+    var cls = 'pick' + (p.selected ? ' sel' : '') + (p.compact ? ' compact' : '')
+            + (p.bare ? ' bare' : '');
+    return html`<button type="button" class=${cls} onClick=${p.onClick}
+        aria-pressed=${p.selected ? 'true' : 'false'} aria-label=${p.ariaLabel || p.label}>
+      <span class="check" aria-hidden="true">✓</span>
+      <span class=${'thumb' + (p.portrait ? ' portrait' : '')}>${p.art}</span>
+      <span class="label">${p.label}</span>
+      ${p.note && html`<span class="note">${p.note}</span>`}
+      ${p.more && html`<span class="more">${p.more}</span>`}
+      ${p.speak !== false && p.speakText && html`<${C.Speak} short=${true} text=${p.speakText} />`}
+    </button>`;
+  };
+
+  C.PickGrid = function (p) {
+    var cls = 'pick-grid' + (p.cols ? ' cols-' + p.cols : '');
+    return html`<div class=${cls} role="group" aria-label=${p.label || ''}>${p.children}</div>`;
+  };
+
+  /* 활동 선택 카드 */
+  C.ActivityPick = function (p) {
+    var a = p.activity;
+    var kids = p.childCount || 0;
+    return html`<${C.Pick}
+      selected=${p.selected}
+      onClick=${p.onClick}
+      label=${a.name}
+      more=${kids ? kids + '가지 더 있어요' : null}
+      speakText=${a.speechName}
+      ariaLabel=${a.name + (kids ? ', 하위 활동 ' + kids + '가지' : '') + (p.selected ? ', 선택됨' : '')}
+      art=${html`<${C.ActivityArt} activity=${a} />`} />`;
+  };
+
+  /* ======================= 상태 배지 ======================= */
+  C.StateChip = function (p) {
+    var s = p.state;
+    return html`<span class=${'chip ' + (p.tone || s.id)}>
+      <span class="chip-art"><${C.StateArt} state=${s} /></span>
+      <span>${s.name}</span>
+    </span>`;
+  };
+
+  /* 활동 상태를 아이콘 + 글자로 늘어놓기 */
+  C.StateChips = function (p) {
+    var st = p.status || {};
+    var on = App.DATA.mapStates.filter(function (m) { return st[m.id]; });
+    if (!on.length) return html`<span class="chip none">
+      <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('dash') }} />
+      <span>${App.DATA.notTried.name}</span></span>`;
+    return html`<${React.Fragment}>${on.map(function (m) {
+      return html`<${C.StateChip} key=${m.id} state=${m} />`;
+    })}<//>`;
+  };
+
+  /* ======================= 학생 표시 ======================= */
+  C.WhoChip = function (p) {
+    var s = p.student;
+    if (!s) return null;
+    var inner = html`<${React.Fragment}>
+      <span class="face"><${C.AvatarArt} student=${s} /></span>
+      <span class="nm">${s.name}</span>
+      ${p.extra}
+    <//>`;
+    if (p.onClick) {
+      return html`<button type="button" class="who" onClick=${p.onClick}
+        aria-label=${'학생 바꾸기. 지금은 ' + s.name}>${inner}</button>`;
+    }
+    return html`<div class="who">${inner}</div>`;
+  };
+
+  /* ======================= 입력 조각 ======================= */
+  C.Field = function (p) {
+    return html`<label style=${{ display: 'block', width: p.width || '100%' }}>
+      ${p.label && html`<span class="lab">${p.label}</span>`}
+      <input class="field" type=${p.type || 'text'} value=${p.value == null ? '' : p.value}
+        placeholder=${p.placeholder || ''} min=${p.min} max=${p.max}
+        onChange=${function (e) { p.onChange(e.target.value); }} />
+    </label>`;
+  };
+
+  C.Area = function (p) {
+    return html`<label style=${{ display: 'block' }}>
+      ${p.label && html`<span class="lab">${p.label}</span>`}
+      <textarea class="field" rows=${p.rows || 6} value=${p.value || ''} placeholder=${p.placeholder || ''}
+        onChange=${function (e) { p.onChange(e.target.value); }}></textarea>
+    </label>`;
+  };
+
+  C.Switch = function (p) {
+    return html`<button type="button" class=${'switch' + (p.on ? ' on' : '')}
+        role="switch" aria-checked=${p.on ? 'true' : 'false'}
+        onClick=${function () { p.onChange(!p.on); }}>
+      <b>${p.label}</b>
+      <span class="pill" aria-hidden="true"></span>
+      <span class="txt">${p.on ? (p.onText || '켬') : (p.offText || '끔')}</span>
+    </button>`;
+  };
+
+  /* ======================= 사진 ======================= */
+  C.PhotoBox = function (p) {
+    var url = p.photoId ? App.photos.url(p.photoId) : null;
+    if (!url) return html`<div class="photo empty">${p.empty || '사진 없음'}</div>`;
+    return html`<div class="photo"><img src=${url} alt=${p.alt || '활동 사진'} /></div>`;
+  };
+
+  C.PhotoPicker = function (p) {
+    var fileRef = useRef(null);
+    var busy = useState(false);
+    function pick(e) {
+      var files = Array.prototype.slice.call(e.target.files || []);
+      if (!files.length) return;
+      busy[1](true);
+      var jobs = files.slice(0, 4).map(function (f) {
+        return App.photos.addFile(f, p.studentId, p.kind || 'activity');
+      });
+      Promise.all(jobs).then(function (ids) {
+        busy[1](false);
+        p.onAdd(ids);
+        App.ui.toast('사진을 저장했어요.');
+      })['catch'](function (err) {
+        busy[1](false);
+        App.ui.toast(err && err.message ? err.message : '사진을 저장하지 못했어요.');
+      });
+      e.target.value = '';
+    }
+    return html`<div class="stack">
+      <div class="wrap">
+        <${C.Btn} icon="camera" onClick=${function () { if (fileRef.current) fileRef.current.click(); }}
+          disabled=${busy[0]}>${busy[0] ? '저장하는 중…' : (p.label || '사진 넣기')}<//>
+        <input ref=${fileRef} type="file" accept="image/*" multiple style=${{ display: 'none' }} onChange=${pick} />
+      </div>
+      ${p.photoIds && p.photoIds.length ? html`<${React.Fragment}>
+        ${p.onMain && p.photoIds.length > 1 && html`<p class="small muted" style=${{ margin: '.1rem 0 0' }}>
+          그림일기에 넣을 그림 하나를 눌러서 골라요.</p>`}
+        <div class="exh-grid">
+          ${p.photoIds.map(function (id) {
+            var on = p.onMain && p.mainId === id;
+            return html`<div key=${id} class="stack">
+              ${p.onMain
+                ? html`<button type="button" class=${'photo-pick' + (on ? ' on' : '')}
+                    aria-pressed=${on ? 'true' : 'false'} aria-label="이 그림을 그림일기에 넣기"
+                    onClick=${function () { p.onMain(id); }}>
+                    <span class="check" aria-hidden="true">✓</span>
+                    <${C.PhotoBox} photoId=${id} />
+                  </button>`
+                : html`<${C.PhotoBox} photoId=${id} />`}
+              <${C.Btn} size="small" kind="danger" icon="trash" onClick=${function () {
+                App.ui.confirm({ title: '이 사진을 지울까요?', okText: '지울래요', cancelText: '그만두기', tone: 'danger' })
+                  .then(function (ok) { if (ok) { App.photos.remove(id); p.onRemove(id); } });
+              }}>사진 지우기<//>
+            </div>`;
+          })}
+        </div>
+      <//>` : null}
+    </div>`;
+  };
+
+  /* ======================= 직접 그리기 =======================
+     손가락·펜·마우스로 그림을 그려 그림일기에 넣습니다.
+     그린 그림은 사진과 같은 곳(IndexedDB)에 저장합니다. */
+  var DRAW_W = 1000, DRAW_H = 700;
+  var DRAW_COLORS = [
+    { id: 'black',  name: '검정',   v: '#2f2f3d' },
+    { id: 'red',    name: '빨강',   v: '#e05252' },
+    { id: 'orange', name: '주황',   v: '#f0913c' },
+    { id: 'yellow', name: '노랑',   v: '#efc033' },
+    { id: 'green',  name: '초록',   v: '#43b581' },
+    { id: 'blue',   name: '파랑',   v: '#4a90d9' },
+    { id: 'purple', name: '보라',   v: '#9b7fd4' },
+    { id: 'brown',  name: '갈색',   v: '#96693f' }
+  ];
+  var DRAW_SIZES = [{ name: '가늘게', v: 5 }, { name: '보통', v: 12 }, { name: '굵게', v: 26 }];
+
+  C.DrawPad = function (p) {
+    var cvRef = useRef(null);
+    var drawing = useRef(false);
+    var colorS = useState(DRAW_COLORS[0].v);
+    var sizeS = useState(DRAW_SIZES[1].v);
+    var eraserS = useState(false);
+    var dirtyS = useState(false);
+
+    /* 흰 바탕으로 시작합니다 (투명하면 인쇄할 때 검게 나오는 프린터가 있습니다) */
+    useLayoutEffect(function () {
+      var cv = cvRef.current; if (!cv) return;
+      var g = cv.getContext('2d');
+      g.fillStyle = '#ffffff';
+      g.fillRect(0, 0, DRAW_W, DRAW_H);
+      if (p.startFrom) {
+        var img = new Image();
+        img.onload = function () { g.drawImage(img, 0, 0, DRAW_W, DRAW_H); };
+        img.src = p.startFrom;
+      }
+    }, []);
+
+    /* 화면 좌표 → 그림판 좌표 */
+    function at(e) {
+      var cv = cvRef.current, r = cv.getBoundingClientRect();
+      return { x: (e.clientX - r.left) * (DRAW_W / r.width),
+               y: (e.clientY - r.top) * (DRAW_H / r.height) };
+    }
+    function begin(e) {
+      var cv = cvRef.current; if (!cv) return;
+      e.preventDefault();
+      if (cv.setPointerCapture && e.pointerId != null) {
+        try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+      drawing.current = true;
+      var g = cv.getContext('2d'), q = at(e);
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.strokeStyle = eraserS[0] ? '#ffffff' : colorS[0];
+      g.lineWidth = eraserS[0] ? sizeS[0] * 2.2 : sizeS[0];
+      g.beginPath();
+      g.moveTo(q.x, q.y);
+      /* 톡 찍기만 해도 점이 찍히도록 */
+      g.lineTo(q.x + 0.01, q.y);
+      g.stroke();
+      if (!dirtyS[0]) dirtyS[1](true);
+    }
+    function move(e) {
+      if (!drawing.current) return;
+      e.preventDefault();
+      var g = cvRef.current.getContext('2d'), q = at(e);
+      g.lineTo(q.x, q.y);
+      g.stroke();
+    }
+    function end() { drawing.current = false; }
+
+    function clearAll() {
+      App.ui.confirm({ title: '그린 그림을 모두 지울까요?', okText: '다 지울래요',
+        cancelText: '그만두기', tone: 'danger' }).then(function (ok) {
+        if (!ok) return;
+        var g = cvRef.current.getContext('2d');
+        g.fillStyle = '#ffffff'; g.fillRect(0, 0, DRAW_W, DRAW_H);
+        dirtyS[1](false);
+      });
+    }
+    function done() {
+      var url = cvRef.current.toDataURL('image/png');
+      p.onDone(url);
+    }
+
+    function swatch(c) {
+      var on = !eraserS[0] && colorS[0] === c.v;
+      return html`<button key=${c.id} type="button" class=${'dp-color' + (on ? ' on' : '')}
+        style=${{ background: c.v }} aria-label=${c.name} title=${c.name}
+        aria-pressed=${on ? 'true' : 'false'}
+        onClick=${function () { colorS[1](c.v); eraserS[1](false); }} />`;
+    }
+
+    return html`<div class="dp">
+      <div class="dp-tools">
+        ${DRAW_COLORS.map(swatch)}
+        <button type="button" class=${'btn small' + (eraserS[0] ? ' ok' : '')}
+          aria-pressed=${eraserS[0] ? 'true' : 'false'}
+          onClick=${function () { eraserS[1](!eraserS[0]); }}>지우개<//>
+        <span class="dp-gap"></span>
+        ${DRAW_SIZES.map(function (s) {
+          var on = sizeS[0] === s.v;
+          return html`<button key=${s.name} type="button" class=${'btn small' + (on ? ' ok' : '')}
+            aria-pressed=${on ? 'true' : 'false'}
+            onClick=${function () { sizeS[1](s.v); }}>${s.name}<//>`;
+        })}
+        <span class="dp-gap"></span>
+        <${C.Btn} size="small" icon="trash" onClick=${clearAll}>다 지우기<//>
+      </div>
+
+      <canvas class="dp-canvas" ref=${cvRef} width=${DRAW_W} height=${DRAW_H}
+        aria-label="그림 그리는 곳"
+        onPointerDown=${begin} onPointerMove=${move}
+        onPointerUp=${end} onPointerCancel=${end} onPointerLeave=${end} />
+
+      <div class="dp-foot">
+        <span class="small muted grow">손가락·펜·마우스로 그려요. 색과 굵기를 고를 수 있어요.</span>
+        <${C.Btn} kind="ok" icon="check" disabled=${!dirtyS[0]} onClick=${done}>그림 다 그렸어요<//>
+      </div>
+    </div>`;
+  };
+
+  /* ======================= 우리 반 활동 더하기 =======================
+     학급 특성에 맞는 활동을 그 자리에서 바로 더합니다.
+     선생님 설정에서도, 활동을 고르는 화면에서도 같은 창을 씁니다. */
+  var ADD_ICONS = ['star', 'heart', 'blocks', 'paper', 'pot', 'bread', 'bug', 'pet',
+                   'tv', 'gamepad', 'dice', 'yoga', 'gym', 'slide', 'museum', 'library',
+                   'store', 'mic', 'park', 'tent', 'food', 'shoe', 'bike', 'marble',
+                   'film', 'bag', 'leaf', 'nature', 'box', 'frame'];
+
+  C.AddActivityModal = function (p) {
+    var nameS = useState('');
+    var areaS = useState(p.area || 'indoor');
+    var placeS = useState('');
+    var iconS = useState('star');
+    var name = nameS[0].trim();
+
+    function save() {
+      if (!name) { App.ui.toast('활동 이름을 써 주세요.'); return; }
+      var id = App.store.addActivity({
+        area: areaS[0], name: name, icon: iconS[0], defaultPlace: placeS[0].trim()
+      });
+      App.ui.toast('「' + name + '」 활동을 더했어요.');
+      if (p.onAdded) p.onAdded(id);
+      p.onClose();
+    }
+
+    return html`<${C.Modal} title="우리 반 활동 더하기" onClose=${p.onClose}
+      actions=${html`<${React.Fragment}>
+        <${C.Btn} onClick=${p.onClose}>그만두기<//>
+        <${C.Btn} kind="ok" icon="check" disabled=${!name} onClick=${save}>이 활동 더하기<//>
+      <//>`}>
+      <div class="stack">
+        <${C.Field} label="활동 이름" value=${nameS[0]}
+          placeholder="예) 텃밭 가꾸기 · 방울 놀이"
+          onChange=${function (v) { nameS[1](v); }} />
+
+        <div>
+          <span class="lab">어디에서 하나요?</span>
+          <div class="wrap">
+            ${[['indoor', '실내'], ['outdoor', '실외']].map(function (x) {
+              var on = areaS[0] === x[0];
+              return html`<button key=${x[0]} type="button" class=${'tchoice' + (on ? ' on' : '')}
+                aria-pressed=${on} onClick=${function () { areaS[1](x[0]); }}>
+                ${on ? '✓ ' : ''}${x[1]}</button>`;
+            })}
+          </div>
+        </div>
+
+        <${C.Field} label="장소 (안 써도 돼요)" value=${placeS[0]}
+          placeholder="예) 교실 · 텃밭" onChange=${function (v) { placeS[1](v); }} />
+
+        <div>
+          <span class="lab">그림 고르기</span>
+          <div class="icon-pick">
+            ${ADD_ICONS.map(function (k) {
+              var on = iconS[0] === k;
+              return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
+                aria-pressed=${on} aria-label=${'그림 ' + k}
+                onClick=${function () { iconS[1](k); }}>
+                <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
+              </button>`;
+            })}
+          </div>
+          <p class="small muted" style=${{ marginTop: '.3rem' }}>
+            <b>images/activities/${name || '활동이름'}.png</b> 파일을 넣어 두면 그 그림이 대신 나와요.
+          </p>
+        </div>
+
+        ${name && html`<${C.Banner} icon="check">
+          <div class="small">문장은 이렇게 만들어져요.</div>
+          <div><b>${'계획 : 나는 오늘 ' + App.eulReul(name) + ' 할 거예요.'}</b></div>
+          <div><b>${'일기 : 나는 오늘 ' + App.eulReul(name) + ' 했어요.'}</b></div>
+        <//>`}
+      </div>
+    <//>`;
+  };
+
+  /* 활동 카드 자리에 놓는 '＋ 활동 더하기' 카드 */
+  C.AddActivityCard = function (p) {
+    return html`<button type="button" class="pick add-card" onClick=${p.onClick}
+        aria-label="우리 반 활동 더하기">
+      <span class="thumb"><span class="add-plus" aria-hidden="true">＋</span></span>
+      <span class="label">활동 더하기</span>
+      <span class="note">우리 반 활동</span>
+    </button>`;
+  };
+
+  /* ======================= 그 밖 ======================= */
+  C.Banner = function (p) {
+    return html`<div class=${'banner ' + (p.tone || '')}>
+      <div class="row">
+        ${p.icon && html`<span style=${{ width: 32, height: 32, flex: '0 0 auto' }} aria-hidden="true"
+          dangerouslySetInnerHTML=${{ __html: App.icon(p.icon) }} />`}
+        <div class="grow">${p.children}</div>
+        ${p.speakText && html`<${C.Speak} text=${p.speakText} />`}
+      </div>
+    </div>`;
+  };
+
+  C.Sec = function (p) {
+    return html`<section class="sec">
+      ${p.title && html`<h3>${p.title}${p.speakText && html`<${C.Speak} short=${true} text=${p.speakText} />`}</h3>`}
+      ${p.children}
+    </section>`;
+  };
+
+  App.useMemo2 = useMemo;
+})();
