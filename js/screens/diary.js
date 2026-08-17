@@ -30,7 +30,7 @@
 
     if (!areaS[0]) {
       return html`<${React.Fragment}>
-        <${C.Question} hint="한 가지를 골라요" speakText="어디에서 했나요?">어디에서 했나요?<//>
+        <${C.Question} bar=${true} speakText="어디에서 했나요?">어디에서 했나요?<//>
         <${C.PickGrid} cols=${2}>
           <${C.Pick} label="실내에서 했어요" speakText="실내에서 했어요" bare=${true}
             onClick=${function () { areaS[1]('indoor'); }}
@@ -44,7 +44,7 @@
     if (subS[0]) {
       var kids = App.visibleChildren(student, subS[0]);
       return html`<${React.Fragment}>
-        <${C.Question} speakText=${'무엇을 했나요? ' + subS[0].name}>무엇을 했나요? — ${subS[0].name}<//>
+        <${C.Question} bar=${true} speakText=${'무엇을 했나요? ' + subS[0].name}>무엇을 했나요? — ${subS[0].name}<//>
         <${C.PickGrid} cols=${kids.length > 4 ? 3 : 2}>
           ${kids.map(function (ch) {
             return html`<${C.ActivityPick} key=${ch.id} activity=${ch} selected=${p.value === ch.id}
@@ -61,7 +61,7 @@
     var pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
     var page = Math.min(pageS[0], pages - 1);
     return html`<${React.Fragment}>
-      <${C.Question} hint=${'모두 ' + cards.length + '가지'} speakText="무엇을 했나요?">무엇을 했나요?<//>
+      <${C.Question} bar=${true} speakText="무엇을 했나요?">무엇을 했나요?<//>
       <${C.PickGrid} cols=${6}>
         ${cards.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE).map(function (c) {
           var kids = App.visibleChildren(student, c);
@@ -135,6 +135,7 @@
     var helpS = useState(false);
     var editMetaS = useState(false);
     var drawS = useState(false);       // 직접 그리기 판이 열려 있는지
+    var photoS = useState(false);      // 사진 고르기 팝업이 열려 있는지
     var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
 
     /* 고르면 0.45초 뒤 다음 질문으로 넘어갑니다 (규칙 2).
@@ -158,6 +159,22 @@
     var moods = App.moodsFor(student);
     var partners = App.partnersFor(student);
     var act = App.act(draft.activityId);
+
+    /* 함께한 사람은 **여러 명**일 수 있습니다 (계획하기와 같은 방식).
+       `혼자` 는 뜻이 어긋나므로 다른 사람과 같이 고를 수 없습니다. */
+    function whoIds() {
+      if (draft.partnerIds && draft.partnerIds.length) return draft.partnerIds;
+      return draft.partnerId ? [draft.partnerId] : [];
+    }
+    function toggleWho(pt) {
+      var cur = whoIds().slice();
+      var i = cur.indexOf(pt.id);
+      if (i >= 0) cur.splice(i, 1);
+      else if (pt.id === 'alone') cur = ['alone'];
+      else cur = cur.filter(function (x) { return x !== 'alone'; }).concat([pt.id]);
+      patch({ partnerIds: cur, partnerId: cur[0] || null });
+      if (i < 0) App.speakFor(student, pt.name);
+    }
 
     /* --------------------- 저장 --------------------- */
     function save() {
@@ -220,7 +237,7 @@
       var t = App.todayKey();
       if (step === 0) {
         return html`<${React.Fragment}>
-          <${C.Question} speakText="언제 했나요?">언제 했나요?<//>
+          <${C.Question} bar=${true} speakText="언제 했나요?">언제 했나요?<//>
           <${C.PickGrid} cols=${3}>
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
               onClick=${function () { patch({ date: t }); }}
@@ -240,12 +257,13 @@
       }
       if (step === 1) {
         return html`<${React.Fragment}>
-          <${C.Question} speakText="누구와 했나요?">누구와 했나요?<//>
-          <${C.PickGrid} cols=${partners.length}>
+          <${C.Question} bar=${true} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
+          <${C.PickGrid} cols=${7}>
             ${partners.map(function (pt) {
-              return html`<${C.Pick} key=${pt.id} selected=${draft.partnerId === pt.id}
+              var on = whoIds().indexOf(pt.id) >= 0;
+              return html`<${C.Pick} key=${pt.id} selected=${on}
                 label=${pt.name} speakText=${pt.name} portrait=${true}
-                onClick=${function () { patch({ partnerId: pt.id }); App.speakFor(student, pt.name); }}
+                onClick=${function () { toggleWho(pt); }}
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
           <//>
@@ -262,8 +280,8 @@
         if (act && act.defaultPlace) sug.push(act.defaultPlace);
         ['교실', '집', '학교', '공원', '운동장'].forEach(function (s) { if (sug.indexOf(s) < 0) sug.push(s); });
         return html`<${React.Fragment}>
-          <${C.Question} speakText="어디에서 했나요?">어디에서 했나요?<//>
-          <${C.PickGrid} cols=${3}>
+          <${C.Question} bar=${true} speakText="어디에서 했나요?">어디에서 했나요?<//>
+          <${C.PickGrid} cols=${6}>
             ${sug.slice(0, 5).map(function (s) {
               return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${s}
                 onClick=${function () { patch({ place: s }); }}
@@ -280,7 +298,7 @@
       }
       if (step === 4) {
         return html`<${React.Fragment}>
-          <${C.Question} hint="여러 개 골라도 좋아요" speakText="기분이 어땠나요?">기분이 어땠나요?<//>
+          <${C.Question} bar=${true} speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
           <${C.PickGrid} cols=${moods.length}>
             ${moods.map(function (m) {
               var on = draft.moodIds.indexOf(m.id) >= 0;
@@ -297,7 +315,7 @@
       }
       if (step === 5) {
         return html`<${React.Fragment}>
-          <${C.Question} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
+          <${C.Question} bar=${true} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
           <${C.PickGrid} cols=${3}>
             ${App.DATA.agains.map(function (g) {
               return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id}
@@ -311,7 +329,7 @@
       /* 그림 — 사진 넣기 · 내가 그리기 (2단계와 같은 화면) */
       if (step === 6) {
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 장만 들어가요" speakText="그림일기에 넣을 그림을 골라요">
+          <${C.Question} bar=${true} speakText="그림일기에 넣을 그림을 골라요">
             그림일기에 넣을 그림을 골라요<//>
           ${photoSection(true)}
         <//>`;
@@ -329,16 +347,24 @@
          이제 이 한 화면에서 끝납니다. */
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
-        <${C.Question} hint="맞으면 저장해요" speakText="일기가 완성되었어요">일기가 완성되었어요<//>
+        <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
              위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다. -->
         <div class="confirm-2col">
-          <${C.SentenceEdit}
-            made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
-            value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
-            placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
-            onChange=${function (v) { patch({ bodyEdit: v }); }}
-            onReset=${function () { patch({ bodyEdit: null }); }} />
+          <div class="confirm-left">
+            <${C.SentenceEdit}
+              made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
+              value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
+              placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
+              onChange=${function (v) { patch({ bodyEdit: v }); }}
+              onReset=${function () { patch({ bodyEdit: null }); }} />
+            <!-- 날짜·날씨·사람·장소·활동을 고치는 길.
+                 이 자리가 없으면 한 번 고른 것을 바꿀 수 없습니다. -->
+            <div class="wrap" style=${{ justifyContent: 'center' }}>
+              <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+                onClick=${function () { editMetaS[1](true); }}>날짜 · 사람 · 장소 바꾸기<//>
+            </div>
+          </div>
           <${C.DiaryPreview} draft=${draft} student=${student} />
         </div>
       <//>`;
@@ -357,6 +383,16 @@
         ? draft.mainPhotoId : (draft.photoIds[0] || null);
       var myDraw = draft.drawPhotoId ? App.photos.url(draft.drawPhotoId) : null;
 
+      /* ★ 세 칸을 **누르면 바로 그 일이 일어납니다.**
+           예전에는 고르기만 하고 아래에 또 다른 단추가 나와서,
+           학생이 '눌렀는데 아무 일도 안 일어난다' 고 느꼈습니다.
+           또 그 아래 블록(사진 목록·그린 그림)이 길어서 이 화면이 3쪽으로
+           갈라졌고, **1쪽이 텅 비어** 보였습니다 (규칙 10-1).
+           지금은 사진 고르기도 그림 그리기도 **팝업**에서 합니다.
+           고른 결과는 세 칸 바로 아래에 **작게 한 줄**로만 보여 줍니다. */
+      var chosenPic = (kind === 'photo' && main) ? App.photos.url(main)
+                    : (kind === 'draw' && myDraw) ? myDraw : null;
+
       return html`<${C.Sec} title=${bare ? null : '그림일기에 넣을 그림'}
           speakText=${bare ? null : '그림일기에 넣을 그림을 골라요'}>
         <${C.PickGrid} cols=${3} label="그림일기에 넣을 그림">
@@ -365,49 +401,27 @@
             onClick=${function () { patch({ picKind: 'app' }); }}
             art=${html`<${C.ActivityArt} activity=${act} />`} />
           <${C.Pick} label="사진 넣기" speakText="사진 넣기"
-            note="이 기기의 사진" selected=${kind === 'photo'}
-            onClick=${function () { patch({ picKind: 'photo' }); }}
+            note="누르면 사진을 골라요" selected=${kind === 'photo'}
+            onClick=${function () { patch({ picKind: 'photo' }); photoS[1](true); }}
             art=${html`<${C.Art} iconKey="camera" />`} />
-          <!-- 누르면 곧바로 그리기 판이 열립니다.
-               예전에는 고르기만 하고 아래 단추를 또 눌러야 해서, 학생이
-               '눌렀는데 아무 일도 안 일어난다' 고 느꼈습니다. -->
           <${C.Pick} label="내가 그리기" speakText="내가 그리기"
-            note="손으로 직접" selected=${kind === 'draw'}
+            note="누르면 그림판이 열려요" selected=${kind === 'draw'}
             onClick=${function () { patch({ picKind: 'draw' }); drawS[1](true); }}
             art=${html`<${C.Art} iconKey="pencil" />`} />
         <//>
 
-        ${kind === 'photo' && html`<${C.PhotoPicker} studentId=${student.id} photoIds=${draft.photoIds}
-          label="사진 넣기"
-          mainId=${main} onMain=${function (id) { patch({ mainPhotoId: id }); }}
-          onAdd=${function (ids) {
-            patch({ photoIds: draft.photoIds.concat(ids), mainPhotoId: main || ids[0] });
-          }}
-          onRemove=${function (id) {
-            var left = draft.photoIds.filter(function (x) { return x !== id; });
-            patch({ photoIds: left, mainPhotoId: main === id ? (left[0] || null) : main });
-          }} />`}
-
-        ${kind === 'draw' && html`<div class="stack" style=${{ marginTop: '.5rem' }}>
-          <!-- ★ '그림 그리기' 는 여기서 **지금 할 일** 입니다.
-               예전에는 왼쪽 구석에 작게 있어서 눈에 띄지 않았습니다.
-               가운데 큰 빨간 바로 두어 학생이 바로 찾습니다. -->
-          <${C.Btn} size="big" className="pastel-red draw-go" icon="pencil"
-            onClick=${function () { drawS[1](true); }}>
-            ${myDraw ? '그림 고쳐 그리기' : '그림 그리기'}<//>
-          ${myDraw
-            ? html`<${React.Fragment}>
-                <img src=${myDraw} alt="내가 그린 그림" class="my-draw" />
-                <div class="wrap" style=${{ justifyContent: 'center' }}>
-                  <${C.Btn} size="small" kind="danger" icon="trash"
-                    onClick=${function () {
-                      App.photos.remove(draft.drawPhotoId); patch({ drawPhotoId: null });
-                    }}>그린 그림 지우기<//>
-                </div>
-              <//>`
-            : html`<p class="small muted" style=${{ textAlign: 'center' }}>
-                위 <b>그림 그리기</b> 를 눌러 손으로 그려 보아요.</p>`}
+        ${chosenPic && html`<div class="picked-row">
+          <img src=${chosenPic} alt="그림일기에 넣을 그림" class="picked-thumb" />
+          <span class="grow small" style=${{ fontWeight: 800 }}>
+            ${kind === 'draw' ? '내가 그린 그림이 들어가요' : '이 사진이 들어가요'}</span>
+          <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+            onClick=${function () { if (kind === 'draw') drawS[1](true); else photoS[1](true); }}>
+            ${kind === 'draw' ? '고쳐 그리기' : '다른 사진'}<//>
         </div>`}
+        ${kind === 'draw' && !myDraw && html`<p class="small muted" style=${{ textAlign: 'center' }}>
+          <b>내가 그리기</b> 를 한 번 더 누르면 그림판이 열려요.</p>`}
+        ${kind === 'photo' && !main && html`<p class="small muted" style=${{ textAlign: 'center' }}>
+          <b>사진 넣기</b> 를 한 번 더 누르면 사진을 고를 수 있어요.</p>`}
       <//>`;
     }
 
@@ -522,7 +536,7 @@
         <div class="frame-line"><b>제목 :</b>
           <span class=${'blank wide' + (draft.title ? ' on' : '')}>${draft.title || '　　　　'}</span>
         </div>
-        <${C.Question} hint="그림일기 맨 위에 들어가요" speakText="일기 제목을 골라요">일기 제목을 골라요<//>
+        <${C.Question} bar=${true} speakText="일기 제목을 골라요. 그림일기 맨 위에 들어가요.">일기 제목을 골라요<//>
         <${C.PickGrid} cols=${6}>
           ${titleWords(f).map(function (w) {
             var on = draft.title === w.name;
@@ -548,7 +562,7 @@
       if (step === 0) {
         return html`<${React.Fragment}>
           ${frameLine(f)}
-          <${C.Question} speakText="누구와 했나요?">누구와 했나요?<//>
+          <${C.Question} bar=${true} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
           <${C.PickGrid} cols=${partners.length}>
             ${partners.map(function (pt) {
               var on = f.f1a === pt.name;
@@ -566,7 +580,7 @@
       if (step === 1) {
         return html`<${React.Fragment}>
           ${frameLine(f)}
-          <${C.Question} speakText="활동을 하니 기분이 어땠나요?">활동을 하니 기분이 어땠나요?<//>
+          <${C.Question} bar=${true} speakText="활동을 하니 기분이 어땠나요?">활동을 하니 기분이 어땠나요?<//>
           ${wordCards(moods.map(function (m) { return { name: m.past, mood: m, id: m.id }; }),
             'f2', App.moodWord(f.f2), moods.length, function (w) {
               /* 고른 기분을 '오늘의 기분' 으로도 함께 남깁니다 (따로 또 묻지 않으려고요) */
@@ -580,7 +594,7 @@
             <span class=${'blank' + (f.f3 ? ' on' : '')}>${f.f3 || '　　　'}</span>
             <b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
           </div>
-          <${C.Question} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
+          <${C.Question} bar=${true} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
           ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
         <//>`;
       }
@@ -590,14 +604,14 @@
             <span class=${'blank' + (f.f4 ? ' on' : '')}>${f.f4 || '　　　'}</span>
             <b>하고 싶어요.</b>
           </div>
-          <${C.Question} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
+          <${C.Question} bar=${true} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
           ${wordCards(F4_WORDS, 'f4', f.f4, 4)}
         <//>`;
       }
       if (step === 4) return titleStep();
       if (step === 5) {
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 장만 들어가요" speakText="그림일기에 넣을 그림을 골라요">
+          <${C.Question} bar=${true} speakText="그림일기에 넣을 그림을 골라요">
             그림일기에 넣을 그림을 골라요<//>
           ${photoSection(true)}
         <//>`;
@@ -666,7 +680,7 @@
         var s = sixOf();
         var lines = sixLines();
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 줄씩 짧게 써요"
+          <${C.Question} bar=${true}
             speakText="일기의 뼈대를 만들어요. 여섯 가지를 한 줄씩 답하면 일기의 뼈대가 됩니다.">
             일기의 뼈대를 만들어요<//>
           <div class="six">
@@ -690,7 +704,7 @@
          한 화면에 두 격자를 넣으면 3쪽으로 갈라집니다 (규칙 1 · 10-1). */
       if (step === 2) {
         return html`<${React.Fragment}>
-          <${C.Question} hint="여러 개 고를 수 있어요" speakText="활동을 하니 기분이 어땠나요?">
+          <${C.Question} bar=${true} speakText="활동을 하니 기분이 어땠나요?">
             활동을 하니 기분이 어땠나요?<//>
           <${C.PickGrid} cols=${8}>
             ${moods.map(function (m) {
@@ -706,7 +720,7 @@
       }
       if (step === 3) {
         return html`<${React.Fragment}>
-          <${C.Question} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
+          <${C.Question} bar=${true} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
           <${C.PickGrid} cols=${3}>
             ${App.DATA.agains.map(function (g) {
               return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id} label=${g.name}
@@ -718,7 +732,7 @@
       }
       if (step === 4) {
         return html`<${React.Fragment}>
-          <${C.Question} hint="짧게 써요" speakText="일기 제목을 써요">일기 제목을 써요<//>
+          <${C.Question} bar=${true} speakText="일기 제목을 써요">일기 제목을 써요<//>
           <div class="row">
             <div class="grow"><${C.Field} label="일기 제목" value=${draft.title}
               placeholder="예) 친구와 슬라임 놀이" onChange=${function (v) { patch({ title: v }); }} /></div>
@@ -730,7 +744,7 @@
       }
       if (step === 5) {
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 장만 들어가요" speakText="그림일기에 넣을 그림을 골라요">
+          <${C.Question} bar=${true} speakText="그림일기에 넣을 그림을 골라요">
             그림일기에 넣을 그림을 골라요<//>
           ${photoSection(true)}
         <//>`;
@@ -740,7 +754,7 @@
       /* step 1 — 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
       var bones = sixLines();
       return html`<${React.Fragment}>
-        <${C.Question} hint="자유롭게 써요" speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
+        <${C.Question} bar=${true} speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
         ${bones.length ? html`<div class="bones">
           <span class="bones-lab">내가 만든 뼈대</span>
           <span class="bones-txt">${bones.join(' ')}</span>
@@ -956,6 +970,27 @@
           }} />
       <//>`}
 
+      <!-- 사진 고르기 팝업 — '사진 넣기' 를 누르면 바로 열립니다 -->
+      ${photoS[0] && html`<${C.Modal} title="그림일기에 넣을 사진을 골라요" wide=${true}
+        onClose=${function () { photoS[1](false); }}
+        actions=${html`<${C.Btn} kind="ok" icon="check"
+          onClick=${function () { photoS[1](false); }}>이 사진으로 할래요<//>`}>
+        <${C.PhotoPicker} studentId=${student.id} photoIds=${draft.photoIds}
+          label="사진 넣기"
+          mainId=${draft.mainPhotoId && draft.photoIds.indexOf(draft.mainPhotoId) >= 0
+            ? draft.mainPhotoId : (draft.photoIds[0] || null)}
+          onMain=${function (id) { patch({ mainPhotoId: id }); }}
+          onAdd=${function (ids) {
+            patch({ photoIds: draft.photoIds.concat(ids),
+                    mainPhotoId: draft.mainPhotoId || ids[0] });
+          }}
+          onRemove=${function (id) {
+            var left = draft.photoIds.filter(function (x) { return x !== id; });
+            patch({ photoIds: left,
+                    mainPhotoId: draft.mainPhotoId === id ? (left[0] || null) : draft.mainPhotoId });
+          }} />
+      <//>`}
+
       ${drawS[0] && html`<${C.Modal} title="그림을 그려요" wide=${true}
         onClose=${function () { drawS[1](false); }}
         actions=${html`<${C.Btn} onClick=${function () { drawS[1](false); }}>그만두기<//>`}>
@@ -1007,11 +1042,9 @@
       p.onStep(4);
     }
 
-    /* 저장한 뒤에 "어, 기분을 잘못 골랐다" 싶을 때 되돌아갈 길입니다.
-       예전에는 여기서 나갈 수 없어서 **선생님 설정 11번까지 들어가야** 했습니다.
-       모든 질문 창에 같은 자리(왼쪽 아래)에 둡니다. */
-    var fixBtn = html`<${C.Btn} size="small" icon="pencil" className="pastel-yellow"
-      onClick=${function () { p.onStep(null); p.nav('diary', { diaryId: d.id }); }}>일기 고치기<//>`;
+    /* ※ 저장 뒤 질문 창에는 `일기 고치기` 를 두지 않습니다.
+         되돌아가서 처음부터 다시 고르는 것은 번거롭습니다.
+         고치는 일은 **완성한 그림일기 화면**에서 한 번에 합니다. */
 
     if (p.step === 0) {
       var msg = '일기를 잘 기록했어요.';
@@ -1037,8 +1070,7 @@
     }
     if (p.step === 1) {
       var q1 = '이 활동을 좋아하나요?';
-      return html`<${C.Modal} title=${q1} speakText=${name + '. ' + q1}
-        actions=${fixBtn}>
+      return html`<${C.Modal} title=${q1} speakText=${name + '. ' + q1}>
         <p class="small muted">${name} 에 대해 스스로 골라 보아요.</p>
         <${C.PickGrid} cols=${3} label=${q1}>
           <${C.Pick} label="좋아해요" speakText="좋아해요" selected=${!!st.like}
@@ -1052,8 +1084,7 @@
     }
     if (p.step === 2) {
       var q2 = '다음에 또 하거나 도전하고 싶나요?';
-      return html`<${C.Modal} title=${q2} speakText=${name + '. ' + q2}
-        actions=${fixBtn}>
+      return html`<${C.Modal} title=${q2} speakText=${name + '. ' + q2}>
         <${C.PickGrid} cols=${3} label=${q2}>
           <${C.Pick} label="또 하고 싶어요" speakText="또 하고 싶어요" selected=${!!st.challenge}
             onClick=${function () { setChallenge('yes'); }} art=${html`<${C.Art} iconKey="star" />`} />
@@ -1066,8 +1097,7 @@
     }
     if (p.step === 3) {
       var q3 = '이 일기를 전시하고 싶어요?';
-      return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}
-        actions=${fixBtn}>
+      return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}>
         <p class="small muted">전시하기로 고른 기록에는 큰 별이 붙고, 포트폴리오에 실려요.</p>
         <${C.PickGrid} cols=${2} label=${q3}>
           <${C.Pick} label="전시할래요" speakText="전시할래요" selected=${!!d.exhibit}
@@ -1079,21 +1109,17 @@
     }
     /* 마무리 */
     var stNow = App.store.statusOf(p.student.id, d.cardId);
-    return html`<${C.Modal} title="모두 마쳤어요" speakText="일기와 지도, 포트폴리오에 모두 기록했어요."
-      actions=${html`<${React.Fragment}>
-        <${C.Btn} kind="primary" icon="book"
-          onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기 보기<//>
-        <${C.Btn} icon="cornerMap" onClick=${function () { p.nav('map'); }}>여가 지도 보기<//>
-        <${C.Btn} icon="cornerFolio" onClick=${function () { p.nav('portfolio'); }}>포트폴리오 보기<//>
-        ${fixBtn}
-        <${C.Btn} icon="home" onClick=${function () { p.nav('home'); }}>홈으로<//>
-      <//>`}>
+    /* ★ 마지막 창에는 **다음에 할 일 하나만** 둡니다.
+         예전에는 그림일기·지도·포트폴리오·일기 고치기·홈 다섯 개가 늘어서 있어
+         학생이 무엇을 눌러야 할지 몰랐습니다.
+         일기를 썼으면 이제 볼 것은 **완성한 그림일기**입니다.
+         지도·포트폴리오·홈은 그림일기 화면에서 이어서 갈 수 있습니다. */
+    return html`<${C.Modal} title="모두 마쳤어요" speakText="일기를 다 썼어요. 완성한 그림일기를 볼까요?"
+      actions=${html`<${C.Btn} kind="primary" size="big" icon="book"
+        onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>완성한 그림일기 보기<//>`}>
       <${C.Banner} tone="ok" icon="check">
         <b>${name + '의'}</b><span>${' 지금 표시예요.'}</span>
         <div class="wrap" style=${{ marginTop: '.4rem' }}><${C.StateChips} status=${stNow} /></div>
-        <div class="small" style=${{ marginTop: '.4rem' }}>
-          일기와 사진은 포트폴리오에 자동으로 모였어요.${d.exhibit ? ' 전시할 기록으로 골랐어요.' : ''}
-        </div>
       <//>
     <//>`;
   };
