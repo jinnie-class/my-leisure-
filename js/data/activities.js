@@ -28,6 +28,7 @@
     time:  'images/시간/',
     place: 'images/장소/',           // 교실.png · 집.png · 조리실.png …
     again: 'images/또하기/',         // 또 하고 싶어요.png · … (일기 저장 뒤 질문)
+    supply: 'images/준비물/',        // 가방.png · 물통.png · 앞치마.png …
     corner: 'images/코너명/',        // 여가 계획하기.png · 여가 지도.png · 여가 일기.png · 여가 포트폴리오.png
     ext: '.png',
     cover: 'images/표지.png',        // 첫 화면 표지

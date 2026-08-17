@@ -1219,6 +1219,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
 .pd-lines.pd-hw{ background-image:none; display:flex; align-items:flex-start; }
 .pd-lines.pd-hw img{ width:100%; height:auto; display:block; }
+/* '그림 그리기' — 이 화면에서 학생이 지금 할 일입니다.
+   가운데에 큰 바로 두어 눈에 바로 들어오게 합니다. */
+.btn.draw-go{
+  align-self:center; min-width:min(420px, 100%);
+  border-width:3px;
+}
+
 /* 기록하GO! 에서 보는 손글씨 미리보기 */
 .hw-shot{
   width:100%; height:auto; display:block;

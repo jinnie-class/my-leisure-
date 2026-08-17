@@ -78,6 +78,8 @@
     };
     var dr = useState(Object.assign({}, init));
     var draft = dr[0], setDraft = dr[1];
+    var extraS = useState(false);      // '여기 없는 준비물' 팝업
+    var memoS = useState(false);       // '메모' 팝업
     /* 도전 활동을 안고 왔으면 '누구와' 부터 물어봅니다 (실내·실외와 활동은 이미 정해졌어요) */
     var stepS = useState(fromChallenge ? 2 : 0);
     var step = stepS[0], setStep = stepS[1];
@@ -346,41 +348,60 @@
         });
         return html`<${React.Fragment}>
           <${C.Question} hint="여러 개 고를 수 있어요" speakText="필요한 준비물이 있나요?">필요한 준비물이 있나요?<//>
-          <${C.PickGrid} cols=${4} label="준비물">
+          <!-- ★ cols-8 은 낮은 화면에서 한 줄 8칸, 950px 이상 높은 화면에서
+               두 줄 4칸(카드가 커집니다)이 됩니다 — 사람·기분과 같은 방식입니다.
+               예전 cols-4 는 낮은 화면에서도 두 줄(400px)이라 3쪽으로 갈라졌습니다. -->
+          <${C.PickGrid} cols=${8} label="준비물">
             ${base.slice(0, 8).map(function (s) {
               return html`<${C.Pick} key=${s.id} selected=${chosen.indexOf(s.name) >= 0}
                 label=${s.name} speakText=${s.name} onClick=${function () { toggle(s.name); }}
-                art=${html`<${C.Art} iconKey=${s.icon} />`} />`;
+                art=${html`<${C.PickArt} kind="supply" word=${s.name} iconKey=${s.icon} />`} />`;
             })}
           <//>
+          <!-- 단추와 '고른 준비물' 을 **한 줄 묶음**으로 둡니다.
+               따로 두면 그 한 줄(85px)이 넘쳐서 2쪽이 생기고,
+               2쪽에 그것만 남아 빈 쪽처럼 보였습니다. -->
           <div class="wrap" style=${{ marginTop: '.7rem' }}>
             <${C.Btn} kind=${chosen.length === 0 ? 'ok' : ''} icon="check"
               onClick=${function () { patch({ supplies: [] }); }}>준비물이 없어요<//>
-          </div>
-          <div style=${{ marginTop: '.7rem' }}>
-            <${C.Field} label="준비물 직접 쓰기 (넣고 싶은 것을 적고 넣기를 눌러요)"
-              value=${draft._extra || ''} placeholder="예) 색연필"
-              onChange=${function (v) { patch({ _extra: v }); }} />
-            <div class="wrap" style=${{ marginTop: '.4rem' }}>
-              <${C.Btn} size="small" icon="plus" onClick=${function () {
-                var v = (draft._extra || '').trim();
-                if (!v) return;
-                if (chosen.indexOf(v) < 0) patch({ supplies: chosen.concat([v]), _extra: '' });
-                else patch({ _extra: '' });
-              }}>준비물 넣기<//>
-            </div>
-          </div>
-          ${chosen.length ? html`<div class="sentence" style=${{ marginTop: '.7rem' }}>
-            준비물 : ${chosen.map(function (c, i) {
-              return html`<button key=${i} type="button" class="chip" onClick=${function () { toggle(c); }}
+            <${C.Btn} size="small" icon="plus" className="pastel-blue"
+              onClick=${function () { extraS[1](true); }}>여기 없는 준비물<//>
+            <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+              onClick=${function () { memoS[1](true); }}>
+              ${draft.memo ? '메모 고치기' : '메모 쓰기'}<//>
+            ${chosen.map(function (c, i) {
+              return html`<button key=${'c' + i} type="button" class="chip" onClick=${function () { toggle(c); }}
                 title="누르면 빼요">${c} ✕</button>`;
             })}
-          </div>` : null}
-          <div style=${{ marginTop: '.7rem' }}>
-            <${C.Area} label="활동 순서 또는 간단한 메모" rows=${3} value=${draft.memo}
+          </div>
+
+          <!-- ★ 직접 쓰기와 메모는 **팝업**으로 뺐습니다.
+               예전에는 이 한 화면에 준비물 8칸 + 직접 쓰기 + 칩 + 메모가 다 있어서
+               낮은 화면에서 2쪽으로 갈라졌고, 2쪽이 거의 빈 것처럼 보였습니다.
+               (규칙 1 : 한 화면에 주요 질문 하나 · 규칙 10-1 : 선택지는 한 쪽에) -->
+          ${extraS[0] && html`<${C.Modal} title="여기 없는 준비물을 적어요"
+            onClose=${function () { extraS[1](false); }}
+            actions=${html`<${React.Fragment}>
+              <${C.Btn} kind="ok" icon="plus" onClick=${function () {
+                var v = (draft._extra || '').trim();
+                if (v && chosen.indexOf(v) < 0) patch({ supplies: chosen.concat([v]), _extra: '' });
+                else patch({ _extra: '' });
+                extraS[1](false);
+              }}>준비물 넣기<//>
+              <${C.Btn} onClick=${function () { extraS[1](false); }}>그만두기<//>
+            <//>`}>
+            <${C.Field} label="준비물 이름" value=${draft._extra || ''} placeholder="예) 색연필"
+              onChange=${function (v) { patch({ _extra: v }); }} />
+          <//>`}
+
+          ${memoS[0] && html`<${C.Modal} title="활동 순서나 메모를 적어요"
+            onClose=${function () { memoS[1](false); }}
+            actions=${html`<${C.Btn} kind="ok" icon="check"
+              onClick=${function () { memoS[1](false); }}>다 적었어요<//>`}>
+            <${C.Area} label="활동 순서 또는 간단한 메모" rows=${5} value=${draft.memo}
               placeholder="예) 1. 재료 꺼내기  2. 만들기  3. 정리하기"
               onChange=${function (v) { patch({ memo: v }); }} />
-          </div>
+          <//>`}
         <//>`;
       }
 

@@ -378,17 +378,24 @@
           }} />`}
 
         ${kind === 'draw' && html`<div class="stack" style=${{ marginTop: '.5rem' }}>
-          <div class="wrap">
-            <${C.Btn} icon="pencil" onClick=${function () { drawS[1](true); }}>
-              ${myDraw ? '그림 고쳐 그리기' : '그림 그리기'}<//>
-            ${myDraw && html`<${C.Btn} size="small" kind="danger" icon="trash"
-              onClick=${function () {
-                App.photos.remove(draft.drawPhotoId); patch({ drawPhotoId: null });
-              }}>그린 그림 지우기<//>`}
-          </div>
+          <!-- ★ '그림 그리기' 는 여기서 **지금 할 일** 입니다.
+               예전에는 왼쪽 구석에 작게 있어서 눈에 띄지 않았습니다.
+               가운데 큰 빨간 바로 두어 학생이 바로 찾습니다. -->
+          <${C.Btn} size="big" className="pastel-red draw-go" icon="pencil"
+            onClick=${function () { drawS[1](true); }}>
+            ${myDraw ? '그림 고쳐 그리기' : '그림 그리기'}<//>
           ${myDraw
-            ? html`<img src=${myDraw} alt="내가 그린 그림" class="my-draw" />`
-            : html`<p class="small muted">아직 그린 그림이 없어요. <b>그림 그리기</b> 를 눌러 보아요.</p>`}
+            ? html`<${React.Fragment}>
+                <img src=${myDraw} alt="내가 그린 그림" class="my-draw" />
+                <div class="wrap" style=${{ justifyContent: 'center' }}>
+                  <${C.Btn} size="small" kind="danger" icon="trash"
+                    onClick=${function () {
+                      App.photos.remove(draft.drawPhotoId); patch({ drawPhotoId: null });
+                    }}>그린 그림 지우기<//>
+                </div>
+              <//>`
+            : html`<p class="small muted" style=${{ textAlign: 'center' }}>
+                위 <b>그림 그리기</b> 를 눌러 손으로 그려 보아요.</p>`}
         </div>`}
       <//>`;
     }
