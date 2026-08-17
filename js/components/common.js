@@ -398,6 +398,46 @@
     /* 같은 순간에 재는 일이 반복되지 않도록 막아 둡니다. */
     var pass = useRef({ n: 0, t: 0 });
 
+    /* ---------------- 남는 자리를 잽니다 (`--slack`) ----------------
+       내용을 다 담고도 **얼마가 남는지**입니다. 지금은 홈의 `나의 여가`
+       제목이 이 값을 써서, 남는 만큼만 위아래로 숨 쉴 자리를 벌립니다.
+
+       남는 자리는 **두 군데**에 생깁니다. 화면마다 다르므로 둘 다 봅니다.
+        ① 흰 칸 **안** — 흰 칸이 화면 높이를 다 쓰는 화면(지도처럼)
+        ② 흰 칸 **아래** — 흰 칸이 내용만큼만 커지는 화면(홈처럼).
+           홈은 카드 두 줄이 끝나면 흰 칸도 거기서 끝나고,
+           남는 자리는 흰 칸 **바깥 아래쪽**에 생깁니다.
+
+       ⚠ ① 을 `scrollHeight` 로는 알 수 없습니다. 내용이 짧아도
+         `scrollHeight` 는 칸 높이보다 작아지지 않아 늘 0 이 나옵니다.
+         그래서 첫 자식과 마지막 자식의 자리로 내용 높이를 직접 구합니다.
+       ⚠ 반드시 `--slack` 을 0 으로 되돌린 뒤에 부르세요. 그러지 않으면
+         '여백을 넓혔더니 남는 자리가 줄고, 줄었으니 여백이 좁아지고…'
+         하며 값이 계속 흔들립니다. */
+    function measureSlack(el) {
+      var inside = 0;
+      var kids = el.children;
+      if (kids.length) {
+        var cs = window.getComputedStyle(el);
+        var padT = parseFloat(cs.paddingTop) || 0;
+        var padB = parseFloat(cs.paddingBottom) || 0;
+        var top = kids[0].getBoundingClientRect().top;
+        var bottom = kids[kids.length - 1].getBoundingClientRect().bottom;
+        inside = (el.clientHeight - padT - padB) - (bottom - top);
+      }
+
+      var below = 0;
+      var panel = el.closest ? el.closest('.panel') : null;
+      var host = el.closest ? el.closest('.app') : null;
+      if (panel && host) {
+        var hcs = window.getComputedStyle(host);
+        var floor = host.getBoundingClientRect().bottom - (parseFloat(hcs.paddingBottom) || 0);
+        below = floor - panel.getBoundingClientRect().bottom;
+      }
+
+      return Math.max(0, Math.floor(Math.max(inside, below)));
+    }
+
     var measure = useCallback(function () {
       var el = trackRef.current; if (!el) return;
       if (!el.clientWidth) return;
@@ -417,8 +457,24 @@
             지금 높이를 픽셀로 직접 지정해 줍니다. */
       el.style.columnWidth = 'auto';
       el.style.height = '';
+
+      /* ---------- 남는 자리(`--slack`) 를 알려 줍니다 ----------
+         내용을 다 담고도 **얼마가 남는지**를 재어 CSS 에 넘깁니다.
+         지금은 홈의 `나의 여가` 제목이 이 값을 써서, 남는 만큼만 위아래로
+         숨 쉴 자리를 벌립니다 (`.home-title` — 남는 게 없으면 0 이 됩니다).
+
+         ⚠ `scrollHeight` 로는 알 수 없습니다. 내용이 짧아도 `scrollHeight` 는
+           칸 높이보다 작아지지 않아서 **늘 0 이 나옵니다.** 그래서 첫 자식과
+           마지막 자식의 자리를 재어 내용 높이를 직접 구합니다.
+
+         ※ 재는 순서가 중요합니다. 먼저 `--slack` 을 **0 으로 되돌린 뒤**
+           재야 합니다. 그러지 않으면 '여백을 넓혔더니 남는 자리가 줄고,
+           줄었으니 여백이 좁아지고…' 하며 값이 계속 흔들립니다. */
+      el.style.setProperty('--slack', '0px');
       var avail = el.clientHeight;
       var natural = el.scrollHeight;
+      el.style.setProperty('--slack', measureSlack(el) + 'px');
+
       var n = 1;
       if (natural > avail + 2 && avail > 0) {
         el.style.height = avail + 'px';

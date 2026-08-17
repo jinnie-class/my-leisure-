@@ -273,6 +273,16 @@
           onClick=${function () { p.nav('home'); }} />`}>
         <!-- '일기 쓰기' 는 두지 않습니다. 여기는 지도를 보는 곳이고,
              일기는 홈의 계획 카드나 기록하GO! 에서 씁니다 (규칙 7 — 중복 금지) -->
+        <!-- ★ 선생님 도구(찾아보기 · 지도 도움말)는 **맨 위 줄 스피커 옆**에 둡니다.
+               지도 위에 한 줄로 두면 그만큼 지도가 눌리고, 지도 아래에 두면
+               학생이 쓰는 큰 단추와 섞입니다. 맨 위 줄은 이미 어른이 쓰는
+               자리(집 단추 · 스피커 · 이름표)라서 여기가 제자리입니다. -->
+        ${student && student.mapTools ? html`<${React.Fragment}>
+          <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
+            찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
+          <${C.Btn} size="small" icon="question"
+            onClick=${function () { helpS[1](true); }}>지도 도움말<//>
+        <//>` : null}
         <${C.Speak} text=${'나의 여가 탐험 지도. ' + summary.join(' ')} />
         <${C.WhoChip} student=${student} />
       <//>
@@ -411,27 +421,11 @@
             </div>
           </div>`}
 
-          <!-- 맨 아래 한 줄 : 왼쪽 '찾아보기' · 가운데 '모아보기' · 오른쪽 '지도 도움말'.
-               가운데 단추는 늘 화면 가운데에 오도록 양옆 자리를 똑같이 나눠 둡니다
-               (선생님 도구가 꺼져 있어도 가운데가 흔들리지 않습니다). -->
+          <!-- 맨 아래는 학생이 쓰는 큰 단추 하나만. 가운데입니다.
+               선생님 도구는 맨 위 줄로 올렸습니다 (위 TopBar 를 보세요). -->
           <div class="map-foot">
-            <div class="map-foot-side">
-              ${student && student.mapTools ? html`<${React.Fragment}>
-                <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
-                  찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
-                ${filter[0] !== 'all' && html`<span class="chip">
-                  ${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name} 만 보여요
-                </span>`}
-              <//>` : null}
-            </div>
             <${C.Btn} kind="primary" icon="next"
               onClick=${function () { p.nav('mymap'); }}>내가 표시한 활동 모아보기<//>
-            <div class="map-foot-side end">
-              ${student && student.mapTools
-                ? html`<${C.Btn} size="small" icon="question"
-                    onClick=${function () { helpS[1](true); }}>지도 도움말<//>`
-                : null}
-            </div>
           </div>
         </div>
         </div>
@@ -607,7 +601,13 @@
       var list = listOf(open.id);
       var e = EMPTY_WORD[open.id] || { line: '아직 없어요.', tip: '활동을 시작해 보아요!' };
       body = html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText=${open.name + '. ' + open.help}>${open.name}<//>
+        <!-- 표시 그림을 말 앞에 붙입니다 (해봤어요 앞에 발자국처럼).
+             네 칸 화면에서는 그림을 보고 골랐는데 들어오면 글자만 남아서,
+             방금 무엇을 눌렀는지 이어지지 않았습니다. -->
+        <${C.Question} bar=${true} speakText=${open.name + '. ' + open.help}>
+          <span class="q-art" aria-hidden="true"><${C.StateArt} state=${open} /></span>
+          ${open.name}
+        <//>
         ${list.length
           ? html`<div class="mymap-list">
               ${list.map(function (x, i) {

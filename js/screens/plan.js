@@ -351,9 +351,14 @@
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="어느 곳에서 할까요?">어느 곳에서 할까요?<//>
           <${C.PickGrid} cols=${3} label="장소">
+            <!-- ★ 여기는 고르면 아무 소리도 나지 않았습니다 (speakText 은 작은 스피커
+                 아이콘만 쓰던 값이고, 눌렀을 때 읽어 주는 코드가 없었습니다).
+                 낱말 하나가 아니라 짧은 문장으로 읽습니다 — '집' 처럼 한 글자면
+                 목소리가 더 이상하게 들립니다 (korean.js 의 App.partnerSpeech 주석). -->
             ${suggests.slice(0, 5).map(function (s) {
-              return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${s}
-                onClick=${function () { patch({ place: s }); }}
+              var say = s + '에서 할 거예요';
+              return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${say}
+                onClick=${function () { patch({ place: s }); App.speakFor(student, say); }}
                 art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
             <div class="pick" style=${{ cursor: 'default' }}>
@@ -368,9 +373,14 @@
 
       if (key === 'supplies') {
         var chosen = draft.supplies || [];
+        /* ★ 여기도 고르면 아무 소리가 나지 않았습니다.
+             넣을 때와 뺄 때를 **다르게** 읽어 줍니다 — 같은 단추를 두 번 눌러
+             빼는 화면이라, 넣은 것인지 뺀 것인지 소리로 알 수 있어야 합니다.
+             `App.eulReul(w)` 는 낱말까지 함께 돌려줍니다 (`자석` → `자석을`). */
         function toggle(name) {
           var has = chosen.indexOf(name) >= 0;
           patch({ supplies: has ? chosen.filter(function (x) { return x !== name; }) : chosen.concat([name]) });
+          App.speakFor(student, App.eulReul(name) + (has ? ' 뺐어요' : ' 챙길 거예요'));
         }
         var actS = App.act(draft.activityId);
         var base = App.DATA.supplies.slice();
@@ -385,7 +395,8 @@
           <${C.PickGrid} cols=${8} label="준비물">
             ${base.slice(0, 8).map(function (s) {
               return html`<${C.Pick} key=${s.id} selected=${chosen.indexOf(s.name) >= 0}
-                label=${s.name} speakText=${s.name} onClick=${function () { toggle(s.name); }}
+                label=${s.name} speakText=${App.eulReul(s.name) + ' 챙길 거예요'}
+                onClick=${function () { toggle(s.name); }}
                 art=${html`<${C.PickArt} kind="supply" word=${s.name} iconKey=${s.icon} />`} />`;
             })}
           <//>
@@ -394,15 +405,17 @@
                2쪽에 그것만 남아 빈 쪽처럼 보였습니다. -->
           <div class="wrap" style=${{ marginTop: '.7rem' }}>
             <${C.Btn} kind=${chosen.length === 0 ? 'ok' : ''} icon="check"
-              onClick=${function () { patch({ supplies: [] }); }}>준비물이 없어요<//>
+              onClick=${function () { patch({ supplies: [] });
+                App.speakFor(student, '준비물이 없어요'); }}>준비물이 없어요<//>
             <${C.Btn} size="small" icon="plus" className="pastel-blue"
               onClick=${function () { extraS[1](true); }}>여기 없는 준비물<//>
             <${C.Btn} size="small" icon="pencil" className="pastel-blue"
               onClick=${function () { memoS[1](true); }}>
               ${draft.memo ? '메모 고치기' : '메모 쓰기'}<//>
             ${chosen.map(function (c, i) {
-              return html`<button key=${'c' + i} type="button" class="chip" onClick=${function () { toggle(c); }}
-                title="누르면 빼요">${c} ✕</button>`;
+              return html`<button key=${'c' + i} type="button" class="chip"
+                onClick=${function () { toggle(c); }}
+                aria-label=${c + ' 빼기'} title="누르면 빼요">${c} ✕</button>`;
             })}
           </div>
 

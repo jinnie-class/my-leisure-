@@ -586,6 +586,28 @@ textarea.sentence-edit:focus{
 .wrap{ display:flex; flex-wrap:wrap; gap:.5rem; }
 .stack{ display:flex; flex-direction:column; gap:.7rem; }
 .sec{ break-inside:avoid; margin-bottom:.55rem; }
+
+/* 홈의 `나의 여가` 제목 — 위아래로 **지웠던 설명 한 줄만큼** 숨 쉴 자리.
+   ★ 예전에는 제목 밑에 `내가 좋아하는 여가를 찾아보아요.` 한 줄이 있었습니다.
+     그 줄을 지우니 제목이 위에도 아래도 바짝 붙었습니다.
+     그래서 **그 한 줄이 차지했던 만큼**을 위아래로 똑같이 둡니다
+     (`--one-line` = 그 줄의 글자 크기 × 줄 높이 1.45).
+   ▸ `--slack` 은 `C.Stage` 가 재어서 넣어 주는 **남는 자리**입니다.
+     여백은 그 절반을 넘지 않습니다 — 이 안전장치가 꼭 필요합니다.
+     처음에 `vh` 로 고정 여백을 주었더니, 오늘의 계획 카드가 있는 날에는
+     흰 칸이 이미 꽉 차서 홈이 **두 쪽으로 갈라졌습니다.**
+     남는 자리에서만 가져오면 절대 넘치지 않습니다.
+   ▸ 최댓값을 rem 이 아니라 px 로 못박은 까닭은 8-4-2 와 같습니다. */
+.home-title{
+  text-align:center;
+  --one-line:calc(clamp(.9rem, .55rem + .8vh, 20px) * 1.45);
+  margin-top:min(var(--one-line), calc(var(--slack, 0px) / 2));
+  margin-bottom:min(var(--one-line), calc(var(--slack, 0px) / 2));
+}
+.home-title h1{
+  font-size:clamp(1.5rem, .7rem + 2.2vh, 42px);
+  font-weight:900; letter-spacing:-.05em; line-height:1.15;
+}
 .sec h3{
   font-size:1.1rem; font-weight:900; margin-bottom:.45rem;
   display:flex; align-items:center; gap:.4rem;
@@ -798,19 +820,11 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   padding:.45rem .8rem; font-weight:800; font-size:1rem; line-height:1.45;
   text-align:center;   /* 창 맨 아래 요약이라 가운데가 읽기 편합니다 */
 }
-/* 지도 화면 맨 아래 한 줄 — 왼쪽 도구 · 가운데 큰 단추 · 오른쪽 도움말.
-   양옆 자리(`1fr`)를 똑같이 나눠서, 선생님 도구가 꺼져 있어도
-   가운데 단추가 늘 화면 가운데에 옵니다. */
-.map-foot{
-  flex:0 0 auto; display:grid; grid-template-columns:1fr auto 1fr;
-  align-items:center; gap:.5rem;
-}
-.map-foot-side{ display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; min-width:0; }
-.map-foot-side.end{ justify-content:flex-end; }
-@media (max-width: 620px){
-  .map-foot{ grid-template-columns:1fr; justify-items:center; }
-  .map-foot-side.end{ justify-content:center; }
-}
+/* 지도 화면 맨 아래 — 학생이 쓰는 큰 단추 하나만 가운데에.
+   ★ 선생님 도구(찾아보기 · 지도 도움말)는 여기 있다가 **맨 위 줄 스피커 옆**으로
+     옮겼습니다. 지도 위에 두면 지도가 눌리고, 지도 아래에 두면 학생이 쓰는
+     큰 단추와 섞였습니다. 맨 위 줄은 이미 어른이 쓰는 자리입니다. */
+.map-foot{ flex:0 0 auto; display:flex; justify-content:center; }
 
 /* 화면이 낮을 때에는 지도에 자리를 더 내어 줍니다 */
 @media (max-height: 820px), (max-width: 1100px){
@@ -833,8 +847,20 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      이름은 화면 오른쪽 위 이름표에 늘 보입니다.
    ★ 활동 그림은 제목 옆 오른쪽 위에 조그맣게 붙어 있었습니다. 제목을 가리고
      무슨 활동인지 알아보기 어려웠습니다. 표 오른쪽 빈자리로 내려서 크게 키웠습니다. */
+/* 계획표 제목 — 아래 문장과 **한눈에 구분**되게.
+   ★ 예전에는 제목도 문장도 똑같은 검은 글씨여서 어디가 제목인지 몰랐습니다.
+   ▸ 계획하기 코너 색(`#5ec8f2` 하늘색)을 **더 진하게** 한 글자색을 씁니다.
+     원래 색 그대로는 흰 종이에서 너무 옅어 읽기 어렵습니다.
+   ▸ 글자색만으로 구분하지 않습니다 — 아래에 **짧은 밑줄**을 함께 둡니다.
+     색을 잘 못 가리는 학생과 흑백 인쇄에서도 제목으로 보여야 합니다
+     (규칙 : 색만으로 뜻을 나타내지 않기). */
 .sheet .sheet-title{
   font-size:1.35rem; font-weight:900; letter-spacing:-.03em; text-align:center;
+  color:#1c7fa8;
+}
+.sheet .sheet-title::after{
+  content:""; display:block; width:3.4em; height:4px; margin:.3rem auto 0;
+  border-radius:999px; background:#5ec8f2;
 }
 .sheet .sentence-center{ text-align:center; }
 /* 왼쪽 표는 **글자만큼만**(auto), 남는 자리는 모두 그림 칸(1fr).
@@ -1963,4 +1989,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 @media (prefers-reduced-motion: reduce){
   .fw-bit{ animation:fw-soft .9s ease-out both; }
   @keyframes fw-soft{ 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
+}
+
+/* 질문 바 안의 표시 그림 — `해봤어요` 앞에 발자국처럼 말 앞에 붙습니다.
+   글자 크기에 맞춰 커지도록 `em` 을 씁니다 (질문 글자가 화면마다 달라집니다). */
+.q-pill h2{ display:inline-flex; align-items:center; gap:.45em; }
+.q-art{
+  width:1.5em; height:1.5em; flex:0 0 auto; display:block;
+}
+.q-art img, .q-art svg, .q-art span{
+  width:100%; height:100%; display:block; object-fit:contain;
 }

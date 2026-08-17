@@ -77,8 +77,8 @@
         <!-- 제목 밑 설명 한 줄을 없앴습니다.
              네 코너 그림만으로 무엇을 하는 곳인지 이미 알 수 있고,
              그만큼 코너 카드가 크게 보입니다. (읽어주기에는 그대로 남깁니다) -->
-        <div class="sec" style=${{ textAlign: 'center', marginBottom: '.4rem' }}>
-          <h1 style=${{ fontSize: 'clamp(1.5rem,.7rem + 2.2vh,2.6rem)', fontWeight: 900, letterSpacing: '-.05em', lineHeight: 1.15 }}>나의 여가</h1>
+        <div class="sec home-title">
+          <h1>나의 여가</h1>
         </div>
 
         <div class="sec">
