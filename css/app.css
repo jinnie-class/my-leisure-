@@ -469,6 +469,21 @@ ul{ margin:0; padding:0; list-style:none; }
 .q h2{ font-size:clamp(.92rem,.62rem + .92vh,1.32rem); font-weight:900; letter-spacing:-.03em; }
 .q .hint{ font-size:.95rem; color:var(--ink-soft); font-weight:700; }
 
+/* 질문을 동그란 흰 바에 담아 **가운데**에 놓는 모양 (`C.Question bar=`).
+   읽어주기는 알약 밖 오른쪽 끝에 그대로 둡니다 (화면마다 한 자리 — 규칙 4).
+   알약이 가운데 오도록 좌우에 같은 크기의 빈 자리를 둡니다. */
+.q-bar{ position:relative; justify-content:center; }
+.q-bar .q-pill{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:.4rem 1.6rem; border-radius:999px;
+  background:#fff; border:2px solid var(--line);
+  box-shadow:var(--shadow);
+  max-width:100%;
+}
+.q-bar .q-pill h2{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.q-bar > .hint{ position:absolute; right:3.6rem; }
+.q-bar > .speak{ position:absolute; right:0; }
+
 /* 큰 점 진행 표시 */
 .dots-bar{ display:flex; align-items:center; gap:.4rem; }
 .dot-big{
@@ -777,7 +792,18 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   background:#fff; border:2px solid var(--line); border-radius:18px;
   padding:16px 18px; break-inside:avoid;
 }
-.sheet .sheet-title{ font-size:1.9rem; font-weight:900; letter-spacing:-.04em; }
+/* 계획표 머리 — 제목은 **가운데**, 활동 그림은 오른쪽에 작게.
+   ★ 제목을 1.9rem 에서 1.35rem 으로 줄였습니다. 너무 커서 종이가 제목에 눌렸습니다.
+     이름·날짜 작은 글씨는 없앴습니다 — 바로 아래 표에 날짜가 다시 나오고,
+     이름은 화면 오른쪽 위 이름표에 늘 보입니다. */
+.sheet-head{ position:relative; display:flex; align-items:center; justify-content:center; }
+.sheet .sheet-title{
+  font-size:1.35rem; font-weight:900; letter-spacing:-.03em; text-align:center;
+}
+.sheet-art{
+  position:absolute; right:0; top:50%; transform:translateY(-50%);
+  width:clamp(52px,7vh,84px); height:clamp(52px,7vh,84px);
+}
 .sheet .sheet-meta{ font-size:.92rem; font-weight:800; color:var(--ink-soft); }
 .exh-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.7rem; }
 .photo{

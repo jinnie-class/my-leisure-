@@ -132,9 +132,23 @@
   /* ------------------------- 문장 조립 ------------------------- */
   var S = (App.sentences = {});
 
-  function partnerPhrase(partnerId) {
-    var p = App.partner(partnerId);
-    return p ? p.phrase : '';
+  /* 함께한 사람을 문장에 넣습니다.
+     ★ **여러 명**을 골랐을 수도 있습니다 (계획에서 여러 명 고르기).
+       `엄마와 아빠와 함께` 처럼 조사를 붙여 잇습니다.
+       `혼자` 는 다른 사람과 같이 고를 수 없는 말이라, 섞여 있으면 빼고 씁니다.
+     ※ 예전 기록은 `partnerId` 하나만 있으니 그것도 그대로 읽습니다. */
+  function partnerPhrase(partnerId, partnerIds) {
+    var ids = (partnerIds && partnerIds.length) ? partnerIds : (partnerId ? [partnerId] : []);
+    var list = ids.map(function (id) { return App.partner(id); }).filter(Boolean);
+    if (!list.length) return '';
+    if (list.length === 1) return list[0].phrase;
+    /* 여러 명이면 '혼자' 는 뜻이 어긋나므로 뺍니다 */
+    var many = list.filter(function (p) { return p.id !== 'alone'; });
+    if (!many.length) return list[0].phrase;
+    if (many.length === 1) return many[0].phrase;
+    /* ※ `App.waGwa(w)` 는 **낱말까지 함께** 돌려줍니다 (`엄마` → `엄마와`).
+         앞에 `p.name` 을 또 붙이면 `엄마엄마와` 가 됩니다. */
+    return many.map(function (p) { return App.waGwa(p.name); }).join(' ') + ' 함께';
   }
 
   /* 계획 문장 : "나는 오늘 친구와 슬라임 놀이를 할 거예요." */
@@ -144,7 +158,7 @@
     var bits = ['나는'];
     var when = App.whenPhrase(plan.date, plan.time);
     if (when) bits.push(when);
-    var pp = partnerPhrase(plan.partnerId);
+    var pp = partnerPhrase(plan.partnerId, plan.partnerIds);
     if (pp) bits.push(pp);
     bits.push(a ? a.planText : '여가활동을 할 거예요');
     return bits.join(' ') + '.';
@@ -157,7 +171,7 @@
     var bits = ['나는'];
     var when = App.whenPhrase(d.date, '');
     if (when) bits.push(when);
-    var pp = partnerPhrase(d.partnerId);
+    var pp = partnerPhrase(d.partnerId, d.partnerIds);
     if (pp) bits.push(pp);
     bits.push(a ? a.diaryText : '여가활동을 했어요');
     return bits.join(' ') + '.';

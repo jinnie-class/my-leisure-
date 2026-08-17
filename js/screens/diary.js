@@ -107,6 +107,7 @@
         activityId: fromPlan ? fromPlan.activityId : null,
         cardId: fromPlan ? fromPlan.cardId : null,
         partnerId: fromPlan ? fromPlan.partnerId : null,
+        partnerIds: fromPlan ? (fromPlan.partnerIds || (fromPlan.partnerId ? [fromPlan.partnerId] : [])) : [],
         place: fromPlan ? fromPlan.place : '',
         moodIds: [], againId: null, title: '', text: '', weather: '', frames: {}, photoIds: [], exhibit: false,
         six: {},            /* 3단계 육하원칙 뼈대 */
@@ -172,6 +173,7 @@
         mainPhotoId: draft.mainPhotoId || null,
         drawPhotoId: draft.drawPhotoId || null, exhibit: draft.exhibit,
         writeWay: draft.writeWay || 'key', writePhotoId: draft.writePhotoId || null,
+        partnerIds: draft.partnerIds || [],
         six: draft.six || {}
       };
       var id;

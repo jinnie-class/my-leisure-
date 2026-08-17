@@ -468,7 +468,18 @@
   };
 
   /* ======================= 질문 머리말 ======================= */
+  /* 화면 안 질문.
+     `bar` 를 주면 **동그란 흰 알약 바에 담아 가운데**에 놓습니다.
+     학생이 '지금 무엇을 묻는지' 를 한눈에 찾게 하려는 것입니다.
+     읽어주기는 알약 밖 오른쪽에 그대로 둡니다 (화면마다 한 자리 — 규칙 4). */
   C.Question = function (p) {
+    if (p.bar) {
+      return html`<div class="q q-bar">
+        <span class="q-pill"><h2>${p.children}</h2></span>
+        ${p.hint && html`<span class="hint">${p.hint}</span>`}
+        ${p.speak !== false && html`<${C.Speak} text=${p.speakText || (typeof p.children === 'string' ? p.children : '')} />`}
+      </div>`;
+    }
     return html`<div class="q">
       <h2 class="grow">${p.children}</h2>
       ${p.hint && html`<span class="hint">${p.hint}</span>`}

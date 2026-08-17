@@ -24,23 +24,24 @@
   C.PlanSheet = function (p) {
     var plan = p.plan;
     var a = App.act(plan.activityId);
-    var partner = App.partner(plan.partnerId);
+    /* 함께하는 사람은 **여러 명**일 수 있습니다 (`partnerIds`).
+       예전 기록은 `partnerId` 하나뿐이라 그것도 함께 읽습니다. */
+    var whoIds = (plan.partnerIds && plan.partnerIds.length)
+      ? plan.partnerIds : (plan.partnerId ? [plan.partnerId] : []);
+    var whoList = whoIds.map(App.partner).filter(Boolean);
     var student = p.student;
     return html`<div class="sheet">
-      <div class="row" style=${{ alignItems: 'flex-start' }}>
-        <div class="grow">
-          <div class="sheet-title">오늘의 여가 계획표</div>
-          <div class="sheet-meta">${student ? student.name : ''} · ${App.fmtDateLong(plan.date)}${
-            App.timeWord(plan.time) ? ' · ' + App.timeWord(plan.time) : ''}</div>
-        </div>
-        <div style=${{ width: 'clamp(70px,10vh,120px)', height: 'clamp(70px,10vh,120px)', flex: '0 0 auto' }}>
-          <${C.ActivityArt} activity=${a} />
-        </div>
+      <!-- 제목은 가운데. 아래 작은 글씨(이름·날짜)는 두지 않습니다 —
+           바로 아래 표에 날짜가 다시 나오고, 이름은 오른쪽 위 이름표에 있습니다. -->
+      <div class="sheet-head">
+        <div class="sheet-title">오늘의 여가 계획표</div>
+        <div class="sheet-art"><${C.ActivityArt} activity=${a} /></div>
       </div>
       <div class="sentence" style=${{ marginTop: '.6rem' }}>${App.sentences.plan(plan)}</div>
       <div class="rows" style=${{ marginTop: '.7rem' }}>
         <div class="row"><span class="k">무엇을</span><b>${a ? a.name : '-'}</b></div>
-        <div class="row"><span class="k">누구와</span><b>${partner ? partner.name : '-'}</b></div>
+        <div class="row"><span class="k">누구와</span><b>${
+          whoList.length ? whoList.map(function (x) { return x.name; }).join(', ') : '-'}</b></div>
         <div class="row"><span class="k">언제</span><b>${App.fmtDateLong(plan.date)}${
           App.timeWord(plan.time) ? ' ' + App.timeWord(plan.time) : ''}</b></div>
         ${plan.place ? html`<div class="row"><span class="k">어디에서</span><b>${plan.place}</b></div>` : null}
@@ -140,10 +141,28 @@
       });
     }
 
+    /* ---------- 함께하는 사람 : **여러 명**을 고를 수 있습니다 ----------
+       한 사람만 고르게 할 이유가 없습니다 — 엄마와 아빠와 함께 갈 수도 있으니까요.
+       `partnerIds` 에 모두 담고, 예전 기록과 맞추려고 `partnerId` 에는 첫 사람을 둡니다.
+       `혼자` 는 뜻이 어긋나므로 다른 사람과 함께 고를 수 없게 합니다. */
+    function who() {
+      if (draft.partnerIds && draft.partnerIds.length) return draft.partnerIds;
+      return draft.partnerId ? [draft.partnerId] : [];
+    }
+    function toggleWho(pt) {
+      var cur = who().slice();
+      var i = cur.indexOf(pt.id);
+      if (i >= 0) cur.splice(i, 1);
+      else if (pt.id === 'alone') cur = ['alone'];              // 혼자를 고르면 혼자만
+      else cur = cur.filter(function (x) { return x !== 'alone'; }).concat([pt.id]);
+      patch({ partnerIds: cur, partnerId: cur[0] || null });
+      if (i < 0) App.speakFor(student, pt.name);
+    }
+
     function canNext() {
       if (key === 'area') return !!draft.area;
       if (key === 'what') return !!draft.activityId;
-      if (key === 'who') return !!draft.partnerId;
+      if (key === 'who') return who().length > 0;
       if (key === 'when') return !!draft.date;
       return true;
     }
@@ -157,7 +176,7 @@
       var payload = {
         studentId: student.id, level: draft.level, area: draft.area,
         activityId: draft.activityId, cardId: draft.cardId,
-        partnerId: draft.partnerId, date: draft.date, time: draft.time,
+        partnerId: draft.partnerId, partnerIds: who(), date: draft.date, time: draft.time,
         place: draft.place, supplies: draft.supplies, memo: draft.memo
       };
       var id;
@@ -175,12 +194,18 @@
       if (savedS[0]) {
         var saved = App.store.plan(savedS[0]) || previewPlan;
         return html`<${React.Fragment}>
-          <${C.Banner} tone="ok" icon="check" speakText="계획을 잘 저장했어요.">
+          <${C.Banner} tone="ok" icon="check"
+            speakText="계획을 잘 저장했어요. 활동을 마친 뒤에 홈에서 일기를 쓰면 돼요.">
             <b style=${{ fontSize: '1.2rem' }}>계획을 잘 저장했어요.</b>
-            <div class="small">홈 화면에 <b>오늘의 여가 계획</b>으로 나타나요.</div>
+            <div class="small">홈 화면에 <b>오늘의 여가 계획</b>으로 나타나요.
+              활동을 마친 뒤에 <b>활동을 했어요</b> 를 누르면 일기를 써요.</div>
           <//>
           <div style=${{ height: '.7rem' }}></div>
           <${C.PlanSheet} plan=${saved} student=${student} />
+          <div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
+            <${C.Btn} icon="home" className="pastel-yellow"
+              onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>
+          </div>
         <//>`;
       }
 
@@ -193,8 +218,8 @@
         else if (subCard.id === 'collect') subQ = '무엇을 모을까요?';
         else if (subCard.id === 'toy') subQ = '어떤 놀잇감으로 놀까요?';
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 가지를 골라요" speakText=${subQ}>${subQ}<//>
-          <${C.PickGrid} cols=${kids.length > 4 ? 3 : 2} label="세부 활동">
+          <${C.Question} bar=${true} speakText=${subQ}>${subQ}<//>
+          <${C.PickGrid} cols=${kids.length > 4 ? 6 : 4} label="세부 활동">
             ${kids.map(function (ch) {
               return html`<${C.ActivityPick} key=${ch.id} activity=${ch}
                 selected=${draft.activityId === ch.id}
@@ -209,7 +234,7 @@
 
       if (key === 'area') {
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 가지를 골라요" speakText="어디에서 할까요?">어디에서 할까요?<//>
+          <${C.Question} bar=${true} speakText="어디에서 할까요?">어디에서 할까요?<//>
           <${C.PickGrid} cols=${2} label="장소 종류">
             <${C.Pick} selected=${draft.area === 'indoor'} label="실내에서 해요" speakText="실내에서 해요"
               bare=${true}
@@ -227,8 +252,8 @@
 
       if (key === 'what') {
         return html`<${React.Fragment}>
-          <${C.Question} hint=${'모두 ' + cards.length + '가지'} speakText="무엇을 할까요?">무엇을 할까요?<//>
-          <${C.PickGrid} cols=${3} label="활동 목록">
+          <${C.Question} bar=${true} hint=${'모두 ' + cards.length + '가지'} speakText="무엇을 할까요?">무엇을 할까요?<//>
+          <${C.PickGrid} cols=${6} label="활동 목록">
             ${pageCards.map(function (c) {
               var kids = App.visibleChildren(student, c);
               return html`<${C.ActivityPick} key=${c.id} activity=${c} childCount=${kids.length}
@@ -256,13 +281,13 @@
       if (key === 'who') {
         var partners = App.partnersFor(student);
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 사람을 골라요" speakText="누구와 할까요?">누구와 할까요?<//>
-          <${C.PickGrid} cols=${4} label="함께하는 사람">
+          <${C.Question} bar=${true} speakText="누구와 할까요? 여러 명을 골라도 돼요.">누구와 할까요?<//>
+          <${C.PickGrid} cols=${7} label="함께하는 사람">
             ${partners.map(function (pt) {
-              return html`<${C.Pick} key=${pt.id} selected=${draft.partnerId === pt.id}
+              var on = who().indexOf(pt.id) >= 0;
+              return html`<${C.Pick} key=${pt.id} selected=${on}
                 label=${pt.name} speakText=${pt.name} portrait=${true}
-                onClick=${function () { pickAndGo(function () {
-                  patch({ partnerId: pt.id }); App.speakFor(student, pt.name); }); }}
+                onClick=${function () { toggleWho(pt); }}
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
           <//>
@@ -272,7 +297,7 @@
       if (key === 'when') {
         var t = App.todayKey();
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 가지를 골라요" speakText="언제 할까요?">언제 할까요?<//>
+          <${C.Question} bar=${true} speakText="언제 할까요?">언제 할까요?<//>
           <${C.PickGrid} cols=${3} label="날짜">
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
               onClick=${function () { pickAndGo(function () { patch({ date: t }); App.speakFor(student, '오늘'); }); }}
@@ -297,7 +322,7 @@
              훨씬 구체적이고, 그림으로도 분명하게 그려집니다.
              예전 기록의 `am` · `pm` 은 `App.timeWord` 가 알아서 읽어 줍니다. */
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 가지를 골라요" speakText="언제쯤 할까요?">언제쯤 할까요?<//>
+          <${C.Question} bar=${true} speakText="언제쯤 할까요?">언제쯤 할까요?<//>
           <${C.PickGrid} cols=${4} label="시간">
             ${TIMES.map(function (tm) {
               return html`<${C.Pick} key=${tm.id} selected=${draft.time === tm.id}
@@ -318,7 +343,7 @@
         if (act && act.defaultPlace) suggests.push(act.defaultPlace);
         ['교실', '집', '학교', '공원', '운동장'].forEach(function (s) { if (suggests.indexOf(s) < 0) suggests.push(s); });
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 곳을 골라요" speakText="어느 곳에서 할까요?">어느 곳에서 할까요?<//>
+          <${C.Question} bar=${true} speakText="어느 곳에서 할까요?">어느 곳에서 할까요?<//>
           <${C.PickGrid} cols=${3} label="장소">
             ${suggests.slice(0, 5).map(function (s) {
               return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${s}
@@ -347,7 +372,7 @@
           if (!base.some(function (b) { return b.name === n; })) base.unshift({ id: 'x-' + n, name: n, icon: 'bag' });
         });
         return html`<${React.Fragment}>
-          <${C.Question} hint="여러 개 고를 수 있어요" speakText="필요한 준비물이 있나요?">필요한 준비물이 있나요?<//>
+          <${C.Question} bar=${true} hint="여러 개 고를 수 있어요" speakText="필요한 준비물이 있나요?">필요한 준비물이 있나요?<//>
           <!-- ★ cols-8 은 낮은 화면에서 한 줄 8칸, 950px 이상 높은 화면에서
                두 줄 4칸(카드가 커집니다)이 됩니다 — 사람·기분과 같은 방식입니다.
                예전 cols-4 는 낮은 화면에서도 두 줄(400px)이라 3쪽으로 갈라졌습니다. -->
@@ -407,7 +432,7 @@
 
       /* 확인 */
       return html`<${React.Fragment}>
-        <${C.Question} hint="맞으면 저장해요" speakText=${'계획을 확인해요. ' + App.sentences.plan(previewPlan)}>
+        <${C.Question} bar=${true} speakText=${'계획을 확인해요. ' + App.sentences.plan(previewPlan)}>
           계획을 확인해요
         <//>
         <${C.PlanSheet} plan=${previewPlan} student=${student} />
@@ -420,12 +445,27 @@
     /* 흰 칸 맨 아래에 '지금 할 일' 하나만 큼직하게 놓습니다. */
     var action = null;
     if (saved) {
-      action = html`<${C.Btn} icon="cornerDiary"
-        onClick=${function () { p.nav('diary', { planId: saved }); }}>일기 쓰러 가기<//>`;
+      /* ★ 계획을 세운 뒤에 **일기를 쓰러 가지 않습니다.**
+           아직 하지도 않은 일을 일기로 쓰는 것은 앞뒤가 맞지 않습니다.
+           계획표를 인쇄해서 들고 가고, 홈으로 돌아갑니다.
+           활동을 마친 뒤에는 **홈의 '오늘의 여가 계획' 카드**에서
+           `활동을 했어요` 를 눌러 일기로 갑니다. */
+      action = html`<${C.Btn} kind="primary" icon="print"
+        onClick=${function () { App.printNode(html`<${C.PlanSheet}
+          plan=${App.store.plan(saved) || previewPlan} student=${student} />`); }}>
+        계획표 인쇄하기<//>`;
     } else if (key === 'confirm') {
       action = html`<${C.Btn} icon="save" onClick=${save}>계획 저장하기<//>`;
     } else if (key === 'supplies') {
       action = html`<${C.Btn} icon="next" onClick=${next}>다 골랐어요<//>`;
+    } else if (key === 'who') {
+      /* '한 사람 골라요' 안내를 없애고 그 자리에 이 바를 둡니다.
+         여러 명을 고를 수 있으니 학생이 '다 골랐다' 고 알려 주어야 넘어갑니다. */
+      action = html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
+        onClick=${next}>선택했어요<//>`;
+    } else if (key === 'when' || key === 'time') {
+      action = html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
+        onClick=${next}>선택했어요<//>`;
     } else if (key === 'place') {
       action = html`<${C.Btn} icon="next" disabled=${!canNext()} onClick=${next}>다음<//>`;
     }
