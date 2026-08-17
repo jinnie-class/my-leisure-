@@ -468,8 +468,10 @@
         left=${html`<${React.Fragment}>
           <${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
             onClick=${function () { p.nav('home'); }} />
-          ${d && html`<${C.Btn} size="small" icon="pencil"
-            onClick=${function () { p.nav('diary', { diaryId: d.id }); }}>일기 고치기<//>`}
+          <!-- 고치는 일은 **좌우 2단 화면**에서 합니다.
+               처음부터 다시 고르는 것이 아니라, 그림과 문장만 바로 고칩니다. -->
+          ${d && html`<${C.Btn} size="small" icon="pencil" className="pastel-yellow"
+            onClick=${function () { p.nav('fixdiary', { diaryId: d.id }); }}>일기 고치기<//>`}
         <//>`}
         below=${modeBar}>
         <${C.Speak} text=${d ? App.sentences.diaryBody(d) : '일기를 찾을 수 없어요.'} />
@@ -492,6 +494,219 @@
           </div>
         </div>
       </div>
+    </div>`;
+  };
+
+  /* ==================== 일기 고치기 (좌우 2단) ====================
+     ★ 왼쪽에서 고치면 **오른쪽 그림일기에 바로 보입니다.**
+       예전에는 `일기 고치기` 가 기록하GO! 처음으로 되돌아가서,
+       언제·누구와·무엇을 부터 다시 골라야 했습니다. 번거롭습니다.
+       고칠 것은 **그림**과 **문장** 둘뿐이니 그 둘만 바로 고칩니다.
+
+     다 고치면 A4 로 인쇄하면서 **일기 모음에 날짜별로 쌓입니다.** */
+  C.FixDiaryScreen = function (p) {
+    App.useStore();
+    var params = p.params || {};
+    var d = params.diaryId ? App.store.diary(params.diaryId) : null;
+    var student = d ? App.store.student(d.studentId) : App.store.current();
+    var drawS = useState(false);       // 그림판이 열려 있는지
+    var madeS = useState(null);        // 방금 그린 그림 (확인 창)
+    var textS = useState(false);       // 문장 고치는 칸을 펼쳤는지
+
+    if (!d) {
+      return html`<div class="app" data-corner="diary">
+        <${C.TopBar} title="일기 고치기"
+          left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
+            onClick=${function () { p.nav('home'); }} />`} />
+        <div class="stage"><div class="panel">
+          <${C.Banner} icon="question">일기를 찾을 수 없어요.<//>
+        </div></div>
+      </div>`;
+    }
+
+    var lv = (d.level === 2 || d.level === 3) ? d.level : 1;
+    var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text" />`;
+    /* 지금 그림일기에 보이는 문장 (고쳐 쓴 것이 있으면 그것) */
+    var shown = App.sentences.diaryShown(d);
+
+    return html`<div class="app" data-corner="diary">
+      <${C.TopBar} title="일기 고치기"
+        left=${html`<${React.Fragment}>
+          <${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
+            onClick=${function () { p.nav('home'); }} />
+          <${C.Btn} size="small" icon="back" className="pastel-yellow"
+            onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기로<//>
+        <//>`}>
+        <${C.Speak} text=${'일기를 고쳐요. 그림을 고칠까요, 글을 고칠까요?'} />
+        <${C.WhoChip} student=${student} />
+      <//>
+
+      <${C.Stage} action=${html`<${C.Btn} kind="primary" icon="print"
+        onClick=${function () {
+          App.printNode(html`<div class="pd-print">${sheet}</div>`);
+          /* 인쇄하면서 일기 모음에 담아 둡니다 (날짜별로 쌓입니다) */
+          App.store.updateDiary(d.id, { inJournal: true, printedAt: Date.now() });
+          App.ui.toast('일기 모음에 담았어요.');
+        }}>A4로 인쇄하고 일기 모음에 담기<//>`}>
+
+        <div class="fix-2col">
+          <!-- 왼쪽 : 고치는 곳 -->
+          <div class="fix-left">
+            ${lv === 1 && html`<${C.Banner} tone="info" icon="people">
+              <b>선생님이 도와주세요.</b>
+              <div class="small">글을 고칠 때 선생님과 함께 읽어 보아요.</div>
+            <//>`}
+
+            <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
+              onClick=${function () { drawS[1](true); }}>그림 수정하기<//>
+
+            <${C.Btn} size="big" className="pastel-blue fix-go" icon="edit"
+              onClick=${function () { textS[1](!textS[0]); }}>
+              ${textS[0] ? '글 고치기 닫기' : '일기 내용 수정하기'}<//>
+
+            ${textS[0] && html`<div class="fix-text">
+              <span class="lab">일기 내용</span>
+              <${C.Area} rows=${5} value=${d.bodyEdit == null ? shown : d.bodyEdit}
+                placeholder="여기에 고쳐 써요."
+                onChange=${function (v) { App.store.updateDiary(d.id, { bodyEdit: v }); }} />
+              <div class="wrap" style=${{ justifyContent: 'center' }}>
+                <${C.Btn} size="small" onClick=${function () {
+                  App.store.updateDiary(d.id, { bodyEdit: null });
+                }}>처음 문장으로 되돌리기<//>
+              </div>
+            </div>`}
+
+            <${C.Btn} icon="book" className="pastel-yellow"
+              onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
+              나의 일기 모음 보기<//>
+            <${C.Btn} icon="home"
+              onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>
+          </div>
+
+          <!-- 오른쪽 : 고친 것이 바로 보이는 완성 그림일기 -->
+          <div class="fix-right">
+            <span class="fix-cap">완성된 그림일기</span>
+            <div class="fix-paper">${sheet}</div>
+          </div>
+        </div>
+      <//>
+
+      ${drawS[0] && html`<${C.Modal} title="그림을 고쳐 그려요" wide=${true}
+        onClose=${function () { drawS[1](false); }}>
+        <${C.DrawPad} startFrom=${d.drawPhotoId ? App.photos.url(d.drawPhotoId) : null}
+          onCancel=${function () { drawS[1](false); }}
+          onDone=${function (url) { drawS[1](false); madeS[1](url); }} />
+      <//>`}
+
+      ${madeS[0] && html`<${C.Modal} title="그림이 완성되었어요!" wide=${true}
+        speakText="그림이 완성되었어요. 이 그림으로 할까요?"
+        onClose=${function () { madeS[1](null); }}
+        actions=${html`<${React.Fragment}>
+          <${C.Btn} kind="ok" size="big" icon="check" onClick=${function () {
+            App.photos.addDataUrl(madeS[0], student.id, 'draw').then(function (id) {
+              var old = d.drawPhotoId;
+              App.store.updateDiary(d.id, { drawPhotoId: id, picKind: 'draw' });
+              if (old) App.photos.remove(old);
+              madeS[1](null);
+              App.ui.toast('그림을 고쳤어요.');
+            })['catch'](function (err) {
+              App.ui.toast(err && err.message ? err.message : '그림을 저장하지 못했어요.');
+            });
+          }}>이 그림으로 할래요<//>
+          <${C.Btn} className="pastel-yellow" icon="pencil"
+            onClick=${function () { madeS[1](null); drawS[1](true); }}>다시 그릴래요<//>
+        <//>`}>
+        <img src=${madeS[0]} alt="내가 그린 그림" class="made-shot" />
+      <//>`}
+    </div>`;
+  };
+
+  /* ==================== 나의 일기 모음 ====================
+     ★ 인쇄한 그림일기가 **날짜별로 차곡차곡** 쌓이는 곳입니다.
+       많이 모이면 **책으로 한 번에 인쇄**할 수 있습니다.
+       (문구마켓처럼 하루하루 모여 기록장이 되는 것이 목표입니다)
+
+     따로 저장하지 않습니다 — 일기에 이미 날짜가 있어서 그것을 그대로 씁니다.
+     인쇄한 일기는 `inJournal` 로 표시해 두고, 표시가 없어도 쓴 일기는
+     모두 보여 줍니다 (인쇄를 안 했다고 빼면 학생이 서운합니다). */
+  C.JournalScreen = function (p) {
+    App.useStore();
+    var params = p.params || {};
+    var student = params.studentId ? App.store.student(params.studentId) : App.store.current();
+    var openS = useState(null);        // 크게 열어 본 일기
+    if (!student) return null;
+
+    /* 날짜가 이른 것부터 — 책으로 묶으면 앞에서 뒤로 넘어갑니다 */
+    var list = (App.store.diaries(student.id) || []).slice().sort(function (a, b) {
+      return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0);
+    });
+
+    function printBook() {
+      if (!list.length) { App.ui.toast('아직 모인 일기가 없어요.'); return; }
+      App.printNode(html`<div class="pd-book">
+        ${list.map(function (x) {
+          return html`<div key=${x.id} class="pd-page">
+            <${C.PicDiarySheet} diary=${x} student=${student} trace="text" />
+          </div>`;
+        })}
+      </div>`);
+    }
+
+    var open = openS[0] ? App.store.diary(openS[0]) : null;
+
+    return html`<div class="app" data-corner="diary">
+      <${C.TopBar} title="나의 일기 모음"
+        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
+          onClick=${function () { p.nav('home'); }} />`}>
+        <${C.Speak} text=${list.length
+          ? '지금까지 쓴 일기가 ' + list.length + '장 모였어요.'
+          : '아직 모인 일기가 없어요. 여가 일기를 써 보아요.'} />
+        <${C.WhoChip} student=${student} />
+      <//>
+
+      <${C.Stage}
+        action=${html`<${C.Btn} kind="primary" icon="print" disabled=${!list.length}
+          onClick=${printBook}>일기 모음을 책으로 인쇄하기<//>`}>
+        <${C.Question} bar=${true}
+          speakText=${'나의 일기 모음. 모두 ' + list.length + '장이에요.'}>
+          나의 일기 모음 · ${list.length}장<//>
+
+        ${list.length
+          ? html`<div class="jr-grid">
+              ${list.map(function (x, i) {
+                var a = App.act(x.activityId);
+                return html`<button key=${x.id} type="button" class="jr-card"
+                    onClick=${function () { openS[1](x.id); }}
+                    aria-label=${App.fmtDateLong(x.date) + ' ' + (a ? a.name : '')}>
+                  <span class="jr-no">${i + 1}</span>
+                  <span class="jr-paper"><${C.PicDiarySheet} diary=${x} student=${student} trace="text" /></span>
+                  <span class="jr-date">${App.fmtDateShort(x.date)}</span>
+                  <span class="jr-name">${x.title || (a ? a.name : '')}</span>
+                </button>`;
+              })}
+            </div>`
+          : html`<div class="mymap-empty">
+              <span class="mymap-empty-art"><${C.Art} iconKey="book" /></span>
+              <b>아직 모인 일기가 없어요.</b>
+              <span>여가 일기를 쓰면 여기에 한 장씩 쌓여요!</span>
+            </div>`}
+      <//>
+
+      ${open && html`<${C.Modal} wide=${true}
+        title=${App.fmtDateLong(open.date)}
+        onClose=${function () { openS[1](null); }}
+        actions=${html`<${React.Fragment}>
+          <${C.Btn} kind="primary" icon="print" onClick=${function () {
+            App.printNode(html`<div class="pd-print">
+              <${C.PicDiarySheet} diary=${open} student=${student} trace="text" />
+            </div>`);
+          }}>이 일기만 인쇄<//>
+          <${C.Btn} icon="pencil" className="pastel-yellow"
+            onClick=${function () { p.nav('fixdiary', { diaryId: open.id }); }}>고치기<//>
+          <${C.Btn} onClick=${function () { openS[1](null); }}>닫기<//>
+        <//>`}>
+        <div class="jr-big"><${C.PicDiarySheet} diary=${open} student=${student} trace="text" /></div>
+      <//>`}
     </div>`;
   };
 })();

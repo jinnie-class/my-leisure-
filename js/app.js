@@ -68,6 +68,9 @@
       case 'mymap':     screen = html`<${C.MyMapScreen} ...${p} />`; break;
       case 'diary':     screen = html`<${C.DiaryScreen} ...${p} />`; break;
       case 'picdiary':  screen = html`<${C.PicDiaryScreen} ...${p} />`; break;
+      /* 그림일기를 고치는 좌우 2단 화면 · 날짜별로 쌓이는 일기 모음 */
+      case 'fixdiary':  screen = html`<${C.FixDiaryScreen} ...${p} />`; break;
+      case 'journal':   screen = html`<${C.JournalScreen} ...${p} />`; break;
       case 'portfolio': screen = html`<${C.PortfolioScreen} ...${p} />`; break;
       case 'teacher':   screen = html`<${C.TeacherScreen} ...${p} />`; break;
       default:          screen = html`<${C.HomeScreen} ...${p} />`;
