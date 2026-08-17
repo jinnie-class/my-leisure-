@@ -311,32 +311,31 @@
         ${pic
           ? html`<div class="pd-photo"><img src=${pic} alt="사진 또는 내가 그린 그림" /></div>`
           /* 사진이나 그린 그림이 없으면 학생이 고른 것들을 그림으로 보여 줍니다.
-             (활동 · 함께한 사람 · 기분 · 장소) */
+             (활동 · 함께한 사람 · 기분 · 장소)
+             ★ **그림만** 넣습니다. 이름표·안내 글은 넣지 않습니다.
+               여기는 그림일기의 **그림 자리**입니다. 글은 아래 원고지에 쓰는데
+               같은 말이 그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
+               읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
           : html`<div class="pd-art">
               <div class="pd-art-main">
                 <${C.ActivityArt} activity=${a} size=${200} />
-                <div class="pd-art-name">${a ? a.name : '한 활동'}</div>
               </div>
               <div class="pd-art-row">
-                ${partner && html`<span class="pd-art-item">
+                ${partner && html`<span class="pd-art-item" role="img" aria-label=${partner.name}>
                   <span class="pd-art-thumb"><${C.PartnerArt} partner=${partner} student=${student} /></span>
-                  <span class="pd-art-cap">${partner.name}</span>
                 </span>`}
                 ${(d.moodIds || []).map(function (m) {
                   var mo = App.mood(m); if (!mo) return null;
-                  return html`<span key=${m} class="pd-art-item">
+                  return html`<span key=${m} class="pd-art-item" role="img" aria-label=${mo.name}>
                     <span class="pd-art-thumb"><${C.MoodArt} mood=${mo} /></span>
-                    <span class="pd-art-cap">${mo.name}</span>
                   </span>`;
                 })}
-                ${d.place && html`<span class="pd-art-item">
+                ${d.place && html`<span class="pd-art-item" role="img" aria-label=${d.place}>
                   <span class="pd-art-thumb">
                     <${C.PickArt} kind="place" word=${d.place} iconKey="map" />
                   </span>
-                  <span class="pd-art-cap">${d.place}</span>
                 </span>`}
               </div>
-              <div class="pd-art-note">사진이나 내가 그린 그림을 넣으면 여기에 나와요</div>
             </div>`}
       </div>
 

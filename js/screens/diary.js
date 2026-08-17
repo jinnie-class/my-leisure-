@@ -144,7 +144,11 @@
     function goNext() {
       if (goTimer.current) clearTimeout(goTimer.current);
       goTimer.current = setTimeout(function () {
-        stepS[1](function (s) { return Math.min(s + 1, L2.length - 1); });
+        /* ※ 지금 단계 목록의 마지막을 넘지 않게 막습니다.
+             예전에는 `L2.length` 로 굳혀 두어서, 1단계 목록이 길어지면
+             마지막 단계로 못 가는 문제가 생길 자리였습니다. */
+        var list = (draft.level === 2) ? L2 : L1;
+        stepS[1](function (s) { return Math.min(s + 1, list.length - 1); });
       }, 450);
     }
 
@@ -182,7 +186,10 @@
     }
 
     /* --------------------- 1단계 --------------------- */
-    var L1 = ['언제', '누구와', '무엇을', '어디에서', '기분', '또 하고 싶나', '확인'];
+    /* ★ `그림` 을 **따로 한 단계**로 두었습니다.
+       예전에는 `확인` 화면 맨 아래에 붙어 있어서 눈에 띄지 않았습니다.
+       2단계와 같은 자리(제목 다음 · 확인 앞)에 두어 두 단계가 같게 흐릅니다. */
+    var L1 = ['언제', '누구와', '무엇을', '어디에서', '기분', '또 하고 싶나', '그림', '확인'];
     /* 날씨 고르기 — 그림일기의 기본 항목이라 **학생이 앱에서 고릅니다.**
        예전에는 인쇄한 종이에 손으로 동그라미 치는 방식이라 기록으로 남지 않았습니다.
        세 단계가 모두 같은 것을 쓰므로 한 군데에 만들어 두고 불러 씁니다. */
@@ -297,6 +304,15 @@
           <//>
         <//>`;
       }
+      /* 그림 — 사진 넣기 · 내가 그리기 (2단계와 같은 화면) */
+      if (step === 6) {
+        return html`<${React.Fragment}>
+          <${C.Question} hint="한 장만 들어가요" speakText="그림일기에 넣을 그림을 골라요">
+            그림일기에 넣을 그림을 골라요<//>
+          ${photoSection(true)}
+        <//>`;
+      }
+
       /* 확인 */
       return html`<${React.Fragment}>
         <${C.Question} hint="맞으면 저장해요" speakText="완성된 일기를 확인해요">완성된 일기를 확인해요<//>
@@ -306,7 +322,6 @@
           placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
           onChange=${function (v) { patch({ bodyEdit: v }); }}
           onReset=${function () { patch({ bodyEdit: null }); }} />
-        ${photoSection()}
       <//>`;
     }
 

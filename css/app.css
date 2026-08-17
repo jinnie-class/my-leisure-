@@ -1130,13 +1130,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .pd-art-main{ display:flex; flex-direction:column; align-items:center; gap:6px; min-height:0; }
 .pd-art-main > span,.pd-art-main img,.pd-art-main svg{ flex:0 0 auto; }
-.pd-art-name{ font-size:22px; font-weight:900; }
-.pd-art-row{ display:flex; flex-wrap:wrap; gap:18px; justify-content:center; }
-.pd-art-item{ display:inline-flex; flex-direction:column; align-items:center; gap:4px; }
-.pd-art-thumb{ width:56px; height:56px; display:block; }
+/* ※ 그림칸에는 **그림만** 넣습니다 — 이름표(`.pd-art-name`·`.pd-art-cap`)와
+     안내 글(`.pd-art-note`)은 없앴습니다. 같은 말이 아래 원고지에 이미 있어서
+     그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
+     읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
+.pd-art-row{ display:flex; flex-wrap:wrap; gap:22px; justify-content:center; }
+.pd-art-item{ display:inline-flex; align-items:center; }
+.pd-art-thumb{ width:64px; height:64px; display:block; }
 .pd-art-thumb svg,.pd-art-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
-.pd-art-cap{ font-size:14px; font-weight:800; }
-.pd-art-note{ font-size:15px; font-weight:800; color:#9a9aad; }
 
 /* 4. 제 목 */
 .pd-titlebar{ height:52px; gap:12px; padding:0 14px; font-size:20px; font-weight:900; }
