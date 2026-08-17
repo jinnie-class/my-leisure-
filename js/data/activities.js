@@ -18,6 +18,12 @@
     avatar: 'images/avatars/',
     partner: 'images/avatars/',      // 함께하는 사람 그림 (엄마·아빠·친구·선생님 …)
     mood: 'images/얼굴표정/',        // 기분 얼굴 그림 (파일 이름은 '재미있었어요.png' 처럼)
+    /* 계획하GO! 에서 고르는 것들. 파일 이름은 **화면에 보이는 말 그대로** 씁니다.
+       그림이 아직 없으면 코드로 그린 SVG 가 대신 나오므로, 하나씩 넣어도 됩니다. */
+    when:  'images/',                // 오늘.png · 내일.png · 날짜 고르기.png
+    time:  'images/시간/',           // 아침.png · 낮.png · 저녁.png
+    place: 'images/장소/',           // 교실.png · 집.png · 조리실.png …
+    again: 'images/또하기/',         // 또 하고 싶어요.png · … (일기 저장 뒤 질문)
     ext: '.png',
     cover: 'images/표지.png',        // 첫 화면 표지
     wallpaper: 'images/벽지.jpg',    // 모든 화면의 배경 무늬
@@ -352,6 +358,16 @@
     var hit = p.variants.filter(function (v) { return v.id === want; })[0];
     return hit || p.variants[0];
   };
+  /* 계획하GO! 에서 고르는 것들의 그림 — `언제 · 시간 · 장소 · 또하기`.
+     보이는 말을 그대로 파일 이름으로 씁니다 (`낮` → `images/시간/낮.png`).
+     파일이 없으면 `null` 이 나오고, 화면은 코드로 그린 SVG 를 대신 씁니다.
+     그래서 **그림을 한 장씩 넣어도** 넣은 것부터 바로 나옵니다. */
+  App.pickImage = function (kind, word) {
+    var base = App.IMAGE_BASE[kind];
+    if (!base || !word) return null;
+    return imgUrl(base + word + App.IMAGE_BASE.ext);
+  };
+
   App.partnerImage = function (p, student) {
     if (!p) return null;
     var v = App.partnerVariant(p, student);

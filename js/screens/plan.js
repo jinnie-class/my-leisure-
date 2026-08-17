@@ -8,6 +8,18 @@
 
   var PAGE_SIZE = 6;
 
+  /* 시간대 선택지 — `아침 · 낮 · 저녁`.
+     ★ 예전에는 `오전 · 오후` 였습니다. '오전' 은 학생에게 추상적이어서,
+       해가 어디 있는지로 알 수 있는 말로 바꿨습니다.
+       `id` 는 저장되는 값이고 `name` 은 화면에 보이는 말이며,
+       그림 파일 이름도 `name` 을 그대로 씁니다 (`images/시간/낮.png`).
+     ※ 예전 기록의 `am` · `pm` 은 `App.timeWord` 가 아침 · 낮으로 읽어 줍니다. */
+  var TIMES = [
+    { id: 'morning', name: '아침', icon: 'sun' },
+    { id: 'day',     name: '낮',   icon: 'sun' },
+    { id: 'evening', name: '저녁', icon: 'clock' }
+  ];
+
   /* ------------------------- 그림 중심 계획표 ------------------------- */
   C.PlanSheet = function (p) {
     var plan = p.plan;
@@ -262,12 +274,12 @@
           <${C.PickGrid} cols=${3} label="날짜">
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
               onClick=${function () { pickAndGo(function () { patch({ date: t }); App.speakFor(student, '오늘'); }); }}
-              art=${html`<${C.Art} iconKey="sun" />`} />
+              art=${html`<${C.PickArt} kind="when" word="오늘" iconKey="sun" />`} />
             <${C.Pick} selected=${draft.date === App.addDays(t, 1)} label="내일" speakText="내일"
               onClick=${function () { pickAndGo(function () { patch({ date: App.addDays(t, 1) }); App.speakFor(student, '내일'); }); }}
-              art=${html`<${C.Art} iconKey="calendar" />`} />
+              art=${html`<${C.PickArt} kind="when" word="내일" iconKey="calendar" />`} />
             <div class="pick" style=${{ cursor: 'default' }}>
-              <span class="thumb"><${C.Art} iconKey="pencil" /></span>
+              <span class="thumb"><${C.PickArt} kind="when" word="날짜 고르기" iconKey="pencil" /></span>
               <span class="label">날짜 고르기</span>
               <input class="field" type="date" value=${draft.date}
                 onChange=${function (e) { patch({ date: e.target.value || t }); }} />
@@ -278,18 +290,22 @@
       }
 
       if (key === 'time') {
+        /* ★ `오전 / 오후` 에서 **`아침 / 낮 / 저녁`** 으로 바꿨습니다.
+             '오전' 은 학생에게 추상적입니다. 해가 어디 있는지로 알 수 있는 말이
+             훨씬 구체적이고, 그림으로도 분명하게 그려집니다.
+             예전 기록의 `am` · `pm` 은 `App.timeWord` 가 알아서 읽어 줍니다. */
         return html`<${React.Fragment}>
-          <${C.Question} hint="한 가지를 골라요" speakText="몇 시에 할까요?">몇 시에 할까요?<//>
-          <${C.PickGrid} cols=${3} label="시간">
-            <${C.Pick} selected=${draft.time === 'am'} label="오전" speakText="오전"
-              onClick=${function () { pickAndGo(function () { patch({ time: 'am' }); App.speakFor(student, '오전'); }); }}
-              art=${html`<${C.Art} iconKey="sun" />`} />
-            <${C.Pick} selected=${draft.time === 'pm'} label="오후" speakText="오후"
-              onClick=${function () { pickAndGo(function () { patch({ time: 'pm' }); App.speakFor(student, '오후'); }); }}
-              art=${html`<${C.Art} iconKey="clock" />`} />
+          <${C.Question} hint="한 가지를 골라요" speakText="언제쯤 할까요?">언제쯤 할까요?<//>
+          <${C.PickGrid} cols=${4} label="시간">
+            ${TIMES.map(function (tm) {
+              return html`<${C.Pick} key=${tm.id} selected=${draft.time === tm.id}
+                label=${tm.name} speakText=${tm.name}
+                onClick=${function () { pickAndGo(function () { patch({ time: tm.id }); App.speakFor(student, tm.name); }); }}
+                art=${html`<${C.PickArt} kind="time" word=${tm.name} iconKey=${tm.icon} />`} />`;
+            })}
             <${C.Pick} selected=${draft.time === ''} label="정하지 않아요" speakText="시간을 정하지 않아요"
               onClick=${function () { pickAndGo(function () { patch({ time: '' }); }); }}
-              art=${html`<${C.Art} iconKey="dash" />`} />
+              art=${html`<${C.PickArt} kind="time" word="정하지 않아요" iconKey="dash" />`} />
           <//>
         <//>`;
       }
@@ -304,7 +320,8 @@
           <${C.PickGrid} cols=${3} label="장소">
             ${suggests.slice(0, 5).map(function (s) {
               return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${s}
-                onClick=${function () { patch({ place: s }); }} art=${html`<${C.Art} iconKey="map" />`} />`;
+                onClick=${function () { patch({ place: s }); }}
+                art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
             <div class="pick" style=${{ cursor: 'default' }}>
               <span class="thumb"><${C.Art} iconKey="pencil" /></span>

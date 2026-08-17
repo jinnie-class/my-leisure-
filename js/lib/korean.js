@@ -100,17 +100,26 @@
     if (key === App.addDays(t, -1)) return '어제';
     return null;
   };
-  /* 시간 표현 : 'am' | 'pm' | 'HH:MM' | '' */
+  /* 시간대 표현 : 'morning' | 'day' | 'evening' | 'HH:MM' | ''
+     ★ `오전 / 오후` 에서 **`아침 / 낮 / 저녁`** 으로 바꿨습니다.
+       '오전' 은 학생에게 추상적입니다. 해가 어디 있는지로 알 수 있는 말이
+       특수교육대상학생에게 훨씬 구체적이고, 그림으로도 분명하게 그려집니다.
+     ※ 예전 기록의 `am` · `pm` 도 그대로 읽습니다 (`am`→아침, `pm`→낮).
+       예전 일기를 열었을 때 시간이 사라지지 않게 하기 위한 것입니다. */
+  var TIME_WORDS = {
+    morning: '아침', day: '낮', evening: '저녁',
+    am: '아침', pm: '낮'                       // ← 예전 기록 읽기용
+  };
   App.timeWord = function (time) {
     if (!time) return '';
-    if (time === 'am') return '오전';
-    if (time === 'pm') return '오후';
+    if (TIME_WORDS[time]) return TIME_WORDS[time];
     var m = /^(\d{1,2}):(\d{2})$/.exec(time);
     if (!m) return String(time);
     var h = +m[1], mi = +m[2];
-    var ampm = h < 12 ? '오전' : '오후';
+    /* 직접 적은 시각은 아침(~11시) · 낮(~17시) · 저녁 으로 갈라 읽어 줍니다 */
+    var part = h < 12 ? '아침' : (h < 18 ? '낮' : '저녁');
     var h12 = h % 12; if (h12 === 0) h12 = 12;
-    return ampm + ' ' + h12 + '시' + (mi ? ' ' + mi + '분' : '');
+    return part + ' ' + h12 + '시' + (mi ? ' ' + mi + '분' : '');
   };
   /* 문장 앞에 들어갈 때 표현 : '오늘', '8월 20일 오후에' */
   App.whenPhrase = function (key, time) {

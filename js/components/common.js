@@ -147,6 +147,15 @@
     return html`<${C.Art} src=${App.moodImage(m)} iconKey=${m.icon} size=${p.size} />`;
   };
 
+  /* 계획하GO! 에서 고르는 것들의 그림 — `언제 · 시간 · 장소 · 또하기`.
+     `word` 는 화면에 보이는 말 그대로입니다 (`낮`, `조리실`, `또 하고 싶어요`).
+     그림 파일이 없으면 `iconKey` 의 SVG 가 대신 나오므로,
+     **그림을 한 장씩 넣어도 넣은 것부터 바로 보입니다.** */
+  C.PickArt = function (p) {
+    return html`<${C.Art} src=${App.pickImage(p.kind, p.word)} iconKey=${p.iconKey || 'question'}
+      size=${p.size} />`;
+  };
+
   C.ActivityArt = function (p) {
     var a = p.activity;
     if (!a) return html`<${C.Art} iconKey="question" size=${p.size} />`;
