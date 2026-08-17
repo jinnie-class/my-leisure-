@@ -315,7 +315,7 @@
       var diary = Object.assign({
         id: uid('dy'), studentId: Store.get().currentStudentId, planId: null, level: 1,
         date: App.todayKey(), activityId: null, cardId: null, partnerId: null, place: '',
-        moodIds: [], againId: null, title: '', text: '', frames: {}, photoIds: [],
+        moodIds: [], againId: null, title: '', text: '', weather: '', frames: {}, photoIds: [],
         picKind: 'app', mainPhotoId: null, drawPhotoId: null, bodyEdit: null,
         exhibit: false, createdAt: Date.now(), updatedAt: Date.now(), isSample: false
       }, d);

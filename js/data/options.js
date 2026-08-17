@@ -197,6 +197,50 @@
   ];
 
   /* ------------------------- 조회 도우미 ------------------------- */
+  /* ------------------------- 날씨 -------------------------
+     ★ 그림일기의 기본 항목이라 **학생이 앱에서 눌러 고릅니다.**
+       예전에는 인쇄한 종이에 손으로 동그라미 치는 방식이라 기록으로 남지 않았습니다.
+     글자를 못 읽는 학생도 알아볼 수 있게 모양을 뚜렷하게 그렸습니다
+     (비는 우산, 눈은 눈사람 — 구름만 그리면 서로 헷갈립니다). */
+  var CLOUD_LO = 'M15 34a8 8 0 01.8-15.9 11 11 0 0120.6-2.4A8 8 0 0134 34z';
+  D.weathers = [
+    { id: 'sun', name: '맑음', svg:
+      '<g stroke="#333" stroke-width="3" stroke-linecap="round">' +
+      '<path d="M24 3v6M24 39v6M3 24h6M39 24h6M9.2 9.2l4.3 4.3M34.5 34.5l4.3 4.3' +
+      'M38.8 9.2l-4.3 4.3M13.5 34.5l-4.3 4.3"/></g>' +
+      '<circle cx="24" cy="24" r="10" fill="#FFD75E" stroke="#333" stroke-width="3"/>' },
+
+    { id: 'cloud', name: '흐림', svg:
+      '<path d="' + CLOUD_LO + '" fill="#E3ECF5" stroke="#333" stroke-width="3" stroke-linejoin="round"/>' },
+
+    /* 비 : 우산 — 구름보다 한눈에 알아보기 쉽습니다 */
+    { id: 'rain', name: '비', svg:
+      '<path d="M22 9a17 17 0 0117 17H5A17 17 0 0122 9z" fill="#5AA9E6" ' +
+      'stroke="#333" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M22 5v4" stroke="#333" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M22 26v13a4.5 4.5 0 01-9 0" stroke="#333" stroke-width="3" ' +
+      'fill="none" stroke-linecap="round"/>' +
+      '<g fill="#7FC4EE" stroke="#333" stroke-width="2" stroke-linejoin="round">' +
+      '<path d="M40 28c1.6 2.4 2.5 3.8 2.5 4.7a2.5 2.5 0 01-5 0c0-.9.9-2.3 2.5-4.7z"/>' +
+      '<path d="M33 36c1.6 2.4 2.5 3.8 2.5 4.7a2.5 2.5 0 01-5 0c0-.9.9-2.3 2.5-4.7z"/></g>' },
+
+    /* 눈 : 눈사람 */
+    { id: 'snow', name: '눈', svg:
+      '<path d="M12 31l-6-4M36 31l6-4" stroke="#333" stroke-width="2.6" stroke-linecap="round"/>' +
+      '<circle cx="24" cy="34" r="11" fill="#fff" stroke="#333" stroke-width="3"/>' +
+      '<circle cx="24" cy="16" r="8.5" fill="#fff" stroke="#333" stroke-width="3"/>' +
+      '<circle cx="24" cy="31" r="1.6" fill="#333"/><circle cx="24" cy="38" r="1.6" fill="#333"/>' +
+      '<circle cx="20.8" cy="14.5" r="1.5" fill="#333"/>' +
+      '<circle cx="27.2" cy="14.5" r="1.5" fill="#333"/>' +
+      '<path d="M24 17.6l4.6 1.9-4.6 1.6z" fill="#F59B4B" stroke="#333" stroke-width="1.4" ' +
+      'stroke-linejoin="round"/>' }
+  ];
+  /* 날씨 그림 한 장을 SVG 문자열로 돌려줍니다 (화면·인쇄가 같은 그림을 씁니다) */
+  App.weatherSvg = function (w) {
+    if (!w) return '';
+    return '<svg viewBox="0 0 48 48" fill="none">' + w.svg + '</svg>';
+  };
+
   function finder(list) {
     return function (id) {
       for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
@@ -209,6 +253,7 @@
   App.avatar = finder(D.avatars);
   App.corner = finder(D.corners);
   App.state = finder(D.mapStates);     // 해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요
+  App.weather = finder(D.weathers);    // 맑음 · 흐림 · 비 · 눈
 
   /* 학생 설정에 맞춰 걸러낸 선택지 */
   App.partnersFor = function (s) {

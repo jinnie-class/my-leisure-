@@ -1094,11 +1094,17 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-weather{ display:inline-flex; align-items:center; gap:14px; }
 .pd-wi{ width:38px; height:38px; display:block; }
 .pd-wi svg{ width:100%; height:100%; display:block; }
+/* 학생이 고른 날씨에 동그라미. 나머지는 연하게 물러납니다.
+   아직 안 골랐으면 넷 다 그대로 나와서, 인쇄한 종이에 손으로 칠 수 있습니다. */
+.pd-wi.on{
+  border-radius:999px; box-shadow:0 0 0 3px #333;
+  padding:2px; box-sizing:content-box;
+}
+.pd-wi.off{ opacity:.28; }
 
-/* 2. 일어난 시간 · 잠드는 시간 */
-.pd-timebar{ height:46px; font-size:16px; font-weight:800; }
-.pd-half{ flex:1 1 0; padding:0 14px; }
-.pd-half + .pd-half{ border-left:2px solid #333; }
+/* ※ `일어난 시간 · 잠드는 시간` 줄은 **없앴습니다.**
+     보통의 그림일기 양식에는 있지만, **여가 일기**에 기상·취침 시간은 필요하지 않습니다.
+     그 46px 을 그림칸과 원고지에 돌려주었습니다. */
 
 /* 3. 그림 칸 — 남는 자리를 모두 씁니다 */
 .pd-draw{
@@ -1158,6 +1164,52 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-sheet.t-empty .pd-lines .pd-ch{ visibility:hidden; }
 .pd-sheet.t-trace .pd-titlebar .pd-ch{ color:#c9c9d2; }
 .pd-sheet.t-empty .pd-titlebar .pd-ch{ visibility:hidden; }
+
+/* 손글씨로 쓴 일기를 그림일기에 그대로 넣습니다 (3단계).
+   손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
+.pd-lines.pd-hw{ background-image:none; display:flex; align-items:flex-start; }
+.pd-lines.pd-hw img{ width:100%; height:auto; display:block; }
+/* 기록하GO! 에서 보는 손글씨 미리보기 */
+.hw-shot{
+  width:100%; height:auto; display:block;
+  border:2px solid var(--line); border-radius:14px; background:#fff;
+}
+
+/* ======================= 날씨 고르기 (기록하GO!) =======================
+   그림일기의 기본 항목이라 학생이 앱에서 눌러 고릅니다.
+   한 번 더 누르면 골랐던 것이 풀립니다 (안 고른 상태로 되돌리기). */
+.wthr{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.5rem;
+  margin-top:.7rem;
+}
+.wthr-lab{ font-weight:900; color:var(--ink-soft); margin-right:.2rem; }
+.wthr-btn{
+  display:inline-flex; flex-direction:column; align-items:center; gap:.15rem;
+  min-height:var(--tap); padding:.35rem .7rem;
+  border:2px solid var(--line); border-radius:16px; background:#fff;
+  font-weight:800; color:var(--ink); box-shadow:var(--shadow);
+}
+.wthr-btn.on{ background:#e6f7f2; border-color:#7fd6c2; color:#0f6b57; }
+.wthr-art{ width:38px; height:38px; display:block; }
+.wthr-art svg{ width:100%; height:100%; display:block; }
+.wthr-nm{ font-size:.9rem; }
+
+/* 생각 도움말 — 빈 칸·빈 줄로 인쇄할 때만 칸 바로 위에 나옵니다.
+   2단계 `스스로 쓰기` → 학생이 고른 내용 · 3단계 `빈 줄` → 생각 질문.
+   ★ 인쇄해서 쓰는 종이라 **연한 회색**으로 둡니다. 학생 글씨를 방해하지 않게. */
+.pd-hint{
+  flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center;
+  gap:6px 10px; padding:6px 16px 8px;
+}
+.pd-hint-lab{
+  flex:0 0 auto; font-size:15px; font-weight:900; color:#6b6b78;
+}
+.pd-hint-q{
+  font-size:15px; font-weight:800; color:#8a8a96;
+  border:1.5px dashed #c9c9d2; border-radius:999px; padding:1px 9px;
+}
+/* 도움말이 나오면 종이 맨 아래 칩은 감춥니다 — 같은 내용이라 겹칩니다 */
+.pd-sheet.t-empty .pd-foot{ display:none; }
 
 /* 위쪽 줄에 보이는 단계 표시 — 선생님이 인쇄 전에 단계를 확인합니다 */
 .pd-lv{

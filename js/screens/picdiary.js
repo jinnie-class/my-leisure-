@@ -39,44 +39,8 @@
        0.75 를 넘으면 받침 있는 글자(`쌓`)가 칸 선에 닿습니다. */
   var GLYPH_FILL = 0.70;
 
-  /* 날씨 그림 — 인쇄해서 그날 날씨 하나에 동그라미 칩니다.
-     글자를 못 읽는 학생도 알아볼 수 있게 모양을 뚜렷하게 그리고
-     아래에 이름표를 함께 붙였습니다. */
-  var CLOUD_HI = 'M15 30a8 8 0 01.8-15.9 11 11 0 0120.6-2.4A8 8 0 0134 30z';
-  var CLOUD_LO = 'M15 34a8 8 0 01.8-15.9 11 11 0 0120.6-2.4A8 8 0 0134 34z';
-
-  var WEATHER = [
-    { key: 'sun', name: '맑음', svg:
-      '<g stroke="#333" stroke-width="3" stroke-linecap="round">' +
-      '<path d="M24 3v6M24 39v6M3 24h6M39 24h6M9.2 9.2l4.3 4.3M34.5 34.5l4.3 4.3' +
-      'M38.8 9.2l-4.3 4.3M13.5 34.5l-4.3 4.3"/></g>' +
-      '<circle cx="24" cy="24" r="10" fill="#FFD75E" stroke="#333" stroke-width="3"/>' },
-
-    { key: 'cloud', name: '흐림', svg:
-      '<path d="' + CLOUD_LO + '" fill="#E3ECF5" stroke="#333" stroke-width="3" stroke-linejoin="round"/>' },
-
-    /* 비 : 우산 — 구름보다 한눈에 알아보기 쉽습니다 */
-    { key: 'rain', name: '비', svg:
-      '<path d="M22 9a17 17 0 0117 17H5A17 17 0 0122 9z" fill="#5AA9E6" ' +
-      'stroke="#333" stroke-width="3" stroke-linejoin="round"/>' +
-      '<path d="M22 5v4" stroke="#333" stroke-width="3" stroke-linecap="round"/>' +
-      '<path d="M22 26v13a4.5 4.5 0 01-9 0" stroke="#333" stroke-width="3" ' +
-      'fill="none" stroke-linecap="round"/>' +
-      '<g fill="#7FC4EE" stroke="#333" stroke-width="2" stroke-linejoin="round">' +
-      '<path d="M40 28c1.6 2.4 2.5 3.8 2.5 4.7a2.5 2.5 0 01-5 0c0-.9.9-2.3 2.5-4.7z"/>' +
-      '<path d="M33 36c1.6 2.4 2.5 3.8 2.5 4.7a2.5 2.5 0 01-5 0c0-.9.9-2.3 2.5-4.7z"/></g>' },
-
-    /* 눈 : 눈사람 */
-    { key: 'snow', name: '눈', svg:
-      '<path d="M12 31l-6-4M36 31l6-4" stroke="#333" stroke-width="2.6" stroke-linecap="round"/>' +
-      '<circle cx="24" cy="34" r="11" fill="#fff" stroke="#333" stroke-width="3"/>' +
-      '<circle cx="24" cy="16" r="8.5" fill="#fff" stroke="#333" stroke-width="3"/>' +
-      '<circle cx="24" cy="31" r="1.6" fill="#333"/><circle cx="24" cy="38" r="1.6" fill="#333"/>' +
-      '<circle cx="20.8" cy="14.5" r="1.5" fill="#333"/>' +
-      '<circle cx="27.2" cy="14.5" r="1.5" fill="#333"/>' +
-      '<path d="M24 17.6l4.6 1.9-4.6 1.6z" fill="#F59B4B" stroke="#333" stroke-width="1.4" ' +
-      'stroke-linejoin="round"/>' }
-  ];
+  /* 날씨 그림은 `js/data/options.js` 의 `App.DATA.weathers` 한 곳에 모았습니다.
+     기록하GO! 에서 고르는 그림과 이 종이에 찍히는 그림이 같아야 하기 때문입니다. */
 
   /* ============== 「나의 여가 일기」 3단계 수준별 구성 ★고정 규칙★ ==============
      단계가 올라갈수록 **글의 양**이 아니라 **학생이 스스로 하는 정도**가 늘어납니다.
@@ -262,6 +226,9 @@
        3단계는 학생이 자유롭게 써서 글이 길고, 칸에 다 담기지 않습니다. */
     var lv = levelOf(d, p.student);
     var useLines = (lv === 3);
+    /* 3단계가 손글씨로 쓴 일기 (없으면 null) */
+    var handwriting = (lv === 3 && d.writeWay === 'hand' && d.writePhotoId)
+      ? App.photos.url(d.writePhotoId) : null;
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
     var dt = App.parseKey(d.date);
     var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
@@ -269,8 +236,48 @@
     var mode = p.trace || defaultModeFor(lv);
     if (!modesFor(lv).some(function (m) { return m.id === mode; })) mode = defaultModeFor(lv);
 
+    /* ── 생각 도움말 (빈 칸·빈 줄로 인쇄할 때만) ────────────────────
+       빈 칸만 주면 학생이 막막해집니다. 그래서 **스스로 쓰는 모양일 때만**
+       도움말 한 줄을 칸 바로 위에 놓습니다.
+         2단계 `스스로 쓰기` → 학생이 **고른 내용**을 그대로 보여 줍니다
+         3단계 `빈 줄`      → **생각 질문**을 보여 줍니다 (고른 내용을 주지 않습니다)
+       글이 이미 칸에 나오는 모양(`글자`·`따라 쓰기`)에서는 도움말이 필요 없어서 안 냅니다.
+       도움말이 나오면 종이 맨 아래 칩은 **감춥니다** (같은 내용이라 겹칩니다). */
+    var HELP_Q = ['언제?', '누구와?', '어디에?', '무엇을?',
+                  '가장 기억에 남는 것?', '어떤 기분?', '왜 그렇게 느꼈나?'];
+    var hint = null;
+    if (mode === 'empty') {
+      if (useLines) {
+        hint = html`<div class="pd-hint">
+          <span class="pd-hint-lab">생각해 보아요</span>
+          ${HELP_Q.map(function (q) { return html`<span key=${q} class="pd-hint-q">${q}</span>`; })}
+        </div>`;
+      } else {
+        /* 학생이 고른 것들 — 규칙의 공통 내용 구조 ①언제 ②누구와 ③어디에서 ④무엇을 ⑤기분 */
+        var picked = [];
+        /* 일기에는 시간대가 없습니다. 계획에서 온 일기면 그 계획의 시간대를 가져옵니다 */
+        var pl = d.planId ? App.store.plan(d.planId) : null;
+        var tw = App.timeWord(pl && pl.time);
+        if (tw) picked.push(tw);
+        if (partner) picked.push(partner.name);
+        if (a) picked.push(a.name);
+        /* 장소가 활동 이름에 이미 들어 있으면 두 번 쓰지 않습니다
+           (`공원 가기` + 장소 `공원` → `공원` 만 빼기) */
+        if (d.place && !(a && a.name.indexOf(d.place) >= 0)) picked.push(d.place);
+        (d.moodIds || []).forEach(function (m) {
+          var mo = App.mood(m); if (mo) picked.push(mo.name);
+        });
+        if (picked.length) {
+          hint = html`<div class="pd-hint">
+            <span class="pd-hint-lab">무엇을 쓸까?</span>
+            ${picked.map(function (w, i) { return html`<span key=${i} class="pd-hint-q">${w}</span>`; })}
+          </div>`;
+        }
+      }
+    }
+
     /* 보통의 그림일기 양식 :
-       날짜·날씨 줄 → 일어난·잠드는 시간 줄 → 그림 칸 → 제목 줄 → 원고지 칸 */
+       날짜·날씨 줄 → 일어난·잠드는 시간 줄 → 그림 칸 → 제목 줄 → (도움말) → 원고지 칸 */
     return html`<div class=${'pd-sheet t-' + mode + ' lv-' + lv}>
 
       <div class="pd-line pd-datebar">
@@ -281,18 +288,19 @@
           <b class="pd-val">${WEEK[dt.getDay()]}</b> 요일
         </span>
         <span class="pd-weather">날씨
-          ${WEATHER.map(function (w) {
-            return html`<span key=${w.key} class="pd-wi" role="img" aria-label=${w.name} title=${w.name}
-              dangerouslySetInnerHTML=${{ __html:
-                '<svg viewBox="0 0 48 48" fill="none">' + w.svg + '</svg>' }} />`;
+          ${(App.DATA.weathers || []).map(function (w) {
+            /* 학생이 고른 날씨에 **동그라미**를 쳐 줍니다.
+               아직 안 골랐으면 넷 다 연하게 나와서, 인쇄한 종이에 손으로 칠 수 있습니다. */
+            var on = d.weather === w.id;
+            var none = !d.weather;
+            return html`<span key=${w.id}
+                class=${'pd-wi' + (on ? ' on' : '') + (none ? '' : (on ? '' : ' off'))}
+                role="img" aria-label=${w.name + (on ? ' (고른 날씨)' : '')} title=${w.name}
+                dangerouslySetInnerHTML=${{ __html: App.weatherSvg(w) }} />`;
           })}
         </span>
       </div>
 
-      <div class="pd-line pd-timebar">
-        <span class="pd-half">일어난 시간:</span>
-        <span class="pd-half">잠드는 시간:</span>
-      </div>
 
       <div class="pd-draw">
         ${pic
@@ -331,14 +339,23 @@
         <span class="pd-ch">${d.title || (a ? a.name : '')}</span>
       </div>
 
+      ${hint}
+
       ${useLines
         /* 3단계(자유쓰기)는 칸이 아니라 밑줄에 씁니다.
-           글이 길어져도 한 장에 다 담기고, 칸에 맞춰 쓰는 부담도 없습니다. */
-        ? html`<div class="pd-lines">
-            ${lines.map(function (s, i) {
-              return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
-            })}
-          </div>`
+           글이 길어져도 한 장에 다 담기고, 칸에 맞춰 쓰는 부담도 없습니다.
+           ★ 손글씨로 쓴 일기가 있으면 **그 손글씨를 그대로** 넣습니다.
+             손글씨 판에 이미 줄이 그려져 있어서 줄공책처럼 보입니다.
+             `빈 줄` 로 인쇄할 때는 손글씨를 빼고 줄만 냅니다 (종이에 쓰는 길). */
+        ? (handwriting && mode !== 'empty'
+            ? html`<div class="pd-lines pd-hw">
+                <img src=${handwriting} alt="손으로 쓴 일기" />
+              </div>`
+            : html`<div class="pd-lines">
+                ${lines.map(function (s, i) {
+                  return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
+                })}
+              </div>`)
         /* 1·2단계는 원고지 칸에 한 글자씩 */
         : html`<div class="pd-grid" style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
             fontSize: Math.round(790 / g.cols * GLYPH_FILL) + 'px' }}>

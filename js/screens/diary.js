@@ -7,6 +7,16 @@
   var useState = React.useState, useEffect = React.useEffect;
   var PAGE_SIZE = 6;
 
+  /* 3단계가 일기를 쓰는 세 가지 방법.
+     ★ 학생마다 쓰기 수단이 다릅니다. 키보드를 못 치는 학생도 3단계일 수 있어서
+       손글씨와 종이 길을 함께 열어 두었습니다.
+       `종이` 는 새로 만들 것이 없습니다 — 그림일기의 `빈 줄` 인쇄가 그 길입니다. */
+  var WRITE_WAYS = [
+    { id: 'key',   name: '키보드로 쓰기', desc: '글자판으로 씁니다' },
+    { id: 'hand',  name: '손글씨로 쓰기', desc: '전자칠판·태블릿에 손가락이나 펜으로 씁니다' },
+    { id: 'paper', name: '종이에 쓰기',   desc: '빈 줄로 인쇄해서 연필로 씁니다' }
+  ];
+
   /* ------------------------- 활동 고르기 (일기용) ------------------------- */
   C.ActivityChooser = function (p) {
     var student = p.student;
@@ -98,7 +108,8 @@
         cardId: fromPlan ? fromPlan.cardId : null,
         partnerId: fromPlan ? fromPlan.partnerId : null,
         place: fromPlan ? fromPlan.place : '',
-        moodIds: [], againId: null, title: '', text: '', frames: {}, photoIds: [], exhibit: false,
+        moodIds: [], againId: null, title: '', text: '', weather: '', frames: {}, photoIds: [], exhibit: false,
+        writeWay: 'key', writePhotoId: null,   /* 3단계 : 키보드 | 손글씨 | 종이 */
         picKind: 'app',     // 그림칸 : 'app' 내가 고른 그림 | 'photo' 사진 | 'draw' 직접 그리기
         mainPhotoId: null,  // 사진을 여러 장 넣었을 때 그림일기에 쓸 한 장
         drawPhotoId: null,  // 직접 그린 그림
@@ -122,6 +133,7 @@
     var helpS = useState(false);
     var editMetaS = useState(false);
     var drawS = useState(false);       // 직접 그리기 판이 열려 있는지
+    var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
 
     /* 고르면 0.45초 뒤 다음 질문으로 넘어갑니다 (규칙 2).
        시간이 지나 저절로 넘어가는 것이 아니라, 학생이 고른 결과로 넘어갑니다. */
@@ -148,12 +160,13 @@
         studentId: student.id, planId: draft.planId, level: draft.level, date: draft.date,
         activityId: draft.activityId, cardId: App.cardIdOf(draft.activityId),
         partnerId: draft.partnerId, place: draft.place, moodIds: draft.moodIds,
-        againId: draft.againId, title: draft.title, text: draft.text,
+        againId: draft.againId, title: draft.title, text: draft.text, weather: draft.weather,
         bodyEdit: draft.bodyEdit || null,
         frames: draft.frames, photoIds: draft.photoIds,
         picKind: draft.picKind || 'app',
         mainPhotoId: draft.mainPhotoId || null,
-        drawPhotoId: draft.drawPhotoId || null, exhibit: draft.exhibit
+        drawPhotoId: draft.drawPhotoId || null, exhibit: draft.exhibit,
+        writeWay: draft.writeWay || 'key', writePhotoId: draft.writePhotoId || null
       };
       var id;
       if (editing) {
@@ -170,6 +183,28 @@
 
     /* --------------------- 1단계 --------------------- */
     var L1 = ['언제', '누구와', '무엇을', '어디에서', '기분', '또 하고 싶나', '확인'];
+    /* 날씨 고르기 — 그림일기의 기본 항목이라 **학생이 앱에서 고릅니다.**
+       예전에는 인쇄한 종이에 손으로 동그라미 치는 방식이라 기록으로 남지 않았습니다.
+       세 단계가 모두 같은 것을 쓰므로 한 군데에 만들어 두고 불러 씁니다. */
+    function weatherPicker() {
+      return html`<div class="wthr">
+        <span class="wthr-lab">날씨</span>
+        ${(App.DATA.weathers || []).map(function (w) {
+          var on = draft.weather === w.id;
+          return html`<button key=${w.id} type="button" class=${'wthr-btn' + (on ? ' on' : '')}
+            aria-pressed=${on ? 'true' : 'false'} title=${w.name}
+            onClick=${function () {
+              patch({ weather: on ? '' : w.id });
+              if (!on) App.speakFor(student, w.name);
+            }}>
+            <span class="wthr-art" aria-hidden="true"
+              dangerouslySetInnerHTML=${{ __html: App.weatherSvg(w) }} />
+            <span class="wthr-nm">${w.name}</span>
+          </button>`;
+        })}
+      </div>`;
+    }
+
     function level1Body(step) {
       var t = App.todayKey();
       if (step === 0) {
@@ -177,16 +212,19 @@
           <${C.Question} speakText="언제 했나요?">언제 했나요?<//>
           <${C.PickGrid} cols=${3}>
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
-              onClick=${function () { patch({ date: t }); }} art=${html`<${C.Art} iconKey="sun" />`} />
+              onClick=${function () { patch({ date: t }); }}
+              art=${html`<${C.PickArt} kind="when" word="오늘" iconKey="sun" />`} />
             <${C.Pick} selected=${draft.date === App.addDays(t, -1)} label="어제" speakText="어제"
-              onClick=${function () { patch({ date: App.addDays(t, -1) }); }} art=${html`<${C.Art} iconKey="calendar" />`} />
+              onClick=${function () { patch({ date: App.addDays(t, -1) }); }}
+              art=${html`<${C.PickArt} kind="when" word="어제" iconKey="calendar" />`} />
             <div class="pick" style=${{ cursor: 'default' }}>
-              <span class="thumb"><${C.Art} iconKey="pencil" /></span>
+              <span class="thumb"><${C.PickArt} kind="when" word="날짜 고르기" iconKey="pencil" /></span>
               <span class="label">날짜 직접 고르기</span>
               <input class="field" type="date" value=${draft.date}
                 onChange=${function (e) { patch({ date: e.target.value || t }); }} />
             </div>
           <//>
+          ${weatherPicker()}
         <//>`;
       }
       if (step === 1) {
@@ -338,6 +376,10 @@
           <span class="chip">${act ? act.name : '활동을 골라 주세요'}</span>
           <span class="chip">${pt ? pt.name : '함께한 사람'}</span>
           <span class="chip">${draft.place || '장소'}</span>
+          ${draft.weather && html`<span class="chip">
+            <span class="chip-art" aria-hidden="true"
+              dangerouslySetInnerHTML=${{ __html: App.weatherSvg(App.weather(draft.weather)) }} />
+            ${(App.weather(draft.weather) || {}).name}</span>`}
           <div class="grow"></div>
           ${fromPlan && html`<span class="star-badge">계획에서 가져왔어요</span>`}
           <${C.Btn} size="small" icon="pencil" onClick=${function () { editMetaS[1](true); }}>바꾸기<//>
@@ -567,18 +609,61 @@
           <div style=${{ width: '13rem' }}><${C.Field} label="날짜" type="date" value=${draft.date}
             onChange=${function (v) { patch({ date: v || App.todayKey() }); }} /></div>
         </div>
+        ${weatherPicker()}
         ${photoSection()}
         <${C.Sec}>
           <div class="row" style=${{ marginBottom: '.3rem' }}>
             <span class="lab grow">오늘 있었던 일을 써 보아요</span>
             <${C.Btn} size="small" icon="book" onClick=${function () { helpS[1](true); }}>문장 도움 보기<//>
           </div>
-          <${C.Area} rows=${8} value=${draft.text}
-            placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
-            onChange=${function (v) { patch({ text: v }); }} />
-          <div class="wrap" style=${{ marginTop: '.45rem' }}>
-            <${C.Speak} text=${draft.text} label="내가 쓴 글 들어보기" />
+
+          <!-- 3단계는 쓰는 방법을 고릅니다 : 키보드 · 손글씨 · 종이 -->
+          <div class="wrap" style=${{ marginBottom: '.5rem' }}>
+            ${WRITE_WAYS.map(function (wy) {
+              var on = (draft.writeWay || 'key') === wy.id;
+              return html`<button key=${wy.id} type="button" class=${'tab' + (on ? ' on' : '')}
+                aria-pressed=${on ? 'true' : 'false'} title=${wy.desc}
+                onClick=${function () { patch({ writeWay: wy.id }); }}>${wy.name}<//>`;
+            })}
           </div>
+
+          ${(draft.writeWay || 'key') === 'key' && html`<${React.Fragment}>
+            <${C.Area} rows=${8} value=${draft.text}
+              placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
+              onChange=${function (v) { patch({ text: v }); }} />
+            <div class="wrap" style=${{ marginTop: '.45rem' }}>
+              <${C.Speak} text=${draft.text} label="내가 쓴 글 들어보기" />
+            </div>
+          <//>`}
+
+          ${(draft.writeWay || 'key') === 'hand' && html`<div class="stack">
+            ${draft.writePhotoId
+              ? html`<${React.Fragment}>
+                  <img class="hw-shot" src=${App.photos.url(draft.writePhotoId)} alt="손으로 쓴 일기" />
+                  <div class="wrap">
+                    <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+                      onClick=${function () { writeS[1](true); }}>이어서 쓰기<//>
+                    <${C.Btn} size="small" icon="trash" onClick=${function () {
+                      var old = draft.writePhotoId;
+                      patch({ writePhotoId: null });
+                      if (old) App.photos.remove(old);
+                    }}>지우고 다시 쓰기<//>
+                  </div>
+                <//>`
+              : html`<${C.Btn} kind="primary" icon="pencil"
+                  onClick=${function () { writeS[1](true); }}>손글씨로 일기 쓰기<//>`}
+            <p class="small muted">전자칠판·태블릿에서 손가락이나 펜으로 씁니다.
+              줄이 그려진 종이에 쓰는 것처럼 나옵니다.</p>
+          </div>`}
+
+          ${(draft.writeWay || 'key') === 'paper' && html`<${C.Banner} tone="info" icon="print">
+            <b>종이에 손으로 씁니다.</b>
+            <div class="small" style=${{ marginTop: '.3rem' }}>
+              저장한 뒤 <b>그림일기 보기 → 빈 줄</b> 로 인쇄하면
+              줄만 있는 종이가 나옵니다. 거기에 직접 쓰세요.
+              생각 질문도 줄 위에 함께 나옵니다.
+            </div>
+          <//>`}
         <//>
         ${moodAndAgain()}
       <//>`;
@@ -685,6 +770,7 @@
         <div class="stack">
           <${C.Field} label="날짜" type="date" value=${draft.date}
             onChange=${function (v) { patch({ date: v || App.todayKey() }); }} />
+          ${weatherPicker()}
           <div>
             <span class="lab">함께한 사람</span>
             <${C.PickGrid} cols=${4}>
@@ -703,6 +789,27 @@
               onPick=${function (id) { patch({ activityId: id, cardId: App.cardIdOf(id) }); }} />
           </div>
         </div>
+      <//>`}
+
+      <!-- 손글씨 일기 판 (3단계) — 줄공책처럼 줄이 그려진 넓은 판입니다 -->
+      ${writeS[0] && html`<${C.Modal} title="손글씨로 일기를 써요" wide=${true}
+        onClose=${function () { writeS[1](false); }}
+        actions=${html`<${C.Btn} onClick=${function () { writeS[1](false); }}>그만두기<//>`}>
+        <${C.DrawPad} w=${1400} h=${800} ruled=${true} ruleHeight=${88}
+          startFrom=${draft.writePhotoId ? App.photos.url(draft.writePhotoId) : null}
+          doneText="일기 다 썼어요"
+          hintText="손가락·펜으로 줄에 맞춰 써요. 색과 굵기를 고를 수 있어요."
+          onDone=${function (url) {
+            App.photos.addDataUrl(url, student.id, 'write').then(function (id) {
+              var old = draft.writePhotoId;
+              patch({ writePhotoId: id, writeWay: 'hand' });
+              if (old) App.photos.remove(old);
+              writeS[1](false);
+              App.ui.toast('손글씨 일기를 넣었어요.');
+            })['catch'](function (err) {
+              App.ui.toast(err && err.message ? err.message : '손글씨를 저장하지 못했어요.');
+            });
+          }} />
       <//>`}
 
       ${drawS[0] && html`<${C.Modal} title="그림을 그려요" wide=${true}
@@ -756,6 +863,12 @@
       p.onStep(4);
     }
 
+    /* 저장한 뒤에 "어, 기분을 잘못 골랐다" 싶을 때 되돌아갈 길입니다.
+       예전에는 여기서 나갈 수 없어서 **선생님 설정 11번까지 들어가야** 했습니다.
+       모든 질문 창에 같은 자리(왼쪽 아래)에 둡니다. */
+    var fixBtn = html`<${C.Btn} size="small" icon="pencil" className="pastel-yellow"
+      onClick=${function () { p.onStep(null); p.nav('diary', { diaryId: d.id }); }}>일기 고치기<//>`;
+
     if (p.step === 0) {
       var msg = '일기를 잘 기록했어요.';
       return html`<${C.Modal} title=${msg} speakText=${msg + ' ' + name + '에 해봤어요 발자국이 생겼어요.'}
@@ -781,7 +894,7 @@
     if (p.step === 1) {
       var q1 = '이 활동을 좋아하나요?';
       return html`<${C.Modal} title=${q1} speakText=${name + '. ' + q1}
-        actions=${null}>
+        actions=${fixBtn}>
         <p class="small muted">${name} 에 대해 스스로 골라 보아요.</p>
         <${C.PickGrid} cols=${3} label=${q1}>
           <${C.Pick} label="좋아해요" speakText="좋아해요" selected=${!!st.like}
@@ -795,7 +908,8 @@
     }
     if (p.step === 2) {
       var q2 = '다음에 또 하거나 도전하고 싶나요?';
-      return html`<${C.Modal} title=${q2} speakText=${name + '. ' + q2}>
+      return html`<${C.Modal} title=${q2} speakText=${name + '. ' + q2}
+        actions=${fixBtn}>
         <${C.PickGrid} cols=${3} label=${q2}>
           <${C.Pick} label="또 하고 싶어요" speakText="또 하고 싶어요" selected=${!!st.challenge}
             onClick=${function () { setChallenge('yes'); }} art=${html`<${C.Art} iconKey="star" />`} />
@@ -808,7 +922,8 @@
     }
     if (p.step === 3) {
       var q3 = '이 일기를 전시하고 싶어요?';
-      return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}>
+      return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}
+        actions=${fixBtn}>
         <p class="small muted">전시하기로 고른 기록에는 큰 별이 붙고, 포트폴리오에 실려요.</p>
         <${C.PickGrid} cols=${2} label=${q3}>
           <${C.Pick} label="전시할래요" speakText="전시할래요" selected=${!!d.exhibit}
@@ -826,6 +941,7 @@
           onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기 보기<//>
         <${C.Btn} icon="cornerMap" onClick=${function () { p.nav('map'); }}>여가 지도 보기<//>
         <${C.Btn} icon="cornerFolio" onClick=${function () { p.nav('portfolio'); }}>포트폴리오 보기<//>
+        ${fixBtn}
         <${C.Btn} icon="home" onClick=${function () { p.nav('home'); }}>홈으로<//>
       <//>`}>
       <${C.Banner} tone="ok" icon="check">

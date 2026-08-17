@@ -688,7 +688,12 @@
   ];
   var DRAW_SIZES = [{ name: '가늘게', v: 5 }, { name: '보통', v: 12 }, { name: '굵게', v: 26 }];
 
+  /* 그림판. `w`·`h` 로 크기를, `ruled` 로 줄공책 바탕을 고를 수 있습니다.
+       그림 넣기   : 기본 크기(1000×700)
+       손글씨 일기 : 옆으로 넓고 `ruled=true` (3단계가 손으로 일기를 씁니다) */
   C.DrawPad = function (p) {
+    var W = p.w || DRAW_W, H = p.h || DRAW_H;
+    var RULE_H = p.ruleHeight || 78;          // 줄 간격 (손글씨가 크니 넉넉하게)
     var cvRef = useRef(null);
     var drawing = useRef(false);
     var colorS = useState(DRAW_COLORS[0].v);
@@ -696,15 +701,28 @@
     var eraserS = useState(false);
     var dirtyS = useState(false);
 
-    /* 흰 바탕으로 시작합니다 (투명하면 인쇄할 때 검게 나오는 프린터가 있습니다) */
+    /* 흰 바탕(+줄공책 줄)을 깝니다.
+       투명하게 두면 인쇄할 때 검게 나오는 프린터가 있어서 흰색을 칠합니다.
+       ※ 줄은 **바탕에 함께 그려** 둡니다. 그러면 저장한 그림에도 줄이 남아
+         인쇄했을 때 학생 글씨가 줄 위에 앉은 것처럼 보입니다. */
+    function paintBase(g) {
+      g.fillStyle = '#ffffff';
+      g.fillRect(0, 0, W, H);
+      if (!p.ruled) return;
+      g.save();
+      g.strokeStyle = '#dcdce4'; g.lineWidth = 2;
+      for (var y = RULE_H; y < H; y += RULE_H) {
+        g.beginPath(); g.moveTo(24, y); g.lineTo(W - 24, y); g.stroke();
+      }
+      g.restore();
+    }
     useLayoutEffect(function () {
       var cv = cvRef.current; if (!cv) return;
       var g = cv.getContext('2d');
-      g.fillStyle = '#ffffff';
-      g.fillRect(0, 0, DRAW_W, DRAW_H);
+      paintBase(g);
       if (p.startFrom) {
         var img = new Image();
-        img.onload = function () { g.drawImage(img, 0, 0, DRAW_W, DRAW_H); };
+        img.onload = function () { g.drawImage(img, 0, 0, W, H); };
         img.src = p.startFrom;
       }
     }, []);
@@ -712,8 +730,8 @@
     /* 화면 좌표 → 그림판 좌표 */
     function at(e) {
       var cv = cvRef.current, r = cv.getBoundingClientRect();
-      return { x: (e.clientX - r.left) * (DRAW_W / r.width),
-               y: (e.clientY - r.top) * (DRAW_H / r.height) };
+      return { x: (e.clientX - r.left) * (W / r.width),
+               y: (e.clientY - r.top) * (H / r.height) };
     }
     function begin(e) {
       var cv = cvRef.current; if (!cv) return;
@@ -746,8 +764,7 @@
       App.ui.confirm({ title: '그린 그림을 모두 지울까요?', okText: '다 지울래요',
         cancelText: '그만두기', tone: 'danger' }).then(function (ok) {
         if (!ok) return;
-        var g = cvRef.current.getContext('2d');
-        g.fillStyle = '#ffffff'; g.fillRect(0, 0, DRAW_W, DRAW_H);
+        paintBase(cvRef.current.getContext('2d'));
         dirtyS[1](false);
       });
     }
@@ -781,14 +798,15 @@
         <${C.Btn} size="small" icon="trash" onClick=${clearAll}>다 지우기<//>
       </div>
 
-      <canvas class="dp-canvas" ref=${cvRef} width=${DRAW_W} height=${DRAW_H}
+      <canvas class="dp-canvas" ref=${cvRef} width=${W} height=${H}
         aria-label="그림 그리는 곳"
         onPointerDown=${begin} onPointerMove=${move}
         onPointerUp=${end} onPointerCancel=${end} onPointerLeave=${end} />
 
       <div class="dp-foot">
-        <span class="small muted grow">손가락·펜·마우스로 그려요. 색과 굵기를 고를 수 있어요.</span>
-        <${C.Btn} kind="ok" icon="check" disabled=${!dirtyS[0]} onClick=${done}>그림 다 그렸어요<//>
+        <span class="small muted grow">${p.hintText || '손가락·펜·마우스로 그려요. 색과 굵기를 고를 수 있어요.'}</span>
+        <${C.Btn} kind="ok" icon="check" disabled=${!dirtyS[0]}
+          onClick=${done}>${p.doneText || '그림 다 그렸어요'}<//>
       </div>
     </div>`;
   };
