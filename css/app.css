@@ -1065,6 +1065,54 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .corner .art{ width:clamp(46px,9vh,72px); height:clamp(46px,9vh,72px); }
 }
 
+/* ★ 낮은 화면(노트북 · 작은 창)에서 **내용 자리를 넓힙니다.**
+     700px 높이에서 재 보니 테두리 요소(위쪽 줄 · 앞 질문으로 · 다음 단추)가
+     309px 을 먹고 내용은 391px(56%) 밖에 남지 않았습니다.
+     그러면 선택지가 한 쪽에 안 들어가 2~3쪽으로 갈라집니다 (규칙 10-1).
+     테두리를 조금씩 줄여 내용 자리를 약 90px 넓힙니다.
+   ※ 손가락으로 누르는 크기(--tap 56px)는 줄이지 않습니다 — 누르기 어려워집니다. */
+@media (max-height: 780px){
+  /* 위쪽 줄 */
+  .topbar{ padding-top:.35rem; padding-bottom:.35rem; }
+  .topbar-row.below{ margin-top:.15rem; }
+  /* 흰 칸 : 위아래 여백과 두 단추 줄 */
+  .panel{ padding-top:.35rem; }
+  .panel-top{ padding:.35rem .8rem 0; }
+  .panel-action{ padding:0 .8rem .5rem; }
+  .panel-action .btn{ min-height:52px; font-size:1.05rem; }
+  /* 질문과 묶음 사이 여백 */
+  .q{ margin-bottom:.4rem; }
+  .sec{ padding:.6rem .7rem; }
+  .sec + .sec{ margin-top:.5rem; }
+  /* 그림 미리보기는 낮은 화면에서 더 작게 — 안 그러면 그 한 장이 쪽을 넘깁니다 */
+  /* ※ .hw-shot · .my-draw 의 낮은 화면 규칙은 **기본 규칙 뒤**(아래쪽)에 있습니다.
+     여기 두면 기본 규칙이 더 뒤에 있어서 덮어써 버립니다. */
+  /* 육하원칙 뼈대 여섯 줄이 한 쪽에 들어가게 */
+  .six{ gap:.3rem; }
+  .six-row .field{ min-height:46px; padding:.3rem .6rem; }
+  .six-q{ min-width:9.5rem; font-size:.94rem; }
+  /* 3단계 글쓰기 칸 — 여섯 줄이면 이 화면이 쪽을 넘깁니다 */
+  .sec textarea.field{ height:8.5rem; min-height:0; }
+  /* 완성 화면 : 문장 칸과 미리보기를 함께 담아야 합니다 */
+  .sentence-box{ max-height:150px; overflow:auto; }
+}
+/* 완성 미리보기는 낮은 화면에서 더 작게 (위 --dv 규칙보다 뒤에 두어야 이깁니다) */
+@media (max-height: 780px){ .dv{ --dv:.15; } .dv-big{ --dv:.4; } }
+
+/* 완성 화면 : 기본은 위아래로 쌓습니다 */
+.confirm-2col{ display:flex; flex-direction:column; gap:.5rem; break-inside:avoid; }
+/* ★ 넓고 낮은 화면에서는 **좌우로** 나눕니다.
+     문장 칸과 완성된 그림일기를 위아래로 쌓으면 낮은 화면에서 쪽이 갈라집니다.
+     화면이 넓으니 옆으로 놓는 것이 자리를 훨씬 잘 씁니다. */
+@media (max-height: 780px) and (min-width: 900px){
+  .confirm-2col{
+    flex-direction:row; align-items:flex-start; gap:1rem;
+  }
+  .confirm-2col > .sentence-box{ flex:1 1 auto; min-width:0; }
+  .confirm-2col > .dv{ flex:0 0 auto; margin-top:0; }
+}
+/* 손글씨 미리보기는 낮은 화면에서 아주 작게 — 크게 보려면 완성 화면에서 봅니다 */
+
 /* ===========================================================
    그림일기 (A4 한 장)
    화면에서는 종이를 통째로 축소해 보여 주고, 인쇄하면 실제 A4 로 나옵니다.
@@ -1214,11 +1262,33 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .dv-big .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
 @media (max-height: 900px){ .dv{ --dv:.24; } .dv-big{ --dv:.5; } }
+/* 아주 낮은 화면에서는 더 작게 — 안 그러면 완성 화면이 2쪽으로 갈라집니다 */
+@media (max-height: 780px){ .dv{ --dv:.19; } .dv-big{ --dv:.42; } }
 
 /* 손글씨로 쓴 일기를 그림일기에 그대로 넣습니다 (3단계).
    손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
 .pd-lines.pd-hw{ background-image:none; display:flex; align-items:flex-start; }
 .pd-lines.pd-hw img{ width:100%; height:auto; display:block; }
+/* ======================= 육하원칙 뼈대 (3단계 첫 단계) =======================
+   빈 칸에 바로 긴 글을 쓰라고 하면 3단계 학생도 막막해집니다.
+   한 줄씩 짧게 답해 뼈대를 만들고, 다음 단계에서 살을 붙입니다. */
+.six{ display:flex; flex-direction:column; gap:.45rem; }
+.six-row{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+.six-q{
+  flex:0 0 auto; min-width:11rem;
+  font-weight:900; color:var(--ink-soft); font-size:1rem;
+}
+.six-in{ flex:1 1 14rem; min-width:0; }
+
+/* 글쓰기 단계에 함께 보이는 '내가 만든 뼈대' 띠 */
+.bones{
+  display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+  margin-bottom:.6rem; padding:.6rem .8rem;
+  background:#fdf1c9; border:2px solid #efdb92; border-radius:14px;
+}
+.bones-lab{ flex:0 0 auto; font-weight:900; color:#6b5410; }
+.bones-txt{ flex:1 1 12rem; min-width:0; font-weight:800; color:#4a3608; }
+
 /* '그림 그리기' — 이 화면에서 학생이 지금 할 일입니다.
    가운데에 큰 바로 두어 눈에 바로 들어오게 합니다. */
 .btn.draw-go{
@@ -1226,9 +1296,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   border-width:3px;
 }
 
-/* 기록하GO! 에서 보는 손글씨 미리보기 */
+/* 기록하GO! 에서 보는 손글씨 미리보기.
+   ★ 높이를 반드시 제한해야 합니다. 1400×800 그림을 폭에 맞추면 580px 이 되어
+     이 단계가 통째로 다음 쪽으로 밀립니다 (`.sec` 는 break-inside:avoid).
+     크게 보고 싶으면 마지막 `완성` 단계의 미리보기를 누르면 됩니다. */
 .hw-shot{
-  width:100%; height:auto; display:block;
+  max-width:100%; max-height:min(34vh, 300px);
+  width:auto; height:auto; display:block; margin:0 auto;
+  object-fit:contain;
   border:2px solid var(--line); border-radius:14px; background:#fff;
 }
 
@@ -1331,9 +1406,22 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .dp-foot{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
 
 /* 기록하GO! 에서 보여 주는 '내가 그린 그림' 미리보기 */
+/* 직접 그린 그림 미리보기도 같은 이유로 높이를 제한합니다 */
 .my-draw{
-  max-width:min(100%, 340px); border:3px solid var(--line);
-  border-radius:14px; display:block; background:#fff;
+  max-width:min(100%, 340px); max-height:min(34vh, 300px);
+  width:auto; height:auto; object-fit:contain;
+  border:3px solid var(--line); border-radius:14px;
+  display:block; margin:0 auto; background:#fff;
+}
+
+/* ★ 낮은 화면에서는 미리보기를 아주 작게 합니다.
+     크게 보려면 마지막 `완성` 화면의 그림일기를 누르면 됩니다.
+   ※ 이 규칙은 위 `.hw-shot` · `.my-draw` **기본 규칙보다 뒤**에 있어야 합니다.
+     앞에 두면 기본 규칙(34vh)이 더 뒤에 있어서 이겨 버립니다.
+     한 번 그렇게 두어 손글씨 그림이 238px 로 남아 3쪽으로 갈라졌습니다. */
+@media (max-height: 780px){
+  .hw-shot{ max-height:min(15vh, 110px); }
+  .my-draw{ max-height:min(20vh, 150px); }
 }
 
 /* 사진 여러 장 가운데 그림일기에 넣을 한 장 고르기 */

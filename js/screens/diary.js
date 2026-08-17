@@ -62,7 +62,7 @@
     var page = Math.min(pageS[0], pages - 1);
     return html`<${React.Fragment}>
       <${C.Question} hint=${'모두 ' + cards.length + '가지'} speakText="무엇을 했나요?">무엇을 했나요?<//>
-      <${C.PickGrid} cols=${3}>
+      <${C.PickGrid} cols=${6}>
         ${cards.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE).map(function (c) {
           var kids = App.visibleChildren(student, c);
           return html`<${C.ActivityPick} key=${c.id} activity=${c} childCount=${kids.length}
@@ -109,6 +109,7 @@
         partnerId: fromPlan ? fromPlan.partnerId : null,
         place: fromPlan ? fromPlan.place : '',
         moodIds: [], againId: null, title: '', text: '', weather: '', frames: {}, photoIds: [], exhibit: false,
+        six: {},            /* 3단계 육하원칙 뼈대 */
         writeWay: 'key', writePhotoId: null,   /* 3단계 : 키보드 | 손글씨 | 종이 */
         picKind: 'app',     // 그림칸 : 'app' 내가 고른 그림 | 'photo' 사진 | 'draw' 직접 그리기
         mainPhotoId: null,  // 사진을 여러 장 넣었을 때 그림일기에 쓸 한 장
@@ -170,7 +171,8 @@
         picKind: draft.picKind || 'app',
         mainPhotoId: draft.mainPhotoId || null,
         drawPhotoId: draft.drawPhotoId || null, exhibit: draft.exhibit,
-        writeWay: draft.writeWay || 'key', writePhotoId: draft.writePhotoId || null
+        writeWay: draft.writeWay || 'key', writePhotoId: draft.writePhotoId || null,
+        six: draft.six || {}
       };
       var id;
       if (editing) {
@@ -326,13 +328,17 @@
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
         <${C.Question} hint="맞으면 저장해요" speakText="일기가 완성되었어요">일기가 완성되었어요<//>
-        <${C.SentenceEdit}
-          made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
-          value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
-          placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
-          onChange=${function (v) { patch({ bodyEdit: v }); }}
-          onReset=${function () { patch({ bodyEdit: null }); }} />
-        <${C.DiaryPreview} draft=${draft} student=${student} />
+        <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
+             위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다. -->
+        <div class="confirm-2col">
+          <${C.SentenceEdit}
+            made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
+            value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
+            placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
+            onChange=${function (v) { patch({ bodyEdit: v }); }}
+            onReset=${function () { patch({ bodyEdit: null }); }} />
+          <${C.DiaryPreview} draft=${draft} student=${student} />
+        </div>
       <//>`;
     }
 
@@ -360,9 +366,12 @@
             note="이 기기의 사진" selected=${kind === 'photo'}
             onClick=${function () { patch({ picKind: 'photo' }); }}
             art=${html`<${C.Art} iconKey="camera" />`} />
+          <!-- 누르면 곧바로 그리기 판이 열립니다.
+               예전에는 고르기만 하고 아래 단추를 또 눌러야 해서, 학생이
+               '눌렀는데 아무 일도 안 일어난다' 고 느꼈습니다. -->
           <${C.Pick} label="내가 그리기" speakText="내가 그리기"
             note="손으로 직접" selected=${kind === 'draw'}
-            onClick=${function () { patch({ picKind: 'draw' }); }}
+            onClick=${function () { patch({ picKind: 'draw' }); drawS[1](true); }}
             art=${html`<${C.Art} iconKey="pencil" />`} />
         <//>
 
@@ -512,7 +521,7 @@
           <span class=${'blank wide' + (draft.title ? ' on' : '')}>${draft.title || '　　　　'}</span>
         </div>
         <${C.Question} hint="그림일기 맨 위에 들어가요" speakText="일기 제목을 골라요">일기 제목을 골라요<//>
-        <${C.PickGrid} cols=${3}>
+        <${C.PickGrid} cols=${6}>
           ${titleWords(f).map(function (w) {
             var on = draft.title === w.name;
             return html`<${C.Pick} key=${w.name} selected=${on} label=${w.name} speakText=${w.name}
@@ -625,18 +634,120 @@
     }
 
     /* --------------------- 3단계 --------------------- */
-    function level3Body() {
+    /* ★ 3단계도 **한 단계에 한 가지**씩 묻습니다.
+         예전에는 이 모든 것을 한 장에 담아서, 낮은 화면에서 **5쪽으로 갈라졌고**
+         가장 중요한 글쓰기가 뒷쪽으로 밀려 1쪽에는 제목·그림만 보였습니다.
+         (규칙 1 : 한 화면에 주요 질문 하나 · 규칙 10-1 : 한 쪽에 들어가야 함) */
+    var L3 = ['뼈대', '일기 쓰기', '기분', '또 하고 싶나', '제목', '그림', '완성'];
+
+    /* ★ 3단계 첫 단계는 **육하원칙 뼈대**입니다.
+         빈 칸에 바로 긴 글을 쓰라고 하면 3단계 학생도 막막해집니다.
+         한 줄씩 짧게 답해 뼈대를 만들고, 그 뼈대를 글쓰기 칸으로 옮겨
+         살을 붙이게 합니다. 뼈대는 지워지지 않고 남아서 다시 볼 수 있습니다. */
+    var SIX = [
+      { k: 'when',  q: '언제 있었던 일인가요?',   ph: '예) 어제 학교 끝나고' },
+      { k: 'who',   q: '누구와 함께했나요?',      ph: '예) 친구 민수와' },
+      { k: 'where', q: '어디에 갔나요?',          ph: '예) 학교 놀이터에서' },
+      { k: 'what',  q: '무엇을 했나요?',          ph: '예) 그네를 타고 술래잡기를 했다' },
+      { k: 'how',   q: '어떤 기분이 들었나요?',   ph: '예) 아주 신나고 재미있었다' },
+      { k: 'why',   q: '왜 그렇게 느꼈나요?',     ph: '예) 친구와 오래 놀 수 있어서' }
+    ];
+    function sixOf() { return draft.six || {}; }
+    function sixLines() {
+      var s = sixOf();
+      return SIX.map(function (x) { return (s[x.k] || '').trim(); })
+                .filter(function (t) { return t; });
+    }
+
+    function level3Body(step) {
+      if (step === 0) {
+        var s = sixOf();
+        var lines = sixLines();
+        return html`<${React.Fragment}>
+          <${C.Question} hint="한 줄씩 짧게 써요"
+            speakText="일기의 뼈대를 만들어요. 여섯 가지를 한 줄씩 답하면 일기의 뼈대가 됩니다.">
+            일기의 뼈대를 만들어요<//>
+          <div class="six">
+            ${SIX.map(function (x) {
+              return html`<div key=${x.k} class="six-row">
+                <span class="six-q">${x.q}</span>
+                <input class="field six-in" value=${s[x.k] || ''} placeholder=${x.ph}
+                  onChange=${function (e) {
+                    var n = Object.assign({}, sixOf()); n[x.k] = e.target.value;
+                    patch({ six: n });
+                  }} />
+              </div>`;
+            })}
+          </div>
+          ${lines.length ? html`<div class="sentence" style=${{ marginTop: '.6rem' }}>
+            ${lines.join(' ')}
+          </div>` : null}
+        <//>`;
+      }
+      /* 기분과 '또 하고 싶나' 는 **따로** 묻습니다.
+         한 화면에 두 격자를 넣으면 3쪽으로 갈라집니다 (규칙 1 · 10-1). */
+      if (step === 2) {
+        return html`<${React.Fragment}>
+          <${C.Question} hint="여러 개 고를 수 있어요" speakText="활동을 하니 기분이 어땠나요?">
+            활동을 하니 기분이 어땠나요?<//>
+          <${C.PickGrid} cols=${8}>
+            ${moods.map(function (m) {
+              var on = draft.moodIds.indexOf(m.id) >= 0;
+              return html`<${C.Pick} key=${m.id} selected=${on} label=${m.name} speakText=${m.name}
+                onClick=${function () {
+                  patch({ moodIds: on ? draft.moodIds.filter(function (x) { return x !== m.id; })
+                                      : draft.moodIds.concat([m.id]) });
+                }} art=${html`<${C.MoodArt} mood=${m} />`} />`;
+            })}
+          <//>
+        <//>`;
+      }
+      if (step === 3) {
+        return html`<${React.Fragment}>
+          <${C.Question} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
+          <${C.PickGrid} cols=${3}>
+            ${App.DATA.agains.map(function (g) {
+              return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id} label=${g.name}
+                speakText=${g.name} onClick=${function () { patch({ againId: g.id }); }}
+                art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
+            })}
+          <//>
+        <//>`;
+      }
+      if (step === 4) {
+        return html`<${React.Fragment}>
+          <${C.Question} hint="짧게 써요" speakText="일기 제목을 써요">일기 제목을 써요<//>
+          <div class="row">
+            <div class="grow"><${C.Field} label="일기 제목" value=${draft.title}
+              placeholder="예) 친구와 슬라임 놀이" onChange=${function (v) { patch({ title: v }); }} /></div>
+            <div style=${{ width: '13rem' }}><${C.Field} label="날짜" type="date" value=${draft.date}
+              onChange=${function (v) { patch({ date: v || App.todayKey() }); }} /></div>
+          </div>
+          ${weatherPicker()}
+        <//>`;
+      }
+      if (step === 5) {
+        return html`<${React.Fragment}>
+          <${C.Question} hint="한 장만 들어가요" speakText="그림일기에 넣을 그림을 골라요">
+            그림일기에 넣을 그림을 골라요<//>
+          ${photoSection(true)}
+        <//>`;
+      }
+      if (step === 6) return confirmStep(draft.text || '');
+
+      /* step 1 — 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
+      var bones = sixLines();
       return html`<${React.Fragment}>
-        ${metaBar()}
         <${C.Question} hint="자유롭게 써요" speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
-        <div class="row" style=${{ marginBottom: '.6rem' }}>
-          <div class="grow"><${C.Field} label="일기 제목" value=${draft.title}
-            placeholder="예) 친구와 슬라임 놀이" onChange=${function (v) { patch({ title: v }); }} /></div>
-          <div style=${{ width: '13rem' }}><${C.Field} label="날짜" type="date" value=${draft.date}
-            onChange=${function (v) { patch({ date: v || App.todayKey() }); }} /></div>
-        </div>
-        ${weatherPicker()}
-        ${photoSection()}
+        ${bones.length ? html`<div class="bones">
+          <span class="bones-lab">내가 만든 뼈대</span>
+          <span class="bones-txt">${bones.join(' ')}</span>
+          <${C.Btn} size="small" className="pastel-blue" icon="plus"
+            onClick=${function () {
+              var add = bones.join(' ');
+              patch({ text: draft.text ? draft.text + '\n' + add : add });
+            }}>글쓰기 칸에 넣기<//>
+        </div>` : null}
         <${C.Sec}>
           <div class="row" style=${{ marginBottom: '.3rem' }}>
             <span class="lab grow">오늘 있었던 일을 써 보아요</span>
@@ -654,7 +765,7 @@
           </div>
 
           ${(draft.writeWay || 'key') === 'key' && html`<${React.Fragment}>
-            <${C.Area} rows=${8} value=${draft.text}
+            <${C.Area} rows=${6} value=${draft.text}
               placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
               onChange=${function (v) { patch({ text: v }); }} />
             <div class="wrap" style=${{ marginTop: '.45rem' }}>
@@ -691,13 +802,12 @@
             </div>
           <//>`}
         <//>
-        ${moodAndAgain()}
       <//>`;
     }
 
     /* --------------------- 화면 조립 --------------------- */
     var step = stepS[0];
-    var steps = level === 2 ? L2 : L1;
+    var steps = level === 2 ? L2 : (level === 3 ? L3 : L1);
     var lastStep = steps.length - 1;
     var body, action = null, backBtn = null;
 
@@ -744,20 +854,26 @@
       }
 
     } else {
-      body = html`<${React.Fragment}>
-        ${!draft.activityId
-          ? html`<${C.ActivityChooser} student=${student} value=${draft.activityId}
-              onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
-                place: draft.place || (a ? a.defaultPlace : '') }); }} />`
-          : level3Body()}
-      <//>`;
-      action = draft.activityId
-        ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>` : null;
+      /* 3단계도 1·2단계처럼 **한 단계에 한 가지**씩 묻습니다 */
+      if (!draft.activityId) {
+        body = html`<${C.ActivityChooser} student=${student} value=${draft.activityId}
+          onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
+            place: draft.place || (a ? a.defaultPlace : '') }); }} />`;
+      } else {
+        body = level3Body(step);
+        backBtn = step > 0
+          ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
+              onClick=${function () { stepS[1](step - 1); }}>앞 질문으로<//>` : null;
+        action = step === lastStep
+          ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
+          : html`<${C.Btn} kind="primary" icon="next"
+              onClick=${function () { stepS[1](step + 1); }}>다음<//>`;
+      }
     }
 
     /* 단계 표시는 길어서 제목·단추와 한 줄에 두면 서로 밀립니다 → 위쪽 줄의 아랫줄로.
        ※ 주석을 html`` 안에 쓰면 글자로 섞여 들어가 앱이 통째로 안 뜹니다. */
-    var stepsBar = (level === 1 || (level === 2 && draft.activityId))
+    var stepsBar = (level === 1 || (level !== 1 && draft.activityId))
       ? html`<${C.Steps} steps=${steps} current=${step} />` : null;
 
     return html`<div class="app" data-corner="diary">
