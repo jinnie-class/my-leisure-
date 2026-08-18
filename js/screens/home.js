@@ -20,7 +20,7 @@
           <${C.ActivityArt} activity=${a} />
         </div>
         <div class="grow" style=${{ minWidth: 0 }}>
-          <b style=${{ fontSize: 'clamp(1.02rem,.7rem + .9vh,1.4rem)', display: 'block' }}>
+          <b class="card-say">
             ${App.sentences.plan(plan)}</b>
           ${done && html`<span class="star-badge" style=${{ marginTop: '.2rem' }}>✓ 일기까지 마쳤어요</span>`}
         </div>
