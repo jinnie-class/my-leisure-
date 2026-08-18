@@ -30,7 +30,12 @@
 
     if (!areaS[0]) {
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText="어디에서 했나요?">어디에서 했나요?<//>
+        <!-- 이 질문은 '어디에서 했나요?' 가 아니라 실내·실외 가르기 입니다.
+             장소는 앞 단계에서 19곳 가운데 골랐으므로, 같은 말을 쓰면
+             학생이 방금 답한 것을 또 묻는 줄 압니다.
+             ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+        <${C.Question} bar=${true} speakText="실내에서 했나요, 실외에서 했나요?">
+          실내에서 했나요, 실외에서 했나요?<//>
         <${C.PickGrid} cols=${2}>
           <${C.Pick} label="실내에서 했어요" speakText="실내에서 했어요" bare=${true}
             onClick=${function () { areaS[1]('indoor'); }}
@@ -127,10 +132,13 @@
     /* 계획에서 왔으면 '누구와' 는 이미 정해져 있습니다.
        빈 질문을 다시 묻지 않고 다음 질문(기분)부터 시작합니다.
        고른 내용은 노란 문장 띠에 그대로 보이고, `앞 질문으로` 로 바꿀 수 있습니다. */
-    var stepS = useState(function () {
-      var lv = (editing ? editing.level : (student && student.diaryLevel)) || 1;
-      return (lv === 2 && fromPlan && fromPlan.partnerId && !editing) ? 1 : 0;
-    });
+    /* 언제나 첫 질문부터 시작합니다.
+       ★ 예전에는 계획에서 왔으면 2단계를 1번 질문부터 시작했습니다. 그런데
+         뼈대 차례가 바뀌면 그 번호가 엉뚱한 질문을 가리킵니다.
+         계획에서 가져온 내용은 이미 채워져 있고 위 띠에도 보이므로,
+         그냥 처음부터 훑으며 넘기는 편이 안전하고 헷갈리지 않습니다. */
+    var stepS = useState(0);
+    var placePageS = useState(0);      // 장소 19곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
     var afterS = useState(null);       // 저장 후 물어보는 순서
     var savedIdS = useState(null);
     var helpS = useState(false);
@@ -229,7 +237,13 @@
     /* ★ `그림` 을 **따로 한 단계**로 두었습니다.
        예전에는 `확인` 화면 맨 아래에 붙어 있어서 눈에 띄지 않았습니다.
        2단계와 같은 자리(제목 다음 · 확인 앞)에 두어 두 단계가 같게 흐릅니다. */
-    var L1 = ['언제', '누구와', '무엇을', '어디에서', '기분', '또 하고 싶나', '그림', '확인'];
+    /* 단계 목록 — **앞 여섯은 세 단계가 똑같습니다** (공통 뼈대).
+       뒤에 붙는 것만 단계마다 다릅니다.
+         1단계 : 없음                (그림으로 고르기만)
+         2단계 : 기억 · 다음에 · 제목 (낱말로 문장 만들기)
+         3단계 : 일기 쓰기 · 제목     (자유롭게 쓰기)
+       ⛔ 앞 여섯의 차례를 바꾸지 마세요 (boneBody 주석 참고). */
+    var L1 = ['언제', '누구와', '어디에서', '무엇을', '기분', '또 하고 싶나', '그림', '확인'];
 
     /* ── 1단계 : 지금까지 고른 것을 **그림으로** 한 줄에 ────────────────
        2·3단계는 흰 칸 위 노란 띠에 지금까지 만든 **문장**이 자랍니다.
@@ -252,13 +266,14 @@
         out.push({ key: 'who-' + id, label: pt.name,
           art: html`<${C.PartnerArt} partner=${pt} student=${student} />` });
       });
-      if (step > 2 && draft.activityId) {
+      /* 차례는 뼈대와 같습니다 : 언제 0 · 누구와 1 · 어디에서 2 · 무엇을 3 · 기분 4 */
+      if (step > 2 && draft.place) out.push({ key: 'place', label: draft.place,
+        art: html`<${C.PickArt} kind="place" word=${draft.place} iconKey="map" />` });
+      if (step > 3 && draft.activityId) {
         var a2 = App.act(draft.activityId);
         if (a2) out.push({ key: 'act', label: a2.name,
           art: html`<${C.ActivityArt} activity=${a2} />` });
       }
-      if (step > 3 && draft.place) out.push({ key: 'place', label: draft.place,
-        art: html`<${C.PickArt} kind="place" word=${draft.place} iconKey="map" />` });
       if (step > 4) (draft.moodIds || []).forEach(function (m) {
         var mo = App.mood(m); if (!mo) return;
         out.push({ key: 'mood-' + m, label: mo.name, art: html`<${C.MoodArt} mood=${mo} />` });
@@ -287,13 +302,63 @@
       </div>`;
     }
 
-    function level1Body(step) {
+    /* ══════════════ 세 단계가 **함께 쓰는 일기 뼈대** ══════════════
+       ★ 1·2·3단계가 서로 다른 것을 물어서, 3단계에는 장소가 아예 없는 등
+         빠진 것이 있었습니다. 이제 **묻는 내용은 세 단계가 똑같고**,
+         다른 것은 `학생이 스스로 하는 정도` 뿐입니다.
+
+         언제 → 누구와 → 어디에서 → 무엇을 → 기분 → 또 하고 싶나
+
+       ▸ 1단계 : 그림으로 고르기만
+       ▸ 2단계 : 그림으로 고르고, 낱말로 문장 만들기
+       ▸ 3단계 : 그림으로 고르고, 그 자리에서 **한 줄씩 글로도** 씁니다
+                (그 여섯 줄이 모여 일기의 뼈대가 됩니다)
+
+       ⛔ 뼈대 차례를 바꾸지 마세요. 세 단계와 아래 `picsSoFar1` ·
+          `canNextBone` 이 모두 이 차례를 기준으로 움직입니다. */
+    var BONE = ['언제', '누구와', '어디에서', '무엇을', '기분', '또 하고 싶나'];
+
+    /* 3단계가 각 뼈대 단계에서 함께 쓰는 글 (없는 단계는 그림만 고릅니다) */
+    var BONE_WRITE = {
+      0: [{ k: 'when',  q: '언제 있었던 일인가요?', ph: '예) 어제 학교 끝나고' }],
+      1: [{ k: 'who',   q: '누구와 함께했나요?',    ph: '예) 친구 민수와' }],
+      2: [{ k: 'where', q: '어디에 갔나요?',        ph: '예) 학교 놀이터에서' }],
+      3: [{ k: 'what',  q: '무엇을 했나요?',        ph: '예) 그네를 타고 술래잡기를 했다' }],
+      4: [{ k: 'how',   q: '어떤 기분이 들었나요?', ph: '예) 아주 신나고 재미있었다' },
+          { k: 'why',   q: '왜 그렇게 느꼈나요?',   ph: '예) 친구와 오래 놀 수 있어서' }]
+    };
+
+    /* 3단계 글 칸 — 그림 고르기 **위**에 놓습니다.
+       ▸ 비워 두어도 다음으로 넘어갑니다. 여섯 칸을 다 채워야 넘어가게 하면
+         한 칸에서 막힌 학생이 일기를 아예 못 끝냅니다.
+         안 쓴 칸은 마지막 확인 화면에서 모아 알려 줍니다. */
+    function boneWrite(step) {
+      var rows = BONE_WRITE[step];
+      if (!rows || level !== 3) return null;
+      var s = sixOf();
+      return html`<div class="six">
+        ${rows.map(function (x) {
+          return html`<div key=${x.k} class="six-row">
+            <span class="six-q">${x.q}</span>
+            <input class="field six-in" value=${s[x.k] || ''} placeholder=${x.ph}
+              onChange=${function (e) {
+                var n = Object.assign({}, sixOf()); n[x.k] = e.target.value;
+                patch({ six: n });
+              }} />
+          </div>`;
+        })}
+      </div>`;
+    }
+
+    /* 뼈대 한 단계를 그립니다 (세 단계가 함께 씁니다) */
+    function boneBody(step) {
       var t = App.todayKey();
+
       if (step === 0) {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="언제 했나요?">언제 했나요?<//>
-          <!-- bigSpeak : 읽어주기를 글자 **아래에 크게** (질문 옆 읽어주기와 비슷한 크기).
-               날짜 카드는 크고 글자 아래에 빈 자리가 남아서, 작게 두면 초라합니다. -->
+          ${boneWrite(0)}
+          <!-- bigSpeak : 읽어주기를 글자 아래에 크게 (질문 옆 읽어주기와 비슷한 크기) -->
           <${C.PickGrid} cols=${3} bigSpeak=${true}>
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
               onClick=${function () { patch({ date: t }); }}
@@ -311,9 +376,11 @@
           ${weatherPicker()}
         <//>`;
       }
+
       if (step === 1) {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
+          ${boneWrite(1)}
           <${C.PickGrid} cols=${7}>
             ${partners.map(function (pt) {
               var on = whoIds().indexOf(pt.id) >= 0;
@@ -325,37 +392,66 @@
           <//>
         <//>`;
       }
+
+      /* ★ 장소는 **19곳 모두** 나옵니다 (계획하기와 같은 방식).
+           예전에는 1단계에 다섯 곳만 나오고 3단계에는 아예 없었습니다.
+         ▸ 한 쪽에 6곳 (3칸 × 2줄) — `무엇을 했나요?` 와 같은 개수라
+           학생이 규칙 하나만 익히면 됩니다. 19곳 → 4쪽.
+         ▸ `직접 쓰기` 는 마지막 쪽에만 붙입니다. */
       if (step === 2) {
-        return html`<${C.ActivityChooser} student=${student} value=${draft.activityId}
-          area=${act ? act.area : null}
-          onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
-            place: draft.place || (a ? a.defaultPlace : '') }); }} />`;
-      }
-      if (step === 3) {
-        var sug = [];
-        if (act && act.defaultPlace) sug.push(act.defaultPlace);
-        ['교실', '집', '학교', '공원', '운동장'].forEach(function (s) { if (sug.indexOf(s) < 0) sug.push(s); });
+        var places = (App.DATA.places || []).slice();
+        if (act && act.defaultPlace) {
+          places = [act.defaultPlace].concat(places.filter(function (s) { return s !== act.defaultPlace; }));
+        }
+        var PLACE_PER = 6;
+        var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
+        var plPage = Math.min(placePageS[0], plPages - 1);
+        var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
+        var lastPl = plPage === plPages - 1;
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="어디에서 했나요?">어디에서 했나요?<//>
-          <${C.PickGrid} cols=${6}>
-            ${sug.slice(0, 5).map(function (s) {
-              return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${s}
-                onClick=${function () { patch({ place: s }); }}
+          ${boneWrite(2)}
+          <${C.PickGrid} cols=${3} big=${true} label="장소">
+            <!-- 고르면 낱말 하나가 아니라 짧은 문장으로 읽습니다 — 집 처럼
+                 한 글자면 목소리가 이상하게 들립니다 (korean.js 주석 참고). -->
+            ${plShown.map(function (s) {
+              var say = s + '에서 했어요';
+              return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${say}
+                onClick=${function () { patch({ place: s }); App.speakFor(student, say); }}
                 art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
-            <div class="pick" style=${{ cursor: 'default' }}>
+            ${lastPl && html`<div class="pick" style=${{ cursor: 'default' }}>
               <span class="thumb"><${C.Art} iconKey="pencil" /></span>
               <span class="label">직접 쓰기</span>
-              <input class="field" value=${draft.place || ''}
+              <input class="field" value=${draft.place || ''} placeholder="예) 우리 집 거실"
                 onChange=${function (e) { patch({ place: e.target.value }); }} />
-            </div>
+            </div>`}
           <//>
+          ${plPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
+            <${C.Btn} icon="back" disabled=${plPage === 0}
+              onClick=${function () { placePageS[1](plPage - 1); }}>앞 장소 보기<//>
+            <span class="chip">${plPage + 1} / ${plPages}</span>
+            <${C.Btn} icon="next" disabled=${plPage >= plPages - 1}
+              onClick=${function () { placePageS[1](plPage + 1); }}>장소 더 보기<//>
+          </div>`}
         <//>`;
       }
+
+      if (step === 3) {
+        return html`<${React.Fragment}>
+          ${boneWrite(3)}
+          <${C.ActivityChooser} student=${student} value=${draft.activityId}
+            area=${act ? act.area : null}
+            onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
+              place: draft.place || (a ? a.defaultPlace : '') }); }} />
+        <//>`;
+      }
+
       if (step === 4) {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
-          <${C.PickGrid} cols=${moods.length}>
+          ${boneWrite(4)}
+          <${C.PickGrid} cols=${moods.length > 4 ? 4 : moods.length}>
             ${moods.map(function (m) {
               var on = draft.moodIds.indexOf(m.id) >= 0;
               return html`<${C.Pick} key=${m.id} selected=${on} label=${m.name} speakText=${m.name}
@@ -369,19 +465,38 @@
           <//>
         <//>`;
       }
-      if (step === 5) {
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
-          <${C.PickGrid} cols=${3}>
-            ${App.DATA.agains.map(function (g) {
-              return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id}
-                label=${g.name} speakText=${g.name}
-                onClick=${function () { patch({ againId: g.id }); App.speakFor(student, g.name); }}
-                art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
-            })}
-          <//>
-        <//>`;
-      }
+
+      /* 또 하고 싶나 — 여가지도의 `또 하고 싶어요` 기록으로 이어집니다 */
+      return html`<${React.Fragment}>
+        <${C.Question} bar=${true} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
+        <${C.PickGrid} cols=${3}>
+          ${App.DATA.agains.map(function (g) {
+            return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id}
+              label=${g.name} speakText=${g.name}
+              onClick=${function () { patch({ againId: g.id }); App.speakFor(student, g.name); }}
+              art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
+          })}
+        <//>
+      <//>`;
+    }
+
+    /* 뼈대 단계에서 **다음으로 넘어가도 되는지**.
+       ▸ 그림은 반드시 골라야 합니다 (안 고르면 일기에 넣을 것이 없습니다).
+       ▸ 글은 비어 있어도 넘어갑니다 (위 boneWrite 주석 참고). */
+    function canNextBone(step) {
+      if (step === 0) return !!draft.date;
+      if (step === 1) return whoIds().length > 0;
+      if (step === 2) return !!draft.place;
+      if (step === 3) return !!draft.activityId;
+      if (step === 4) return draft.moodIds.length > 0;
+      if (step === 5) return !!draft.againId;
+      return true;
+    }
+
+    function level1Body(step) {
+      /* 뼈대 여섯 단계는 세 단계가 함께 쓰는 boneBody 가 그립니다.
+         (언제 · 누구와 · 어디에서 · 무엇을 · 기분 · 또 하고 싶나) */
+      if (step < BONE.length) return boneBody(step);
       /* 그림 — 사진 넣기 · 내가 그리기 (2단계와 같은 화면) */
       if (step === 6) {
         return html`<${React.Fragment}>
@@ -504,13 +619,24 @@
        예전에는 문장 4개 + 기분 + 또하기 + 그림이 한 화면에 몰려 있어서
        학생이 '지금 무엇을 해야 하는지' 알기 어려웠습니다.
        1단계처럼 한 번에 하나씩 묻고 넘어갑니다. (규칙 1·2) */
-    var L2 = ['누구와', '기분', '기억', '다음에', '제목', '그림', '확인'];
+    var L2 = BONE.concat(['기억', '다음에', '제목', '그림', '확인']);
 
     function frames() {
       var f = Object.assign({}, draft.frames || {});
-      var pt = App.partner(draft.partnerId);
-      if (!f.f1a && pt) f.f1a = pt.name;
+      /* 뼈대에서 고른 것을 문장 칸에 그대로 옮겨 옵니다.
+         ★ 누구와 · 기분은 이제 **공통 뼈대**에서 그림으로 고릅니다.
+           여기서 옮겨 오지 않으면 2단계 문장이 빈 칸으로 남습니다. */
+      if (!f.f1a) {
+        var names = whoIds().map(function (id) {
+          var q = App.partner(id); return q ? q.name : '';
+        }).filter(Boolean).join(', ');
+        if (names) f.f1a = names;
+      }
       if (!f.f1b && act) f.f1b = App.frameWord(act);
+      if (!f.f2 && draft.moodIds && draft.moodIds.length) {
+        var m0 = App.mood(draft.moodIds[0]);
+        if (m0) f.f2 = m0.past;
+      }
       return f;
     }
     function setF(k, v, extra) {
@@ -611,46 +737,11 @@
 
     function level2Body(step) {
       var f = frames();
-
-      if (step === 0) {
-        return html`<${React.Fragment}>
-          ${frameLine(f)}
-          <${C.Question} bar=${true} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
-          <${C.PickGrid} cols=${partners.length}>
-            ${partners.map(function (pt) {
-              var ids = draft.partnerIds || [];
-              var on = ids.indexOf(pt.id) >= 0;
-              return html`<${C.Pick} key=${pt.id} selected=${on} label=${pt.name}
-                speakText=${App.partnerSpeechPast(pt)}
-                portrait=${true}
-                onClick=${function () {
-                  var cur = (draft.partnerIds || []).slice();
-                  var i = cur.indexOf(pt.id);
-                  if (i >= 0) cur.splice(i, 1);
-                  else if (pt.id === 'alone') cur = ['alone'];
-                  else cur = cur.filter(function (x) { return x !== 'alone'; }).concat([pt.id]);
-                  var names = cur.map(function (id) {
-                    var q = App.partner(id); return q ? q.name : '';
-                  }).filter(Boolean).join(', ');
-                  setF('f1a', names, { partnerIds: cur, partnerId: cur[0] || null });
-                  if (i < 0) App.speakFor(student, App.partnerSpeechPast(pt));
-                }}
-                art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
-            })}
-          <//>
-        <//>`;
-      }
-      if (step === 1) {
-        return html`<${React.Fragment}>
-          ${frameLine(f)}
-          <${C.Question} bar=${true} speakText="활동을 하니 기분이 어땠나요?">활동을 하니 기분이 어땠나요?<//>
-          ${wordCards(moods.map(function (m) { return { name: m.past, mood: m, id: m.id }; }),
-            'f2', App.moodWord(f.f2), moods.length, function (w) {
-              /* 고른 기분을 '오늘의 기분' 으로도 함께 남깁니다 (따로 또 묻지 않으려고요) */
-              return { moodIds: [w.id] };
-            })}
-        <//>`;
-      }
+      /* 앞 여섯은 세 단계 공통 뼈대 (언제 · 누구와 · 어디에서 · 무엇을 · 기분 · 또 하고 싶나).
+         예전에는 2단계가 누구와 · 기분만 물어서 날짜 · 장소가 통째로 빠져 있었습니다. */
+      if (step < BONE.length) return boneBody(step);
+      /* 뒤 단계는 예전 번호를 그대로 씁니다 (기억 2 · 다음에 3 · 제목 4 · 그림 5 · 확인 6) */
+      step -= 4;
       if (step === 2) {
         return html`<${React.Fragment}>
           <div class="frame-line"><b>가장 기억에 남는 것은</b>
@@ -717,7 +808,7 @@
          예전에는 이 모든 것을 한 장에 담아서, 낮은 화면에서 **5쪽으로 갈라졌고**
          가장 중요한 글쓰기가 뒷쪽으로 밀려 1쪽에는 제목·그림만 보였습니다.
          (규칙 1 : 한 화면에 주요 질문 하나 · 규칙 10-1 : 한 쪽에 들어가야 함) */
-    var L3 = ['뼈대', '일기 쓰기', '기분', '또 하고 싶나', '제목', '그림', '완성'];
+    var L3 = BONE.concat(['일기 쓰기', '제목', '그림', '완성']);
 
     /* ★ 3단계 첫 단계는 **육하원칙 뼈대**입니다.
          빈 칸에 바로 긴 글을 쓰라고 하면 3단계 학생도 막막해집니다.
@@ -739,60 +830,14 @@
     }
 
     function level3Body(step) {
-      if (step === 0) {
-        var s = sixOf();
-        var lines = sixLines();
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true}
-            speakText="일기의 뼈대를 만들어요. 여섯 가지를 한 줄씩 답하면 일기의 뼈대가 됩니다.">
-            일기의 뼈대를 만들어요<//>
-          <div class="six">
-            ${SIX.map(function (x) {
-              return html`<div key=${x.k} class="six-row">
-                <span class="six-q">${x.q}</span>
-                <input class="field six-in" value=${s[x.k] || ''} placeholder=${x.ph}
-                  onChange=${function (e) {
-                    var n = Object.assign({}, sixOf()); n[x.k] = e.target.value;
-                    patch({ six: n });
-                  }} />
-              </div>`;
-            })}
-          </div>
-          ${lines.length ? html`<div class="sentence" style=${{ marginTop: '.6rem' }}>
-            ${lines.join(' ')}
-          </div>` : null}
-        <//>`;
-      }
-      /* 기분과 '또 하고 싶나' 는 **따로** 묻습니다.
-         한 화면에 두 격자를 넣으면 3쪽으로 갈라집니다 (규칙 1 · 10-1). */
-      if (step === 2) {
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="활동을 하니 기분이 어땠나요?">
-            활동을 하니 기분이 어땠나요?<//>
-          <${C.PickGrid} cols=${8}>
-            ${moods.map(function (m) {
-              var on = draft.moodIds.indexOf(m.id) >= 0;
-              return html`<${C.Pick} key=${m.id} selected=${on} label=${m.name} speakText=${m.name}
-                onClick=${function () {
-                  patch({ moodIds: on ? draft.moodIds.filter(function (x) { return x !== m.id; })
-                                      : draft.moodIds.concat([m.id]) });
-                }} art=${html`<${C.MoodArt} mood=${m} />`} />`;
-            })}
-          <//>
-        <//>`;
-      }
-      if (step === 3) {
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
-          <${C.PickGrid} cols=${3}>
-            ${App.DATA.agains.map(function (g) {
-              return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id} label=${g.name}
-                speakText=${g.name} onClick=${function () { patch({ againId: g.id }); }}
-                art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
-            })}
-          <//>
-        <//>`;
-      }
+      /* 앞 여섯은 세 단계 공통 뼈대. 3단계는 그 각 단계에서 그림도 고르고
+         **한 줄씩 글도** 씁니다 (boneWrite). 그 여섯 줄이 일기의 뼈대입니다.
+         ★ 예전에는 뼈대 여섯 칸을 한 화면에 몰아 넣어 스크롤이 생겼고,
+           장소를 19곳에서 고르는 길도 없었습니다. */
+      if (step < BONE.length) return boneBody(step);
+      /* 뒤 단계를 예전 번호로 바꿉니다 (일기 쓰기 1 · 제목 4 · 그림 5 · 완성 6) */
+      var L3_OLD = { 6: 1, 7: 4, 8: 5, 9: 6 };
+      step = L3_OLD[step] != null ? L3_OLD[step] : 6;
       if (step === 4) {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="일기 제목을 써요">일기 제목을 써요<//>
@@ -890,78 +935,58 @@
     var lastStep = steps.length - 1;
     var body, action = null, backBtn = null;
 
-    if (level === 1) {
-      body = html`<${React.Fragment}>
-        ${fromPlan && step === 0 && html`<${C.Banner} tone="ok" icon="cornerPlan"
-          speakText="계획한 내용을 미리 넣어 두었어요.">
-          <b>계획한 내용을 미리 넣어 두었어요.</b>
-          <div class="small">${App.sentences.plan(fromPlan)}</div>
-          <div class="wrap" style=${{ marginTop: '.4rem' }}>
-            <${C.Btn} size="small" kind="ok" icon="next" onClick=${function () { stepS[1](4); }}>계획 내용 그대로 쓰기<//>
-          </div>
-        <//>`}
-        ${level1Body(step)}
-      <//>`;
-      /* 흰 칸 맨 위 노란 띠 — 지금까지 고른 그림을 차례대로.
-         마지막 확인 화면에서는 넣지 않습니다. 거기에는 완성된 문장과
-         그림일기가 이미 다 나와서, 같은 그림이 두 번 보입니다. */
-      var pics1 = step < lastStep ? picsSoFar1(step) : [];
-      if (pics1.length) backBtn = html`<div class="plan-top">
-        <span class="pic-sofar" aria-live="polite"
-          aria-label=${'지금까지 고른 것 : ' + pics1.map(function (it) { return it.label; }).join(', ')}>
-          ${pics1.map(function (it, i) {
-            return html`<${React.Fragment} key=${it.key}>
-              ${i > 0 && html`<span class="pic-sofar-sep" aria-hidden="true">›</span>`}
-              <span class="pic-sofar-item" role="img" aria-label=${it.label}>${it.art}</span>
-            <//>`;
-          })}
-        </span>
-      </div>`;
-      /* 되돌아가기는 **맨 위 줄 화살표**가 맡습니다 (흰 칸 안에는 두지 않습니다).
-         화살표가 둘이면 어느 것을 눌러야 할지 헷갈립니다 (규칙 7). */
-      /* ★ **여러 개 고르는 단계**(누구와 · 기분)는 `다 골랐어요`.
-           한 개 고르고 바로 `다음` 을 누르면 더 고를 수 있다는 것을 모르고
-           지나갑니다. 단추 글씨가 그것을 알려 줍니다. */
-      var multi1 = (step === 1 || step === 4);      // 누구와 · 기분
-      action = step === lastStep
-        ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
-        : html`<${C.Btn} kind="primary" icon="next" disabled=${step === 2 && !draft.activityId}
-            onClick=${function () { stepS[1](step + 1); }}>${multi1 ? '다 골랐어요' : '다음'}<//>`;
-
-    } else if (level === 2) {
-      /* 활동을 아직 안 골랐으면 활동부터 (그 다음에 한 칸씩 채웁니다) */
-      if (!draft.activityId) {
-        body = html`<${C.ActivityChooser} student=${student} value=${draft.activityId}
-          onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
-            place: draft.place || (a ? a.defaultPlace : '') }); }} />`;
+    /* ── 흰 칸 맨 위 띠 : 지금까지 만든 것 ──────────────────────────
+       세 단계가 **같은 자리**에 두되, 담는 것만 다릅니다.
+         1단계 : 고른 것을 **그림**으로 (아직 글을 읽기 어려운 학생)
+         2단계 : 낱말로 만들어지는 **문장**
+         3단계 : 한 줄씩 쓴 **뼈대 문장**
+       마지막 확인 화면에는 넣지 않습니다 — 거기에는 완성된 문장과 그림일기가
+       이미 다 나와서, 같은 말이 두 번 보입니다. */
+    if (step < lastStep) {
+      if (level === 1) {
+        var pics1 = picsSoFar1(step);
+        if (pics1.length) backBtn = html`<div class="plan-top">
+          <span class="pic-sofar" aria-live="polite"
+            aria-label=${'지금까지 고른 것 : ' + pics1.map(function (it) { return it.label; }).join(', ')}>
+            ${pics1.map(function (it, i) {
+              return html`<${React.Fragment} key=${it.key}>
+                ${i > 0 && html`<span class="pic-sofar-sep" aria-hidden="true">›</span>`}
+                <span class="pic-sofar-item" role="img" aria-label=${it.label}>${it.art}</span>
+              <//>`;
+            })}
+          </span>
+        </div>`;
       } else {
-        /* 계획에서 가져왔다는 안내는 큰 띠 대신 작은 표시 하나로 둡니다.
-           바로 아래 노란 띠에 '나는 가족과 함께 …' 가 이미 다 적혀 있어서,
-           띠를 크게 두면 같은 말이 두 번 나오고 선택지가 다음 쪽으로 밀립니다. */
-        body = level2Body(step);
-        /* 여러 개 고르는 단계(누구와 · 기분)는 단추 글씨를 `다 골랐어요` 로.
-           한 개 고르고 `다음` 을 누르면 더 고를 수 있다는 것을 모르고 지나갑니다. */
-        var multi2 = (step === 0 || step === 1);    // 누구와 · 기분
-        action = step === lastStep
-          ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
-          : html`<${C.Btn} kind="primary" icon="next"
-              onClick=${function () { stepS[1](step + 1); }}>${multi2 ? '다 골랐어요' : '다음'}<//>`;
-      }
-
-    } else {
-      /* 3단계도 1·2단계처럼 **한 단계에 한 가지**씩 묻습니다 */
-      if (!draft.activityId) {
-        body = html`<${C.ActivityChooser} student=${student} value=${draft.activityId}
-          onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
-            place: draft.place || (a ? a.defaultPlace : '') }); }} />`;
-      } else {
-        body = level3Body(step);
-        action = step === lastStep
-          ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
-          : html`<${C.Btn} kind="primary" icon="next"
-              onClick=${function () { stepS[1](step + 1); }}>다음<//>`;
+        var soFar = (level === 3)
+          ? sixLines().join(' ')
+          : App.sentences.diaryFramesLines(Object.assign({}, draft, { frames: frames() })).join(' ');
+        if (soFar) backBtn = html`<div class="plan-top">
+          <span class="plan-sofar" aria-live="polite">${soFar}</span>
+        </div>`;
       }
     }
+
+    /* ── 아래 큰 단추 ──────────────────────────────────────────────
+       세 단계가 **같은 규칙**을 씁니다.
+       ▸ 뼈대 단계에서는 **그림을 골라야** 넘어갑니다 (canNextBone).
+         글 칸은 비어 있어도 넘어갑니다 — 여섯 칸을 다 채워야 넘어가게 하면
+         한 칸에서 막힌 학생이 일기를 아예 못 끝냅니다.
+       ▸ 여러 개 고르는 단계(누구와 · 기분)는 `다 골랐어요` 로 알려 줍니다.
+         다만 3단계는 글도 함께 쓰므로 `다음` 으로 둡니다 (글을 더 쓰라는 뜻). */
+    body = html`<${React.Fragment}>
+      ${fromPlan && step === 0 && html`<${C.Banner} tone="ok" icon="cornerPlan"
+        speakText="계획한 내용을 미리 넣어 두었어요.">
+        <b>계획한 내용을 미리 넣어 두었어요.</b>
+        <div class="small">${App.sentences.plan(fromPlan)}</div>
+      <//>`}
+      ${level === 1 ? level1Body(step) : (level === 2 ? level2Body(step) : level3Body(step))}
+    <//>`;
+
+    var multiStep = (level !== 3) && (step === 1 || step === 4);   // 누구와 · 기분
+    action = step === lastStep
+      ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
+      : html`<${C.Btn} kind="primary" icon="next" disabled=${!canNextBone(step)}
+          onClick=${function () { stepS[1](step + 1); }}>${multiStep ? '다 골랐어요' : '다음'}<//>`;
 
     /* 단계 표시는 길어서 제목·단추와 한 줄에 두면 서로 밀립니다 → 위쪽 줄의 아랫줄로.
        ※ 주석을 html`` 안에 쓰면 글자로 섞여 들어가 앱이 통째로 안 뜹니다. */
