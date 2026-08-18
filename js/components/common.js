@@ -651,15 +651,20 @@
         <span class="sentence-cap">${p.title || '완성된 문장'}</span>
         <span class="sentence-hint">✎ 눌러서 고쳐 쓸 수 있어요</span>
       </div>
-      <textarea class="sentence-edit" ref=${ta} value=${text}
-        placeholder=${p.placeholder || '빈칸을 채우면 문장이 저절로 만들어져요. 여기를 눌러 고쳐 쓸 수도 있어요.'}
-        aria-label="일기 문장. 눌러서 직접 고쳐 쓸 수 있어요."
-        onChange=${function (e) { p.onChange(e.target.value); }} />
-      <div class="sentence-tools">
-        <${C.Speak} text=${text.replace(/\n/g, ' ')} />
-        <div class="grow"></div>
-        ${edited && html`<${C.Btn} size="small" icon="back" onClick=${p.onReset}>고른 낱말로 되돌리기<//>`}
+      <!-- 읽어주기를 노란 칸 **안쪽 왼쪽**에 넣습니다.
+           칸 밖 아랫줄에 두면 그 한 줄만큼 아래 그림일기가 밀려 내려가서,
+           그림일기를 그만큼 작게 보여 줄 수밖에 없었습니다. -->
+      <div class="sentence-paper">
+        <textarea class="sentence-edit" ref=${ta} value=${text}
+          placeholder=${p.placeholder || '빈칸을 채우면 문장이 저절로 만들어져요. 여기를 눌러 고쳐 쓸 수도 있어요.'}
+          aria-label="일기 문장. 눌러서 직접 고쳐 쓸 수 있어요."
+          onChange=${function (e) { p.onChange(e.target.value); }} />
+        <span class="sentence-speak"><${C.Speak} text=${text.replace(/\n/g, ' ')} /></span>
       </div>
+      ${edited && html`<div class="sentence-tools">
+        <div class="grow"></div>
+        <${C.Btn} size="small" icon="back" onClick=${p.onReset}>고른 낱말로 되돌리기<//>
+      </div>`}
     </div>`;
   };
 

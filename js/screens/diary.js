@@ -377,14 +377,12 @@
               placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
               onChange=${function (v) { patch({ bodyEdit: v }); }}
               onReset=${function () { patch({ bodyEdit: null }); }} />
-            <!-- 날짜·날씨·사람·장소·활동을 고치는 길.
-                 이 자리가 없으면 한 번 고른 것을 바꿀 수 없습니다. -->
-            <div class="wrap" style=${{ justifyContent: 'center' }}>
-              <${C.Btn} size="small" icon="pencil" className="pastel-blue"
-                onClick=${function () { editMetaS[1](true); }}>날짜 · 사람 · 장소 바꾸기<//>
-            </div>
           </div>
-          <${C.DiaryPreview} draft=${draft} student=${student} />
+          <!-- 날짜·날씨·사람·장소·활동을 고치는 길은 그림일기 **왼쪽 바**로.
+               위아래에 한 줄씩 두면 그만큼 그림일기가 작아집니다. -->
+          <${C.DiaryPreview} draft=${draft} student=${student}
+            left=${html`<${C.Btn} size="small" icon="pencil" className="pastel-blue"
+              onClick=${function () { editMetaS[1](true); }}>날짜 · 사람 · 장소 바꾸기<//>`} />
         </div>
       <//>`;
     }

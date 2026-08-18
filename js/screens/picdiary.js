@@ -454,18 +454,27 @@
     var d = p.draft;
     if (!d || !d.activityId) return null;
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />`;
-    return html`<${React.Fragment}>
+    /* ★ 짜임새 : **바 | 그림일기 | 바**.
+         전에는 위에 `날짜·사람·장소 바꾸기`, 아래에 `눌러서 크게 보기` 가
+         한 줄씩 차지해서, 그 두 줄만큼 그림일기를 작게 보여 줄 수밖에
+         없었습니다. 두 줄을 양옆으로 세우면 그 높이가 통째로 그림일기 몫이
+         됩니다 (0.30 → 0.46 배). */
+    return html`<div class="dv-row">
+      <span class="dv-side">${p.left}</span>
       <button type="button" class="dv" aria-label="완성된 그림일기 — 눌러서 크게 보기"
           onClick=${function () { bigS[1](true); }}>
         <span class="dv-paper">${sheet}</span>
-        <span class="dv-cap">눌러서 크게 보기</span>
       </button>
+      <span class="dv-side">
+        <${C.Btn} size="small" icon="expand" className="pastel-yellow"
+          onClick=${function () { bigS[1](true); }}>눌러서 크게 보기<//>
+      </span>
       ${bigS[0] && html`<${C.Modal} title="완성된 그림일기" wide=${true}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
         <div class="dv-big">${sheet}</div>
       <//>`}
-    <//>`;
+    </div>`;
   };
 
   C.PicDiaryScreen = function (p) {
