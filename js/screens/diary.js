@@ -917,8 +917,8 @@
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="여가 일기"
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-          onClick=${function () { p.nav('home'); }} />`}
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}
         below=${stepsBar}>
         <div class="wrap" style=${{ gap: '.25rem' }}>
           <span class="small" style=${{ fontWeight: 900 }}>일기 단계</span>

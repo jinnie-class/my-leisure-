@@ -56,7 +56,9 @@
       /* 계획표 제목 아래 손그림 밑줄 (없으면 코드로 그린 하늘색 막대가 나옵니다) */
       planLine: 'images/여가 계획표 밑줄.png',
       /* 앞 질문으로 돌아가는 화살표 (없으면 코드로 그린 화살표가 나옵니다) */
-      back: 'images/화살표.png'
+      back: 'images/화살표.png',
+      /* 홈 왼쪽 위 '나의 여가' 글자 그림 — 누르면 표지로 갑니다 */
+      coverWord: 'images/나의여가 표지글자.png'
     },
     /* 그림에 동그라미가 없어서 흰 동그라미 단추 **안에** 넣어야 하는 것들 */
     uiInset: { home: true }
@@ -196,9 +198,9 @@
     A({ id: 'insect', area: 'indoor', name: '곤충 키우기', icon: 'bug', imageKey: '곤충 키우기',
         planText: '곤충을 키워 볼 거예요', diaryText: '곤충을 키워 보았어요',
         defaultPlace: '교실', defaultSupplies: ['사육통', '먹이'] }),
-    A({ id: 'magnet', area: 'indoor', name: '자석을 이용한 놀이', icon: 'magnet', imageKey: '자석 놀이',
-        speechName: '자석 놀이',
-        planText: '자석 놀이를 할 거예요', diaryText: '자석 놀이를 했어요',
+    A({ id: 'magnet', area: 'indoor', name: '자석놀이', icon: 'magnet', imageKey: '자석놀이',
+        speechName: '자석놀이',
+        planText: '자석놀이를 할 거예요', diaryText: '자석놀이를 했어요',
         defaultPlace: '교실', defaultSupplies: ['자석', '클립'] }),
     A({ id: 'pet-in', area: 'indoor', name: '반려동물과 실내에서 놀기', icon: 'pet', imageKey: '반려동물과 실내에서 놀기',
         speechName: '반려동물과 실내에서 놀기',

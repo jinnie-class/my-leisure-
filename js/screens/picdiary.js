@@ -465,9 +465,9 @@
 
     return html`<div class="app pd-app" data-corner="diary">
       <${C.TopBar} title="그림일기"
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}
         left=${html`<${React.Fragment}>
-          <${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-            onClick=${function () { p.nav('home'); }} />
           <!-- 고치는 일은 **좌우 2단 화면**에서 합니다.
                처음부터 다시 고르는 것이 아니라, 그림과 문장만 바로 고칩니다. -->
           ${d && html`<${C.Btn} size="small" icon="pencil" className="pastel-yellow"
@@ -516,8 +516,8 @@
     if (!d) {
       return html`<div class="app" data-corner="diary">
         <${C.TopBar} title="일기 고치기"
-          left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-            onClick=${function () { p.nav('home'); }} />`} />
+          onBack=${function () { p.nav("home"); }}
+          onTitle=${function () { p.nav("home"); }} />
         <div class="stage"><div class="panel">
           <${C.Banner} icon="question">일기를 찾을 수 없어요.<//>
         </div></div>
@@ -531,9 +531,9 @@
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="일기 고치기"
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}
         left=${html`<${React.Fragment}>
-          <${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-            onClick=${function () { p.nav('home'); }} />
           <${C.Btn} size="small" icon="back" className="pastel-yellow"
             onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기로<//>
         <//>`}>
@@ -656,8 +656,8 @@
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="나의 일기 모음"
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-          onClick=${function () { p.nav('home'); }} />`}>
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${list.length
           ? '지금까지 쓴 일기가 ' + list.length + '장 모였어요.'
           : '아직 모인 일기가 없어요. 여가 일기를 써 보아요.'} />

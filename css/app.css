@@ -1324,12 +1324,20 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-scale{ transform-origin:top center; flex:0 0 auto; }
 
 /* 보통의 그림일기 양식 — 검은 선으로 나뉜 한 장짜리 서식 */
+/* 그림일기 양식 — 양식 **안의 글자를 모두 나눔바른펜**으로.
+   ★ 여기는 학생이 손으로 쓰는 종이를 흉내 낸 곳이라, 화면 글꼴보다
+     펜 글씨가 어울립니다. 원고지 칸 글자 · 날짜 · 날씨 · 제목 ·
+     따라쓰기 글자까지 이 한 줄로 다 바뀝니다 (자식이 물려받습니다).
+   ▸ 글꼴 파일이 없거나 한 파일 판이면 뒤의 기본 글꼴로 그대로 나옵니다.
+   ⚠ 글꼴 목록 안에 `inherit` 을 쓰면 규칙 전체가 무효가 됩니다 (98번). */
 .pd-sheet{
   width:794px; height:1123px; box-sizing:border-box;
   background:#fff; color:#1f1f28;
   border:2px solid #333;
   display:flex; flex-direction:column;
   font-size:16px; line-height:1.4;
+  font-family:'NanumBarunpen',"한컴산뜻돋움","HancomSandeutDotum","학교안심 산뜻돋움",
+              "Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
 }
 .pd-line{ flex:0 0 auto; border-bottom:2px solid #333; display:flex; align-items:center; }
 
@@ -2233,3 +2241,77 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    그래서 문장 글자를 한 단계 키웠습니다 (1.6rem → 34px 상한).
    두께도 800 → 700 으로 낮춥니다 — 펜 글씨는 굵게 하면 뭉개집니다. */
 .sentence, .plan-sofar{ font-weight:700; }
+
+/* ============ 맨 위 줄 : 뒤로 화살표 · 제목 단추 · 표지 글자 ============ */
+
+/* 앞 화면으로 가는 파란 화살표 — 제목 앞 파란 세로줄보다 **더 앞**에.
+   동그란 틀 없이 그림만 둡니다 (97번과 같은 까닭). */
+.topbar-back{
+  flex:0 0 auto; background:none; border:none; box-shadow:none; padding:0;
+  width:clamp(40px,5.4vh,60px); height:clamp(40px,5.4vh,60px);
+}
+.topbar-back img{ width:100%; height:100%; object-fit:contain; }
+.topbar-back:hover{ background:none; transform:translateX(-2px); }
+
+/* 코너 제목을 누르면 홈으로 — 단추지만 **생김새는 제목 그대로**.
+   학생이 '이건 눌러도 되는구나' 를 알도록 손 모양 커서와
+   살짝 뜨는 움직임만 더합니다. */
+.topbar-title.as-btn{
+  background:none; border:none; padding:0 0 0 .75rem; margin:0;
+  font:inherit; color:inherit; text-align:left; cursor:pointer;
+  border-radius:10px;
+}
+.topbar-title.as-btn:hover{ transform:translateY(-1px); }
+.topbar-title.as-btn:focus-visible{ outline:3px solid var(--sel-line); outline-offset:3px; }
+
+/* 홈 왼쪽 위 `나의 여가` 글자 그림 — 누르면 표지로. */
+.cover-word{
+  flex:0 0 auto; background:none; border:none; padding:0; cursor:pointer;
+  height:clamp(38px,5.2vh,58px); display:block;
+}
+.cover-word img{ height:100%; width:auto; display:block; object-fit:contain; }
+.cover-word:hover{ transform:translateY(-2px); }
+.cover-word-text{ font-size:clamp(1.2rem,1.6vh + .5rem,30px); font-weight:900; letter-spacing:-.03em; }
+
+/* 만드는 중 문장 바 — 화살표가 제목 앞으로 가면서 이 줄이 통째로 비었습니다.
+   그 자리를 문장이 쓰도록 **바를 키우고 글자도 키웁니다**.
+   활동 이름(카드 글자, 약 24px)과 비슷하게 보이는 크기입니다. */
+.plan-sofar{
+  padding:.55rem 1.2rem;
+  font-size:clamp(1.15rem,.7rem + 1.25vh,28px);
+}
+
+/* 지도 도구 칸(찾아보기를 눌렀을 때) — 줄마다 **가운데 정렬**.
+   왼쪽으로 몰려 있으면 도구가 화면 한쪽에 치우쳐 보입니다. */
+.map-tools{ justify-content:center; }
+
+/* 지도 도움말 창 — 표시 칩 줄과 점선 안 글을 **가운데**로. */
+.modal .wrap{ justify-content:center; }
+.modal .map-sum{ text-align:center; }
+
+/* 모아보기 목록 — 긴 가로 바 대신 **네모 카드 4장**.
+   ★ 바가 길면 그림과 글자가 왼쪽에 작게 몰려서 무엇인지 알아보기
+     어려웠습니다. 카드로 만들면 그림이 크고 몇 개인지도 한눈에 보입니다. */
+.mymap-cards{
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:clamp(.55rem,1.1vw,1rem);
+}
+@media (max-width: 780px){ .mymap-cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.mymap-item{
+  position:relative; background:#fff; border:2px solid var(--line); border-radius:18px;
+  padding:.8rem .6rem .7rem; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; align-items:center; gap:.4rem; min-width:0;
+}
+.mymap-item .mymap-no{
+  position:absolute; left:.5rem; top:.5rem;
+  width:26px; height:26px; border-radius:999px; display:grid; place-items:center;
+  background:#fff8e2; border:2px solid #e6bf4a; color:#6b5410;
+  font-weight:900; font-size:.85rem;
+}
+.mymap-art{ width:clamp(76px,14vh,150px); height:clamp(76px,14vh,150px); display:block; }
+.mymap-art img, .mymap-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
+.mymap-name{
+  font-size:clamp(.95rem,.6rem + .9vh,24px); font-weight:900; text-align:center;
+  line-height:1.25; min-width:0;
+}
+.mymap-item .mymap-date{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }

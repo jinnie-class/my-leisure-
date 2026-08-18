@@ -571,8 +571,8 @@
 
     return html`<div class="app" data-corner="plan">
       <${C.TopBar} title="여가 계획하기"
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-          onClick=${function () { p.nav('home'); }} />`}>
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}>
         ${!saved && html`<${C.Dots} total=${KEYS.length} current=${step} />`}
         <${C.WhoChip} student=${student} />
       <//>

@@ -59,14 +59,22 @@
     var challenge = challengeOf(student);
     var doneAll = student && !challenge && App.visibleCards(student).length > 0;
 
+    /* 표지로 가는 단추에 쓰는 `나의 여가` 글자 그림 (없으면 글자로 나옵니다) */
+    var coverWord = App.uiImage("coverWord");
+
     function goDiaryFromPlan(plan) {
       p.nav('diary', { planId: plan.id });
     }
 
     return html`<div class="app" data-corner="home">
       <${C.TopBar}
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="표지로 가기"
-          onClick=${function () { p.nav('cover'); }} />`}>
+        left=${html`<button type="button" class="cover-word"
+            onClick=${function () { p.nav('cover'); }}
+            aria-label="표지로 가기" title="표지로 가기">
+          ${coverWord
+            ? html`<img src=${coverWord} alt="" />`
+            : html`<span class="cover-word-text">나의 여가</span>`}
+        </button>`}>
         <${C.Speak} text=${'나의 여가. 내가 좋아하는 여가를 찾아보아요. ' +
           App.DATA.corners.map(function (c) { return c.name + ' ' + c.guide; }).join(' ')} />
         <${C.WhoChip} student=${student} onClick=${function () { p.nav('profiles'); }}

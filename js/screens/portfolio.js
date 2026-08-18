@@ -461,8 +461,8 @@
 
     return html`<div class="app" data-corner="portfolio">
       <${C.TopBar} title="여가 포트폴리오"
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-          onClick=${function () { p.nav('home'); }} />`}>
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${'나의 여가 포트폴리오. 내가 전시하고 싶은 활동을 골라 보세요. ' +
           App.fmtDateShort(data.from) + '부터 ' + App.fmtDateShort(data.to) + '까지, 일기 ' +
           data.diaries.length + '개 가운데 ' + data.exhibited.length + '개를 골랐어요.'} />

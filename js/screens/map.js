@@ -269,8 +269,8 @@
 
     return html`<div class="app" data-corner="map">
       <${C.TopBar} title="여가 지도"
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-          onClick=${function () { p.nav('home'); }} />`}>
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}>
         <!-- '일기 쓰기' 는 두지 않습니다. 여기는 지도를 보는 곳이고,
              일기는 홈의 계획 카드나 기록하GO! 에서 씁니다 (규칙 7 — 중복 금지) -->
         <${C.Speak} text=${'나의 여가 탐험 지도. ' + summary.join(' ')} />
@@ -418,10 +418,12 @@
                   ${f.name}${filter[0] === f.id ? ' ✓' : ''}</button>`;
               })}
             </div>
+            <!-- 배율은 **5%씩** 움직입니다 (예전 20%씩 — 한 번에 너무 크게 뛰었습니다).
+                 소수점이 쌓여 99.99% 같은 값이 되지 않도록 반올림해 둡니다. -->
             <div class="map-tools" style=${{ marginTop: '.4rem' }}>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.max(0.6, view[0].zoom - 0.2), px: 0, py: 0 }); }} ariaLabel="지도 작게">－ 작게<//>
+              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.max(0.6, Math.round((view[0].zoom - 0.05) * 100) / 100), px: 0, py: 0 }); }} ariaLabel="지도 작게">－ 작게<//>
               <span class="chip">${Math.round(view[0].zoom * 100)}%</span>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.min(2.2, view[0].zoom + 0.2), px: 0, py: 0 }); }} ariaLabel="지도 크게">＋ 크게<//>
+              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.min(2.2, Math.round((view[0].zoom + 0.05) * 100) / 100), px: 0, py: 0 }); }} ariaLabel="지도 크게">＋ 크게<//>
               <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: 1, px: 0, py: 0 }); }}>처음 크기<//>
             </div>
           </div>`}
@@ -558,6 +560,8 @@
     App.useStore();
     var student = App.store.current();
     var openS = useState(null);            // 열어 본 표시 (null 이면 네 칸 화면)
+    var myPageS = useState(0);          // 목록을 4장씩 나누어 봅니다
+    var MY_PER = 4;
     if (!student) return null;
 
     var cards = App.visibleCards(student, null);
@@ -604,6 +608,9 @@
       <//>`;
     } else {
       var list = listOf(open.id);
+    var myPages = Math.max(1, Math.ceil(list.length / MY_PER));
+    var myPage = Math.min(myPageS[0], myPages - 1);
+    var shown = list.slice(myPage * MY_PER, myPage * MY_PER + MY_PER);
       var e = EMPTY_WORD[open.id] || { line: '아직 없어요.', tip: '활동을 시작해 보아요!' };
       body = html`<${React.Fragment}>
         <!-- 표시 그림을 말 앞에 붙입니다 (해봤어요 앞에 발자국처럼).
@@ -614,16 +621,29 @@
           ${open.name}
         <//>
         ${list.length
-          ? html`<div class="mymap-list">
-              ${list.map(function (x, i) {
-                return html`<div key=${x.card.id} class="mymap-row">
-                  <span class="mymap-no">${i + 1}</span>
-                  <span class="mymap-thumb"><${C.ActivityArt} activity=${x.card} /></span>
-                  <b class="grow">${x.card.name}</b>
-                  <span class="mymap-date">${x.date ? App.fmtDateShort(x.date) : ''}</span>
-                </div>`;
-              })}
-            </div>`
+          ? html`<${React.Fragment}>
+              <!-- ★ 긴 가로 바를 죽 늘어놓던 것을 **네모 카드 4장씩**으로
+                     바꿨습니다 (선생님 제안). 바가 길면 그림과 글자가
+                     한쪽에 작게 몰려서 무엇인지 알아보기 어려웠습니다.
+                     카드로 만들면 그림이 크고, 몇 개인지도 한눈에 보입니다. -->
+              <div class="mymap-cards">
+                ${shown.map(function (x, i) {
+                  return html`<div key=${x.card.id} class="mymap-item">
+                    <span class="mymap-no">${myPage * MY_PER + i + 1}</span>
+                    <span class="mymap-art"><${C.ActivityArt} activity=${x.card} /></span>
+                    <b class="mymap-name">${x.card.name}</b>
+                    <span class="mymap-date">${x.date ? App.fmtDateShort(x.date) : ''}</span>
+                  </div>`;
+                })}
+              </div>
+              ${myPages > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
+                <${C.Btn} icon="back" disabled=${myPage === 0}
+                  onClick=${function () { myPageS[1](myPage - 1); }}>앞으로<//>
+                <span class="chip">${myPage + 1} / ${myPages} 쪽</span>
+                <${C.Btn} icon="next" disabled=${myPage >= myPages - 1}
+                  onClick=${function () { myPageS[1](myPage + 1); }}>더 보기<//>
+              </div>`}
+            <//>`
           : html`<div class="mymap-empty">
               <span class="mymap-empty-art"><${C.StateArt} state=${open} /></span>
               <b>${e.line}</b>
@@ -634,8 +654,8 @@
 
     return html`<div class="app" data-corner="map">
       <${C.TopBar} title="나의 여가 모아보기"
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="홈으로 가기"
-          onClick=${function () { p.nav('home'); }} />`}>
+        onBack=${function () { p.nav("home"); }}
+        onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${open ? open.name + '. ' + open.help : '내가 표시한 활동을 모아 볼 수 있어요.'} />
         <${C.WhoChip} student=${student} />
       <//>

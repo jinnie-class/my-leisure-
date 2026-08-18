@@ -324,14 +324,32 @@
   /* 위쪽 줄.
      p.below 를 주면 아랫줄이 하나 더 생깁니다 — 단계 표시처럼 길어서
      제목·단추와 한 줄에 두면 서로 밀려 찌그러지는 것들을 내려놓는 자리입니다. */
+  /* 맨 위 줄.
+     ★ 자리와 뜻을 셋으로 **분명하게** 나눴습니다 (선생님 제안).
+       · 왼쪽 파란 화살표 → **앞 화면으로** (`p.onBack`)
+       · 코너 제목(`여가 계획하기` …) → 누르면 **홈**(코너 네 개가 있는 곳)
+       · 홈에서는 제목 자리에 **`나의 여가` 표지 글자** → 누르면 **표지**
+     ▸ 화살표는 제목 앞 파란 세로줄보다 **더 앞**에 옵니다.
+       그래야 '뒤로 → 제목' 순서로 눈이 자연스럽게 흐릅니다.
+     ▸ 제목이 단추가 되면서 위에 비어 있던 자리가 쓰임새를 갖습니다. */
   C.TopBar = function (p) {
-    return html`<header class=${'topbar pagepad' + (p.below ? ' two' : '')}>
-      <div class="topbar-row">
-        ${p.left}
-        ${p.title && html`<div class="topbar-title">
+    var title = p.title && (p.onTitle
+      ? html`<button type="button" class="topbar-title as-btn" onClick=${p.onTitle}
+            aria-label=${p.titleLabel || (p.title + ' — 누르면 나의 여가로 가요')}
+            title=${p.titleLabel || '나의 여가로'}>
           ${p.sub && html`<div class="sub">${p.sub}</div>`}
           <div class="title">${p.title}</div>
-        </div>`}
+        </button>`
+      : html`<div class="topbar-title">
+          ${p.sub && html`<div class="sub">${p.sub}</div>`}
+          <div class="title">${p.title}</div>
+        </div>`);
+    return html`<header class=${'topbar pagepad' + (p.below ? ' two' : '')}>
+      <div class="topbar-row">
+        ${p.onBack && html`<${C.IconBtn} uiKey="back" icon="back" className="topbar-back"
+          label=${p.backLabel || '앞 화면으로'} onClick=${p.onBack} />`}
+        ${p.left}
+        ${title}
         <div class="spacer"></div>
         ${p.children}
       </div>
