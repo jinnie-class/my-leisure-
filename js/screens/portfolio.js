@@ -483,6 +483,66 @@
           ${folioTools ? rangeBar : null}
           ${folioTools ? journalBar : null}
 
+          <!-- ★ 포트폴리오는 **세 코너에서 만든 것을 한곳에 모아 두는 곳**입니다.
+                 보관 · 전시 · 발표를 여기서 합니다.
+                   ① 내가 세운 여가계획들   (계획하GO!)
+                   ② 나의 여가지도          (여가지도)
+                   ③ 나의 여가 일기장        (기록하GO!)
+                 예전에는 ③만 있어서 ①②가 통째로 빠져 있었습니다.
+                 계획을 세워 본 일과 지도에 쌓인 발자국이 없으면,
+                 '내가 어떤 경험을 해 왔는지' 가 반쪽만 보입니다. -->
+          <${C.Sec} title=${'내가 세운 여가계획들 · ' + data.plans.length + '장'}
+            speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요.'}>
+            ${data.plans.length ? html`<div class="folio-grid">
+              ${data.plans.map(function (pl) {
+                var a = App.act(pl.activityId);
+                var done = !!pl.doneDiaryId;
+                return html`<button key=${pl.id} type="button" class="folio-card"
+                    onClick=${function () { p.nav('plan', { planId: pl.id }); }}
+                    aria-label=${App.fmtDateLong(pl.date) + ' ' + (a ? a.name : '') + (done ? ', 일기까지 마쳤어요' : '')}>
+                  <span class="folio-art"><${C.ActivityArt} activity=${a} /></span>
+                  <span class="folio-name">${a ? a.name : '여가 계획'}</span>
+                  <span class="folio-date">${App.fmtDateShort(pl.date)}</span>
+                  ${done && html`<span class="star-badge">✓ 해봤어요</span>`}
+                </button>`;
+              })}
+            </div>` : html`<${C.Banner} icon="cornerPlan">
+              아직 세운 계획이 없어요.
+              <div class="wrap" style=${{ marginTop: '.4rem' }}>
+                <${C.Btn} size="small" onClick=${function () { p.nav('plan'); }}>계획 세우러 가기<//>
+              </div>
+            <//>`}
+          <//>
+
+          <${C.Sec} title="나의 여가지도"
+            speakText=${'나의 여가지도. 해봤어요 ' + data.tried.length + '가지, 좋아해요 '
+              + data.likes.length + '가지, 도전하고 싶어요 ' + data.challenges.length + '가지예요.'}>
+            <div class="folio-sum">
+              <span class="folio-sum-item"><b>${data.tried.length}</b>가지 해봤어요</span>
+              <span class="folio-sum-item"><b>${data.likes.length}</b>가지 좋아해요</span>
+              <span class="folio-sum-item"><b>${data.challenges.length}</b>가지 도전하고 싶어요</span>
+              ${data.newTried.length ? html`<span class="folio-sum-item new">
+                <b>${data.newTried.length}</b>가지 처음 해봤어요</span>` : null}
+            </div>
+            <div class="folio-grid" style=${{ marginTop: '.5rem' }}>
+              ${data.likes.concat(data.challenges.filter(function (c) {
+                return data.likes.indexOf(c) < 0;
+              })).slice(0, 12).map(function (c) {
+                var st = App.store.statusOf(student.id, c.id);
+                return html`<span key=${c.id} class="folio-card as-view"
+                    role="img" aria-label=${c.name + (st.like ? ', 좋아해요' : '') + (st.challenge ? ', 도전하고 싶어요' : '')}>
+                  <span class="folio-art"><${C.ActivityArt} activity=${c} /></span>
+                  <span class="folio-name">${c.name}</span>
+                  <span class="folio-date">${st.like ? '♥ 좋아해요' : '★ 도전'}</span>
+                </span>`;
+              })}
+            </div>
+            <div class="wrap" style=${{ marginTop: '.5rem', justifyContent: 'center' }}>
+              <${C.Btn} size="small" icon="map"
+                onClick=${function () { p.nav('map'); }}>여가지도 보기<//>
+            </div>
+          <//>
+
           <${C.Sec} title="내가 전시하고 싶은 활동을 골라 보세요">
             ${data.diaries.length ? html`<div class="stack">
               ${data.diaries.map(function (d) {
