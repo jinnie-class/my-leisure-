@@ -653,7 +653,9 @@
   };
 
   C.PickGrid = function (p) {
-    var cls = 'pick-grid' + (p.cols ? ' cols-' + p.cols : '');
+    /* scene : 그림이 아이콘이 아니라 **풍경 장면**일 때 (아침·낮·저녁처럼).
+       칸을 3:2 로 넓혀서 장면이 꽉 차게 보입니다 (css 의 .pick-grid.scene). */
+    var cls = 'pick-grid' + (p.cols ? ' cols-' + p.cols : '') + (p.scene ? ' scene' : '');
     return html`<div class=${cls} role="group" aria-label=${p.label || ''}>${p.children}</div>`;
   };
 

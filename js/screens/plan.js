@@ -329,7 +329,7 @@
              예전 기록의 `am` · `pm` 은 `App.timeWord` 가 알아서 읽어 줍니다. */
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="언제쯤 할까요?">언제쯤 할까요?<//>
-          <${C.PickGrid} cols=${4} label="시간">
+          <${C.PickGrid} cols=${4} scene=${true} label="시간">
             ${TIMES.map(function (tm) {
               return html`<${C.Pick} key=${tm.id} selected=${draft.time === tm.id}
                 label=${tm.name} speakText=${tm.name}
