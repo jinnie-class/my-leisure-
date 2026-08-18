@@ -239,6 +239,59 @@
     var handwriting = (lv === 3 && d.writeWay === 'hand' && d.writePhotoId)
       ? App.photos.url(d.writePhotoId) : null;
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
+
+    /* ── 그림칸에 놓을 그림들 ──────────────────────────────────────
+       장소는 배경으로 깔고, 그 위에 **누구와 · 활동 · 기분** 을 놓습니다.
+       처음 자리는 **아래쪽에 나란히** 입니다. 배경 그림(장소)의 위쪽을
+       가리지 않아서, 어디에서 무엇을 했는지가 함께 보입니다.
+       자리는 `d.artLayout` 에 **칸의 몇 % 지점인지**로 적어 둡니다.
+       퍼센트로 적어 두면 종이를 크게 보든 작게 보든 같은 자리에 놓입니다. */
+    var artItems = [];
+    if (partner) artItems.push({ key: 'partner', label: partner.name,
+      art: html`<${C.PartnerArt} partner=${partner} student=${student} />` });
+    artItems.push({ key: 'act', label: a ? a.name : '한 활동',
+      art: html`<${C.ActivityArt} activity=${a} />` });
+    (d.moodIds || []).forEach(function (m) {
+      var mo = App.mood(m); if (!mo) return;
+      artItems.push({ key: 'mood:' + m, label: mo.name, art: html`<${C.MoodArt} mood=${mo} />` });
+    });
+    var layout = d.artLayout || {};
+    function posOf(key, i) {
+      var saved = layout[key];
+      if (saved && typeof saved.x === 'number') return saved;
+      /* 처음 자리 : 아래쪽 한 줄에 고르게 */
+      return { x: (i + 0.5) / Math.max(1, artItems.length) * 100, y: 72 };
+    }
+
+    var artRef = useRef(null);
+    /* 마우스(또는 손가락)로 끌어 옮기기.
+       ⚠ 종이는 통째로 줄여서(transform:scale) 보여 주므로, 자리를 px 로 재면
+         줄인 만큼 어긋납니다. getBoundingClientRect 로 잰 **줄어든 칸 크기**에
+         대고 퍼센트로 셈해야 어디서 보든 손끝과 그림이 같이 움직입니다. */
+    function startDrag(e, key) {
+      var box = artRef.current; if (!box) return;
+      e.preventDefault();
+      var el = e.currentTarget, last = null;
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      function move(ev) {
+        var r = box.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        var x = Math.max(9, Math.min(91, (ev.clientX - r.left) / r.width * 100));
+        var y = Math.max(9, Math.min(91, (ev.clientY - r.top) / r.height * 100));
+        el.style.left = x + '%'; el.style.top = y + '%';
+        last = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+      }
+      function up() {
+        el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up);
+        el.removeEventListener('pointercancel', up);
+        if (last && p.onMoveArt) p.onMoveArt(key, last);
+      }
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', up);
+    }
+
     var dt = App.parseKey(d.date);
     var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
     /* 단계에 없는 모양이 넘어오면 그 단계의 기본 모양으로 되돌립니다 */
@@ -320,28 +373,23 @@
                여기는 그림일기의 **그림 자리**입니다. 글은 아래 원고지에 쓰는데
                같은 말이 그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
                읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
-          : html`<div class=${'pd-art' + (placeBg ? ' has-bg' : '')}
+          : html`<div class=${'pd-art' + (placeBg ? ' has-bg' : '') + (p.arrange ? ' arranging' : '')}
+                 ref=${artRef}
                  style=${placeBg ? { backgroundImage: 'url(' + placeBg + ')' } : null}>
-              <!-- ★ 짜임새 : **장소는 배경**, 그 안에 누구와 → 활동 → 기분 순서로
-                     나란히 큼직하게. 일기 문장(나는 · 누구와 · 무엇을 · 어땠다)과
-                     같은 차례라, 그림만 봐도 문장이 읽힙니다.
+              <!-- ★ 짜임새 : 장소는 배경, 그 위에 누구와 · 활동 · 기분을 놓습니다.
+                     처음 자리는 아래쪽에 나란히 (배경 그림을 가리지 않게).
+                     일기 고치기에서 그림 재배열하기를 켜면 마우스로 끌어 옮깁니다.
                    ※ 그림만 넣습니다. 이름표·안내 글은 넣지 않습니다 —
                      여기는 그림 자리이고 글은 아래 원고지에 씁니다.
                      읽어주기와 화면 낭독(aria-label)으로는 그대로 전해집니다. -->
-              <div class="pd-art-row">
-                ${partner && html`<span class="pd-art-item" role="img" aria-label=${partner.name}>
-                  <span class="pd-art-thumb"><${C.PartnerArt} partner=${partner} student=${student} /></span>
-                </span>`}
-                <span class="pd-art-item" role="img" aria-label=${a ? a.name : '한 활동'}>
-                  <span class="pd-art-thumb"><${C.ActivityArt} activity=${a} /></span>
-                </span>
-                ${(d.moodIds || []).map(function (m) {
-                  var mo = App.mood(m); if (!mo) return null;
-                  return html`<span key=${m} class="pd-art-item" role="img" aria-label=${mo.name}>
-                    <span class="pd-art-thumb"><${C.MoodArt} mood=${mo} /></span>
-                  </span>`;
-                })}
-              </div>
+              ${artItems.map(function (it, i) {
+                var pos = posOf(it.key, i);
+                return html`<span key=${it.key} class="pd-art-item" role="img" aria-label=${it.label}
+                    style=${{ left: pos.x + '%', top: pos.y + '%' }}
+                    onPointerDown=${p.arrange ? function (e) { startDrag(e, it.key); } : null}>
+                  <span class="pd-art-thumb">${it.art}</span>
+                </span>`;
+              })}
             </div>`}
       </div>
 
@@ -455,17 +503,21 @@
     /* 인쇄 모양 단추는 제목·단추와 한 줄에 두면 서로 밀려 제목이 잘립니다 → 아랫줄로.
        단추는 **그 학생의 단계에 있는 것만** 나옵니다 (1단계는 하나뿐). */
     var myModes = modesFor(lv);
-    var modeBar = html`<div class="wrap" style=${{ gap: '.25rem', justifyContent: 'center' }}>
+    var modeBar = html`<div class="pd-modebar">
+      <!-- 왼쪽 끝 : 이 학생이 몇 단계인지. 늘 같은 자리에 있어야 눈에 익습니다. -->
       <span class="pd-lv" title=${LEVEL_INFO[lv].sub}>
         <b>${lv}단계</b> ${LEVEL_INFO[lv].name}</span>
-      ${myModes.length > 1 && html`<span class="small" style=${{ fontWeight: 900 }}>인쇄 모양</span>`}
-      ${myModes.map(function (m) {
-        var on = traceS[0] === m.id;
-        return html`<button key=${m.id} type="button" class=${'tab' + (on ? ' on' : '')}
-          style=${{ minHeight: '40px', padding: '.1rem .7rem', fontSize: '.85rem' }}
-          aria-pressed=${on ? 'true' : 'false'} title=${m.desc}
-          onClick=${function () { traceS[1](m.id); }}>${m.name}<//>`;
-      })}
+      <!-- 가운데 : 눌러서 고르는 인쇄 모양 -->
+      <span class="pd-modes">
+        ${myModes.length > 1 && html`<span class="small" style=${{ fontWeight: 900 }}>인쇄 모양</span>`}
+        ${myModes.map(function (m) {
+          var on = traceS[0] === m.id;
+          return html`<button key=${m.id} type="button" class=${'tab' + (on ? ' on' : '')}
+            style=${{ minHeight: '40px', padding: '.1rem .7rem', fontSize: '.85rem' }}
+            aria-pressed=${on ? 'true' : 'false'} title=${m.desc}
+            onClick=${function () { traceS[1](m.id); }}>${m.name}<//>`;
+        })}
+      </span>
     </div>`;
 
     return html`<div class="app pd-app" data-corner="diary">
@@ -496,6 +548,11 @@
             <${C.Btn} kind="primary" icon="print"
               onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
               A4로 인쇄하기<//>
+            <!-- 모아 둔 일기를 보러 가는 길은 **완성된 그림일기 옆**에 둡니다.
+                 고치는 화면이 아니라 다 만든 화면에서 찾게 되는 것이라서요. -->
+            <${C.Btn} icon="book" className="pastel-yellow"
+              onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
+              나의 일기 모음 보기<//>
           </div>
         </div>
       </div>
@@ -517,6 +574,27 @@
     var drawS = useState(false);       // 그림판이 열려 있는지
     var madeS = useState(null);        // 방금 그린 그림 (확인 창)
     var textS = useState(false);       // 문장 고치는 칸을 펼쳤는지
+    var moveS = useState(false);       // 그림 자리를 옮기는 중인지
+
+    /* 오른쪽 그림일기를 **화면에 들어가는 만큼 가장 크게** 보여 줍니다.
+       비율을 .34 처럼 못박아 두면 큰 화면에서 종이가 작게 남습니다.
+       화면 크기에서 맨 위 줄·아래 단추(250px)와 왼쪽 단추 칸(420px)을 빼고 셈합니다.
+       셋 가운데 가장 작은 값을 쓰므로 어느 쪽으로도 안 넘칩니다. */
+    function fitScale() {
+      return Math.max(0.18, Math.min(0.62,
+        (window.innerHeight - 250) / A4_H,
+        (window.innerWidth - 420) / A4_W));
+    }
+    var fxS = useState(fitScale);
+    useLayoutEffect(function () {
+      function onResize() {
+        var s = fitScale();
+        fxS[1](function (prev) { return Math.abs(prev - s) < 0.004 ? prev : s; });
+      }
+      onResize();
+      window.addEventListener('resize', onResize);
+      return function () { window.removeEventListener('resize', onResize); };
+    }, []);
 
     if (!d) {
       return html`<div class="app" data-corner="diary">
@@ -530,7 +608,18 @@
     }
 
     var lv = (d.level === 2 || d.level === 3) ? d.level : 1;
+    /* 오른쪽에 보이는 그림일기. 그림 재배열하기를 켜면 끌어 옮길 수 있게 됩니다.
+       옮긴 자리는 바로 저장해서, 인쇄할 때도 그 자리 그대로 나옵니다. */
+    function moveArt(key, pos) {
+      var next = {};
+      var cur = d.artLayout || {};
+      for (var k in cur) if (Object.prototype.hasOwnProperty.call(cur, k)) next[k] = cur[k];
+      next[key] = pos;
+      App.store.updateDiary(d.id, { artLayout: next });
+    }
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text" />`;
+    var editSheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text"
+      arrange=${moveS[0]} onMoveArt=${moveArt} />`;
     /* 지금 그림일기에 보이는 문장 (고쳐 쓴 것이 있으면 그것) */
     var shown = App.sentences.diaryShown(d);
 
@@ -546,28 +635,49 @@
         <${C.WhoChip} student=${student} />
       <//>
 
-      <${C.Stage} action=${html`<${C.Btn} kind="primary" icon="print"
-        onClick=${function () {
-          App.printNode(html`<div class="pd-print">${sheet}</div>`);
-          /* 인쇄하면서 일기 모음에 담아 둡니다 (날짜별로 쌓입니다) */
-          App.store.updateDiary(d.id, { inJournal: true, printedAt: Date.now() });
-          App.ui.toast('일기 모음에 담았어요.');
-        }}>A4로 인쇄하고 일기 모음에 담기<//>`}>
+      <!-- 맨 아래 : 인쇄와 담기를 **따로** 둡니다.
+             인쇄는 안 하고 모아 두기만 할 때가 있어서, 하나로 묶으면
+             종이를 쓰지 않고는 모을 길이 없었습니다. -->
+      <${C.Stage} action=${html`<div class="fix-acts">
+        <${C.Btn} kind="primary" icon="print"
+          onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
+          A4 인쇄하기<//>
+        <${C.Btn} kind="ok" icon="book"
+          onClick=${function () {
+            App.store.updateDiary(d.id, { inJournal: true, printedAt: Date.now() });
+            App.ui.toast('나의 일기모음에 담았어요.');
+          }}>나의 일기모음에 담기<//>
+      </div>`}>
 
         <div class="fix-2col">
-          <!-- 왼쪽 : 고치는 곳 -->
+          <!-- 왼쪽 : 고치는 길 세 가지 -->
           <div class="fix-left">
             ${lv === 1 && html`<${C.Banner} tone="info" icon="people">
               <b>선생님이 도와주세요.</b>
               <div class="small">글을 고칠 때 선생님과 함께 읽어 보아요.</div>
             <//>`}
 
+            <${C.Btn} size="big" className=${'pastel-green fix-go' + (moveS[0] ? ' on' : '')} icon="expand"
+              onClick=${function () { moveS[1](!moveS[0]); }}>
+              ${moveS[0] ? '자리 옮기기 끝내기' : '그림 재배열하기'}<//>
+
             <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
-              onClick=${function () { drawS[1](true); }}>그림 수정하기<//>
+              onClick=${function () { drawS[1](true); }}>그림 그리기 수정하기<//>
 
             <${C.Btn} size="big" className="pastel-blue fix-go" icon="edit"
               onClick=${function () { textS[1](!textS[0]); }}>
               ${textS[0] ? '글 고치기 닫기' : '일기 내용 수정하기'}<//>
+
+            ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
+              speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮겨 보아요.">
+              <b>그림을 끌어서 옮겨요.</b>
+              <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.</div>
+              <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.4rem' }}>
+                <${C.Btn} size="small" onClick=${function () {
+                  App.store.updateDiary(d.id, { artLayout: null });
+                }}>처음 자리로 되돌리기<//>
+              </div>
+            <//>`}
 
             ${textS[0] && html`<div class="fix-text">
               <span class="lab">일기 내용</span>
@@ -580,18 +690,13 @@
                 }}>처음 문장으로 되돌리기<//>
               </div>
             </div>`}
-
-            <${C.Btn} icon="book" className="pastel-yellow"
-              onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
-              나의 일기 모음 보기<//>
-            <${C.Btn} icon="home"
-              onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>
           </div>
 
-          <!-- 오른쪽 : 고친 것이 바로 보이는 완성 그림일기 -->
+          <!-- 오른쪽 : 고친 것이 바로 보이는 그림일기.
+                 이름표(완성된 그림일기)를 없앴습니다. 무엇인지 보면 알고,
+                 그 한 줄만큼 종이를 더 크게 보여 줄 수 있습니다. -->
           <div class="fix-right">
-            <span class="fix-cap">완성된 그림일기</span>
-            <div class="fix-paper">${sheet}</div>
+            <div class="fix-paper" style=${{ '--fx': fxS[0] }}>${editSheet}</div>
           </div>
         </div>
       <//>
