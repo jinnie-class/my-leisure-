@@ -613,6 +613,10 @@
       return html`<div class="q q-bar">
         <span class="q-pill"><h2>${p.children}</h2></span>
         ${p.hint && html`<span class="hint">${p.hint}</span>`}
+        <!-- 질문 줄 오른쪽 빈 자리 : 되돌아가는 단추처럼 '질문에 딸린 단추' 를
+             여기에 둡니다. 아래에 두면 쪽 넘기는 단추와 섞여
+             무엇이 무엇인지 헷갈립니다. -->
+        ${p.right && html`<span class="q-right">${p.right}</span>`}
         ${p.speak !== false && html`<${C.Speak} text=${p.speakText || (typeof p.children === 'string' ? p.children : '')} />`}
       </div>`;
     }

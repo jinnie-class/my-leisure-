@@ -526,6 +526,11 @@ ul{ margin:0; padding:0; list-style:none; }
 .q-bar .q-pill h2{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .q-bar > .hint{ position:absolute; right:3.6rem; }
 .q-bar > .speak{ position:absolute; right:0; }
+/* 질문 줄 오른쪽에 붙는 단추 (보기: `실내·실외 다시 고르기`).
+   margin-left:auto 로 오른쪽 끝까지 밀고, 읽어주기 자리만 비워 둡니다. */
+/* ⚠ 여기에 margin-right 를 또 주면 안 됩니다. `.q-bar` 의 padding-right 가
+     이미 읽어주기 자리를 비워 두고 있어서, 두 번 밀리면 단추가 화면 한가운데로 옵니다. */
+.q-bar > .q-right{ margin-left:auto; display:inline-flex; }
 
 /* 큰 점 진행 표시 */
 .dots-bar{ display:flex; align-items:center; gap:.4rem; }
@@ -2270,7 +2275,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 홈 왼쪽 위 `나의 여가` 글자 그림 — 누르면 표지로. */
 .cover-word{
   flex:0 0 auto; background:none; border:none; padding:0; cursor:pointer;
-  height:clamp(34px,4.6vh,52px); display:block;   /* 오른쪽 이름 알약과 같은 키 */
+  /* ★ 키를 **코너 이름(`여가 계획하기`) 글자와 같게** 맞춥니다.
+       그림 파일(249x68)은 위아래에 빈 자리가 있어 글자가 68 가운데 56 입니다.
+       그래서 `글자 크기 x 0.73(한글이 차지하는 몫) x 68/56` = 글자 크기의 0.89배
+       를 그림 키로 둡니다.
+       ⚠ 크기를 정하는 것은 **여기 CSS** 이므로, 그림 파일을 작게 다시 그려도
+         화면에서는 안 작아집니다. 크기는 이 줄을 고쳐야 바뀝니다. */
+  height:calc(clamp(1.05rem, 1.7vh + .5rem, 28px) * .89); display:block;
 }
 .cover-word img{ height:100%; width:auto; display:block; object-fit:contain; }
 .cover-word:hover{ transform:translateY(-2px); }

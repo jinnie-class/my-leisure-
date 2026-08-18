@@ -61,7 +61,9 @@
     var pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
     var page = Math.min(pageS[0], pages - 1);
     return html`<${React.Fragment}>
-      <${C.Question} bar=${true} speakText="무엇을 했나요?">무엇을 했나요?<//>
+      <${C.Question} bar=${true} speakText="무엇을 했나요?"
+        right=${html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
+          onClick=${function () { areaS[1](null); pageS[1](0); }}>실내·실외 다시 고르기<//>`}>무엇을 했나요?<//>
       <${C.PickGrid} cols=${6}>
         ${cards.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE).map(function (c) {
           var kids = App.visibleChildren(student, c);
@@ -75,15 +77,14 @@
         ${canAdd && page === pages - 1 &&
           html`<${C.AddActivityCard} onClick=${function () { addS[1](true); }} />`}
       <//>
-      <div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
-        <${C.Btn} size="small" icon="back" className="pastel-yellow"
-          onClick=${function () { areaS[1](null); pageS[1](0); }}>실내·실외 다시 고르기<//>
-        ${pages > 1 && html`<${React.Fragment}>
-          <${C.Btn} size="small" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동<//>
-          <span class="chip">${page + 1} / ${pages}</span>
-          <${C.Btn} size="small" disabled=${page >= pages - 1} onClick=${function () { pageS[1](page + 1); }}>다음 활동<//>
-        <//>`}
-      </div>
+      <!-- 아래에는 쪽 넘기는 단추만 남기고 가운데에 둡니다.
+           실내·실외 다시 고르기는 위 질문 줄 오른쪽으로 올렸습니다.
+           ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+      ${pages > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
+        <${C.Btn} size="small" icon="back" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동<//>
+        <span class="chip">${page + 1} / ${pages}</span>
+        <${C.Btn} size="small" icon="next" disabled=${page >= pages - 1} onClick=${function () { pageS[1](page + 1); }}>다음 활동<//>
+      </div>`}
       ${addS[0] && html`<${C.AddActivityModal} area=${areaS[0]}
         onClose=${function () { addS[1](false); }}
         onAdded=${function (id) { pageS[1](Math.ceil((cards.length + 1) / PAGE_SIZE) - 1); }} />`}
