@@ -2315,3 +2315,29 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   line-height:1.25; min-width:0;
 }
 .mymap-item .mymap-date{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
+
+/* 그림일기 그림칸 — **장소를 배경으로**, 그 안에 누구와 → 활동 → 기분.
+   ★ 예전에는 활동이 왼쪽 위에 작게, 나머지가 아래에 더 작게 흩어져
+     무엇이 무엇인지 알아보기 어려웠습니다.
+     장소를 배경으로 깔고 셋을 나란히 크게 놓으면, 그림만 봐도
+     '누구와 · 무엇을 · 어땠는지' 가 문장 차례대로 읽힙니다. */
+.pd-art.has-bg{
+  background-size:cover; background-position:center;
+  border-radius:10px; overflow:hidden;
+}
+.pd-art .pd-art-row{
+  width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  gap:24px; padding:10px;
+}
+.pd-art .pd-art-item{ flex:0 1 auto; display:block; }
+.pd-art .pd-art-thumb{
+  /* ★ 종이(`.pd-sheet`)는 794×1123 **고정 크기**를 만든 뒤 통째로 줄여서
+       보여 줍니다. 그래서 여기 안에서는 `%` 나 `vh` 가 아니라 **px** 로
+       잡아야 뜻대로 됩니다 (%로 두었더니 71px 로 작게 나왔습니다). */
+  width:200px; height:200px; display:block; flex:0 1 auto;
+}
+.pd-art .pd-art-thumb img, .pd-art .pd-art-thumb svg{
+  width:100%; height:100%; object-fit:contain; display:block;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));   /* 배경 위에서도 또렷하게 */
+}

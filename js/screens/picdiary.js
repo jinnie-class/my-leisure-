@@ -212,6 +212,10 @@
     var student = p.student || App.store.student(d.studentId);
     var a = App.act(d.activityId);
     var partner = App.partner(d.partnerId);
+    /* 장소 그림을 **그림칸 배경**으로 깝니다 (없으면 배경 없이 그림만).
+       장소가 배경이 되면 '어디에서 했는지' 가 한눈에 보이고,
+       그 안에 누구와 → 활동 → 기분을 나란히 놓으면 문장 차례와 같아집니다. */
+    var placeBg = d.place ? App.pickImage('place', d.place) : null;
     /* 그림칸에는 그림 한 장만 들어갑니다.
          'app'   아무것도 안 골라도 되는 기본값 — 고른 활동·사람·기분·장소를 그림으로
          'photo' 넣은 사진 (여러 장이면 mainPhotoId 로 고른 한 장)
@@ -316,26 +320,27 @@
                여기는 그림일기의 **그림 자리**입니다. 글은 아래 원고지에 쓰는데
                같은 말이 그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
                읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
-          : html`<div class="pd-art">
-              <!-- 무엇을 했는지는 왼쪽 위에 작게 (제목처럼 붙는 표시) -->
-              <div class="pd-art-main" role="img" aria-label=${a ? a.name : '한 활동'}>
-                <${C.ActivityArt} activity=${a} />
-              </div>
+          : html`<div class=${'pd-art' + (placeBg ? ' has-bg' : '')}
+                 style=${placeBg ? { backgroundImage: 'url(' + placeBg + ')' } : null}>
+              <!-- ★ 짜임새 : **장소는 배경**, 그 안에 누구와 → 활동 → 기분 순서로
+                     나란히 큼직하게. 일기 문장(나는 · 누구와 · 무엇을 · 어땠다)과
+                     같은 차례라, 그림만 봐도 문장이 읽힙니다.
+                   ※ 그림만 넣습니다. 이름표·안내 글은 넣지 않습니다 —
+                     여기는 그림 자리이고 글은 아래 원고지에 씁니다.
+                     읽어주기와 화면 낭독(aria-label)으로는 그대로 전해집니다. -->
               <div class="pd-art-row">
                 ${partner && html`<span class="pd-art-item" role="img" aria-label=${partner.name}>
                   <span class="pd-art-thumb"><${C.PartnerArt} partner=${partner} student=${student} /></span>
                 </span>`}
+                <span class="pd-art-item" role="img" aria-label=${a ? a.name : '한 활동'}>
+                  <span class="pd-art-thumb"><${C.ActivityArt} activity=${a} /></span>
+                </span>
                 ${(d.moodIds || []).map(function (m) {
                   var mo = App.mood(m); if (!mo) return null;
                   return html`<span key=${m} class="pd-art-item" role="img" aria-label=${mo.name}>
                     <span class="pd-art-thumb"><${C.MoodArt} mood=${mo} /></span>
                   </span>`;
                 })}
-                ${d.place && html`<span class="pd-art-item" role="img" aria-label=${d.place}>
-                  <span class="pd-art-thumb">
-                    <${C.PickArt} kind="place" word=${d.place} iconKey="map" />
-                  </span>
-                </span>`}
               </div>
             </div>`}
       </div>

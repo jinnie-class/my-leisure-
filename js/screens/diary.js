@@ -1118,13 +1118,12 @@
             <b>${' 표시가 ' + name + '에 생겼어요.'}</b>
           </div>
         <//>
-        <div class="sentence" style=${{ marginTop: '.7rem' }}>${App.sentences.diaryBody(d)}</div>
       <//>`;
     }
     if (p.step === 1) {
       var q3 = '이 일기를 전시하고 싶어요?';
       return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}>
-        <p class="small muted">전시하기로 고른 기록에는 큰 별이 붙고, 포트폴리오에 실려요.</p>
+        <p class="small muted center">전시하기로 고른 기록에는 큰 별이 붙고, 포트폴리오에 실려요.</p>
         <${C.PickGrid} cols=${2} label=${q3}>
           <${C.Pick} label="전시할래요" speakText="전시할래요" selected=${!!d.exhibit}
             onClick=${function () { setExhibit(true); }} art=${html`<${C.Art} iconKey="star" />`} />
@@ -1144,8 +1143,12 @@
       actions=${html`<${C.Btn} kind="primary" size="big" icon="book"
         onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>완성한 그림일기 보기<//>`}>
       <${C.Banner} tone="ok" icon="check">
-        <b>${name + '의'}</b><span>${' 지금 표시예요.'}</span>
-        <div class="wrap" style=${{ marginTop: '.4rem' }}><${C.StateChips} status=${stNow} /></div>
+        <!-- 가운데로 모읍니다 — 마지막 창은 알림 한 덩어리라 가운데가 읽기 편합니다 -->
+        <div style=${{ textAlign: 'center' }}>
+          <b>${name + '의'}</b><span>${' 지금 표시예요.'}</span>
+        </div>
+        <div class="wrap" style=${{ marginTop: '.4rem', justifyContent: 'center' }}>
+          <${C.StateChips} status=${stNow} /></div>
       <//>
     <//>`;
   };
