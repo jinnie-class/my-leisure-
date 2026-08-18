@@ -1635,15 +1635,28 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* ★ 그림판은 **남는 자리에 맞춥니다** — 팝업에 스크롤이 생기지 않게.
      예전에는 `aspect-ratio` 로 폭에 맞춰 높이가 정해져서, 낮은 화면에서
      팝업이 넘쳐 스크롤이 생겼습니다. */
+/* ⚠ `width:100%` 와 `max-height` 를 함께 두지 마세요.
+     높이가 max-height 에 걸리면 칸이 그림보다 **옆으로 넓어지고**,
+     object-fit:contain 이 그림을 가운데에 놓으면서 양옆에 빈 띠가 생깁니다.
+     그러면 손끝과 그려지는 자리가 어긋납니다 (그림이 오른쪽으로 밀렸습니다).
+   ▸ 그래서 **높이 상한을 폭 상한으로 바꿔** 둡니다.
+     `44vh 높이일 때의 폭` = 44vh × 10/7. 이러면 칸이 늘 그림 비율과 같아
+     빈 띠가 아예 생기지 않습니다. */
 .dp-canvas{
-  width:100%; max-height:44vh; aspect-ratio:10 / 7; display:block;
+  width:min(100%, calc(44vh * 10 / 7));
+  aspect-ratio:10 / 7; height:auto; display:block; margin:0 auto;
+  /* 비율을 **테두리 안쪽**에 매깁니다. border-box 로 두면 테두리 6px 때문에
+     안쪽 비율이 조금 어긋나서 아주 얇은 빈 띠가 남습니다. */
+  box-sizing:content-box;
   background:#fff; border:3px solid var(--line); border-radius:16px;
   touch-action:none;              /* 그리는 중에 화면이 밀리지 않게 */
   cursor:crosshair;
-  object-fit:contain;
 }
 /* 손글씨 판은 옆으로 넓어서 비율을 따로 둡니다 */
-.dp.dp-wide .dp-canvas{ aspect-ratio:7 / 4; max-height:46vh; }
+.dp.dp-wide .dp-canvas{
+  width:min(100%, calc(46vh * 7 / 4));
+  aspect-ratio:7 / 4;
+}
 
 /* ===========================================================
    일기 고치기 (좌우 2단)

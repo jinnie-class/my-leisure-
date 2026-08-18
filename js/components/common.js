@@ -896,11 +896,28 @@
       }
     }, []);
 
-    /* 화면 좌표 → 그림판 좌표 */
+    /* 화면 좌표 → 그림판 좌표
+       ★ 손끝(마우스·펜·손가락)과 그려지는 자리가 어긋나던 것을 고쳤습니다.
+         빠뜨린 것이 둘이었습니다.
+         ① **테두리 3px** — getBoundingClientRect 는 테두리까지 잰 크기입니다.
+            그림은 테두리 안쪽에 그려지므로 그만큼 빼야 합니다.
+         ② **빈 띠** — object-fit:contain 은 그림을 칸 안에서 비율 그대로
+            가운데에 놓습니다. 칸이 그림보다 넓으면 양옆에 빈 띠가 생기는데,
+            그 띠를 빼지 않으면 그림이 오른쪽으로 밀려서 그려집니다.
+       ▸ clientWidth/clientHeight 는 테두리를 뺀 **안쪽** 크기입니다.
+       ▸ 가로세로를 같은 배(scale)로 셈해야 그림이 찌그러지지 않습니다. */
     function at(e) {
       var cv = cvRef.current, r = cv.getBoundingClientRect();
-      return { x: (e.clientX - r.left) * (W / r.width),
-               y: (e.clientY - r.top) * (H / r.height) };
+      var cs = window.getComputedStyle(cv);
+      var bl = parseFloat(cs.borderLeftWidth) || 0;
+      var bt = parseFloat(cs.borderTopWidth) || 0;
+      var cw = cv.clientWidth || (r.width - bl * 2);
+      var ch = cv.clientHeight || (r.height - bt * 2);
+      var scale = Math.min(cw / W, ch / H);
+      if (!(scale > 0)) return { x: 0, y: 0 };
+      var ox = r.left + bl + (cw - W * scale) / 2;
+      var oy = r.top + bt + (ch - H * scale) / 2;
+      return { x: (e.clientX - ox) / scale, y: (e.clientY - oy) / scale };
     }
     function begin(e) {
       var cv = cvRef.current; if (!cv) return;
