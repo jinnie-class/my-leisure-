@@ -91,6 +91,7 @@
     var stepS = useState(fromChallenge ? 2 : 0);
     var step = stepS[0], setStep = stepS[1];
     var pageS = useState(0);
+    var placePageS = useState(0);      // 장소는 19곳이라 쪽을 나눕니다
     var savedS = useState(null);
 
     function patch(o) { setDraft(Object.assign({}, draft, o)); }
@@ -344,30 +345,49 @@
       }
 
       if (key === 'place') {
+        /* ★ 예전에는 `교실 · 집 · 학교 · 공원 · 운동장` **다섯 곳만** 나왔습니다.
+             `images/장소/` 에 그림이 19장 있는데도 14장이 화면에 못 나오고
+             있었습니다. 이제 `App.DATA.places` 를 모두 씁니다.
+           ▸ 그 활동에 어울리는 곳(`defaultPlace`)을 **맨 앞**에 둡니다.
+           ▸ 한 쪽에 10곳씩(5칸 × 2줄) 보여 주고, 활동 고르기와 같은 방식으로
+             쪽을 넘깁니다. 한꺼번에 19곳을 놓으면 흰 칸을 넘겨 갈라집니다.
+           ▸ `직접 쓰기` 는 **맨 마지막 쪽**에만 붙입니다 (늘 있으면 자리를 먹습니다). */
         var act = App.act(draft.activityId);
-        var suggests = [];
-        if (act && act.defaultPlace) suggests.push(act.defaultPlace);
-        ['교실', '집', '학교', '공원', '운동장'].forEach(function (s) { if (suggests.indexOf(s) < 0) suggests.push(s); });
+        var places = (App.DATA.places || []).slice();
+        if (act && act.defaultPlace) {
+          places = [act.defaultPlace].concat(places.filter(function (s) { return s !== act.defaultPlace; }));
+        }
+        var PLACE_PER = 10;
+        var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
+        var plPage = Math.min(placePageS[0], plPages - 1);
+        var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
+        var lastPage = plPage === plPages - 1;
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="어느 곳에서 할까요?">어느 곳에서 할까요?<//>
-          <${C.PickGrid} cols=${3} label="장소">
-            <!-- ★ 여기는 고르면 아무 소리도 나지 않았습니다 (speakText 은 작은 스피커
-                 아이콘만 쓰던 값이고, 눌렀을 때 읽어 주는 코드가 없었습니다).
-                 낱말 하나가 아니라 짧은 문장으로 읽습니다 — '집' 처럼 한 글자면
-                 목소리가 더 이상하게 들립니다 (korean.js 의 App.partnerSpeech 주석). -->
-            ${suggests.slice(0, 5).map(function (s) {
+          <${C.PickGrid} cols=${5} big=${true} label="장소">
+            <!-- 고르면 낱말 하나가 아니라 짧은 문장으로 읽습니다 — '집' 처럼
+                 한 글자면 목소리가 이상하게 들립니다
+                 (korean.js 의 App.partnerSpeech 주석을 보세요). -->
+            ${plShown.map(function (s) {
               var say = s + '에서 할 거예요';
               return html`<${C.Pick} key=${s} selected=${draft.place === s} label=${s} speakText=${say}
                 onClick=${function () { patch({ place: s }); App.speakFor(student, say); }}
                 art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
-            <div class="pick" style=${{ cursor: 'default' }}>
+            ${lastPage && html`<div class="pick" style=${{ cursor: 'default' }}>
               <span class="thumb"><${C.Art} iconKey="pencil" /></span>
               <span class="label">직접 쓰기</span>
               <input class="field" value=${draft.place || ''} placeholder="예) 우리 집 거실"
                 onChange=${function (e) { patch({ place: e.target.value }); }} />
-            </div>
+            </div>`}
           <//>
+          ${plPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
+            <${C.Btn} icon="back" disabled=${plPage === 0}
+              onClick=${function () { placePageS[1](plPage - 1); }}>앞 장소 보기<//>
+            <span class="chip">${plPage + 1} / ${plPages}</span>
+            <${C.Btn} icon="next" disabled=${plPage >= plPages - 1}
+              onClick=${function () { placePageS[1](plPage + 1); }}>장소 더 보기<//>
+          </div>`}
         <//>`;
       }
 

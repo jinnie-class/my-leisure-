@@ -495,6 +495,12 @@
         var span = el.scrollWidth - m.padL - m.padR;       // 단들이 차지한 전체 폭
         n = Math.max(1, Math.round((span + m.gap) / m.stride));
         if (n > 40) n = 40;
+        /* ★ 쪽이 하나로 나왔으면 **높이 잠금을 풀어야** 합니다.
+             넘친다고 판단해서 높이를 지금 크기로 못박아 놓고 쪽은 하나이면,
+             넘친 부분이 잘린 채 **넘겨 볼 방법도 없습니다.**
+             (사람 카드 7장 화면에서 글자 아랫부분 15px 이 잘려 있었습니다)
+             잠금을 풀면 흰 칸이 내용만큼 늘어나 잘리지 않습니다. */
+        if (n <= 1) { el.style.height = ''; el.style.columnWidth = 'auto'; }
       }
       setS(function (prev) {
         var page = Math.min(prev.page, n - 1);
@@ -641,21 +647,28 @@
        (실내에서 해요 / 실외에서 해요 처럼 그림 자체가 장면일 때) */
     var cls = 'pick' + (p.selected ? ' sel' : '') + (p.compact ? ' compact' : '')
             + (p.bare ? ' bare' : '');
+    /* ★ 읽어주기 단추를 **글자 오른쪽 옆**에 붙입니다.
+         예전에는 글자 아래에 따로 한 줄을 차지해서, 카드 높이를 그만큼 먹고
+         그림이 작아졌습니다. 옆으로 옮기고 크기도 줄였습니다
+         (css 의 `.pick-name` · `.pick-name .speak`). */
     return html`<button type="button" class=${cls} onClick=${p.onClick}
         aria-pressed=${p.selected ? 'true' : 'false'} aria-label=${p.ariaLabel || p.label}>
       <span class="check" aria-hidden="true">✓</span>
       <span class=${'thumb' + (p.portrait ? ' portrait' : '')}>${p.art}</span>
-      <span class="label">${p.label}</span>
+      <span class="pick-name">
+        <span class="label">${p.label}</span>
+        ${p.speak !== false && p.speakText && html`<${C.Speak} short=${true} text=${p.speakText} />`}
+      </span>
       ${p.note && html`<span class="note">${p.note}</span>`}
       ${p.more && html`<span class="more">${p.more}</span>`}
-      ${p.speak !== false && p.speakText && html`<${C.Speak} short=${true} text=${p.speakText} />`}
     </button>`;
   };
 
   C.PickGrid = function (p) {
     /* scene : 그림이 아이콘이 아니라 **풍경 장면**일 때 (아침·낮·저녁처럼).
        칸을 3:2 로 넓혀서 장면이 꽉 차게 보입니다 (css 의 .pick-grid.scene). */
-    var cls = 'pick-grid' + (p.cols ? ' cols-' + p.cols : '') + (p.scene ? ' scene' : '');
+    var cls = 'pick-grid' + (p.cols ? ' cols-' + p.cols : '')
+            + (p.scene ? ' scene' : '') + (p.big ? ' big' : '');
     return html`<div class=${cls} role="group" aria-label=${p.label || ''}>${p.children}</div>`;
   };
 
