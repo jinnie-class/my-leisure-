@@ -224,13 +224,11 @@
       if (savedS[0]) {
         var saved = App.store.plan(savedS[0]) || previewPlan;
         return html`<${React.Fragment}>
-          <!-- ★ 아래 작은 설명 글씨를 없앴습니다. 글씨가 작아서 학생은 읽지 않고,
-                 칭찬 한마디만 크게 보이는 것이 더 분명합니다. -->
-          <${C.Banner} tone="ok" icon="check"
-            speakText="계획을 잘 저장했어요. 활동을 마친 뒤에 홈에서 일기를 쓰면 돼요.">
-            <b style=${{ fontSize: '1.2rem' }}>계획을 잘 저장했어요.</b>
-          <//>
-          <div style=${{ height: '.7rem' }}></div>
+          <!-- ★ '계획을 잘 저장했어요' 알림 바를 없앴습니다.
+                 저장을 누르면 화면 위에 같은 말이 알림으로 떴다 사라지고,
+                 소리로도 읽어 줍니다. 그 아래 계획표까지 이미 보이는데
+                 바를 하나 더 두면 **같은 말을 세 번** 하는 셈입니다
+                 (규칙 7 — 중복 금지). 그만큼 계획표가 커집니다. -->
           <${C.PlanSheet} plan=${saved} student=${student} />
           <div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
             <${C.Btn} icon="home" className="pastel-yellow"

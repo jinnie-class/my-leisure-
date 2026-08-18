@@ -713,11 +713,30 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 
 /* 짧고 차분한 성공 알림 */
+/* 알림 알약 (`App.ui.toast`) — 저장했어요 같은 짧은 알림.
+   ★ 예전에는 화면 **맨 아래**(bottom:5.2rem)에 나왔습니다. 그 자리는 큰
+     단추 바가 있는 곳이라, 알림이 단추 위로 **뚝 떨어졌다 사라지는** 것처럼
+     보였습니다. 무슨 일이 일어났는지 알기 어려웠습니다.
+   ▸ 이제 **맨 위 줄 아래 가운데**에 나옵니다. 그 자리는 늘 비어 있고,
+     학생의 눈이 처음 가는 곳이기도 합니다.
+   ▸ `7.6rem` 인 까닭 : 맨 위 줄이 가장 낮은 화면이 **일기**(아래끝 110px =
+     6.47rem)입니다. 나타날 때 10px 위에서 내려오므로 그만큼도 더 봐야 해서,
+     6.47 + 0.6(간격) + 0.6(내려오는 거리) ≈ 7.6rem 으로 두었습니다.
+   ▸ 살짝 내려오며 나타납니다 — 갑자기 튀어나오면 놀랍니다.
+     '움직임 줄이기' 를 켠 학생에게는 그냥 나타납니다. */
 .toast{
-  position:fixed; left:50%; bottom:5.2rem; transform:translateX(-50%);
-  z-index:70; background:#e3f2e6; border:2px solid var(--line);
+  position:fixed; left:50%; top:7.6rem; transform:translateX(-50%);
+  z-index:70; background:#e3f2e6; border:2px solid #9fd3ab;
   border-radius:999px; padding:.6rem 1.2rem; font-weight:900; font-size:1.05rem;
-  box-shadow:var(--shadow); max-width:92vw; text-align:center;
+  box-shadow:var(--shadow-2, var(--shadow)); max-width:92vw; text-align:center;
+  animation:toast-in .22s ease-out both;
+}
+@keyframes toast-in{
+  from{ opacity:0; transform:translate(-50%,-10px); }
+  to  { opacity:1; transform:translate(-50%,0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .toast{ animation:none; }
 }
 
 /* ============================ 여가 탐험 지도 ============================ */
