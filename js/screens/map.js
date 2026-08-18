@@ -273,16 +273,6 @@
           onClick=${function () { p.nav('home'); }} />`}>
         <!-- '일기 쓰기' 는 두지 않습니다. 여기는 지도를 보는 곳이고,
              일기는 홈의 계획 카드나 기록하GO! 에서 씁니다 (규칙 7 — 중복 금지) -->
-        <!-- ★ 선생님 도구(찾아보기 · 지도 도움말)는 **맨 위 줄 스피커 옆**에 둡니다.
-               지도 위에 한 줄로 두면 그만큼 지도가 눌리고, 지도 아래에 두면
-               학생이 쓰는 큰 단추와 섞입니다. 맨 위 줄은 이미 어른이 쓰는
-               자리(집 단추 · 스피커 · 이름표)라서 여기가 제자리입니다. -->
-        ${student && student.mapTools ? html`<${React.Fragment}>
-          <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
-            찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
-          <${C.Btn} size="small" icon="question"
-            onClick=${function () { helpS[1](true); }}>지도 도움말<//>
-        <//>` : null}
         <${C.Speak} text=${'나의 여가 탐험 지도. ' + summary.join(' ')} />
         <${C.WhoChip} student=${student} />
       <//>
@@ -316,6 +306,22 @@
               })}
             </div>
           </div>
+
+          <!-- 선생님 도구 한 줄 — 도장판 바로 아래, 왼쪽 찾아보기 · 오른쪽 도움말.
+               ★ 맨 위 줄(집 단추 · 스피커 · 이름표)에 두었더니 그 줄이 빽빽해
+                 답답해 보였습니다. 도장판 아래는 원래 비어 있던 자리라
+                 지도를 줄이지 않고도 둘 곳이 생깁니다.
+               ※ 선생님이 켤 때에만 나옵니다 — 학생 화면에는 지도만 보입니다. -->
+          ${student && student.mapTools && html`<div class="map-toolrow">
+            <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
+              찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
+            ${filter[0] !== 'all' && html`<span class="chip">
+              ${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name} 만 보여요
+            </span>`}
+            <span class="grow"></span>
+            <${C.Btn} size="small" icon="question"
+              onClick=${function () { helpS[1](true); }}>지도 도움말<//>
+          </div>`}
 
 
           <!-- ★ 선생님 도구(찾아보기 · 지도 도움말)는 **지도 아래로 내렸습니다.**

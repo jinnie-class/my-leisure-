@@ -2163,3 +2163,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   flex:0 0 auto;
   background:var(--pastel-yellow, #fdf3d0); border:2px solid #e8d49a;
 }
+
+/* 여가 지도 · 선생님 도구 한 줄 — 도장판 바로 아래.
+   왼쪽 `찾아보기` · 오른쪽 `지도 도움말`, 가운데는 비워 둡니다. */
+.map-toolrow{
+  flex:0 0 auto; display:flex; align-items:center; gap:.4rem;
+}
