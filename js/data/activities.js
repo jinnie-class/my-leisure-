@@ -52,7 +52,9 @@
       tried: 'images/해봤어요.png',
       like: 'images/좋아해요.png',
       challenge: 'images/도전하고 싶어요.png',
-      unsure: 'images/아직 잘 모르겠어요.png'
+      unsure: 'images/아직 잘 모르겠어요.png',
+      /* 계획표 제목 아래 손그림 밑줄 (없으면 코드로 그린 하늘색 막대가 나옵니다) */
+      planLine: 'images/여가 계획표 밑줄.png'
     },
     /* 동그라미가 그려져 있지 않아 단추 안쪽에 넣어야 하는 그림 */
     uiInset: { home: true }

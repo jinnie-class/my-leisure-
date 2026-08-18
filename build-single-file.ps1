@@ -149,6 +149,10 @@ foreach ($k in @('indoor','outdoor','tried','like','challenge','unsure')) {
   $htmlText = Embed-Asset $htmlText $k
 }
 $script:PreserveAlpha = $false
+# plan-sheet title underline: wide (3:1) hand drawing, needs transparency
+$MaxSide = 768; $ResizeOverKB = 40; $script:PreserveAlpha = $true
+$htmlText = Embed-Asset $htmlText 'planLine'
+$script:PreserveAlpha = $false
 $MaxSide = $savedMax; $Quality = $savedQ; $ResizeOverKB = $savedOver
 
 if ($Out) { $outPath = $Out } else { $outPath = Join-Path $root 'single-file.html' }

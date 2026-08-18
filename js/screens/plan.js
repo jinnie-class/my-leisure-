@@ -30,6 +30,7 @@
       ? plan.partnerIds : (plan.partnerId ? [plan.partnerId] : []);
     var whoList = whoIds.map(App.partner).filter(Boolean);
     var student = p.student;
+    var lineImg = App.uiImage('planLine');      // 제목 아래 손그림 밑줄 (없으면 null)
     /* ★ 짜임새를 바꿨습니다.
          예전에는 활동 그림이 **제목 옆 오른쪽 위에 조그맣게** 붙어 있었습니다.
          제목을 가리고, 그림이 너무 작아서 무슨 활동인지 알아보기 어려웠습니다.
@@ -52,6 +53,9 @@
 
     return html`<div class="sheet">
       <div class="sheet-title">오늘의 여가 계획표</div>
+      <!-- 제목 아래 손그림 밑줄. 그림 파일이 없으면 이 줄만 안 나오고
+           CSS 가 그린 하늘색 막대가 대신 보입니다 (css 의 .sheet-title::after). -->
+      ${lineImg && html`<img class="sheet-line" src=${lineImg} alt="" />`}
       <div class="sentence sentence-center" style=${{ marginTop: '.6rem' }}>
         ${App.sentences.plan(plan)}</div>
       <div class="sheet-body">

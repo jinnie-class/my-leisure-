@@ -858,17 +858,36 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    ★ 활동 그림은 제목 옆 오른쪽 위에 조그맣게 붙어 있었습니다. 제목을 가리고
      무슨 활동인지 알아보기 어려웠습니다. 표 오른쪽 빈자리로 내려서 크게 키웠습니다. */
 /* 계획표 제목 — 아래 문장과 **한눈에 구분**되게.
-   ★ 예전에는 제목도 문장도 똑같은 검은 글씨여서 어디가 제목인지 몰랐습니다.
-   ▸ 계획하기 코너 색(`#5ec8f2` 하늘색)을 **더 진하게** 한 글자색을 씁니다.
+   ▸ 계획하기 코너 색(#5ec8f2 하늘색)을 더 진하게 한 글자색을 씁니다.
      원래 색 그대로는 흰 종이에서 너무 옅어 읽기 어렵습니다.
-   ▸ 글자색만으로 구분하지 않습니다 — 아래에 **짧은 밑줄**을 함께 둡니다.
+   ▸ 글자색만으로 구분하지 않습니다 — 아래에 손그림 밑줄을 함께 깝니다
+     (images/오늘의 여가 계획표 밑줄.png — 왼쪽에 수첩, 오른쪽에 별).
      색을 잘 못 가리는 학생과 흑백 인쇄에서도 제목으로 보여야 합니다
      (규칙 : 색만으로 뜻을 나타내지 않기). */
 .sheet .sheet-title{
   font-size:1.35rem; font-weight:900; letter-spacing:-.03em; text-align:center;
   color:#1c7fa8;
 }
-.sheet .sheet-title::after{
+/* 손그림 밑줄 — 제목 글자보다 넓게 깝니다.
+   ★ 그림 파일은 2172×724 (3:1) 인데 **둘레에 투명한 여백이 큽니다.**
+     브라우저에서 실제로 재어 본 값 (알파값이 있는 칸의 테두리) :
+       위 33.8% · 아래 34.4% · 왼 8.3% · 오 7.0%
+     그대로 넣으면 220px 을 차지해서 아래 문장을 밀어냅니다.
+     `clip-path` 로 위아래를 잘라 내고, 잘라 낸 만큼 음수 여백으로 당깁니다.
+   ※ `--w` 를 쓰는 까닭 : 그림 높이는 폭의 1/3 이므로 잘라 낼 픽셀을
+     `--w / 3 * 0.335` 로 계산할 수 있습니다. 폭을 바꾸면 여백도 따라갑니다.
+   ※ 그림을 다시 그려서 여백이 달라지면 위 숫자도 다시 재세요.
+     재는 방법은 인수인계 8-16 에 있습니다. */
+.sheet-line{
+  --w:min(62%, 24rem);
+  --trim:0.335;                       /* 위아래로 잘라 낼 비율 (그림 높이 기준) */
+  display:block; width:var(--w); height:auto; margin-left:auto; margin-right:auto;
+  clip-path:inset(calc(var(--trim) * 100%) 0 calc(var(--trim) * 100%) 0);
+  margin-top:calc(var(--w) / 3 * -1 * var(--trim) - .1rem);
+  margin-bottom:calc(var(--w) / 3 * -1 * var(--trim) + .35rem);
+}
+/* 그림 파일이 없을 때에만 나오는 짧은 막대 (대신 그림) */
+.sheet-title:not(:has(+ .sheet-line))::after{
   content:""; display:block; width:3.4em; height:4px; margin:.3rem auto 0;
   border-radius:999px; background:#5ec8f2;
 }
