@@ -693,6 +693,17 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   border:2px solid var(--line); border-radius:var(--radius);
   padding:.7rem .9rem; background:var(--paper-2); break-inside:avoid;
 }
+/* ⚠ 알림 칸 안쪽 줄은 **접지 않습니다**.
+     `.row` 는 원래 flex-wrap:wrap 이라, 글이 길면 왼쪽 그림과 오른쪽 소리표가
+     각각 딴 줄로 밀려났습니다 (그림은 글 위에, 소리표는 단추 아래에 혼자
+     떠 있어서 어수선했습니다).
+   ▸ 접지 않고, 위쪽에 맞춰 **글 첫 줄과 나란히** 둡니다.
+   ▸ 가운데 글칸에 min-width:0 을 주어야 긴 글이 줄바꿈으로 접힙니다. */
+.banner > .row{ flex-wrap:nowrap; align-items:flex-start; }
+.banner > .row > .grow{ min-width:0; }
+.banner > .row > [aria-hidden="true"],
+.banner > .row > .speak,
+.banner > .row > .iconbtn{ margin-top:.1rem; }
 .banner.info{ background:var(--paper-2); }
 .banner.warn{ background:#fff; border-color:#eec3b6; }
 .banner.ok{ background:var(--paper-2); }
@@ -1300,15 +1311,26 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* 완성 화면 : 기본은 위아래로 쌓습니다 */
 .confirm-2col{ display:flex; flex-direction:column; gap:.5rem; break-inside:avoid; }
-/* ★ 넓고 낮은 화면에서는 **좌우로** 나눕니다.
-     문장 칸과 완성된 그림일기를 위아래로 쌓으면 낮은 화면에서 쪽이 갈라집니다.
-     화면이 넓으니 옆으로 놓는 것이 자리를 훨씬 잘 씁니다. */
-@media (max-height: 780px) and (min-width: 900px){
+/* ★ 넓은 화면에서는 **좌우로** 나눕니다.
+     문장 칸과 완성된 그림일기를 위아래로 쌓으면 828px 가 되어 흰 칸을 넘고,
+     완성 화면이 2~3쪽으로 갈라져 **1쪽이 텅 비어** 보였습니다.
+     옆으로 놓으면 둘 가운데 큰 쪽 높이(517px)만 쓰면 됩니다.
+   ⚠ 예전에는 `max-height:780px` 조건이 함께 걸려 있어서, **높은 화면에서는
+     좌우로 안 나뉘었습니다.** 높이가 넉넉하면 괜찮을 줄 알았는데, 그림일기를
+     키우고(0.30 → 0.46) 알림 칸이 늘면서 높은 화면에서 되레 넘쳤습니다.
+     높이 조건을 빼서 **넓기만 하면 늘 좌우로** 나눕니다. */
+@media (min-width: 900px){
   .confirm-2col{
     flex-direction:row; align-items:flex-start; gap:1rem;
   }
-  .confirm-2col > .confirm-left{ flex:1 1 auto; min-width:0; }
-  .confirm-2col > .dv-row{ flex:0 0 auto; margin-top:0; }
+  /* ⚠ 왼쪽 칸에 **가장 작은 폭**을 정해 주세요.
+       그러지 않으면 오른쪽(그림일기 + 양옆 바)이 817px 를 다 가져가고
+       왼쪽이 186px 로 눌립니다. 그러면 문장 칸이 한 줄에 한 글자씩 접혀
+       **900px 짜리 기둥**이 되고, 완성 화면이 다섯 쪽으로 갈라집니다.
+     ▸ 오른쪽은 줄어들 수 있게 두면(flex:0 1 auto) 양옆 바가 두 줄로 접히며
+       자리를 내어 줍니다. 그림일기 자체는 크기가 고정이라 안 줄어듭니다. */
+  .confirm-2col > .confirm-left{ flex:1 1 0; min-width:min(360px, 40%); }
+  .confirm-2col > .dv-row{ flex:0 1 auto; min-width:0; margin-top:0; }
 }
 .confirm-left{ display:flex; flex-direction:column; gap:.5rem; min-width:0; }
 
