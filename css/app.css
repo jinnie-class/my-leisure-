@@ -2213,6 +2213,27 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   text-align:center;
 }
 
+/* 바꾸기 창 — 네 쪽 (날짜·날씨 / 사람 / 장소 / 실내외 활동).
+   쪽마다 뼈대 화면을 그대로 쓰므로 칸 크기가 저절로 같아집니다.
+   창 안에서 스크롤이 생기지 않도록 한 쪽 높이를 못박습니다. */
+.meta-tabs{
+  display:flex; flex-wrap:wrap; gap:.35rem; justify-content:center;
+  margin-bottom:.6rem;
+}
+.meta-page{ min-height:min(52vh, 460px); }
+/* 창 안에서는 질문 바를 한 번 더 보여 줄 까닭이 없습니다 — 창 제목이 곧 질문입니다 */
+.meta-page .q-bar{ display:none; }
+/* ★ 네 쪽의 그림칸을 **같은 크기**로 못박습니다.
+     장소만 큰 카드(`.pick-grid.big`, 180px)를 쓰고 나머지는 79px 이라
+     쪽을 넘길 때마다 크기가 튀어 어수선했습니다.
+     여기서는 어느 쪽이든 같은 크기라, 넘겨도 화면이 흔들리지 않습니다. */
+.meta-page .pick-grid .thumb,
+.meta-page .pick-grid.big .thumb{
+  width:clamp(84px, 12vh, 124px); height:clamp(84px, 12vh, 124px);
+}
+/* 3단계 글 칸은 바꾸기 창에 넣지 않습니다 — 여기는 그림을 바꾸는 곳입니다 */
+.meta-page .six{ display:none; }
+
 /* 1단계 : 지금까지 고른 것을 **그림으로** 차례대로 (2·3단계의 문장 띠와 같은 자리).
    ★ 아직 글을 읽기 어려운 학생이라, 문장 대신 그림을 쌓아 줍니다.
    ▸ 한 줄로만 둡니다 — 두 줄이 되면 그만큼 질문 자리를 먹습니다. */

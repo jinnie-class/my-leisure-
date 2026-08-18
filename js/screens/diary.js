@@ -142,7 +142,7 @@
     var afterS = useState(null);       // 저장 후 물어보는 순서
     var savedIdS = useState(null);
     var helpS = useState(false);
-    var editMetaS = useState(false);
+    var editMetaS = useState(false);   // 바꾸기 창 : false 면 닫힘, 숫자면 그 쪽
     var drawS = useState(false);       // 직접 그리기 판이 열려 있는지
     var photoS = useState(false);      // 사진 고르기 팝업이 열려 있는지
     var madeS = useState(null);        // 방금 그린 그림 (완성 확인 창에서 보여 줍니다)
@@ -544,6 +544,19 @@
       <//>`;
     }
 
+    /* 바꾸기 창의 네 쪽. `bone` 은 뼈대 화면 번호입니다 (boneBody 주석 참고).
+       editMetaS 에는 **쪽 번호**가 들어갑니다 (false 면 창이 닫힌 것). */
+    var META_TABS = [
+      { name: '날짜 · 날씨', bone: 0 },
+      { name: '사람',        bone: 1 },
+      { name: '장소',        bone: 2 },
+      { name: '실내외 활동', bone: 3 }
+    ];
+    function metaPage() {
+      var v = editMetaS[0];
+      return (typeof v === 'number' && v >= 0 && v < META_TABS.length) ? v : 0;
+    }
+
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
@@ -563,7 +576,7 @@
                위아래에 한 줄씩 두면 그만큼 그림일기가 작아집니다. -->
           <${C.DiaryPreview} draft=${draft} student=${student}
             left=${html`<${C.Btn} size="small" icon="pencil" className="pastel-blue"
-              onClick=${function () { editMetaS[1](true); }}>날짜 · 사람 · 장소 바꾸기<//>`} />
+              onClick=${function () { editMetaS[1](0); }}>날짜 · 사람 · 장소 바꾸기<//>`} />
         </div>
       <//>`;
     }
@@ -639,7 +652,7 @@
             ${(App.weather(draft.weather) || {}).name}</span>`}
           <div class="grow"></div>
           ${fromPlan && html`<span class="star-badge">계획에서 가져왔어요</span>`}
-          <${C.Btn} size="small" icon="pencil" onClick=${function () { editMetaS[1](true); }}>바꾸기<//>
+          <${C.Btn} size="small" icon="pencil" onClick=${function () { editMetaS[1](0); }}>바꾸기<//>
         </div>
       </div>`;
     }
@@ -1063,30 +1076,33 @@
         </div>
       <//>`}
 
-      ${editMetaS[0] && html`<${C.Modal} title="기록 내용 바꾸기" onClose=${function () { editMetaS[1](false); }}
-        actions=${html`<${C.Btn} kind="ok" onClick=${function () { editMetaS[1](false); }}>다 바꿨어요<//>`}>
-        <div class="stack">
-          <${C.Field} label="날짜" type="date" value=${draft.date}
-            onChange=${function (v) { patch({ date: v || App.todayKey() }); }} />
-          ${weatherPicker()}
-          <div>
-            <span class="lab">함께한 사람</span>
-            <${C.PickGrid} cols=${4}>
-              ${partners.map(function (pt) {
-                return html`<${C.Pick} key=${pt.id} selected=${draft.partnerId === pt.id} label=${pt.name}
-                  speak=${false} portrait=${true} onClick=${function () { patch({ partnerId: pt.id }); }}
-                  art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
-              })}
-            <//>
-          </div>
-          <${C.Field} label="장소" value=${draft.place}
-            onChange=${function (v) { patch({ place: v }); }} />
-          <div>
-            <span class="lab">활동 다시 고르기</span>
-            <${C.ActivityChooser} student=${student} value=${draft.activityId}
-              onPick=${function (id) { patch({ activityId: id, cardId: App.cardIdOf(id) }); }} />
-          </div>
+      <!-- ★ 바꾸기 창을 **네 쪽**으로 나눴습니다.
+             예전에는 날짜 · 날씨 · 사람 · 장소 · 활동을 한 창에 다 넣어서
+             스크롤이 생기고, 칸 크기도 들쑥날쑥했습니다.
+           ▸ 쪽마다 **뼈대 화면을 그대로** 씁니다 (boneBody). 그래서 고르는
+             모습이 처음 고를 때와 똑같고, 크기도 저절로 같아집니다.
+           ▸ 앞뒤 화살표로 오갑니다. -->
+      ${editMetaS[0] !== false && editMetaS[0] !== null && html`<${C.Modal}
+        title=${'바꾸기 — ' + META_TABS[metaPage()].name} wide=${true}
+        onClose=${function () { editMetaS[1](false); }}
+        actions=${html`<${React.Fragment}>
+          <${C.Btn} icon="back" disabled=${metaPage() === 0}
+            onClick=${function () { editMetaS[1](metaPage() - 1); }}>앞으로<//>
+          <span class="chip">${metaPage() + 1} / ${META_TABS.length}</span>
+          <${C.Btn} icon="next" disabled=${metaPage() >= META_TABS.length - 1}
+            onClick=${function () { editMetaS[1](metaPage() + 1); }}>뒤로<//>
+          <${C.Btn} kind="ok" icon="check"
+            onClick=${function () { editMetaS[1](false); }}>다 바꿨어요<//>
+        <//>`}>
+        <div class="meta-tabs">
+          ${META_TABS.map(function (t, i) {
+            var on = metaPage() === i;
+            return html`<button key=${t.name} type="button" class=${'tab' + (on ? ' on' : '')}
+              aria-pressed=${on ? 'true' : 'false'}
+              onClick=${function () { editMetaS[1](i); }}>${t.name}<//>`;
+          })}
         </div>
+        <div class="meta-page">${boneBody(META_TABS[metaPage()].bone)}</div>
       <//>`}
 
       <!-- 손글씨 일기 판 (3단계) — 줄공책처럼 줄이 그려진 넓은 판입니다 -->
