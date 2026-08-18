@@ -38,12 +38,14 @@ $targets = @{
   '또하기'     = $Quality
   '코너명'     = $Quality
   '얼굴표정'   = $Quality
+  '준비물'     = $Quality
   'activities' = $Quality
   'avatars'    = $Quality
 }
 $rootFiles = @{           # images 바로 밑에 있는 그림들
   '표지.png'     = 1500   # 첫 화면을 다 덮으므로 크게
   '여가지도.png' = 0      # 0 = 건드리지 않음
+  '여가 계획표 밑줄.png' = 1024   # 가로로 아주 긴 그림이라 조금 크게 둡니다
 }
 $rootDefault = $Quality   # 그 밖의 단추 그림 등
 
