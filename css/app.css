@@ -1588,19 +1588,22 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* 5-2. 밑줄 (일기 3단계 자유쓰기)
    글이 길어져도 다 담기도록 칸 대신 줄에 씁니다. */
+/* ⚠ --lh(줄 간격) · --rows(줄 수) · --fs(글자 크기)는 **picdiary.js 가 넣어 줍니다**
+     (fitLines). 짧게 쓰면 5줄에 34px 로 시원하게, 길게 쓰면 한 단계씩
+     작아지며 한 장에 맞춥니다. 여기 값은 못 넣어 줬을 때의 대비책입니다.
+   ★ 줄무늬를 위로 올리지 않습니다. 예전에는 13px 올려 두어 글자가 줄에
+     **붙어** 보였습니다. 그냥 두면 글자가 줄 사이 가운데에 놓입니다. */
 .pd-lines{
   flex:0 0 auto; padding:0 16px; overflow:hidden;
-  --lh:46px;
+  --lh:92px; --rows:5; --fs:34px;
   line-height:var(--lh);
-  min-height:calc(var(--lh) * 7);
-  /* 줄이 글자 '기준선' 바로 아래에 오도록 무늬를 위로 조금 올립니다.
-     (그냥 두면 글자가 두 줄 사이에 떠 있는 것처럼 보입니다) */
+  min-height:calc(var(--lh) * var(--rows));
   background-image:repeating-linear-gradient(to bottom,
-    transparent 0, transparent calc(var(--lh) - 2px), #333 calc(var(--lh) - 2px), #333 var(--lh));
-  background-position:0 -13px;
+    transparent 0, transparent calc(var(--lh) - 3px), #333 calc(var(--lh) - 3px), #333 var(--lh));
+  background-position:0 0;
 }
 .pd-ln{
-  margin:0; font-size:22px; font-weight:800; line-height:var(--lh);
+  margin:0; font-size:var(--fs); font-weight:800; line-height:var(--lh);
   text-indent:1em;                /* 문단 첫 칸 들여쓰기 */
   /* ※ .pd-ch 의 white-space:pre 를 물려받으면 줄이 안 바뀌어 글자가 종이 밖으로 나갑니다 */
   white-space:normal;

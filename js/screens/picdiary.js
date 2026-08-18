@@ -180,6 +180,36 @@
   App.manuscriptRows = gridRows;
   App.verifyManuscript = verifyGrid;
 
+  /* ── 3단계 밑줄 : 줄 간격과 글자 크기 고르기 ────────────────────────
+     ★ 예전에는 줄 간격 46px · 글자 22px 로 **못박아** 두고 7줄을 그렸습니다.
+       줄이 많고 글자가 작아서, 자유롭게 쓴 일기가 빽빽해 보였습니다.
+       또 줄무늬를 13px 위로 올려 두어 글자가 줄에 **붙어** 있었습니다.
+     ▸ 이제 **기본 5줄**로 시원하게 두고, 글이 길면 원고지(fitGrid)처럼
+       한 단계씩 작게 내려가며 한 장에 맞춥니다.
+     ▸ 글자는 줄 사이 **가운데**에 놓입니다 (줄무늬를 올리지 않습니다).
+     cpl = 한 줄에 들어가는 글자 수 (종이 안쪽 762px ÷ 글자 크기) */
+  var LINE_SIZES = [
+    { fs: 34, lh: 92 }, { fs: 30, lh: 80 }, { fs: 26, lh: 70 },
+    { fs: 22, lh: 60 }, { fs: 19, lh: 52 }
+  ];
+  var LINE_MIN_ROWS = 5;          // 짧게 써도 이만큼은 줄이 보입니다
+  var LINE_BUDGET = 640;          // 원고지가 쓰는 높이와 같게 (8줄 × 79px)
+
+  function fitLines(lines) {
+    for (var i = 0; i < LINE_SIZES.length; i++) {
+      var s = LINE_SIZES[i];
+      var cpl = Math.max(8, Math.floor(762 / s.fs));
+      var rows = 0;
+      (lines || []).forEach(function (t) {
+        rows += Math.max(1, Math.ceil((String(t || '').length + 1) / cpl));
+      });
+      rows = Math.max(LINE_MIN_ROWS, rows);
+      if (rows * s.lh <= LINE_BUDGET || i === LINE_SIZES.length - 1) {
+        return { fs: s.fs, lh: s.lh, rows: rows };
+      }
+    }
+  }
+
   /* 줄 수가 MAX_ROWS 를 넘지 않는 가장 큰 글씨(= 가장 적은 칸 수)를 고릅니다.
      모자라면 빈 줄을 채워 늘 5줄 이상 보이게 합니다. */
   function fitGrid(lines) {
@@ -239,6 +269,8 @@
     var handwriting = (lv === 3 && d.writeWay === 'hand' && d.writePhotoId)
       ? App.photos.url(d.writePhotoId) : null;
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
+    /* 3단계 밑줄의 줄 간격·글자 크기 (글이 길면 한 단계씩 작아집니다) */
+    var lineFit = useLines ? fitLines(lines) : null;
 
     /* ── 그림칸에 놓을 그림들 ──────────────────────────────────────
        장소는 배경으로 깔고, 그 위에 **누구와 · 활동 · 기분** 을 놓습니다.
@@ -410,7 +442,9 @@
             ? html`<div class="pd-lines pd-hw">
                 <img src=${handwriting} alt="손으로 쓴 일기" />
               </div>`
-            : html`<div class="pd-lines">
+            : html`<div class="pd-lines"
+                 style=${{ '--lh': lineFit.lh + 'px', '--rows': lineFit.rows,
+                           '--fs': lineFit.fs + 'px' }}>
                 ${lines.map(function (s, i) {
                   return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
                 })}

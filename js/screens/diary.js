@@ -516,6 +516,34 @@
          모르고 저장했습니다. 저장한 뒤 여러 창을 지나서야 완성품이 나왔고,
          그 사이에 `글 → 그림 → 완성` 흐름이 끊겼습니다.
          이제 이 한 화면에서 끝납니다. */
+    /* ── 아직 안 쓴 칸 알려 주기 (3단계) ──────────────────────────
+       ★ 글 칸을 비워 두어도 다음으로 넘어갑니다. 그래야 한 칸에서 막힌
+         학생도 일기를 끝낼 수 있습니다. 대신 **마지막에 모아서** 알려 주고,
+         누르면 그 질문으로 바로 돌아갑니다.
+       ▸ 나무라는 말투로 쓰지 않습니다. 안 써도 일기는 이미 완성입니다. */
+    function emptyBoneNote() {
+      if (level !== 3) return null;
+      var s = sixOf();
+      var todo = [];
+      Object.keys(BONE_WRITE).forEach(function (st) {
+        BONE_WRITE[st].forEach(function (x) {
+          if (!(s[x.k] || '').trim()) todo.push({ step: Number(st), q: x.q });
+        });
+      });
+      if (!todo.length) return null;
+      return html`<${C.Banner} tone="info" icon="pencil"
+        speakText=${'아직 안 쓴 것이 ' + todo.length + '가지 있어요. 지금 써도 되고, 그냥 두어도 괜찮아요.'}>
+        <b>아직 안 쓴 것이 ${todo.length}가지 있어요.</b>
+        <div class="small">눌러서 그 질문으로 갈 수 있어요. 그냥 두어도 괜찮아요.</div>
+        <div class="wrap" style=${{ marginTop: '.4rem' }}>
+          ${todo.map(function (t) {
+            return html`<${C.Btn} key=${t.q} size="small" className="pastel-yellow" icon="back"
+              onClick=${function () { stepS[1](t.step); }}>${t.q}<//>`;
+          })}
+        </div>
+      <//>`;
+    }
+
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
@@ -529,6 +557,7 @@
               placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
               onChange=${function (v) { patch({ bodyEdit: v }); }}
               onReset=${function () { patch({ bodyEdit: null }); }} />
+            ${emptyBoneNote()}
           </div>
           <!-- 날짜·날씨·사람·장소·활동을 고치는 길은 그림일기 **왼쪽 바**로.
                위아래에 한 줄씩 두면 그만큼 그림일기가 작아집니다. -->
