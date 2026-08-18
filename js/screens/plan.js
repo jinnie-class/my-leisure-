@@ -265,7 +265,7 @@
       if (key === 'area') {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="어디에서 할까요?">어디에서 할까요?<//>
-          <${C.PickGrid} cols=${2} label="장소 종류">
+          <${C.PickGrid} cols=${2} bigSpeak=${true} label="장소 종류">
             <${C.Pick} selected=${draft.area === 'indoor'} label="실내에서 해요" speakText="실내에서 해요"
               bare=${true}
               onClick=${function () { pick(function () {
@@ -553,12 +553,15 @@
     /* 흰 칸 맨 위 한 줄 : 왼쪽 `앞 질문으로` · 오른쪽 **지금까지 만든 한 문장**.
        문장은 고를 때마다 자라나므로, 학생이 앞에서 무엇을 골랐는지
        화면을 되돌아가지 않아도 알 수 있습니다. */
-    var soFar = (!saved && !subCard) ? sentenceSoFar() : '';
+    /* 계획을 확인해요 화면에는 두지 않습니다 — 바로 아래 계획표에
+       똑같은 문장이 이미 크게 나와서 같은 말을 두 번 하게 됩니다. */
+    var soFar = (!saved && !subCard && key !== 'confirm') ? sentenceSoFar() : '';
     var backBtn = (!saved && (step > 0 || subCard) || soFar)
       ? html`<div class="plan-top">
           ${(!saved && (step > 0 || subCard))
-            ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow" onClick=${back}>
-                ${subCard ? '다른 활동 고르기' : '앞 질문으로'}<//>`
+            ? html`<${C.IconBtn} icon="back" className="plan-back"
+                label=${subCard ? '다른 활동 고르기' : '앞 질문으로'}
+                onClick=${back} />`
             : html`<span></span>`}
           ${soFar && html`<span class="plan-sofar" aria-live="polite">${soFar}</span>`}
         </div>` : null;

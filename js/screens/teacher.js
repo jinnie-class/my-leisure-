@@ -440,6 +440,11 @@
                 앱 판 : ${App.VERSION || '-'} · 사진 ${App.photos.count()}장
                 ${App.photos.isFallback() ? ' · 간단 저장소 사용 중' : ''}
               </p>
+              <!-- 지금 돌고 있는 판 번호. '고쳤는데 화면이 그대로' 일 때
+                   여기를 보면 됩니다 (자세한 것은 인수인계 8-17). -->
+              <p class="muted small">
+                지금 보고 있는 판 : <b class="build-rev">${App.buildRev}</b>
+              </p>
             </div>
 
           </div>

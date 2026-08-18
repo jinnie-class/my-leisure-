@@ -494,14 +494,32 @@ ul{ margin:0; padding:0; list-style:none; }
 .q h2{ font-size:clamp(1.1rem,.72rem + 1.1vh,1.57rem); font-weight:900; letter-spacing:-.03em; }
 .q .hint{ font-size:.95rem; color:var(--ink-soft); font-weight:700; }
 
-/* 질문을 동그란 흰 바에 담아 **가운데**에 놓는 모양 (`C.Question bar=`).
-   읽어주기는 알약 밖 오른쪽 끝에 그대로 둡니다 (화면마다 한 자리 — 규칙 4).
-   알약이 가운데 오도록 좌우에 같은 크기의 빈 자리를 둡니다. */
-.q-bar{ position:relative; justify-content:center; }
+/* 질문 알약 — **파스텔 분홍**으로 채웁니다.
+   ★ 예전에는 흰 알약이라 흰 배경에 묻혀서 '질문' 으로 눈에 띄지 않았습니다.
+     화면에서 가장 먼저 봐야 할 것이 질문이므로 색을 줍니다.
+   ▸ 글자는 진한 먹색 그대로라 대비가 충분합니다.
+   ▸ 색만으로 뜻을 나타내는 것이 아니라 **눈에 띄게 하려는 것**이므로
+     색을 못 가려도 잃는 정보는 없습니다 (모양·자리·글자는 그대로).
+   ▸ 위아래로 숨 쉴 자리도 둡니다. 질문과 답이 바짝 붙어 있으면
+     한 덩어리로 보여서 '무엇을 묻는지' 가 흐려집니다. */
+/* 질문을 담는 알약 바.
+   ★ **왼쪽 정렬**입니다. 예전에는 가운데였는데, 재어 보니 질문 길이가
+     화면마다 달라서 **글 시작점이 49px 씩 움직였습니다**
+     (1024×768 에서 왼쪽 끝 341~390px). 글자를 익히는 학생은 화면이
+     바뀔 때마다 '글이 어디서 시작하지?' 를 다시 찾아야 합니다.
+     왼쪽으로 붙이면 시작점이 **늘 같은 자리**이고, 마침 **아래 첫 카드의
+     왼쪽 끝과 정확히 맞아서**(둘 다 18px) 세로 선이 하나로 정리됩니다.
+   ▸ 읽어주기와 힌트는 오른쪽 끝에 그대로 둡니다 (화면마다 한 자리 — 규칙 4).
+   ▸ 가운데로 되돌리려면 `justify-content:center` 로 바꾸면 됩니다. */
+.q-bar{
+  position:relative; justify-content:flex-start;
+  padding-right:4.4rem;              /* 오른쪽 끝 읽어주기와 겹치지 않게 */
+  margin-top:clamp(.2rem, .9vh, 12px);
+}
 .q-bar .q-pill{
   display:inline-flex; align-items:center; justify-content:center;
-  padding:.4rem 1.6rem; border-radius:999px;
-  background:#fff; border:2px solid var(--line);
+  padding:.55rem 1.7rem; border-radius:999px;
+  background:#ffeef4; border:2px solid #f3c3d6;
   box-shadow:var(--shadow);
   max-width:100%;
 }
@@ -2118,3 +2136,30 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 계획표 점선 칸 안을 **파스텔 노랑**으로.
    흰 종이에 흰 칸이라 문장이 눈에 안 들어왔습니다. 점선 안쪽만 칠합니다. */
 .sheet .sentence{ background:#fffbe8; }
+
+/* 질문 바와 그 아래 고르기 칸 사이에 숨 쉴 자리.
+   ★ 예전에는 질문 바로 밑에 그림이 바짝 붙어 있어서, 질문과 답이
+     한 덩어리로 보였습니다. 조금 띄우면 '이건 질문, 저건 답' 으로 읽힙니다.
+   ▸ 화면 높이에 따라 늘고 줄어들되 px 로 상한을 둡니다 (8-4-2 와 같은 까닭).
+   ▸ 인접 형제(`+`)에만 주므로 다른 짜임새에는 영향이 없습니다. */
+.q-bar + .pick-grid,
+.q + .pick-grid,
+.q + .stack,
+.q + .six{ margin-top:clamp(.7rem, 1.8vh, 26px); }
+
+/* 실내 · 실외처럼 그림이 카드를 꽉 채우는 장면 카드에서도
+   읽어주기를 글자 아래 크게 (bigSpeak). */
+.pick-grid.big-speak .pick.bare .pick-name{ flex-direction:column; gap:.25rem; }
+
+/* 앞 질문으로 — **화살표만** 있는 동그란 단추.
+   ★ 예전에는 `앞 질문으로` 라고 글자가 적힌 긴 알약이었습니다.
+     맨 위 한 줄에서 자리를 많이 먹었고, 옆의 문장 바와 나란히 놓이니
+     글자가 두 덩어리라 어수선했습니다.
+     되돌아가는 화살표는 학생도 이미 아는 모양이라 글자가 없어도 됩니다.
+   ▸ 글자를 지웠지만 **뜻은 그대로 남깁니다** — `aria-label` 과 `title` 에
+     `앞 질문으로`(하위 활동에서는 `다른 활동 고르기`)가 들어갑니다.
+     화면 낭독기를 쓰는 학생과 마우스를 올린 선생님에게는 그대로 보입니다. */
+.plan-back{
+  flex:0 0 auto;
+  background:var(--pastel-yellow, #fdf3d0); border:2px solid #e8d49a;
+}
