@@ -142,7 +142,7 @@ $htmlText = Embed-Asset $htmlText 'mapbg'      # leisure-map backdrop (optional)
 # with their own limits, independent of the cover settings above.
 $savedMax = $MaxSide; $savedQ = $Quality; $savedOver = $ResizeOverKB
 $MaxSide = 128; $ResizeOverKB = 20; $script:PreserveAlpha = $true
-foreach ($k in @('speaker','fullscreen','gear','home')) { $htmlText = Embed-Asset $htmlText $k }
+foreach ($k in @('speaker','fullscreen','gear','home','back')) { $htmlText = Embed-Asset $htmlText $k }
 $script:PreserveAlpha = $false
 $MaxSide = 512; $ResizeOverKB = 60
 foreach ($k in @('indoor','outdoor','tried','like','challenge','unsure')) {

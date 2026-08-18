@@ -562,7 +562,7 @@
     var backBtn = (!saved && (step > 0 || subCard) || soFar)
       ? html`<div class="plan-top">
           ${(!saved && (step > 0 || subCard))
-            ? html`<${C.IconBtn} icon="back" className="plan-back"
+            ? html`<${C.IconBtn} uiKey="back" icon="back" className="plan-back"
                 label=${subCard ? '다른 활동 고르기' : '앞 질문으로'}
                 onClick=${back} />`
             : html`<span></span>`}
