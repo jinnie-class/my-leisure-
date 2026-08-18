@@ -559,20 +559,22 @@
     /* 계획을 확인해요 화면에는 두지 않습니다 — 바로 아래 계획표에
        똑같은 문장이 이미 크게 나와서 같은 말을 두 번 하게 됩니다. */
     var soFar = (!saved && !subCard && key !== 'confirm') ? sentenceSoFar() : '';
-    var backBtn = (!saved && (step > 0 || subCard) || soFar)
+    /* 흰 칸 맨 위에는 **문장만** 둡니다.
+       ★ 앞으로 가는 화살표가 맨 위 줄(제목 앞)로 올라갔으므로,
+         흰 칸 안에 또 두면 화살표가 둘이 되어 어느 것을 눌러야 할지
+         헷갈립니다 (규칙 7 — 중복 금지).
+       ※ 하위 활동 화면에서 `다른 활동 고르기` 도 맨 위 화살표가 합니다
+         (`p.onBack` 이 `back()` 을 부르도록 아래에서 이어 두었습니다). */
+    var backBtn = soFar
       ? html`<div class="plan-top">
-          ${(!saved && (step > 0 || subCard))
-            ? html`<${C.IconBtn} uiKey="back" icon="back" className="plan-back"
-                label=${subCard ? '다른 활동 고르기' : '앞 질문으로'}
-                onClick=${back} />`
-            : html`<span></span>`}
-          ${soFar && html`<span class="plan-sofar" aria-live="polite">${soFar}</span>`}
+          <span class="plan-sofar" aria-live="polite">${soFar}</span>
         </div>` : null;
 
     return html`<div class="app" data-corner="plan">
       <${C.TopBar} title="여가 계획하기"
-        onBack=${function () { p.nav("home"); }}
-        onTitle=${function () { p.nav("home"); }}>
+        onBack=${back}
+        backLabel=${subCard ? '다른 활동 고르기' : (step > 0 ? '앞 질문으로' : '나의 여가로')}
+        onTitle=${function () { p.nav('home'); }}>
         ${!saved && html`<${C.Dots} total=${KEYS.length} current=${step} />`}
         <${C.WhoChip} student=${student} />
       <//>

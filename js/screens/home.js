@@ -56,8 +56,19 @@
     var viewPlan = useState(null);
 
     var todays = App.store.todayPlans(student && student.id);
-    var challenge = challengeOf(student);
-    var doneAll = student && !challenge && App.visibleCards(student).length > 0;
+    /* ★ `오늘의 도전` 은 **오늘 세운 계획이 없을 때에만** 보여 줍니다.
+         까닭 둘 :
+         · 뜻으로 — 오늘 할 일을 이미 정한 학생에게 다른 활동을 또 권하면
+           방금 세운 계획과 서로 다투게 됩니다. 도전은 '오늘 뭘 하지?' 하는
+           학생에게 건네는 말입니다.
+         · 자리로 — 도전 칸이 180px 입니다. 계획 카드까지 다 있으면
+           흰 칸을 넘겨서 홈이 두 쪽으로 갈라지고, 1쪽에 도전이 안 보입니다. */
+    var challenge = todays.length ? null : challengeOf(student);
+    /* ⚠ 오늘 계획 때문에 도전이 안 나오는 것과, 정말로 다 해본 것을
+         가려야 합니다. 그러지 않으면 계획을 세운 날마다
+         '모든 활동을 한 번씩 해 보았어요' 가 잘못 나옵니다. */
+    var doneAll = student && !todays.length && !challengeOf(student)
+                  && App.visibleCards(student).length > 0;
 
     /* 표지로 가는 단추에 쓰는 `나의 여가` 글자 그림 (없으면 글자로 나옵니다) */
     var coverWord = App.uiImage("coverWord");
