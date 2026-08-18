@@ -156,6 +156,18 @@
     </div>`;
   };
 
+  /* ------------------------- 모음 셋 -------------------------
+     포트폴리오는 세 코너에서 만든 것을 한곳에 모아 두는 곳입니다.
+     한 번에 하나만 보여 주고, 무엇을 볼지는 학생이 고릅니다. */
+  var FOLIO_TABS = [
+    { id: 'plan',  name: '내가 세운 계획', icon: 'cornerPlan',
+      count: function (d) { return d.plans.length + '장'; } },
+    { id: 'map',   name: '나의 여가지도',  icon: 'cornerMap',
+      count: function (d) { return d.tried.length + '가지'; } },
+    { id: 'diary', name: '나의 일기장',    icon: 'cornerDiary',
+      count: function (d) { return d.diaries.length + '장'; } }
+  ];
+
   /* ------------------------- 기간 계산 ------------------------- */
   function rangeOf(student) {
     var pf = student.portfolio || { rangeId: 'm1' };
@@ -355,6 +367,9 @@
     App.useStore();
     var student = App.store.current();
     var tab = useState('pick');     // pick | board | book
+    /* 모음 셋 가운데 무엇을 볼지 — **학생이 고릅니다.**
+       무엇을 보여 줄지 고르는 것도 발표의 한 부분이라서요. */
+    var folioTab = useState('plan');   // plan | map | diary
     var showS = useState(false);    // 교실 TV 전시 모드
     var range = rangeOf(student);
 
@@ -490,8 +505,27 @@
                    ③ 나의 여가 일기장        (기록하GO!)
                  예전에는 ③만 있어서 ①②가 통째로 빠져 있었습니다.
                  계획을 세워 본 일과 지도에 쌓인 발자국이 없으면,
-                 '내가 어떤 경험을 해 왔는지' 가 반쪽만 보입니다. -->
-          <${C.Sec} title=${'내가 세운 여가계획들 · ' + data.plans.length + '장'}
+                 '내가 어떤 경험을 해 왔는지' 가 반쪽만 보입니다.
+
+               ★ 셋을 **학생이 골라** 봅니다 (한 번에 한 모음).
+                 셋을 다 펼치면 좌우 3쪽이 되어 넘겨야 하고, 무엇부터 볼지
+                 학생이 정할 수 없습니다. 무엇을 보여 줄지 고르는 것도
+                 발표의 한 부분이라, 고르는 쪽이 이 코너의 뜻에 맞습니다. -->
+          <div class="folio-pick">
+            ${FOLIO_TABS.map(function (t) {
+              var on = folioTab[0] === t.id;
+              return html`<button key=${t.id} type="button" class=${'folio-tab' + (on ? ' on' : '')}
+                  aria-pressed=${on ? 'true' : 'false'}
+                  onClick=${function () { folioTab[1](t.id); }}>
+                <span class="folio-tab-art" aria-hidden="true"
+                  dangerouslySetInnerHTML=${{ __html: App.icon(t.icon) }} />
+                <span class="folio-tab-nm">${t.name}</span>
+                <span class="folio-tab-n">${t.count(data)}</span>
+              </button>`;
+            })}
+          </div>
+
+          ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 여가계획들 · ' + data.plans.length + '장'}
             speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요.'}>
             ${data.plans.length ? html`<div class="folio-grid">
               ${data.plans.map(function (pl) {
@@ -512,9 +546,9 @@
                 <${C.Btn} size="small" onClick=${function () { p.nav('plan'); }}>계획 세우러 가기<//>
               </div>
             <//>`}
-          <//>
+          <//>`}
 
-          <${C.Sec} title="나의 여가지도"
+          ${folioTab[0] === 'map' && html`<${C.Sec} title="나의 여가지도"
             speakText=${'나의 여가지도. 해봤어요 ' + data.tried.length + '가지, 좋아해요 '
               + data.likes.length + '가지, 도전하고 싶어요 ' + data.challenges.length + '가지예요.'}>
             <div class="folio-sum">
@@ -541,9 +575,9 @@
               <${C.Btn} size="small" icon="map"
                 onClick=${function () { p.nav('map'); }}>여가지도 보기<//>
             </div>
-          <//>
+          <//>`}
 
-          <${C.Sec} title="내가 전시하고 싶은 활동을 골라 보세요">
+          ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 여가 일기장 — 전시할 것을 골라 보세요">
             ${data.diaries.length ? html`<div class="stack">
               ${data.diaries.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);
@@ -591,7 +625,7 @@
                 <${C.Btn} size="small" onClick=${function () { p.nav('diary'); }}>일기 쓰러 가기<//>
               </div>
             <//>`}
-          <//>
+          <//>`}
 
           ${folioTools ? html`<${React.Fragment}>
             <${C.Sec} title="학생의 한마디">

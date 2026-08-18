@@ -1549,7 +1549,20 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* ======================= 육하원칙 뼈대 (3단계 첫 단계) =======================
    빈 칸에 바로 긴 글을 쓰라고 하면 3단계 학생도 막막해집니다.
    한 줄씩 짧게 답해 뼈대를 만들고, 다음 단계에서 살을 붙입니다. */
-.six{ display:flex; flex-direction:column; gap:.45rem; }
+/* 3단계 글 칸 (한 줄씩 쓰는 뼈대).
+   ⚠ 위아래 여백을 여기서 **직접** 주어야 합니다.
+     `.q-bar + .pick-grid` 규칙은 질문 **바로 다음에** 격자가 올 때만 듣습니다.
+     3단계는 그 사이에 이 글 칸이 끼어들어 규칙이 안 걸렸고, 그래서
+     입력칸 테두리가 아래 카드에 닿아 겹쳐 보였습니다. */
+.six{
+  display:flex; flex-direction:column; gap:.45rem;
+  margin-bottom:clamp(.8rem, 2vh, 28px);
+}
+.q-bar + .six,
+.q + .six{ margin-top:clamp(.5rem, 1.2vh, 18px); }
+/* 글 칸이 이미 아래 여백을 주므로 격자가 또 띄우면 너무 벌어집니다 */
+.six + .pick-grid,
+.six + .stack{ margin-top:0; }
 .six-row{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
 .six-q{
   flex:0 0 auto; min-width:11rem;
@@ -2549,6 +2562,29 @@ textarea.sentence-edit,
    여가 포트폴리오 — 세 코너에서 만든 것을 한곳에 모아 두는 곳
    ① 내가 세운 여가계획들  ② 나의 여가지도  ③ 나의 여가 일기장
    =========================================================== */
+/* 모음 셋 고르기 — 계획 / 지도 / 일기장.
+   한 번에 하나만 보여 줍니다. 셋을 다 펼치면 좌우 3쪽이 되어 넘겨야 하고,
+   무엇부터 볼지 학생이 정할 수 없습니다. */
+.folio-pick{
+  display:grid; gap:.6rem; margin-bottom:.7rem;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+}
+.folio-tab{
+  display:flex; flex-direction:column; align-items:center; gap:.15rem;
+  padding:.6rem .4rem; cursor:pointer; min-width:0;
+  background:#fff; border:3px solid var(--line); border-radius:18px;
+  box-shadow:var(--shadow);
+}
+.folio-tab:hover{ transform:translateY(-2px); border-color:var(--sel-line); }
+.folio-tab.on{ background:var(--sel-bg); border-color:var(--sel-line); }
+.folio-tab-art{ width:clamp(38px,5.5vh,58px); height:clamp(38px,5.5vh,58px); display:block; }
+.folio-tab-art svg{ width:100%; height:100%; display:block; }
+.folio-tab-nm{
+  font-size:clamp(.92rem,.55rem + .8vh,1.15rem); font-weight:900;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.folio-tab-n{ font-size:.82rem; font-weight:800; color:var(--ink-soft); }
+
 .folio-grid{
   display:grid; gap:.6rem;
   grid-template-columns:repeat(auto-fill, minmax(clamp(110px,14vh,160px), 1fr));
