@@ -269,7 +269,7 @@
 
     return html`<div class="app" data-corner="map">
       <${C.TopBar} title="여가 지도"
-        onBack=${function () { p.nav("home"); }}
+        onBack=${function () { p.back("home"); }}
         onTitle=${function () { p.nav("home"); }}>
         <!-- '일기 쓰기' 는 두지 않습니다. 여기는 지도를 보는 곳이고,
              일기는 홈의 계획 카드나 기록하GO! 에서 씁니다 (규칙 7 — 중복 금지) -->
@@ -654,7 +654,7 @@
 
     return html`<div class="app" data-corner="map">
       <${C.TopBar} title="나의 여가 모아보기"
-        onBack=${function () { p.nav("home"); }}
+        onBack=${function () { p.back("home"); }}
         onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${open ? open.name + '. ' + open.help : '내가 표시한 활동을 모아 볼 수 있어요.'} />
         <${C.WhoChip} student=${student} />

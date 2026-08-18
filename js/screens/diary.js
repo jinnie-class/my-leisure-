@@ -970,9 +970,9 @@
        · 첫 질문이면 → 나의 여가로 (코너 네 개가 있는 홈) */
     function diaryBack() {
       if (step > 0) { stepS[1](step - 1); return; }
-      p.nav('home');
+      p.back('home');
     }
-    var backLabel = step > 0 ? '앞 질문으로' : '나의 여가로';
+    var backLabel = step > 0 ? '앞 질문으로' : '앞 화면으로';
 
     var stepsBar = (level === 1 || (level !== 1 && draft.activityId))
       ? html`<${C.Steps} steps=${steps} current=${step} />` : null;

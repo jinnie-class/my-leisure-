@@ -3,7 +3,7 @@
    =========================================================== */
 (function () {
   var App = window.App, React = window.React, html = App.html, C = App.C;
-  var useState = React.useState, useEffect = React.useEffect;
+  var useState = React.useState, useEffect = React.useEffect, useRef = React.useRef;
 
   /* 지금 열려 있는 것이 최신판인지 확인할 때 씁니다.
      선생님 설정 → 데이터 → 저장 상태 에서 볼 수 있습니다. */
@@ -39,14 +39,42 @@
 
     useEffect(function () { setPrintContent = printS[1]; return function () { setPrintContent = null; }; }, []);
 
+    /* ── 지나온 길 ────────────────────────────────────────────────
+       ★ 파란 화살표는 **바로 앞 화면**으로 가야 합니다.
+         예전에는 화면마다 `홈으로` 라고 손으로 적어 두었습니다. 그래서
+         그림일기 → 일기 고치기 에서 화살표를 누르면 그림일기가 아니라
+         홈으로 튀었습니다. 화면이 늘 때마다 같은 실수가 되풀이됩니다.
+         그래서 **앱이 지나온 길을 기억**하고, 화살표는 그 길을 되짚습니다.
+       ▸ 20칸만 남깁니다. 그보다 오래된 길은 되짚을 일이 없습니다. */
+    var histRef = useRef([]);
+
     function nav(name, params) {
       App.speech.stop();
+      /* 같은 화면을 다시 부르는 것은 길이 아니므로 쌓지 않습니다
+         (같은 화면에서 딸린 값만 바꾸는 경우).
+         ※ 길을 쌓는 일은 setState 안에서 하지 마세요 — React 가 그 함수를
+           두 번 부를 수 있어서 같은 길이 두 번 쌓입니다. */
+      if (route && route.name !== name) {
+        histRef.current.push(route);
+        if (histRef.current.length > 20) histRef.current.shift();
+      }
       routeS[1]({ name: name, params: params || {} });
       /* 새 화면은 언제나 처음부터 보이도록 */
       var el = document.querySelector('.stage-track');
       if (el) el.scrollLeft = 0;
     }
+
+    /* 바로 앞 화면으로. 되짚을 길이 없으면 fallback (기본은 홈) 으로 갑니다. */
+    function navBack(fallback) {
+      App.speech.stop();
+      var prev = histRef.current.pop();
+      routeS[1](prev || { name: fallback || 'home', params: {} });
+      var el = document.querySelector('.stage-track');
+      if (el) el.scrollLeft = 0;
+    }
+
     App.nav = nav;
+    App.navBack = navBack;
 
     /* 학생이 하나도 없으면 학생 화면으로 (표지는 그대로 둡니다) */
     useEffect(function () {
@@ -56,7 +84,10 @@
       }
     }, [store.students.length, route.name]);
 
-    var p = { nav: nav, params: route.params };
+    /* 화면들은 `p.back()` 으로 바로 앞 화면에 갑니다 (파란 화살표).
+       `p.nav('home')` 처럼 갈 곳을 손으로 적지 마세요 — 그러면 어디에서
+       들어왔든 늘 같은 곳으로 튑니다. */
+    var p = { nav: nav, back: navBack, params: route.params };
     var screen;
     switch (route.name) {
       case 'cover':     screen = html`<${C.CoverScreen} ...${p} />`; break;

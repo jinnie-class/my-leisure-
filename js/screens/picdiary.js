@@ -531,7 +531,7 @@
 
     return html`<div class="app pd-app" data-corner="diary">
       <${C.TopBar} title="그림일기"
-        onBack=${function () { p.nav("home"); }}
+        onBack=${function () { p.back("home"); }}
         onTitle=${function () { p.nav("home"); }}
         left=${html`<${React.Fragment}>
           <!-- 고치는 일은 **좌우 2단 화면**에서 합니다.
@@ -608,7 +608,7 @@
     if (!d) {
       return html`<div class="app" data-corner="diary">
         <${C.TopBar} title="일기 고치기"
-          onBack=${function () { p.nav("home"); }}
+          onBack=${function () { p.back("home"); }}
           onTitle=${function () { p.nav("home"); }} />
         <div class="stage"><div class="panel">
           <${C.Banner} icon="question">일기를 찾을 수 없어요.<//>
@@ -634,12 +634,12 @@
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="일기 고치기"
-        onBack=${function () { p.nav("home"); }}
-        onTitle=${function () { p.nav("home"); }}
-        left=${html`<${React.Fragment}>
-          <${C.Btn} size="small" icon="back" className="pastel-yellow"
-            onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기로<//>
-        <//>`}>
+        onBack=${function () { p.back("picdiary"); }}
+        backLabel="그림일기로"
+        onTitle=${function () { p.nav("home"); }}>
+        <!-- 그림일기로 알약을 없앴습니다. 바로 왼쪽 파란 화살표가 같은 일을
+             하므로, 같은 뜻의 단추가 둘이면 어느 것을 눌러야 할지 헷갈립니다.
+             ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
         <${C.Speak} text=${'일기를 고쳐요. 그림을 고칠까요, 글을 고칠까요?'} />
         <${C.WhoChip} student=${student} />
       <//>
@@ -775,7 +775,7 @@
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="나의 일기 모음"
-        onBack=${function () { p.nav("home"); }}
+        onBack=${function () { p.back("home"); }}
         onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${list.length
           ? '지금까지 쓴 일기가 ' + list.length + '장 모였어요.'
