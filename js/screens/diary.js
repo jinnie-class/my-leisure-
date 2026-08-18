@@ -230,6 +230,41 @@
        예전에는 `확인` 화면 맨 아래에 붙어 있어서 눈에 띄지 않았습니다.
        2단계와 같은 자리(제목 다음 · 확인 앞)에 두어 두 단계가 같게 흐릅니다. */
     var L1 = ['언제', '누구와', '무엇을', '어디에서', '기분', '또 하고 싶나', '그림', '확인'];
+
+    /* ── 1단계 : 지금까지 고른 것을 **그림으로** 한 줄에 ────────────────
+       2·3단계는 흰 칸 위 노란 띠에 지금까지 만든 **문장**이 자랍니다.
+       1단계는 아직 글을 읽기 어려운 학생이라, 같은 자리에 **그림**을 차례대로
+       쌓아 줍니다. 언제 → 누구와 → 무엇을 → 어디에서 → 기분 차례라
+       그림만 훑어도 '내가 뭘 고르고 있었지?' 가 풀립니다.
+       ▸ **이미 지나온 단계**의 그림만 넣습니다. 아직 안 고른 것을 미리 보여 주면
+         고른 것과 안 고른 것이 섞여 헷갈립니다. */
+    function picsSoFar1(step) {
+      var out = [];
+      var t = App.todayKey();
+      if (step > 0 && draft.date) {
+        var word = draft.date === t ? '오늘'
+                 : (draft.date === App.addDays(t, -1) ? '어제' : '날짜 고르기');
+        out.push({ key: 'date', label: App.fmtDateShort(draft.date),
+          art: html`<${C.PickArt} kind="when" word=${word} iconKey="calendar" />` });
+      }
+      if (step > 1) whoIds().forEach(function (id) {
+        var pt = App.partner(id); if (!pt) return;
+        out.push({ key: 'who-' + id, label: pt.name,
+          art: html`<${C.PartnerArt} partner=${pt} student=${student} />` });
+      });
+      if (step > 2 && draft.activityId) {
+        var a2 = App.act(draft.activityId);
+        if (a2) out.push({ key: 'act', label: a2.name,
+          art: html`<${C.ActivityArt} activity=${a2} />` });
+      }
+      if (step > 3 && draft.place) out.push({ key: 'place', label: draft.place,
+        art: html`<${C.PickArt} kind="place" word=${draft.place} iconKey="map" />` });
+      if (step > 4) (draft.moodIds || []).forEach(function (m) {
+        var mo = App.mood(m); if (!mo) return;
+        out.push({ key: 'mood-' + m, label: mo.name, art: html`<${C.MoodArt} mood=${mo} />` });
+      });
+      return out;
+    }
     /* 날씨 고르기 — 그림일기의 기본 항목이라 **학생이 앱에서 고릅니다.**
        예전에는 인쇄한 종이에 손으로 동그라미 치는 방식이라 기록으로 남지 않았습니다.
        세 단계가 모두 같은 것을 쓰므로 한 군데에 만들어 두고 불러 씁니다. */
@@ -257,7 +292,9 @@
       if (step === 0) {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="언제 했나요?">언제 했나요?<//>
-          <${C.PickGrid} cols=${3}>
+          <!-- bigSpeak : 읽어주기를 글자 **아래에 크게** (질문 옆 읽어주기와 비슷한 크기).
+               날짜 카드는 크고 글자 아래에 빈 자리가 남아서, 작게 두면 초라합니다. -->
+          <${C.PickGrid} cols=${3} bigSpeak=${true}>
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
               onClick=${function () { patch({ date: t }); }}
               art=${html`<${C.PickArt} kind="when" word="오늘" iconKey="sun" />`} />
@@ -863,9 +900,23 @@
             <${C.Btn} size="small" kind="ok" icon="next" onClick=${function () { stepS[1](4); }}>계획 내용 그대로 쓰기<//>
           </div>
         <//>`}
-        ${step !== 6 && step > 0 ? null : null}
         ${level1Body(step)}
       <//>`;
+      /* 흰 칸 맨 위 노란 띠 — 지금까지 고른 그림을 차례대로.
+         마지막 확인 화면에서는 넣지 않습니다. 거기에는 완성된 문장과
+         그림일기가 이미 다 나와서, 같은 그림이 두 번 보입니다. */
+      var pics1 = step < lastStep ? picsSoFar1(step) : [];
+      if (pics1.length) backBtn = html`<div class="plan-top">
+        <span class="pic-sofar" aria-live="polite"
+          aria-label=${'지금까지 고른 것 : ' + pics1.map(function (it) { return it.label; }).join(', ')}>
+          ${pics1.map(function (it, i) {
+            return html`<${React.Fragment} key=${it.key}>
+              ${i > 0 && html`<span class="pic-sofar-sep" aria-hidden="true">›</span>`}
+              <span class="pic-sofar-item" role="img" aria-label=${it.label}>${it.art}</span>
+            <//>`;
+          })}
+        </span>
+      </div>`;
       /* 되돌아가기는 **맨 위 줄 화살표**가 맡습니다 (흰 칸 안에는 두지 않습니다).
          화살표가 둘이면 어느 것을 눌러야 할지 헷갈립니다 (규칙 7). */
       /* ★ **여러 개 고르는 단계**(누구와 · 기분)는 `다 골랐어요`.
