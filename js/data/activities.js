@@ -73,6 +73,11 @@
     } catch (e) { return ''; }
   })();
 
+  /* 지금 돌고 있는 판 번호 — 화면에 보여 주려고 따로 꺼내 둡니다.
+     '고쳤는데 화면이 그대로' 일 때 **캐시에 예전 판이 남은 것인지**
+     한눈에 알 수 있습니다 (학생 고르기 화면 맨 아래). */
+  App.buildRev = (REV || '').replace('?v=', '') || '(모름)';
+
   function imgUrl(path) {
     if (!path) return null;
     if (path.indexOf('data:') === 0) return path;      // 한 파일 판

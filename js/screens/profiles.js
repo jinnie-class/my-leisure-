@@ -170,7 +170,10 @@
         <//>`}
 
         <p class="muted small center" style=${{ marginTop: '.7rem' }}>
-          이름을 누르면 여가 탐험 캐릭터를 고를 수 있어요.</p>
+          이름을 누르면 여가 탐험 캐릭터를 고를 수 있어요.
+          <!-- 판 번호 : '고쳤는데 화면이 그대로' 일 때 여기 숫자를 보면
+               캐시에 예전 판이 남았는지 바로 알 수 있습니다. -->
+          <span class="build-rev">${App.buildRev}</span></p>
       <//>
     </div>`;
   };

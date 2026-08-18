@@ -936,8 +936,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* ============================ 교사 설정 ============================ */
 
 /* ===== 누구의 여가생활일까요? ===== */
+/* 학생 고르기 카드.
+   ★ 칸 너비를 `16rem` 으로 둡니다 (예전에는 `220px` 고정).
+     이 앱은 화면이 커지면 **루트 글자도 같이 커지는데**, 칸만 220px 로
+     묶여 있으면 전체화면에서 이름이 칸을 넘겨 **한 글자씩 세로로 깨졌습니다**
+     (박/민/영 처럼). rem 으로 두면 칸도 글자를 따라 넓어집니다. */
 .stu-grid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));
   gap:.8rem; break-inside:avoid;
 }
 .stu-card{
@@ -947,8 +952,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
 .stu-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-2); border-color:var(--sel-line); }
-.stu-card-mark{ font-size:2.2rem; line-height:1; flex:0 0 auto; }
-.stu-card-name{ font-size:1.5rem; font-weight:900; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.stu-card-mark{ font-size:clamp(1.7rem,1rem + 1.4vh,40px); line-height:1; flex:0 0 auto; }
+/* `nowrap` 이 꼭 있어야 합니다. `min-width:0` 만 있고 `nowrap` 이 없으면
+   칸이 좁아질 때 글자가 한 글자씩 줄바꿈됩니다. 이름은 잘리더라도
+   한 줄로 두고 `…` 로 줄이는 편이 알아보기 쉽습니다. */
+.stu-card-name{
+  font-size:clamp(1.15rem,.7rem + 1.1vh,28px); font-weight:900;
+  min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
 /* ===== 캐릭터 고르기 (왼쪽 미리보기 · 오른쪽 목록) ===== */
 .cs-cols{ display:flex; gap:1rem; align-items:stretch; min-height:0; }
@@ -2067,3 +2078,11 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      고르기 카드는 화면마다 개수와 줄 수가 달라서, 한 곳을 키우면
      다른 곳이 넘칩니다. **키울 화면만 골라서** 키우세요. */
 .pick-grid.big .thumb{ width:clamp(70px,15vh,190px); height:clamp(70px,15vh,190px); }
+
+/* 판 번호 — 학생 고르기 화면 맨 아래에 아주 작게.
+   '고쳤는데 화면이 그대로' 일 때 캐시에 예전 판이 남았는지 알려 줍니다. */
+.build-rev{
+  display:inline-block; margin-left:.5rem; padding:0 .4rem;
+  border-radius:999px; background:var(--paper-2); border:1px solid var(--line);
+  font-size:.72rem; font-weight:800; color:var(--ink-soft); vertical-align:middle;
+}
