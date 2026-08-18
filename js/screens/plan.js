@@ -161,6 +161,34 @@
       if (i < 0) App.speakFor(student, App.partnerSpeech(pt));
     }
 
+    /* ---------- 지금까지 만들어진 한 문장 ----------
+       ★ `누구와 할까요?` 를 고르다 보면 '앗, 내가 뭐 하기로 했지?' 하고
+         앞에서 고른 것을 잊어버립니다. 그래서 **고를 때마다 한 문장이
+         자라나는 것**을 맨 위에 보여 줍니다.
+         (예전에는 활동 화면에만 `고른 활동 : 곤충 키우기` 줄이 있었는데,
+          그 화면에서만 보이고 글자도 커서 자리를 많이 먹었습니다.)
+       ▸ **답한 것만** 넣습니다. 아직 안 물어본 것은 넣지 않습니다 —
+         날짜는 오늘로 미리 채워져 있어서, 묻기 전에 넣으면
+         고르지도 않은 '오늘' 이 문장에 나옵니다.
+       ▸ 활동을 고르기 전에는 빈 문자열이라 바가 아예 안 나옵니다. */
+    function passed(k) { return KEYS.indexOf(k) >= 0 && step > KEYS.indexOf(k); }
+    function sentenceSoFar() {
+      var a = App.act(draft.activityId);
+      if (!a) return '';
+      var bits = ['나는'];
+      if (passed('when')) {
+        var w = App.whenPhrase(draft.date, passed('time') ? draft.time : '');
+        if (w) bits.push(w);
+      }
+      if (passed('who')) {
+        var pp = App.partnerPhrase(draft.partnerId, who());
+        if (pp) bits.push(pp);
+      }
+      if (passed('place') && draft.place) bits.push(draft.place + '에서');
+      bits.push(a.planText || (a.name + '을 할 거예요'));
+      return bits.join(' ') + (key === 'confirm' ? '.' : ' …');
+    }
+
     function canNext() {
       if (key === 'area') return !!draft.area;
       if (key === 'what') return !!draft.activityId;
@@ -278,10 +306,6 @@
             <span class="chip">${page + 1} / ${pageCount}</span>
             <${C.Btn} icon="next" disabled=${page >= pageCount - 1} onClick=${function () { pageS[1](page + 1); }}>활동 더 보기<//>
           </div>`}
-          ${draft.activityId && html`<div class="sentence" style=${{ marginTop: '.7rem' }}>
-            고른 활동 : ${App.act(draft.activityId).name}
-            <${C.Btn} size="small" onClick=${function () { patch({ cardId: null, activityId: null }); }}>다시 선택하기<//>
-          </div>`}
         <//>`;
       }
 
@@ -305,7 +329,7 @@
         var t = App.todayKey();
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="언제 할까요?">언제 할까요?<//>
-          <${C.PickGrid} cols=${3} label="날짜">
+          <${C.PickGrid} cols=${3} bigSpeak=${true} label="날짜">
             <${C.Pick} selected=${draft.date === t} label="오늘" speakText="오늘"
               onClick=${function () { pick(function () { patch({ date: t }); App.speakFor(student, '오늘'); }); }}
               art=${html`<${C.PickArt} kind="when" word="오늘" iconKey="sun" />`} />
@@ -330,7 +354,7 @@
              예전 기록의 `am` · `pm` 은 `App.timeWord` 가 알아서 읽어 줍니다. */
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="언제쯤 할까요?">언제쯤 할까요?<//>
-          <${C.PickGrid} cols=${4} scene=${true} label="시간">
+          <${C.PickGrid} cols=${4} scene=${true} bigSpeak=${true} label="시간">
             ${TIMES.map(function (tm) {
               return html`<${C.Pick} key=${tm.id} selected=${draft.time === tm.id}
                 label=${tm.name} speakText=${tm.name}
@@ -526,9 +550,18 @@
        홈 단추 옆에 있으면 '홈으로 나가기' 와 헷갈립니다 — 하는 일이 다릅니다.
        첫 질문에서는 돌아갈 앞 질문이 없어 아예 내보내지 않습니다
        (예전에는 '그만두기' 가 나왔는데, 홈 단추와 똑같이 홈으로 가서 없앴습니다). */
-    var backBtn = (!saved && (step > 0 || subCard))
-      ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow" onClick=${back}>
-          ${subCard ? '다른 활동 고르기' : '앞 질문으로'}<//>` : null;
+    /* 흰 칸 맨 위 한 줄 : 왼쪽 `앞 질문으로` · 오른쪽 **지금까지 만든 한 문장**.
+       문장은 고를 때마다 자라나므로, 학생이 앞에서 무엇을 골랐는지
+       화면을 되돌아가지 않아도 알 수 있습니다. */
+    var soFar = (!saved && !subCard) ? sentenceSoFar() : '';
+    var backBtn = (!saved && (step > 0 || subCard) || soFar)
+      ? html`<div class="plan-top">
+          ${(!saved && (step > 0 || subCard))
+            ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow" onClick=${back}>
+                ${subCard ? '다른 활동 고르기' : '앞 질문으로'}<//>`
+            : html`<span></span>`}
+          ${soFar && html`<span class="plan-sofar" aria-live="polite">${soFar}</span>`}
+        </div>` : null;
 
     return html`<div class="app" data-corner="plan">
       <${C.TopBar} title="여가 계획하기"
