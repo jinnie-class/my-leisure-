@@ -598,11 +598,13 @@ ul{ margin:0; padding:0; list-style:none; }
 .sentence-hint{ font-size:.85rem; font-weight:800; color:#9a8a52; }
 /* 노란 문장 칸. 읽어주기를 이 안에 겹쳐 놓으려고 자리 기준이 됩니다. */
 .sentence-paper{ position:relative; }
-/* 읽어주기 — 노란 칸 안쪽 왼쪽, 위아래 가운데.
-   ★ 좌우 안쪽 여백을 **같게**(3.6rem) 두어야 글이 칸 한가운데에 옵니다.
-     왼쪽만 비우면 글이 오른쪽으로 치우쳐 보입니다. */
+/* 읽어주기 — 노란 칸 안쪽 **왼쪽 위**.
+   ★ 가운데에 두면 글줄 한가운데를 가로막아 글과 겹쳐 보입니다.
+     위쪽 구석에 두면 글은 그대로 가운데를 쓰고, 소리표는 늘 같은 자리에 있습니다.
+   ▸ 좌우 안쪽 여백은 **같게**(3.6rem) 둡니다. 왼쪽만 비우면 글이
+     오른쪽으로 치우쳐 보입니다. */
 .sentence-speak{
-  position:absolute; left:.6rem; top:50%; transform:translateY(-50%); z-index:2;
+  position:absolute; left:.6rem; top:.55rem; z-index:2;
 }
 textarea.sentence-edit{
   width:100%; display:block; resize:none; overflow:hidden;
@@ -1668,7 +1670,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .fix-2col{
   display:flex; gap:1rem; align-items:flex-start; break-inside:avoid;
 }
-.fix-left{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.5rem; }
+.fix-left{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.5rem; align-self:stretch; }
 .btn.fix-go{ align-self:stretch; border-width:3px; }
 .fix-text{ display:flex; flex-direction:column; gap:.35rem; }
 .fix-right{
@@ -2326,6 +2328,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 글로 읽는 문장 — 나눔바른펜으로, 그리고 조금 더 크게 */
 .sentence,
 .plan-sofar,
+textarea.sentence-edit,
 .sheet .sentence{
   /* ⚠ `var(--font, inherit)` 처럼 **`inherit` 을 글꼴 목록 안에** 쓰면
        규칙 전체가 무효가 되어 글꼴이 아예 안 바뀝니다. 실제로 겪었습니다.
@@ -2337,7 +2340,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 나눔바른펜은 획이 얇아서, 같은 크기라도 기본 글꼴보다 작아 보입니다.
    그래서 문장 글자를 한 단계 키웠습니다 (1.6rem → 34px 상한).
    두께도 800 → 700 으로 낮춥니다 — 펜 글씨는 굵게 하면 뭉개집니다. */
-.sentence, .plan-sofar{ font-weight:700; }
+.sentence, .plan-sofar, textarea.sentence-edit{ font-weight:700; }
 
 /* ============ 맨 위 줄 : 뒤로 화살표 · 제목 단추 · 표지 글자 ============ */
 
@@ -2442,6 +2445,19 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-art.arranging .pd-art-thumb{
   border-radius:12px; background:rgba(255,255,255,.34);
   box-shadow:0 0 0 3px rgba(255,255,255,.7);
+}
+/* 크기를 바꾸려고 고른 그림 — 무엇이 골라졌는지 한눈에 */
+.pd-art.arranging .pd-art-item.picked .pd-art-thumb{
+  box-shadow:0 0 0 5px var(--ok), 0 0 0 9px rgba(255,255,255,.75);
+}
+
+/* 일기 고치기 : 단추 아래 남는 자리 가운데에 뜨는 설명·고치는 칸.
+   ★ 단추 바로 밑에 붙여 두면 단추의 일부처럼 보여서, 그것이 설명이라는
+     것을 알기 어려웠습니다. 사이를 띄우고 가운데에 두면 따로 뜬 것으로 읽힙니다.
+   ▸ 재배열·일기 내용을 둘 다 켜면 위에서부터 차례로 쌓입니다. */
+.fix-panes{
+  flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
+  gap:.7rem; margin-top:.9rem; min-height:0;
 }
 .pd-art .pd-art-thumb{
   /* ★ 종이(`.pd-sheet`)는 794×1123 **고정 크기**를 만든 뒤 통째로 줄여서

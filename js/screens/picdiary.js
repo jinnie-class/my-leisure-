@@ -289,10 +289,18 @@
     });
     var layout = d.artLayout || {};
     function posOf(key, i) {
-      var saved = layout[key];
-      if (saved && typeof saved.x === 'number') return saved;
-      /* 처음 자리 : 아래쪽 한 줄에 고르게 */
-      return { x: (i + 0.5) / Math.max(1, artItems.length) * 100, y: 72 };
+      /* 처음 자리 : 아래쪽 한 줄에 고르게, 크기는 1배 */
+      var base = { x: (i + 0.5) / Math.max(1, artItems.length) * 100, y: 72, s: 1 };
+      var saved = layout[key] || {};
+      /* ⚠ 적어 둔 것만 하나씩 덮어씁니다.
+           예전에는 `자리(x)가 적혀 있을 때만` 적어 둔 값을 썼습니다. 그래서
+           **옮기지 않고 크기만 바꾸면** 크기까지 버려져서, 저장은 되는데
+           화면에는 안 나왔습니다. */
+      return {
+        x: typeof saved.x === 'number' ? saved.x : base.x,
+        y: typeof saved.y === 'number' ? saved.y : base.y,
+        s: typeof saved.s === 'number' ? saved.s : base.s
+      };
     }
 
     var artRef = useRef(null);
@@ -311,7 +319,8 @@
         var x = Math.max(9, Math.min(91, (ev.clientX - r.left) / r.width * 100));
         var y = Math.max(9, Math.min(91, (ev.clientY - r.top) / r.height * 100));
         el.style.left = x + '%'; el.style.top = y + '%';
-        last = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+        last = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10,
+                 s: (layout[key] && layout[key].s) || 1 };
       }
       function up() {
         el.removeEventListener('pointermove', move);
@@ -416,9 +425,15 @@
                      읽어주기와 화면 낭독(aria-label)으로는 그대로 전해집니다. -->
               ${artItems.map(function (it, i) {
                 var pos = posOf(it.key, i);
-                return html`<span key=${it.key} class="pd-art-item" role="img" aria-label=${it.label}
-                    style=${{ left: pos.x + '%', top: pos.y + '%' }}
-                    onPointerDown=${p.arrange ? function (e) { startDrag(e, it.key); } : null}>
+                var on = p.arrange && p.picked === it.key;
+                return html`<span key=${it.key} class=${'pd-art-item' + (on ? ' picked' : '')}
+                    role="img" aria-label=${it.label}
+                    style=${{ left: pos.x + '%', top: pos.y + '%',
+                              transform: 'translate(-50%,-50%) scale(' + pos.s + ')' }}
+                    onPointerDown=${p.arrange ? function (e) {
+                      if (p.onPickArt) p.onPickArt(it.key);
+                      startDrag(e, it.key);
+                    } : null}>
                   <span class="pd-art-thumb">${it.art}</span>
                 </span>`;
               })}
@@ -618,6 +633,7 @@
     var madeS = useState(null);        // 방금 그린 그림 (확인 창)
     var textS = useState(false);       // 문장 고치는 칸을 펼쳤는지
     var moveS = useState(false);       // 그림 자리를 옮기는 중인지
+    var pickedS = useState(null);      // 크기를 바꾸려고 고른 그림
 
     /* 오른쪽 그림일기를 **화면에 들어가는 만큼 가장 크게** 보여 줍니다.
        비율을 .34 처럼 못박아 두면 큰 화면에서 종이가 작게 남습니다.
@@ -660,9 +676,26 @@
       next[key] = pos;
       App.store.updateDiary(d.id, { artLayout: next });
     }
+
+    /* 고른 그림의 **크기**를 한 단계씩 바꿉니다 (0.5배 ~ 2배).
+       자리와 같은 곳(artLayout)에 담아 두어서, 인쇄해도 그대로 나옵니다.
+       ▸ 그림을 아직 안 골랐으면 무엇을 키울지 알 수 없으니 알려 줍니다. */
+    function sizeArt(dir) {
+      var key = pickedS[0];
+      if (!key) { App.ui.toast('크기를 바꿀 그림을 먼저 눌러 주세요.'); return; }
+      var cur = d.artLayout || {};
+      var now = cur[key] || {};
+      var s = Math.max(0.5, Math.min(2, (now.s || 1) + dir * 0.15));
+      var next = {};
+      for (var k in cur) if (Object.prototype.hasOwnProperty.call(cur, k)) next[k] = cur[k];
+      /* 아직 옮긴 적이 없는 그림이면 지금 보이는 자리를 함께 적어 둡니다 */
+      next[key] = { x: now.x, y: now.y, s: Math.round(s * 100) / 100 };
+      App.store.updateDiary(d.id, { artLayout: next });
+    }
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text" />`;
     var editSheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text"
-      arrange=${moveS[0]} onMoveArt=${moveArt} />`;
+      arrange=${moveS[0]} onMoveArt=${moveArt}
+      picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`;
     /* 지금 그림일기에 보이는 문장 (고쳐 쓴 것이 있으면 그것) */
     var shown = App.sentences.diaryShown(d);
 
@@ -711,27 +744,40 @@
               onClick=${function () { textS[1](!textS[0]); }}>
               ${textS[0] ? '글 고치기 닫기' : '일기 내용 수정하기'}<//>
 
-            ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
-              speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮겨 보아요.">
-              <b>그림을 끌어서 옮겨요.</b>
-              <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.</div>
-              <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.4rem' }}>
-                <${C.Btn} size="small" onClick=${function () {
-                  App.store.updateDiary(d.id, { artLayout: null });
-                }}>처음 자리로 되돌리기<//>
-              </div>
-            <//>`}
+            <!-- ★ 설명·고치는 칸은 단추 바로 밑에 붙이지 않고, 단추 아래
+                   **남는 자리 가운데**에 띄웁니다. 붙여 두면 단추의 일부처럼
+                   보여서, 그것이 설명이라는 것을 알기 어려웠습니다.
+                   둘 다 켜면 위에서부터 차례로 쌓입니다. -->
+            ${(moveS[0] || textS[0]) && html`<div class="fix-panes">
+              ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
+                speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꿔 보아요.">
+                <b>그림을 끌어서 옮겨요.</b>
+                <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.
+                  그림을 누르면 크기도 바꿀 수 있어요.</div>
+                <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.5rem' }}>
+                  <${C.Btn} size="small" className="pastel-blue"
+                    onClick=${function () { sizeArt(-1); }}>고른 그림 작게<//>
+                  <${C.Btn} size="small" className="pastel-blue"
+                    onClick=${function () { sizeArt(1); }}>고른 그림 크게<//>
+                </div>
+                <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.35rem' }}>
+                  <${C.Btn} size="small" onClick=${function () {
+                    App.store.updateDiary(d.id, { artLayout: null });
+                  }}>처음 자리로 되돌리기<//>
+                </div>
+              <//>`}
 
-            ${textS[0] && html`<div class="fix-text">
-              <span class="lab">일기 내용</span>
-              <${C.Area} rows=${5} value=${d.bodyEdit == null ? shown : d.bodyEdit}
-                placeholder="여기에 고쳐 써요."
-                onChange=${function (v) { App.store.updateDiary(d.id, { bodyEdit: v }); }} />
-              <div class="wrap" style=${{ justifyContent: 'center' }}>
-                <${C.Btn} size="small" onClick=${function () {
-                  App.store.updateDiary(d.id, { bodyEdit: null });
-                }}>처음 문장으로 되돌리기<//>
-              </div>
+              ${textS[0] && html`<div class="fix-text">
+                <span class="lab">일기 내용</span>
+                <${C.Area} rows=${5} value=${d.bodyEdit == null ? shown : d.bodyEdit}
+                  placeholder="여기에 고쳐 써요."
+                  onChange=${function (v) { App.store.updateDiary(d.id, { bodyEdit: v }); }} />
+                <div class="wrap" style=${{ justifyContent: 'center' }}>
+                  <${C.Btn} size="small" onClick=${function () {
+                    App.store.updateDiary(d.id, { bodyEdit: null });
+                  }}>처음 문장으로 되돌리기<//>
+                </div>
+              </div>`}
             </div>`}
           </div>
 
