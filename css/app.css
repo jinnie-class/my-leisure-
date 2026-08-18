@@ -622,9 +622,13 @@ ul{ margin:0; padding:0; list-style:none; }
 textarea.sentence-edit{
   width:100%; display:block; resize:none; overflow:hidden;
   font-family:inherit; font-size:clamp(1.15rem,.7rem + 1.4vh,1.75rem);
-  font-weight:800; line-height:1.6; text-align:center;
+  /* ★ 원고지처럼 **왼쪽 맞춤 + 문단 첫 칸 들여쓰기**.
+       가운데 정렬은 글줄이 들쭉날쭉해서 어디가 한 문장인지 알기 어려웠고,
+       오른쪽 원고지와 줄이 전혀 달라 견주기도 힘들었습니다.
+       원고지 규칙 2(문단 첫 칸 비우기)와 같은 모습이 됩니다. */
+  font-weight:800; line-height:1.75; text-align:left; text-indent:1em;
   color:var(--ink); background:var(--note); border:3px solid var(--note-line);
-  border-radius:var(--radius); padding:.8rem 3.6rem;
+  border-radius:var(--radius); padding:.8rem 1.1rem .8rem 3.4rem;
   min-height:calc(3.2em + 1.6rem);
   box-shadow:0 2px 0 rgba(0,0,0,.04) inset;
 }
@@ -1320,7 +1324,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .sentence-box{ max-height:150px; overflow:auto; }
 }
 /* 완성 미리보기는 낮은 화면에서 더 작게 (위 --dv 규칙보다 뒤에 두어야 이깁니다) */
-@media (max-height: 780px){ .dv{ --dv:.23; } .dv-big{ --dv:.4; } }
+@media (max-height: 780px){ .dv{ --dv:.30; } .dv-big{ --dv:.4; } }
 
 /* 완성 화면 : 기본은 위아래로 쌓습니다 */
 .confirm-2col{ display:flex; flex-direction:column; gap:.5rem; break-inside:avoid; }
@@ -1496,20 +1500,21 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    저장하기 전에 완성된 그림일기를 작게 그대로 보여 줍니다.
    종이는 794×1123 로 크기가 고정이라 `transform:scale` 로 줄여 담습니다.
    ★ 배율을 고치려면 `--dv` 하나만 고치세요. 칸 높이가 함께 따라옵니다. */
-/* 바 | 그림일기 | 바 — 양옆 바가 위아래 두 줄을 대신합니다.
-   그 두 줄이 없어진 만큼 그림일기를 크게 보여 줍니다 (.30 -> .46). */
+/* 단추 한 줄 → 그림일기.
+   ★ 한때 단추를 **양옆에** 세웠는데, 좌우 폭을 먹어서 완성 화면을 좌우로
+     나눈 뒤에는 그림일기가 되레 작아졌습니다. 위에 한 줄로 올리면
+     폭을 통째로 그림일기가 씁니다 (.46 -> .60). */
 .dv-row{
-  display:flex; align-items:center; justify-content:center;
-  gap:.7rem; margin-top:.4rem; break-inside:avoid;
+  display:flex; flex-direction:column; align-items:center;
+  gap:.5rem; margin-top:.4rem; break-inside:avoid; min-width:0;
 }
-.dv-side{
-  flex:0 1 auto; min-width:0; display:flex;
-  align-items:center; justify-content:center;
+.dv-bar{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:.6rem; max-width:100%;
 }
-/* 양옆 바의 글자는 두 줄까지 접어서, 가운데 그림일기 자리를 뺏지 않게 합니다 */
-.dv-side .btn{ white-space:normal; line-height:1.25; }
+.dv-bar .btn{ white-space:normal; line-height:1.25; }
 .dv{
-  --dv:.46;
+  --dv:.60;
   display:flex; flex-direction:column; align-items:center; gap:.3rem;
   margin:0; padding:0; border:0; background:transparent; flex:0 0 auto;
 }
@@ -1529,9 +1534,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   overflow:hidden; margin:0 auto; background:#fff;
 }
 .dv-big .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
-@media (max-height: 900px){ .dv{ --dv:.37; } .dv-big{ --dv:.5; } }
+@media (max-height: 900px){ .dv{ --dv:.46; } .dv-big{ --dv:.5; } }
 /* 아주 낮은 화면에서는 더 작게 — 안 그러면 완성 화면이 2쪽으로 갈라집니다 */
-@media (max-height: 780px){ .dv{ --dv:.29; } .dv-big{ --dv:.42; } }
+@media (max-height: 780px){ .dv{ --dv:.36; } .dv-big{ --dv:.42; } }
 
 /* 손글씨로 쓴 일기를 그림일기에 그대로 넣습니다 (3단계).
    손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
