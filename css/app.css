@@ -227,6 +227,10 @@ ul{ margin:0; padding:0; list-style:none; }
   border-radius:18px; box-shadow:var(--shadow);
 }
 .panel-action .btn[disabled]{ background:#dcdce6; color:#8a8a9a; }
+/* 아래 단추가 둘일 때는 **한 줄에 나란히**, 키도 낮춥니다.
+   위아래로 쌓으면 두 줄(약 150px)을 먹어서 그림일기가 그만큼 작아집니다. */
+.panel-action.pd-acts{ display:flex; gap:.6rem; }
+.panel-action.pd-acts .btn{ flex:1 1 0; width:auto; min-height:52px; font-size:1.05rem; }
 
 /* 아래 줄 (이전 / 다음 / 홈) — 바탕 없이, 흰 칸이 끝나는 바로 아래에 붙습니다 */
 .bottombar{
@@ -2540,4 +2544,26 @@ textarea.sentence-edit,
 .pd-modes{
   grid-column:2; display:flex; flex-wrap:wrap; align-items:center;
   justify-content:center; gap:.25rem; min-width:0;
+}
+/* 오른쪽 끝 칸 — 스스로 쓰기일 때만 나오는 힌트 보기 */
+.pd-modehint{ grid-column:3; justify-self:end; display:flex; }
+
+/* 힌트 보기 — 그림 자리에 완성된 문장을 크게.
+   ★ 스스로 쓰기(빈 칸·빈 줄)에서 혼자 쓰기 어려운 학생이 막히지 않게,
+     보고 쓸 문장을 바로 위에 띄웁니다. 인쇄해도 그대로 나오므로
+     종이에 쓸 때에도 보고 쓸 수 있습니다.
+   ※ .pd-sheet 안이라 크기는 **px** 로 잡습니다 (794 고정 캔버스). */
+.pd-hintbig{
+  width:100%; height:100%; display:flex; flex-direction:column;
+  justify-content:center; gap:8px; padding:14px 22px;
+  background:#fffbe8; border:3px dashed #e8bf3d; border-radius:12px;
+  box-sizing:border-box; overflow:hidden;
+}
+.pd-hintbig-lab{
+  align-self:center; padding:2px 14px; border-radius:999px;
+  background:#e8bf3d; color:#fff; font-size:18px; font-weight:900;
+}
+.pd-hintbig-ln{
+  margin:0; font-size:30px; font-weight:800; line-height:1.5;
+  text-indent:1em; color:#4a4a55;
 }

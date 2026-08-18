@@ -271,6 +271,8 @@
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
     /* 3단계 밑줄의 줄 간격·글자 크기 (글이 길면 한 단계씩 작아집니다) */
     var lineFit = useLines ? fitLines(lines) : null;
+    /* 힌트 보기에 쓸 문장 — 학생이 아래 빈 칸에 보고 쓸 내용입니다 */
+    var hintLines = lines;
 
     /* ── 그림칸에 놓을 그림들 ──────────────────────────────────────
        장소는 배경으로 깔고, 그 위에 **누구와 · 활동 · 기분** 을 놓습니다.
@@ -406,7 +408,19 @@
 
 
       <div class="pd-draw">
-        ${pic
+        ${(p.showHint && mode === 'empty' && hintLines.length)
+          /* ★ 스스로 쓰기(빈 칸·빈 줄)에서 **힌트 보기**를 켜면, 그림 자리에
+               완성된 문장이 크게 나타납니다. 학생은 그것을 보고 아래 빈 칸에
+               따라 씁니다. 혼자 쓰기 어려운 학생이 막히지 않게 하는 길입니다.
+             ▸ 인쇄해도 그대로 나오므로, 종이에 쓸 때에도 보고 쓸 수 있습니다.
+             ▸ 힌트를 끄면 다시 그림이 나옵니다. */
+          ? html`<div class="pd-hintbig">
+              <span class="pd-hintbig-lab">보고 써요</span>
+              ${hintLines.map(function (s, i) {
+                return html`<p key=${i} class="pd-hintbig-ln">${s}</p>`;
+              })}
+            </div>`
+          : pic
           ? html`<div class="pd-photo"><img src=${pic} alt="사진 또는 내가 그린 그림" /></div>`
           /* 사진이나 그린 그림이 없으면 학생이 고른 것들을 그림으로 보여 줍니다.
              (활동 · 함께한 사람 · 기분 · 장소)
@@ -559,7 +573,13 @@
       return function () { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
     }, []);
 
-    var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace=${traceS[0]} />`;
+    /* 스스로 쓰기(빈 칸·빈 줄)에서만 쓰는 **힌트 보기**.
+       혼자 쓰기 어려운 학생이 막히지 않게, 완성된 문장을 그림 자리에
+       크게 띄워 보고 쓰게 합니다. */
+    var hintS = useState(false);
+    var canHint = (traceS[0] === 'empty');
+    var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace=${traceS[0]}
+      showHint=${canHint && hintS[0]} />`;
 
     /* 인쇄 모양 단추는 제목·단추와 한 줄에 두면 서로 밀려 제목이 잘립니다 → 아랫줄로.
        단추는 **그 학생의 단계에 있는 것만** 나옵니다 (1단계는 하나뿐). */
@@ -578,6 +598,13 @@
             aria-pressed=${on ? 'true' : 'false'} title=${m.desc}
             onClick=${function () { traceS[1](m.id); }}>${m.name}<//>`;
         })}
+      </span>
+      <!-- 오른쪽 끝 : 스스로 쓰기일 때만 나오는 힌트 보기 -->
+      <span class="pd-modehint">
+        ${canHint && html`<${C.Btn} size="small" icon="eye"
+          className=${'pastel-yellow' + (hintS[0] ? ' on' : '')}
+          onClick=${function () { hintS[1](!hintS[0]); }}>
+          ${hintS[0] ? '힌트 숨기기' : '힌트 보기'}<//>`}
       </span>
     </div>`;
 
@@ -605,12 +632,14 @@
             </div>` : html`<${C.Banner} icon="question">일기를 찾을 수 없어요.<//>`}
           </div>
 
-          <div class="panel-action">
+          <!-- ★ 단추 둘을 **한 줄에 나란히**, 키도 낮춥니다.
+                 위아래로 쌓으면 두 줄(약 150px)을 먹어서 그림일기가 그만큼
+                 작아집니다. 한 줄이면 절반만 씁니다.
+                 1·2·3단계가 같은 화면을 쓰므로 세 단계에 함께 적용됩니다. -->
+          <div class="panel-action pd-acts">
             <${C.Btn} kind="primary" icon="print"
               onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
-              A4로 인쇄하기<//>
-            <!-- 모아 둔 일기를 보러 가는 길은 **완성된 그림일기 옆**에 둡니다.
-                 고치는 화면이 아니라 다 만든 화면에서 찾게 되는 것이라서요. -->
+              A4 인쇄하기<//>
             <${C.Btn} icon="book" className="pastel-yellow"
               onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
               나의 일기 모음 보기<//>
