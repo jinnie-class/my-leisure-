@@ -429,8 +429,21 @@ ul{ margin:0; padding:0; list-style:none; }
      `images/avatars/README.md` 를 함께 보세요.
    ※ 높이는 건드리지 마세요. 높이를 키우면 사람 카드 7장이 흰 칸에 안 들어가
      통째로 다음 쪽으로 밀리고 1쪽이 텅 빕니다. */
+/* ★ 그림은 **전신 그대로** 두고, 고르는 카드에서만 **위쪽을 잘라** 보여 줍니다.
+     전신 그림(328×512)을 통째로 넣으면 카드 246px 안에 사람이 111px 밖에
+     안 되어, 누가 누구인지 알아보기 어려웠습니다 (좌우 135px 이 그냥 빈 자리).
+     네모 칸에 `cover` 로 채우고 위쪽에 맞추면 다리가 잘리고 **얼굴과 윗몸이
+     커집니다.** 그림을 다시 그리지 않고 상반신처럼 보이게 하는 방법입니다.
+   ※ 그림일기·계획표에 들어가는 그림은 그대로 **전신**입니다.
+     거기서는 크기를 조절할 수 있어서 전신이 더 낫습니다.
+   ※ 높이는 건드리지 마세요. 높이를 키우면 사람 카드 7장이 흰 칸에 안 들어가
+     통째로 다음 쪽으로 밀리고 1쪽이 텅 빕니다. */
 .pick .thumb.portrait{
-  width:auto; height:clamp(84px,15.5vh,200px); aspect-ratio:.64;
+  width:auto; height:clamp(84px,15.5vh,200px); aspect-ratio:1;
+  overflow:hidden; border-radius:14px;
+}
+.pick .thumb.portrait img{
+  object-fit:cover; object-position:center top;
 }
 .pick .thumb svg,.pick .thumb img{ width:100%; height:100%; display:block; object-fit:contain; }
 .pick .label{ font-size:clamp(.95rem,.55rem + 1vh,1.35rem); font-weight:800; line-height:1.25; }
