@@ -480,6 +480,65 @@
       <//>`;
     }
 
+    /* ── 흰 빈칸이 채워지는 두 줄 문장 (2·3단계) ──────────────────
+       ★ 고른 것을 줄글로 죽 이어 붙이면, 뒤에 기분·제목이 붙을수록
+         앞 내용이 옆으로 밀려나 안 보였습니다. **빈칸 채우기**로 되돌립니다.
+         아직 안 고른 것은 빈 흰 칸으로 남아, 무엇을 더 골라야 하는지 보입니다.
+       ▸ 1줄은 **세 단계가 똑같은 뼈대**입니다 (언제 · 누구와 · 어디에서 · 무엇을).
+       ▸ 2줄에는 그 단계에서 더 고르는 것만 담습니다. 2줄이 길어져도
+         1줄이 밀리지 않습니다.
+       ▸ 3단계는 학생이 **직접 쓴 글**로 같은 칸을 채웁니다. */
+    function blank(v, wide) {
+      var on = !!(v && String(v).trim());
+      return html`<span class=${'blank' + (on ? ' on' : '') + (wide ? ' wide' : '')}>
+        ${on ? v : '　　　'}</span>`;
+    }
+    function frameBar() {
+      var six = sixOf();
+      /* 3단계는 쓴 글을, 1·2단계는 고른 것을 넣습니다 */
+      function say(k, picked) {
+        return level === 3 ? ((six[k] || '').trim() || picked || '') : (picked || '');
+      }
+      var t = App.todayKey();
+      var dateWord = !draft.date ? ''
+        : (draft.date === t ? '오늘'
+          : (draft.date === App.addDays(t, -1) ? '어제' : App.fmtDateShort(draft.date)));
+      var whoWord = whoIds().map(function (id) {
+        var q = App.partner(id); return q ? q.name : '';
+      }).filter(Boolean).join(', ');
+      var a2 = App.act(draft.activityId);
+      var actWord = a2 ? App.frameWord(a2) : '';
+      var moodWord = (draft.moodIds || []).map(function (m) {
+        var mo = App.mood(m); return mo ? mo.name : '';
+      }).filter(Boolean).join(', ');
+
+      var alone = (level !== 3) && whoIds().length === 1 && whoIds()[0] === 'alone';
+      var w1 = say('when', dateWord), w2 = say('who', whoWord);
+      var w3 = say('where', draft.place), w4 = say('what', actWord);
+      var f = (level === 2) ? frames() : {};
+
+      return html`<${React.Fragment}>
+        <div class="frame-line">
+          <b>나는</b> ${blank(w1)}
+          <!-- 혼자는 와 함께 를 붙이지 않습니다 (혼자와 함께 는 말이 안 됩니다).
+               이미 있는 App.partnerPhrase 와 같은 규칙을 씁니다. -->
+          ${blank(w2)}<b>${alone ? '' : (josaOf(w2, '과/와') + ' 함께')}</b>
+          ${blank(w3)}<b>에서</b>
+          ${blank(w4, true)}<b>${josaOf(w4, '을/를') + ' 했어요.'}</b>
+        </div>
+        <div class="frame-line">
+          <b>기분이</b> ${blank(say('how', moodWord))}<b>.</b>
+          ${level === 2 && html`<${React.Fragment}>
+            <b>기억에 남는 것은</b> ${blank(f.f3)}<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
+            <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
+          <//>`}
+          ${level === 3 && html`<${React.Fragment}>
+            <b>왜냐하면</b> ${blank(say('why', ''), true)}<b>.</b>
+          <//>`}
+        </div>
+      <//>`;
+    }
+
     /* 뼈대 단계에서 **다음으로 넘어가도 되는지**.
        ▸ 그림은 반드시 골라야 합니다 (안 고르면 일기에 넣을 것이 없습니다).
        ▸ 글은 비어 있어도 넘어갑니다 (위 boneWrite 주석 참고). */
@@ -786,20 +845,15 @@
       step -= 4;
       if (step === 2) {
         return html`<${React.Fragment}>
-          <div class="frame-line"><b>가장 기억에 남는 것은</b>
-            <span class=${'blank' + (f.f3 ? ' on' : '')}>${f.f3 || '　　　'}</span>
-            <b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
-          </div>
+          <!-- 만들어지는 문장은 흰 칸 맨 위 두 줄(frameBar)에 있습니다.
+               여기에 또 두면 같은 말이 두 번 나옵니다. -->
           <${C.Question} bar=${true} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
           ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
         <//>`;
       }
       if (step === 3) {
         return html`<${React.Fragment}>
-          <div class="frame-line"><b>다음에는</b>
-            <span class=${'blank' + (f.f4 ? ' on' : '')}>${f.f4 || '　　　'}</span>
-            <b>하고 싶어요.</b>
-          </div>
+          <!-- 위와 같은 까닭으로 낱개 문장 줄을 뺐습니다 -->
           <${C.Question} bar=${true} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
           ${wordCards(F4_WORDS, 'f4', f.f4, 4)}
         <//>`;
@@ -999,12 +1053,7 @@
           </span>
         </div>`;
       } else {
-        var soFar = (level === 3)
-          ? sixLines().join(' ')
-          : App.sentences.diaryFramesLines(Object.assign({}, draft, { frames: frames() })).join(' ');
-        if (soFar) backBtn = html`<div class="plan-top">
-          <span class="plan-sofar" aria-live="polite">${soFar}</span>
-        </div>`;
+        backBtn = html`<div class="frame-top" aria-live="polite">${frameBar()}</div>`;
       }
     }
 

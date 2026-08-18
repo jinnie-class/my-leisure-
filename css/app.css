@@ -1916,6 +1916,15 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .frame-line .blank.on{ background:#fff; border-bottom-color:var(--ok); }
 .blank.wide{ min-width:10em; }
 
+/* 흰 칸 맨 위 두 줄 — 빈칸이 채워지는 문장 (2·3단계).
+   ★ 1줄은 세 단계가 똑같은 뼈대, 2줄은 그 단계에서 더 고르는 것.
+     둘로 나눠 두면 2줄이 길어져도 1줄이 옆으로 밀리지 않습니다. */
+.frame-top{ width:100%; min-width:0; }
+.frame-top .frame-line{ margin-bottom:.3rem; }
+.frame-top .frame-line:last-child{ margin-bottom:0; }
+/* 맨 위 줄에서는 조금 작게 — 질문과 고르는 칸이 주인공입니다 */
+.frame-top .frame-line{ font-size:clamp(.92rem,.6rem + .85vh,1.15rem); padding:.35rem .7rem; }
+
 /* ===========================================================
    여가 지도 : 나의 여가 도장판
    ★ 예전에는 진행 막대 하나뿐이라 30곳을 다 가야 뭔가 되는 구조였습니다.
