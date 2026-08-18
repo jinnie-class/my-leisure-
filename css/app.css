@@ -420,8 +420,18 @@ ul{ margin:0; padding:0; list-style:none; }
 /* ※ 높이를 키우면 사람 카드 7장(2줄)이 흰 칸에 안 들어가
       통째로 다음 쪽으로 밀리고 1쪽이 텅 빕니다.
       (`.pick-grid` 는 통으로 움직여서 반씩 나뉘지 않습니다) */
+/* 사람 그림을 담는 자리.
+   ★ 예전에는 `aspect-ratio:.64` 였습니다 — 전신 그림(328×512)에 맞춘 값입니다.
+     그런데 카드는 132px 넓은데 그림칸이 66px 뿐이라 **좌우 48px 이 그냥 비었고**,
+     전신이라 얼굴이 화면에서 23px 밖에 안 되어 누구인지 알아보기 어려웠습니다.
+   ▸ 이제 **정사각(1:1)** 입니다. 상반신 그림(512×512)을 넣으면
+     그림칸이 66 → 104px 로 넓어지고 얼굴이 23 → 약 57px 로 커집니다.
+   ▸ 아직 전신 그림(0.64)이 들어 있어도 괜찮습니다. `object-fit:contain` 이라
+     세로에 맞춰 그대로 66×104 로 나옵니다 (지금과 똑같이 보입니다).
+   ※ 높이는 건드리지 마세요. 높이를 키우면 사람 카드 7장이 흰 칸에 안 들어가
+     통째로 다음 쪽으로 밀리고 1쪽이 텅 빕니다. */
 .pick .thumb.portrait{
-  width:auto; height:clamp(84px,15.5vh,200px); aspect-ratio:.64;
+  width:auto; height:clamp(84px,15.5vh,200px); aspect-ratio:1;
 }
 .pick .thumb svg,.pick .thumb img{ width:100%; height:100%; display:block; object-fit:contain; }
 .pick .label{ font-size:clamp(.95rem,.55rem + 1vh,1.35rem); font-weight:800; line-height:1.25; }
