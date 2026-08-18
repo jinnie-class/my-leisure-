@@ -470,10 +470,23 @@
          ※ 재는 순서가 중요합니다. 먼저 `--slack` 을 **0 으로 되돌린 뒤**
            재야 합니다. 그러지 않으면 '여백을 넓혔더니 남는 자리가 줄고,
            줄었으니 여백이 좁아지고…' 하며 값이 계속 흔들립니다. */
+      /* 남는 자리를 재어 `--slack` 으로 넘겨 줍니다 (자세한 것은 measureSlack).
+         ★ 여백을 준 **뒤에** 넘치는지 꼭 다시 봅니다.
+           그러지 않으면 여백이 내용을 밀어내서, 남는 자리가 넉넉해 보이는데도
+           마지막 칸(오늘의 도전 같은)이 **2쪽으로 밀려납니다.**
+           1쪽에는 큰 빈자리만 남고 학생은 왜 비었는지 알 수 없습니다.
+         넘치면 여백을 절반 → 4분의 1 → 0 으로 줄여 가며 맞춥니다.
+         한 번에 0 으로 떨어뜨리지 않는 까닭 : 조금이라도 숨 쉴 자리를 남기려는 것입니다. */
       el.style.setProperty('--slack', '0px');
+      var want = measureSlack(el);
+      var tries = [want, Math.floor(want / 2), Math.floor(want / 4), 0];
+      for (var ti = 0; ti < tries.length; ti++) {
+        el.style.setProperty('--slack', tries[ti] + 'px');
+        if (el.scrollHeight <= el.clientHeight + 2) break;    // 넘치지 않으면 그대로
+      }
+
       var avail = el.clientHeight;
       var natural = el.scrollHeight;
-      el.style.setProperty('--slack', measureSlack(el) + 'px');
 
       var n = 1;
       if (natural > avail + 2 && avail > 0) {

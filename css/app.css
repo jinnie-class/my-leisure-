@@ -602,11 +602,14 @@ textarea.sentence-edit:focus{
   text-align:center;
   /* 지웠던 설명 한 줄(`내가 좋아하는 여가를 찾아보아요.`)이 차지하던 높이 */
   --one-line:calc(clamp(.9rem, .55rem + .8vh, 20px) * 1.45);
-  /* 아래를 위보다 넉넉하게 (아래 1 · 위 0.55) — 큰 글자는 줄 상자 안에서 위쪽에
-     여유가 있어서, 위아래를 똑같은 숫자로 주면 아래가 더 붙어 보입니다.
-     그리고 둘을 합쳐도 **남는 자리를 넘지 않습니다** (0.35 + 0.65 = 1). */
-  margin-top:min(calc(var(--one-line) * .55), calc(var(--slack, 0px) * .35));
-  margin-bottom:min(var(--one-line), calc(var(--slack, 0px) * .65));
+  /* 아래를 위보다 훨씬 넉넉하게 (아래 1.5줄 · 위 0.6줄).
+     큰 글자는 줄 상자 안에서 위쪽에 여유가 있어서, 위아래를 똑같은 숫자로
+     주면 아래가 더 붙어 보입니다. 눈으로 맞춘 값입니다.
+     둘을 합쳐도 **남는 자리를 넘지 않습니다** (0.29 + 0.71 = 1).
+     남는 자리(`--slack`)는 C.Stage 가 재어 넣어 주며,
+     여백 때문에 쪽이 갈라지면 스스로 절반·4분의 1 로 줄어듭니다. */
+  margin-top:min(calc(var(--one-line) * .6), calc(var(--slack, 0px) * .29));
+  margin-bottom:min(calc(var(--one-line) * 1.5), calc(var(--slack, 0px) * .71));
 }
 .home-title h1{
   font-size:clamp(1.5rem, .7rem + 2.2vh, 42px);
