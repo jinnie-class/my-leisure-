@@ -379,14 +379,19 @@
         if (act && act.defaultPlace) {
           places = [act.defaultPlace].concat(places.filter(function (s) { return s !== act.defaultPlace; }));
         }
-        var PLACE_PER = 10;
+        /* ★ 한 쪽에 **6곳**입니다 (예전 10곳).
+             10곳은 한눈에 훑기에 너무 많았습니다. 6곳이면
+             `무엇을 할까요?` 와 **같은 개수**라, 학생이 '한 화면에 여섯,
+             더 있으면 넘긴다' 는 규칙을 하나만 익히면 됩니다.
+             19곳 → 4쪽 (4곳씩이면 5쪽이라 넘기는 횟수가 늘어납니다). */
+        var PLACE_PER = 6;
         var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
         var plPage = Math.min(placePageS[0], plPages - 1);
         var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
         var lastPage = plPage === plPages - 1;
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText="어느 곳에서 할까요?">어느 곳에서 할까요?<//>
-          <${C.PickGrid} cols=${5} big=${true} label="장소">
+          <${C.PickGrid} cols=${3} big=${true} label="장소">
             <!-- 고르면 낱말 하나가 아니라 짧은 문장으로 읽습니다 — '집' 처럼
                  한 글자면 목소리가 이상하게 들립니다
                  (korean.js 의 App.partnerSpeech 주석을 보세요). -->

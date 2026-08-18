@@ -157,8 +157,11 @@
     expand: '<path d="M18 8H8v10M30 8h10v10M18 40H8V30M30 40h10V30"/>',
     shrink: '<path d="M8 18h10V8M40 18H30V8M8 30h10v10M40 30H30v10"/>',
     home: '<path d="M8 22L24 9l16 13"/><path d="M12 20v19h24V20"/><path d="M19 39V28h10v11"/>',
-    back: '<path d="M28 12L16 24l12 12"/>',
-    next: '<path d="M20 12l12 12-12 12"/>',
+    /* ★ 화살표는 **꺾쇠(<)가 아니라 진짜 화살표**로 그립니다.
+         꺾쇠만 있으면 무엇을 뜻하는지 잘 안 보인다는 이야기가 있었습니다.
+         **긴 줄(몸통) + 머리**가 함께 있어야 누가 봐도 화살표로 읽힙니다. */
+    back: '<path d="M38 24H13"/><path d="M23 14L13 24l10 10"/>',
+    next: '<path d="M10 24h25"/><path d="M25 14l10 10-10 10"/>',
     close: '<path d="M14 14l20 20M34 14L14 34"/>',
     question: '<circle cx="24" cy="24" r="16"/><path d="M19 19.5c0-2.8 2.3-5 5-5s5 2 5 4.6c0 3.4-5 3.6-5 7.4"/><circle cx="24" cy="33" r="1.6" fill="currentColor"/>'
   };
