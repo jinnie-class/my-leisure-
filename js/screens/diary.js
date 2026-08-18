@@ -511,7 +511,6 @@
             onClick=${function () {
               setF(k, w.name, extraOf ? extraOf(w) : null);
               App.speakFor(student, w.name);
-              goNext();
             }}
             art=${w.mood
               ? html`<${C.MoodArt} mood=${w.mood} />`
@@ -559,7 +558,7 @@
           ${titleWords(f).map(function (w) {
             var on = draft.title === w.name;
             return html`<${C.Pick} key=${w.name} selected=${on} label=${w.name} speakText=${w.name}
-              onClick=${function () { patch({ title: w.name }); App.speakFor(student, w.name); goNext(); }}
+              onClick=${function () { patch({ title: w.name }); App.speakFor(student, w.name); }}
               art=${w.mood
                 ? html`<${C.MoodArt} mood=${w.mood} />`
                 : html`<${C.Art} iconKey=${w.icon} />`} />`;
@@ -583,13 +582,22 @@
           <${C.Question} bar=${true} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
           <${C.PickGrid} cols=${partners.length}>
             ${partners.map(function (pt) {
-              var on = f.f1a === pt.name;
+              var ids = draft.partnerIds || [];
+              var on = ids.indexOf(pt.id) >= 0;
               return html`<${C.Pick} key=${pt.id} selected=${on} label=${pt.name}
                 speakText=${App.partnerSpeechPast(pt)}
                 portrait=${true}
                 onClick=${function () {
-                  setF('f1a', pt.name, { partnerId: pt.id });
-                  App.speakFor(student, App.partnerSpeechPast(pt)); goNext();
+                  var cur = (draft.partnerIds || []).slice();
+                  var i = cur.indexOf(pt.id);
+                  if (i >= 0) cur.splice(i, 1);
+                  else if (pt.id === 'alone') cur = ['alone'];
+                  else cur = cur.filter(function (x) { return x !== 'alone'; }).concat([pt.id]);
+                  var names = cur.map(function (id) {
+                    var q = App.partner(id); return q ? q.name : '';
+                  }).filter(Boolean).join(', ');
+                  setF('f1a', names, { partnerIds: cur, partnerId: cur[0] || null });
+                  if (i < 0) App.speakFor(student, App.partnerSpeechPast(pt));
                 }}
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
@@ -859,10 +867,8 @@
         ${step !== 6 && step > 0 ? null : null}
         ${level1Body(step)}
       <//>`;
-      /* 되돌아가기는 흰 칸 안 맨 위에 둡니다 (홈 단추 옆이 아니라) */
-      backBtn = step > 0
-        ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
-            onClick=${function () { stepS[1](step - 1); }}>앞 질문으로<//>` : null;
+      /* 되돌아가기는 **맨 위 줄 화살표**가 맡습니다 (흰 칸 안에는 두지 않습니다).
+         화살표가 둘이면 어느 것을 눌러야 할지 헷갈립니다 (규칙 7). */
       /* ★ **여러 개 고르는 단계**(누구와 · 기분)는 `다 골랐어요`.
            한 개 고르고 바로 `다음` 을 누르면 더 고를 수 있다는 것을 모르고
            지나갑니다. 단추 글씨가 그것을 알려 줍니다. */
@@ -883,13 +889,13 @@
            바로 아래 노란 띠에 '나는 가족과 함께 …' 가 이미 다 적혀 있어서,
            띠를 크게 두면 같은 말이 두 번 나오고 선택지가 다음 쪽으로 밀립니다. */
         body = level2Body(step);
-        backBtn = step > 0
-          ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
-              onClick=${function () { stepS[1](step - 1); }}>앞 질문으로<//>` : null;
+        /* 여러 개 고르는 단계(누구와 · 기분)는 단추 글씨를 `다 골랐어요` 로.
+           한 개 고르고 `다음` 을 누르면 더 고를 수 있다는 것을 모르고 지나갑니다. */
+        var multi2 = (step === 0 || step === 1);    // 누구와 · 기분
         action = step === lastStep
           ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
           : html`<${C.Btn} kind="primary" icon="next"
-              onClick=${function () { stepS[1](step + 1); }}>다음<//>`;
+              onClick=${function () { stepS[1](step + 1); }}>${multi2 ? '다 골랐어요' : '다음'}<//>`;
       }
 
     } else {
@@ -900,9 +906,6 @@
             place: draft.place || (a ? a.defaultPlace : '') }); }} />`;
       } else {
         body = level3Body(step);
-        backBtn = step > 0
-          ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
-              onClick=${function () { stepS[1](step - 1); }}>앞 질문으로<//>` : null;
         action = step === lastStep
           ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
           : html`<${C.Btn} kind="primary" icon="next"
@@ -912,12 +915,22 @@
 
     /* 단계 표시는 길어서 제목·단추와 한 줄에 두면 서로 밀립니다 → 위쪽 줄의 아랫줄로.
        ※ 주석을 html`` 안에 쓰면 글자로 섞여 들어가 앱이 통째로 안 뜹니다. */
+    /* 맨 위 줄 화살표가 하는 일 :
+       · 질문을 진행하는 중이면 → 앞 질문으로
+       · 첫 질문이면 → 나의 여가로 (코너 네 개가 있는 홈) */
+    function diaryBack() {
+      if (step > 0) { stepS[1](step - 1); return; }
+      p.nav('home');
+    }
+    var backLabel = step > 0 ? '앞 질문으로' : '나의 여가로';
+
     var stepsBar = (level === 1 || (level !== 1 && draft.activityId))
       ? html`<${C.Steps} steps=${steps} current=${step} />` : null;
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="여가 일기"
-        onBack=${function () { p.nav("home"); }}
+        onBack=${diaryBack}
+        backLabel=${backLabel}
         onTitle=${function () { p.nav("home"); }}
         below=${stepsBar}>
         <div class="wrap" style=${{ gap: '.25rem' }}>
