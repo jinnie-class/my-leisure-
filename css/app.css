@@ -818,7 +818,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
        (2026-08-19 새 지도 : 위 #D0EDFD · 아래 #D2EDFC · 왼쪽 #CDECFD).
        색이 이어지면 남는 자리가 '빈 곳' 이 아니라 '바다가 더 넓은 것' 으로
        보입니다. 배경 그림을 새로 그리면 가장자리 색도 다시 재어 맞추세요. */
-  background-color:#ddf1fd;
+  background-color:#e0f3fe;
 }
 .map-canvas{ position:absolute; top:0; left:0; transform-origin:0 0; }
 .map-paths{ position:absolute; inset:0; pointer-events:none; }
@@ -2050,7 +2050,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      남는 자리가 '빈 곳' 이 아니라 '그 섬이 더 넓은 것' 으로 보입니다. */
 .map-wrap.in-island{
   background-image:var(--island-bg, var(--mapbg));
-  background-color:var(--island-sea, #ddf1fd);
+  background-color:var(--island-sea, #e0f3fe);
 }
 
 /* ===========================================================
