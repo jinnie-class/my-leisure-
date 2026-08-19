@@ -2037,8 +2037,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
 .map-collect:hover{ transform:translateY(-2px); }
-/* 섬마다 다른 배경 — js 가 --island-bg 를 넣어 줍니다 (없으면 지도 배경 그대로) */
-.map-wrap.in-island{ background-image:var(--island-bg, var(--mapbg)); }
+/* 섬마다 다른 배경 — js 가 --island-bg 와 --island-sea 를 넣어 줍니다.
+   ★ 둘레를 메우는 색도 **섬마다 다릅니다.** 실내섬은 파스텔 노랑(방 안 바닥),
+     실외섬은 하늘색입니다. 그림 가장자리 색을 재서 맞춘 값이라, 색이 이어져
+     남는 자리가 '빈 곳' 이 아니라 '그 섬이 더 넓은 것' 으로 보입니다. */
+.map-wrap.in-island{
+  background-image:var(--island-bg, var(--mapbg));
+  background-color:var(--island-sea, #d8f0fa);
+}
 
 /* ===========================================================
    여가 지도 : 나의 여가 도장판

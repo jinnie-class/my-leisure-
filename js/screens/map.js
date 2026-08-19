@@ -211,6 +211,14 @@
     if (islandBg) {
       try { islandBg = new URL(islandBg, document.baseURI).href; } catch (e) {}
     }
+    /* 그림 둘레를 메우는 색 — **섬마다 다릅니다.**
+       그림 가장자리 색을 재서 맞춘 값입니다. 색이 이어지면 남는 자리가
+       `빈 곳` 이 아니라 `그 섬이 더 넓은 것` 으로 보입니다.
+         실내섬 #FFFBE6 (파스텔 노랑 — 방 안 바닥)
+         실외섬 #EBF6FC (하늘색 — 바깥 하늘)
+       ★ 배경을 새로 그리면 가장자리 색도 다시 재어 여기를 고치세요. */
+    var islandSea = islandS[0] === 'in' ? '#fffbe6'
+                  : (islandS[0] === 'out' ? '#ebf6fc' : null);
     var L = useMemo(function () {
       return layoutOf(box[0], indoor, outdoor, pIn[0], pOut[0], islandS[0]);
     }, [cards.map(function (c) { return c.id; }).join(','),
@@ -436,7 +444,10 @@
           <!-- 섬 안에서는 그 섬만의 배경 그림을 씁니다
                (images/지도/실내섬.png · 실외섬.png — 없으면 지도 배경 그대로) -->
           <div class=${'map-wrap grow' + (L.focus ? ' in-island' : '')} ref=${wrapRef}
-              style=${islandBg ? { '--island-bg': 'url("' + islandBg + '")' } : null}>
+              style=${(islandBg || islandSea) ? {
+                '--island-bg': islandBg ? 'url("' + islandBg + '")' : null,
+                '--island-sea': islandSea || null
+              } : null}>
             <div class="map-canvas" style=${{ width: W + 'px', height: H + 'px',
                 transform: 'translate(' + offX + 'px,' + offY + 'px) scale(' + scale + ')' }}>
 
