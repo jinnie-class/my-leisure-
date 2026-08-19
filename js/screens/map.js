@@ -505,12 +505,14 @@
                   <!-- 아래 : 발자국 수 + 들어가기 (탐험의 시작 팻말 옆 자리).
                        둘을 갈라 놓아야 섬 그림 가운데(집·자전거·돗자리 …)를
                        가리지 않습니다. -->
+                  <!-- 아래 : 발자국 수만. 들어가기 단추는 없앴습니다 —
+                       섬 어디를 눌러도 들어가므로 같은 말을 또 할 까닭이 없고,
+                       그만큼 섬 그림을 덜 가립니다. -->
                   <span class="gate-foot">
                     <span class="gate-count">
                       ${footImg ? html`<img src=${footImg} alt="" />` : null}
                       <b>${done}</b> / ${list.length} 곳
                     </span>
-                    <span class="gate-go">들어가기 ▶</span>
                   </span>
                 </button>`;
               })}

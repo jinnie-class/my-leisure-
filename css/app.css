@@ -2000,35 +2000,34 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      ▸ 위아래 여백(padding)이 이름 바와 아래 묶음의 자리를 정합니다.
        더/덜 밀려면 이 두 숫자만 고치세요. px 가 아니라 섬 높이에 대한
        **비율**이라 화면이 달라져도 같은 자리에 옵니다. */
-  justify-content:space-between;
-  padding:4% 0 10%;
 }
-/* 아래 묶음 — 발자국 수 + 들어가기 */
-.gate-foot{
-  display:flex; flex-direction:column; align-items:center; gap:.4rem;
-}
+/* 이름 바 — 섬 꼭대기 **구름 자리**. 집·텐트를 덮지 않게 위로 올립니다. */
+.gate-name{ position:absolute; top:3%; left:50%; transform:translateX(-50%); }
+/* 발자국 수 — 섬 **안쪽 끝**(다리 쪽)에 붙여서,
+   `여가 탐험 시작` 팻말 양옆 물 위에 둘이 나란히 놓이게 합니다. */
+.gate-foot{ position:absolute; top:47%; display:flex; }
+.island-gate.in  .gate-foot{ right:3%; }
+.island-gate.out .gate-foot{ left:3%; }
 .island-gate:hover .gate-name{ transform:translateY(-3px); }
+/* ★ 바를 **작게**. 크면 집·텐트를 덮어서 무슨 섬인지 안 보입니다.
+     구름 사이에 얹히는 작은 팻말 정도면 충분합니다. */
 .gate-name{
-  padding:.5rem 1.6rem; border-radius:999px;
-  background:#fffdf3; border:3px solid #8a6a4e; color:#5a4230;
-  font-size:clamp(1.1rem, 1.1rem + 1vh, 2rem); font-weight:900;
-  box-shadow:0 4px 0 rgba(0,0,0,.12);
+  padding:.2rem 1rem; border-radius:999px; white-space:nowrap;
+  background:#fffdf3; border:2px solid #8a6a4e; color:#5a4230;
+  font-size:clamp(.85rem, .55rem + .8vh, 1.2rem); font-weight:900;
+  box-shadow:0 2px 0 rgba(0,0,0,.1);
 }
 .island-gate.out .gate-name{ border-color:#5f8f57; color:#38612f; }
 .gate-count{
-  display:flex; align-items:center; gap:.4rem;
-  padding:.25rem 1rem; border-radius:999px;
-  background:rgba(255,255,255,.88); border:2px solid #c9b78f;
-  font-size:clamp(.95rem,.6rem + .9vh,1.3rem); font-weight:800; color:#5a4230;
+  display:flex; align-items:center; gap:.3rem; white-space:nowrap;
+  padding:.12rem .7rem; border-radius:999px;
+  background:rgba(255,255,255,.92); border:2px solid #c9b78f;
+  font-size:clamp(.78rem,.5rem + .7vh,1.05rem); font-weight:800; color:#5a4230;
+  box-shadow:0 2px 0 rgba(0,0,0,.08);
 }
-.gate-count img{ width:1.5em; height:1.5em; object-fit:contain; display:block; }
-.gate-count b{ font-size:1.25em; font-weight:900; }
-.gate-go{
-  padding:.3rem 1.1rem; border-radius:999px;
-  background:#ff8f9c; color:#fff; font-weight:900;
-  font-size:clamp(.9rem,.55rem + .8vh,1.15rem);
-  box-shadow:0 3px 0 rgba(0,0,0,.12);
-}
+.gate-count img{ width:1.3em; height:1.3em; object-fit:contain; display:block; }
+.gate-count b{ font-size:1.2em; font-weight:900; }
+/* (`들어가기` 단추는 없앴습니다 — 섬 어디를 눌러도 들어갑니다) */
 /* 섬 안에서 지도로 돌아가는 길 — 왼쪽 위 */
 .island-back{
   position:absolute; left:.6rem; top:.6rem; z-index:4;
