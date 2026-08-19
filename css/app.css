@@ -2094,19 +2094,35 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .stampcard-lab b{ font-size:1.05rem; color:var(--ink); }
 .stamps{ flex:1 1 auto; display:flex; gap:.4rem; justify-content:space-between; }
+/* ★ 도장 한 칸도 **왼쪽 발자국 · 오른쪽 글자**로.
+     위아래로 쌓으니 발자국이 26px 밖에 안 되어 무슨 그림인지 알아보기
+     어려웠습니다. 좌우로 나누면 같은 칸 높이에서 발자국을 **두 배 넘게**
+     키울 수 있습니다 (26 -> 46px). */
 .stamp{
   flex:1 1 0; min-width:0; position:relative;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
-  padding:.3rem .1rem; border-radius:14px;
+  display:flex; flex-direction:row; align-items:center; justify-content:center; gap:.35rem;
+  padding:.35rem .3rem; border-radius:14px;
   border:2px dashed var(--line-strong); background:var(--paper-2);
 }
 /* 아직 안 받은 칸은 발자국을 아주 연하게 (자리를 미리 보여 줍니다) */
-.stamp .stamp-ink{ width:26px; height:26px; display:block; opacity:.14; }
+.stamp .stamp-ink{
+  width:clamp(34px,5vh,46px); height:clamp(34px,5vh,46px);
+  flex:0 0 auto; display:block; opacity:.14;
+}
 .stamp .stamp-ink img,.stamp .stamp-ink svg,.stamp .stamp-ink span{
   width:100%; height:100%; display:block; object-fit:contain;
 }
-.stamp-need{ font-size:.78rem; font-weight:800; color:var(--ink-soft); }
-.stamp-date{ font-size:.72rem; font-weight:800; color:#8a6a2f; min-height:.9em; }
+/* 오른쪽 글자 두 줄 (n곳 / 완성·날짜) */
+.stamp-need{
+  font-size:.9rem; font-weight:900; color:var(--ink-soft); line-height:1.15;
+}
+.stamp-date{
+  font-size:.78rem; font-weight:800; color:#8a6a2f; min-height:.9em; line-height:1.15;
+}
+.stamp-txt{
+  display:flex; flex-direction:column; align-items:flex-start;
+  min-width:0; line-height:1.15;
+}
 /* 지금 채우고 있는 칸 — 다음 목표가 어디인지 보여 줍니다 */
 .stamp.next{ border-color:var(--sel-line); background:#eaf6fe; }
 /* 도장을 받은 칸 — 살짝 기울어 찍힌 느낌 */
@@ -2121,23 +2137,42 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 도장을 누르면 나오는 창 */
 /* 도장 창의 발자국 — 84px 에서 크게 키웠습니다.
    도장을 받은 것을 칭찬하는 창인데, 발자국이 글자보다 작으면 칭찬으로 안 보입니다. */
-.stamp-big{ width:clamp(120px,18vh,170px); height:clamp(120px,18vh,170px);
-  margin:.2rem auto .4rem; transform:rotate(-9deg); }
+/* ★ 도장 창을 **좌우로** 나눕니다 — 왼쪽 도장 · 오른쪽 활동 목록.
+     위아래로 쌓으면 도장이 목록을 아래로 밀어내서, 정작 봐야 할
+     `무엇을 해봤는지` 가 한눈에 안 들어왔습니다. */
+.stamp-2col{ display:flex; align-items:center; gap:1.2rem; }
+.stamp-left{
+  flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:.3rem;
+}
+.stamp-big{ width:clamp(110px,16vh,160px); height:clamp(110px,16vh,160px);
+  margin:0; transform:rotate(-9deg); }
 /* 도장 창 안내 한 줄 — `small`(.86rem) 은 너무 작아 따로 둡니다 */
-.stamp-cap{ margin:0; text-align:center; font-size:1.05rem; font-weight:800; color:var(--ink-soft); }
+.stamp-cap{
+  margin:0; text-align:center; line-height:1.35;
+  font-size:1rem; font-weight:800; color:var(--ink-soft);
+}
 .stamp-big img,.stamp-big svg,.stamp-big span{ width:100%; height:100%; display:block; object-fit:contain; }
-.stamp-list{ margin:.4rem 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:.3rem; }
+.stamp-list{
+  flex:1 1 auto; min-width:0;
+  margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:.35rem;
+}
 .stamp-list li{
   display:flex; align-items:center; gap:.6rem;
-  padding:.4rem .7rem; border:2px solid var(--line); border-radius:12px; background:#fff;
+  padding:.5rem .8rem; border:2px solid var(--line); border-radius:12px; background:#fff;
 }
+/* 번호와 이름을 키웠습니다 — 좌우로 나누며 생긴 자리를 글자에 돌려줍니다 */
 .sl-no{
-  flex:0 0 auto; width:26px; height:26px; border-radius:999px;
-  display:grid; place-items:center; font-weight:900; font-size:.85rem;
+  flex:0 0 auto; width:32px; height:32px; border-radius:999px;
+  display:grid; place-items:center; font-weight:900; font-size:1rem;
   background:#fff8e2; border:2px solid #e6bf4a; color:#6b5410;
 }
-.sl-name{ flex:1 1 auto; min-width:0; font-weight:800; }
+.sl-name{ flex:1 1 auto; min-width:0; font-weight:800; font-size:1.1rem; }
 .sl-date{ flex:0 0 auto; font-size:.85rem; font-weight:800; color:var(--ink-soft); }
+/* 좁은 화면에서는 위아래로 (예전 모습) */
+@media (max-width: 620px){
+  .stamp-2col{ flex-direction:column; }
+  .stamp-list{ width:100%; }
+}
 
 /* 도움말 창의 요약 글 — 큰 글씨로 다섯 줄이면 창이 글자로 빽빽해집니다 */
 .map-sum{ font-size:1rem; line-height:1.5; }

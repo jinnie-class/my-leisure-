@@ -426,8 +426,11 @@
                     ${footImg ? html`<img src=${footImg} alt="" />`
                               : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
                   </span>
-                  <span class="stamp-need">${s.need}곳</span>
-                  <span class="stamp-date">${s.done ? (s.date ? App.fmtDateShort(s.date) : '완성') : ''}</span>
+                  <!-- 오른쪽 : 몇 곳인지 · 완성했는지 (발자국 옆에 두 줄로) -->
+                  <span class="stamp-txt">
+                    <span class="stamp-need">${s.need}곳</span>
+                    <span class="stamp-date">${s.done ? (s.date ? App.fmtDateShort(s.date) : '완성') : ''}</span>
+                  </span>
                 </button>`;
               })}
             </div>
@@ -666,21 +669,27 @@
         speakText=${'도장을 받은 활동이에요. ' + stampS[0].group.map(function (g) { return g.name; }).join(', ')}
         onClose=${function () { stampS[1](null); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { stampS[1](null); }}>닫기<//>`}>
-        <div class="stamp-big" aria-hidden="true">
-          ${footImg ? html`<img src=${footImg} alt="" />`
-                    : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
+        <!-- ★ 왼쪽에 도장, 오른쪽에 활동 목록으로 **좌우로 나눕니다.**
+               위아래로 쌓으면 도장이 목록을 아래로 밀어내서, 정작 봐야 할
+               '무엇을 해봤는지' 가 한눈에 안 들어왔습니다. -->
+        <div class="stamp-2col">
+          <div class="stamp-left">
+            <div class="stamp-big" aria-hidden="true">
+              ${footImg ? html`<img src=${footImg} alt="" />`
+                        : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
+            </div>
+            <p class="stamp-cap">이때까지<br />해본 활동이에요</p>
+          </div>
+          <ol class="stamp-list">
+            ${stampS[0].group.map(function (g, i) {
+              return html`<li key=${g.id}>
+                <span class="sl-no">${(stampS[0].no - 1) * PER_STAMP + i + 1}</span>
+                <span class="sl-name">${g.name}</span>
+                <span class="sl-date">${g.date ? App.fmtDateShort(g.date) : ''}</span>
+              </li>`;
+            })}
+          </ol>
         </div>
-        <!-- 작은 글씨(small) 를 뺐습니다 — 도장 창의 안내 한 줄인데 너무 작았습니다 -->
-        <p class="stamp-cap">이때까지 해본 활동이에요</p>
-        <ol class="stamp-list">
-          ${stampS[0].group.map(function (g, i) {
-            return html`<li key=${g.id}>
-              <span class="sl-no">${(stampS[0].no - 1) * PER_STAMP + i + 1}</span>
-              <span class="sl-name">${g.name}</span>
-              <span class="sl-date">${g.date ? App.fmtDateShort(g.date) : ''}</span>
-            </li>`;
-          })}
-        </ol>
       <//>`}
 
       <!-- 도장 하나를 다 채운 순간의 축하 : 폭죽 + 칭찬 한 마디.
