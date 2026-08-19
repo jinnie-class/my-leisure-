@@ -35,7 +35,7 @@
     wallpaper: 'images/벽지.jpg',    // 모든 화면의 배경 무늬
     /* 여가 지도(민트색 칸) 의 바탕 그림. 파일이 없으면 지금처럼 연한 색만 깔립니다.
        카드·캐릭터·발자국이 그 위에 올라가므로 아주 연하게 그려야 합니다. */
-    mapbg: 'images/여가지도.png',
+    mapbg: 'images/여가지도.jpg',
 
     /* 조작 단추 그림 — 동그란 단추 모양까지 그려져 있는 그림입니다.
        파일이 없으면 코드로 그린 선 아이콘이 대신 나옵니다. */
@@ -61,8 +61,8 @@
       coverWord: 'images/나의여가 표지글자.png',
       /* 섬 안에 들어갔을 때 깔리는 배경 (없으면 여가지도 배경을 그대로 씁니다).
          가로로 넓은 그림입니다 — 규격은 images/지도/README.md 를 보세요. */
-      islandIn: 'images/지도/실내섬.png',
-      islandOut: 'images/지도/실외섬.png'
+      islandIn: 'images/지도/실내섬.jpg',
+      islandOut: 'images/지도/실외섬.jpg'
     },
     /* 그림에 동그라미가 없어서 흰 동그라미 단추 **안에** 넣어야 하는 것들 */
     uiInset: { home: true }
