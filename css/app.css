@@ -551,6 +551,17 @@ ul{ margin:0; padding:0; list-style:none; }
 /* ⚠ 여기에 margin-right 를 또 주면 안 됩니다. `.q-bar` 의 padding-right 가
      이미 읽어주기 자리를 비워 두고 있어서, 두 번 밀리면 단추가 화면 한가운데로 옵니다. */
 .q-bar > .q-right{ margin-left:auto; display:inline-flex; }
+/* 모아보기처럼 딸린 단추가 없는 화면에서는 질문 바를 **가운데**로.
+   왼쪽에 붙어 있으면 오른쪽이 텅 비어 한쪽으로 쏠려 보입니다.
+   ▸ 읽어주기는 줄 흐름에서 빼내 오른쪽 끝에 띄웁니다. 그러지 않으면
+     소리표 너비의 절반만큼 질문이 왼쪽으로 치우칩니다 (35px 어긋났습니다). */
+[data-corner="map"] .q-bar:not(.has-right){
+  justify-content:center; padding-right:0; padding-left:0;
+}
+[data-corner="map"] .q-bar:not(.has-right) > .speak,
+[data-corner="map"] .q-bar:not(.has-right) > .iconbtn{
+  position:absolute; right:0;
+}
 
 /* 큰 점 진행 표시 */
 .dots-bar{ display:flex; align-items:center; gap:.4rem; }
@@ -2129,21 +2140,29 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요 를
    2줄 2칸으로 두고, 누르면 그 표시를 한 활동만 모아 봅니다.
    =========================================================== */
+/* ★ 네 칸을 **정사각형으로 모아** 놓습니다.
+     옆으로 길쭉한 네모 넷은 화면 폭을 다 쓰면서도 안이 텅 비어서,
+     그림은 왼쪽에 작게 붙고 오른쪽이 그냥 비어 있었습니다.
+     정사각으로 모으면 그림을 크게 가운데 놓을 수 있고, 네 칸이 한눈에
+     묶여 보입니다 (2 × 2 판처럼). */
 .mymap-grid{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
   gap:.7rem; break-inside:avoid;
+  width:min(100%, calc(2 * clamp(150px, 26vh, 260px) + .7rem));
+  margin:0 auto;
 }
 .mymap-card{
-  display:flex; align-items:center; gap:.8rem;
-  min-height:var(--tap); padding:.8rem 1rem;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:.35rem; aspect-ratio:1; padding:.7rem;
   border:3px solid var(--line); border-radius:20px; background:#fff;
-  box-shadow:var(--shadow); text-align:left;
+  box-shadow:var(--shadow); text-align:center;
 }
 .mymap-card:hover{ border-color:var(--sel-line); box-shadow:var(--shadow-2); }
 .mymap-card.empty{ background:var(--paper-2); }
-.mymap-art{ width:clamp(44px,6.5vh,72px); height:clamp(44px,6.5vh,72px); flex:0 0 auto; }
+/* 정사각 칸이라 그림을 크게 (44~72px -> 60~120px) */
+.mymap-art{ width:clamp(60px,11vh,120px); height:clamp(60px,11vh,120px); flex:0 0 auto; }
 .mymap-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
-.mymap-txt{ display:flex; flex-direction:column; min-width:0; }
+.mymap-txt{ display:flex; flex-direction:column; align-items:center; min-width:0; }
 .mymap-txt b{ font-size:1.1rem; font-weight:900; }
 .mymap-num{ font-size:.9rem; font-weight:800; color:var(--ink-soft); }
 

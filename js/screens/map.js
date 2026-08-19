@@ -865,13 +865,15 @@
         <${C.WhoChip} student=${student} />
       <//>
 
+      <!-- ⚠ 태그의 **속성 사이에 주석을 넣지 마세요.**
+             htm 은 그것을 글자로 읽어서 속성 이름이 화면에 그대로 찍힙니다.
+             주석은 이렇게 태그 **밖**에 둡니다.
+           ★ 나가는 길은 들어온 그 섬 하나입니다. 실외 섬에서 들어왔으면
+             실외 섬으로, 실내면 실내로. 학생은 하던 일을 이어서 하려는 것이지
+             어디로 갈지 새로 정하려는 게 아닙니다. -->
       <${C.Stage}
         top=${open ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { openS[1](null); }}>네 가지로 돌아가기<//>` : null}
-        <!-- ★ 나가는 길은 **들어온 그 섬 하나**입니다.
-               실외 섬에서 들어왔으면 실외 섬으로, 실내면 실내로 돌아갑니다.
-               고를 것을 만들지 않는 편이 낫습니다 — 학생은 하던 일을
-               이어서 하려는 것이지, 어디로 갈지 새로 정하려는 게 아닙니다. -->
         action=${islandName
           ? html`<${C.Btn} kind="ok" icon="next"
               onClick=${function () { p.nav('map', { island: island }); }}>
