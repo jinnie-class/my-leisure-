@@ -2020,7 +2020,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .gate-foot{
   position:absolute; bottom:6%; left:50%; transform:translateX(-50%); display:flex;
 }
-.island-gate:hover .gate-name{ transform:translateY(-3px); }
+/* ⚠ 여기서 transform 을 다시 쓸 때는 **가운데 맞춤(translateX(-50%))을 함께**
+     적어야 합니다. `translateY(-3px)` 만 적으면 가운데 맞춤이 통째로 지워져,
+     마우스를 댈 때마다 바가 제 폭의 절반만큼 오른쪽으로 훌쩍 튀었습니다. */
+.island-gate:hover .gate-name{ transform:translate(-50%, -3px); }
 /* ★ 바를 **작게**. 크면 집·텐트를 덮어서 무슨 섬인지 안 보입니다.
      구름 사이에 얹히는 작은 팻말 정도면 충분합니다. */
 .gate-name{
