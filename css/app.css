@@ -2144,8 +2144,12 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .stamp-left{
   flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:.3rem;
 }
+/* ⚠ `margin:0 auto` 를 그대로 두세요. 축하 창처럼 **혼자 쓰이는 곳**에서는
+     이 auto 가 발자국을 가운데로 놓습니다. 도장 창의 좌우 2단에서는
+     `.stamp-left` 가 flex 로 가운데를 맡으므로 auto 가 있어도 그대로입니다.
+     (좌우 2단을 만들며 auto 를 지웠더니 축하 창에서 발자국이 왼쪽에 붙었습니다) */
 .stamp-big{ width:clamp(110px,16vh,160px); height:clamp(110px,16vh,160px);
-  margin:0; transform:rotate(-9deg); }
+  margin:0 auto; transform:rotate(-9deg); }
 /* 도장 창 안내 한 줄 — `small`(.86rem) 은 너무 작아 따로 둡니다 */
 .stamp-cap{
   margin:0; text-align:center; line-height:1.35;
