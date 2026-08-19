@@ -514,6 +514,32 @@
      `draft` 는 아직 저장 안 된 일기지만 모양이 같아서 그대로 넣을 수 있습니다. */
   C.DiaryPreview = function (p) {
     var bigS = useState(false);
+
+    /* ★ 미리보기 크기를 **화면에 맞게 그때그때** 셈합니다.
+       ⚠ 예전에는 CSS 에서 `--dv:.60` 으로 두고 화면 높이 900px · 780px
+         에서만 값을 바꿨습니다. 그러니 **그 사이 크기**(예: 940px)에서는
+         종이가 674px 이나 되어 흰 칸(740px)을 넘겼고, 완성 화면이
+         여러 쪽으로 갈라져 **1쪽이 텅 비어** 보였습니다.
+         구간으로 끊지 말고 **재서** 정해야 어느 크기에서나 맞습니다.
+       ▸ 400 은 맨 위 줄(110) · 질문 바(60) · 아래 단추(66) · 여백이 쓰는 높이입니다.
+         ⚠ 질문 바를 빼먹었다가 940px 높이에서 또 갈라졌습니다.
+       ▸ 560 은 왼쪽 문장 칸과 양옆 여백입니다. */
+    function fitDv() {
+      return Math.max(0.16, Math.min(0.62,
+        (window.innerHeight - 400) / A4_H,
+        (window.innerWidth - 560) / A4_W));
+    }
+    var dvS = useState(fitDv);
+    useLayoutEffect(function () {
+      function onResize() {
+        var s = fitDv();
+        dvS[1](function (prev) { return Math.abs(prev - s) < 0.004 ? prev : s; });
+      }
+      onResize();
+      window.addEventListener('resize', onResize);
+      return function () { window.removeEventListener('resize', onResize); };
+    }, []);
+
     var d = p.draft;
     if (!d || !d.activityId) return null;
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />`;
@@ -531,7 +557,9 @@
         <${C.Btn} size="small" icon="expand" className="pastel-yellow"
           onClick=${function () { bigS[1](true); }}>눌러서 크게 보기<//>
       </div>
+      <!-- 크기는 위 fitDv 가 화면에 맞게 재어 넣어 줍니다 (CSS 의 --dv 를 덮어씀) -->
       <button type="button" class="dv" aria-label="완성된 그림일기 — 눌러서 크게 보기"
+          style=${{ '--dv': dvS[0] }}
           onClick=${function () { bigS[1](true); }}>
         <span class="dv-paper">${sheet}</span>
       </button>

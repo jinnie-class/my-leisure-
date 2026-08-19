@@ -1077,6 +1077,20 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   padding:18px 20px; break-inside:avoid; break-after:page;
 }
 .book-page + .book-page{ margin-top:1rem; }
+/* 포트폴리오 인쇄 미리보기 — 제 칸 안에서 위아래로 넘겨 봅니다.
+   ★ 종이 한 장이 흰 칸보다 커서, 그대로 두면 `break-inside:avoid` 때문에
+     쪽이 통째로 다음으로 밀려나 **첫 쪽이 텅 비어** 보였습니다.
+     (책자형은 5장이라 5쪽이 되었습니다)
+   ▸ 여기는 선생님이 인쇄 전에 확인하는 곳이라 넘겨 보는 편이 자연스럽습니다.
+   ▸ 인쇄할 때는 이 칸이 아니라 printNode 가 따로 그리므로 잘리지 않습니다. */
+.folio-preview{
+  /* 위 기간 바(56px) · 칸 제목 · 안내 글 · 여백까지 빼고 남는 만큼만 씁니다.
+     넉넉히 잡지 않으면 30px 쯤 넘쳐서 화면이 두 쪽으로 갈라집니다. */
+  max-height:calc(100vh - 470px); min-height:200px; overflow:auto;
+  padding:.5rem; border:2px solid var(--line); border-radius:16px;
+  background:var(--paper-2);
+}
+.folio-preview > *{ break-inside:auto; }
 
 /* ============================ 교사 설정 ============================ */
 
