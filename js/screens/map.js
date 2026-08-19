@@ -668,6 +668,7 @@
         title=${stampS[0].need + '곳 도장' + (stampS[0].date ? ' · ' + App.fmtDateShort(stampS[0].date) : '')}
         speakText=${'도장을 받은 활동이에요. ' + stampS[0].group.map(function (g) { return g.name; }).join(', ')}
         onClose=${function () { stampS[1](null); }}
+        style=${{ width: 'auto', maxWidth: 'min(560px, 100%)' }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { stampS[1](null); }}>닫기<//>`}>
         <!-- ★ 왼쪽에 도장, 오른쪽에 활동 목록으로 **좌우로 나눕니다.**
                위아래로 쌓으면 도장이 목록을 아래로 밀어내서, 정작 봐야 할

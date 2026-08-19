@@ -875,14 +875,19 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   --cw:106px;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25em;
   padding:8px 6px;
-  border:2px solid var(--line); border-radius:18px;
-  background:#fff; box-shadow:var(--shadow);
+  /* ★ 테두리를 **진하게**. 섬 배경이 그림이라 연한 테두리는 바탕에 묻혀
+       카드가 어디서 시작하고 끝나는지 잘 안 보였습니다.
+       두께 2 -> 3px, 색도 진한 파랑으로 못박습니다.
+     ▸ 그림자도 조금 진하게 해서 카드가 배경 위에 떠 있어 보이게 합니다. */
+  border:3px solid #4a9fd4; border-radius:18px;
+  background:#fff; box-shadow:0 3px 0 rgba(30,80,120,.18);
   text-align:center;
 }
-.mapcard:hover{ background:var(--paper-2); }
+.mapcard:hover{ background:var(--paper-2); border-color:#2b7fb8; }
 .mapcard.indoor{ background:#fff; }
 .mapcard.outdoor{ background:#fff; }
-.mapcard.tried{ border-color:var(--sel-line); }
+/* 이미 해본 곳은 더 진하게 (해본 것과 안 해본 것이 갈립니다) */
+.mapcard.tried{ border-color:#2b7fb8; }
 /* 그림을 크게 — 카드 높이의 절반 넘게 */
 .mapcard .mi{ width:calc(var(--cw) * .52); height:calc(var(--cw) * .52); flex:0 0 auto; }
 .mapcard .mi svg,.mapcard .mi img{ width:100%; height:100%; display:block; object-fit:contain; }
@@ -2140,7 +2145,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* ★ 도장 창을 **좌우로** 나눕니다 — 왼쪽 도장 · 오른쪽 활동 목록.
      위아래로 쌓으면 도장이 목록을 아래로 밀어내서, 정작 봐야 할
      `무엇을 해봤는지` 가 한눈에 안 들어왔습니다. */
-.stamp-2col{ display:flex; align-items:center; gap:1.2rem; }
+/* ★ 창과 바를 **글자 길이에 맞게** 좁힙니다.
+     활동 이름이 `놀잇감 활동` 처럼 짧은데 바가 화면 끝까지 늘어나서,
+     글자가 왼쪽에만 몰리고 오른쪽이 텅 비어 보였습니다.
+   ▸ 좁히면 창도 함께 작아져 한눈에 들어옵니다 (창 760 -> 약 500px). */
+.stamp-2col{
+  display:flex; align-items:center; justify-content:center; gap:1rem;
+  width:fit-content; max-width:100%; margin:0 auto;
+}
 .stamp-left{
   flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:.3rem;
 }
@@ -2157,11 +2169,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .stamp-big img,.stamp-big svg,.stamp-big span{ width:100%; height:100%; display:block; object-fit:contain; }
 .stamp-list{
-  flex:1 1 auto; min-width:0;
+  flex:0 1 auto; min-width:0;
   margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:.35rem;
 }
+/* 바는 **가장 긴 이름에 맞춘 너비**로 (12글자쯤). 날짜가 있으면 조금 넓어집니다. */
 .stamp-list li{
   display:flex; align-items:center; gap:.6rem;
+  width:min(100%, 17rem);
   padding:.5rem .8rem; border:2px solid var(--line); border-radius:12px; background:#fff;
 }
 /* 번호와 이름을 키웠습니다 — 좌우로 나누며 생긴 자리를 글자에 돌려줍니다 */
