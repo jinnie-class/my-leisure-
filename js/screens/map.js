@@ -493,7 +493,7 @@
                      카드 양옆에 있어서 더 위까지 쓸 수 있습니다.
                      그래야 섬 이름이 섬 꼭대기(구름 자리)에 앉습니다.
                    ▸ 위아래 자리는 css 의 .island-gate padding 이 정합니다. */
-                var gy = L.H * 0.07;
+                var gy = L.H * 0.02;
                 var gh = (r.y + r.h) - gy;
                 return html`<button key=${'gate' + is.key} type="button"
                     class=${'island-gate ' + is.key}
