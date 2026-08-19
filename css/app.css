@@ -2026,6 +2026,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
 .map-collect:hover{ transform:translateY(-2px); }
+/* 모아보기에서 나갈 때 — 어느 섬으로 갈지 학생이 고릅니다 (한 줄에 둘) */
+.mymap-go{ display:flex; gap:.6rem; width:100%; }
+.mymap-go > *{ flex:1 1 0; }
 /* 섬마다 다른 배경 — js 가 --island-bg 를 넣어 줍니다 (없으면 지도 배경 그대로) */
 .map-wrap.in-island{ background-image:var(--island-bg, var(--mapbg)); }
 

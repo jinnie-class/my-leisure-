@@ -177,8 +177,12 @@
     var outdoor = cards.filter(function (c) { return c.area === 'outdoor'; });
 
     var pIn = useState(0), pOut = useState(0);   // 섬마다 따로 넘깁니다
-    /* 어느 섬에 들어가 있는지 (null 이면 섬 고르기 화면) */
-    var islandS = useState(null);
+    /* 어느 섬에 들어가 있는지 (null 이면 섬 고르기 화면).
+       모아보기에서 `실내 여가 섬으로!` 처럼 섬을 안고 들어올 수 있습니다. */
+    var islandS = useState(function () {
+      var want = p.params && p.params.island;
+      return (want === 'in' || want === 'out') ? want : null;
+    });
     /* 섬마다 다른 배경 그림 (없으면 지도 배경을 그대로 씁니다).
        ⚠ 주소를 **문서 기준 절대 주소**로 바꿔서 넣어야 합니다.
          CSS 변수(--island-bg) 안의 상대 주소는 그 값을 쓰는 **스타일시트
@@ -783,8 +787,16 @@
       <${C.Stage}
         top=${open ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { openS[1](null); }}>네 가지로 돌아가기<//>` : null}
-        action=${html`<${C.Btn} kind="ok" icon="back"
-          onClick=${function () { p.nav('map'); }}>다 봤어요 · 여가 지도로<//>`}>
+        <!-- ★ 나갈 때 **어느 섬으로 갈지** 학생이 고릅니다.
+               예전에는 '여가 지도로' 하나였는데, 그러면 섬 고르기 화면으로
+               돌아가서 한 번 더 골라야 했습니다. 여기서 바로 섬에 들어가면
+               걸음이 하나 줄고, 무엇을 하러 가는지도 분명해집니다. -->
+        action=${html`<div class="mymap-go">
+          <${C.Btn} kind="ok" icon="next"
+            onClick=${function () { p.nav('map', { island: 'in' }); }}>실내 여가 섬으로!<//>
+          <${C.Btn} kind="ok" icon="next"
+            onClick=${function () { p.nav('map', { island: 'out' }); }}>실외 여가 섬으로!<//>
+        </div>`}>
         ${body}
       <//>
     </div>`;
