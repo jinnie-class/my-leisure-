@@ -76,9 +76,12 @@
        focus 가 'in'/'out' 이면 → **그 섬 안** (폭을 통째로 써서 카드가 커집니다)
      예전에는 한 화면에 카드 8장(섬마다 4장)이 늘 떠 있어서, 섬 그림이 거의
      다 덮이고 볼 것이 한꺼번에 너무 많았습니다. */
-  /* 배경 그림의 가로세로비 (그림을 바꾸면 여기도 맞춰 주세요).
-       여가지도 1536x1024 = 1.50 · 섬 배경 1536x832 = 1.85 */
-  var BG_RATIO = { map: 1536 / 1024, island: 1536 / 832 };
+  /* 배경 그림의 가로세로비.
+     ⚠ 여기에 숫자를 못박지 마세요. 예전에는 `1536/832` 처럼 적어 두었는데,
+       배경을 세로로 긴 그림으로 바꾸자 자리 잡기가 통째로 어긋났습니다.
+     ▸ 이제 **그림을 불러와서 실제 크기를 재어** 씁니다 (아래 useBgRatio).
+       아래 값은 그림을 아직 못 받았을 때만 잠깐 쓰는 대비책입니다. */
+  var BG_FALLBACK = { map: 1.5, island: 1.85 };
 
   /* 배경을 `contain` 으로 깔면 그림이 칸 **한가운데에** 놓이고 둘레가 남습니다.
      그 **그려진 자리**를 재서 돌려줍니다. 섬 이름·단추·카드를 이 안에 놓아야
@@ -89,10 +92,11 @@
     return { x: (w - iw) / 2, y: (h - ih) / 2, w: iw, h: ih };
   }
 
-  function layoutOf(box, indoor, outdoor, pageIn, pageOut, focus) {
+  function layoutOf(box, indoor, outdoor, pageIn, pageOut, focus, bgRatio) {
     var W0 = Math.max(320, box.w), H0 = Math.max(240, box.h);
     /* 그림이 실제로 그려진 자리 안에서만 자리를 잡습니다 */
-    var art = fitBox(W0, H0, focus ? BG_RATIO.island : BG_RATIO.map);
+    var art = fitBox(W0, H0,
+      bgRatio || (focus ? BG_FALLBACK.island : BG_FALLBACK.map));
     var w = art.w, h = art.h;
     /* '나' 는 맨 위 가운데, 그 아래 왼쪽에 실내 섬 · 오른쪽에 실외 섬 */
     var cs = Math.max(110, Math.min(170, Math.min(w * 0.17, h * 0.26)));
@@ -217,12 +221,28 @@
          실내섬 #FFFBE6 (파스텔 노랑 — 방 안 바닥)
          실외섬 #EBF6FC (하늘색 — 바깥 하늘)
        ★ 배경을 새로 그리면 가장자리 색도 다시 재어 여기를 고치세요. */
-    var islandSea = islandS[0] === 'in' ? '#fffbe6'
-                  : (islandS[0] === 'out' ? '#ebf6fc' : null);
+    var islandSea = islandS[0] === 'in' ? '#fef9e6'
+                  : (islandS[0] === 'out' ? '#eef6fc' : null);
+    /* 지금 깔린 배경 그림의 **실제 가로세로비**를 재어 둡니다.
+       그림을 세로로 긴 것으로 바꾸든 가로로 넓은 것으로 바꾸든,
+       섬 이름·단추·카드가 늘 그림 안에 제대로 앉습니다. */
+    var bgRatioS = useState(null);
+    useEffect(function () {
+      var url = islandBg || App.imgUrl(App.IMAGE_BASE.mapbg);
+      if (!url) { bgRatioS[1](null); return; }
+      var im = new Image();
+      im.onload = function () {
+        if (im.naturalWidth && im.naturalHeight) {
+          bgRatioS[1](im.naturalWidth / im.naturalHeight);
+        }
+      };
+      im.src = url;
+    }, [islandBg]);
+
     var L = useMemo(function () {
-      return layoutOf(box[0], indoor, outdoor, pIn[0], pOut[0], islandS[0]);
+      return layoutOf(box[0], indoor, outdoor, pIn[0], pOut[0], islandS[0], bgRatioS[0]);
     }, [cards.map(function (c) { return c.id; }).join(','),
-        Math.round(box[0].w), Math.round(box[0].h), pIn[0], pOut[0], islandS[0]]);
+        Math.round(box[0].w), Math.round(box[0].h), pIn[0], pOut[0], islandS[0], bgRatioS[0]]);
     function turn(key, d) {
       var s = key === 'in' ? pIn : pOut;
       var max = (key === 'in' ? L.pagesIn : L.pagesOut) - 1;
