@@ -877,17 +877,34 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   padding:8px 6px;
   /* ★ 테두리를 **진하게**. 섬 배경이 그림이라 연한 테두리는 바탕에 묻혀
        카드가 어디서 시작하고 끝나는지 잘 안 보였습니다.
-       두께 2 -> 3px, 색도 진한 파랑으로 못박습니다.
      ▸ 그림자도 조금 진하게 해서 카드가 배경 위에 떠 있어 보이게 합니다. */
   border:3px solid #4a9fd4; border-radius:18px;
   background:#fff; box-shadow:0 3px 0 rgba(30,80,120,.18);
   text-align:center;
 }
-.mapcard:hover{ background:var(--paper-2); border-color:#2b7fb8; }
+.mapcard:hover{ background:var(--paper-2); }
 .mapcard.indoor{ background:#fff; }
 .mapcard.outdoor{ background:#fff; }
-/* 이미 해본 곳은 더 진하게 (해본 것과 안 해본 것이 갈립니다) */
-.mapcard.tried{ border-color:#2b7fb8; }
+
+/* ★ 아직 안 해본 곳(파랑)과 **이미 해본 곳(주황)** 을 갈라 놓습니다.
+     ⚠ 색만 바꾸면 안 됩니다. 색을 못 가리는 학생도 있고, 흑백으로
+       인쇄하면 사라집니다. 그리고 진한 파랑 vs 조금 더 진한 파랑처럼
+       **비슷한 색은 아이들이 거의 못 느낍니다** (실제로 그렇게 두었다가
+       구분이 안 된다는 말을 들었습니다).
+     ▸ 그래서 **세 가지를 한꺼번에** 바꿉니다.
+         ① 색   파랑 -> 주황       (색을 가리는 학생에게)
+         ② 두께 3px -> 5px         (색을 못 가려도 두께는 보입니다)
+         ③ 바탕 흰색 -> 연한 크림  (흑백 인쇄에서도 남습니다)
+     ※ 카드 위 발자국 표시가 이미 같은 것을 말해 주므로, 테두리는
+       그것을 거들 뿐 혼자 뜻을 나르지 않습니다. */
+.mapcard.tried{
+  /* ⚠ 주황을 밝게 두면(#E8883C) 흑백으로 바꿨을 때 파랑과 밝기가 6 밖에
+       차이 나지 않아 사실상 같아 보입니다. **어둡게** 잡아야 갈립니다. */
+  border-width:5px; border-color:#c96a1e;
+  background:#ffe9cc;
+  box-shadow:0 3px 0 rgba(150,90,30,.28);
+}
+.mapcard.tried:hover{ background:#ffdfb5; }
 /* 그림을 크게 — 카드 높이의 절반 넘게 */
 .mapcard .mi{ width:calc(var(--cw) * .52); height:calc(var(--cw) * .52); flex:0 0 auto; }
 .mapcard .mi svg,.mapcard .mi img{ width:100%; height:100%; display:block; object-fit:contain; }
