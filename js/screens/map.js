@@ -531,6 +531,33 @@
                   })}</span>` : null}
                 </button>`;
               })}
+
+              <!-- 쪽 넘김은 **지도 그림 안**에 둡니다.
+                   ⚠ 밖(map-wrap)에 두면 그림이 가운데로 옮겨간 만큼 어긋납니다.
+                     실제로 그림 자리가 382~902 인데 줄은 140~641 에 있어서
+                     252px 왼쪽으로 치우쳐 있었습니다.
+                     여기(map-canvas) 안에 두면 그림과 같이 움직여 늘 맞습니다. -->
+              ${L.islands.map(function (is) {
+                /* 섬 고르기 화면에는 두지 않습니다 — 카드를 한 장도 안 놓았는데
+                   쪽 넘김만 남아 있으면 무엇을 넘기는지 알 수 없습니다. */
+                if (!L.focus || is.pages <= 1) return null;
+                var r = is.region;
+                return html`<div key=${'nav' + is.key} class="island-nav"
+                    style=${{ left: r.x + 'px', top: (r.y + r.h - 46) + 'px', width: r.w + 'px' }}>
+                  <button type="button" class="isl-btn prev" aria-label=${is.label + ' 앞 활동 보기'}
+                    disabled=${is.page === 0} onClick=${function () { turn(is.key, -1); }}>◀ 이전</button>
+                  <span class="isl-page">
+                    <b>${is.page + 1} / ${is.pages} 쪽</b>
+                    <span class="isl-dots">
+                      ${Array.apply(null, { length: is.pages }).map(function (_, i) {
+                        return html`<i key=${i} class=${i === is.page ? 'on' : ''}></i>`;
+                      })}
+                    </span>
+                  </span>
+                  <button type="button" class="isl-btn next" aria-label=${is.label + ' 다음 활동 보기'}
+                    disabled=${is.page >= is.pages - 1} onClick=${function () { turn(is.key, 1); }}>다음 ▶</button>
+                </div>`;
+              })}
             </div>
 
             <!-- 섬에 들어갔을 때 : 지도로 되돌아가는 길 (왼쪽 위) -->
@@ -547,29 +574,6 @@
               aria-label=${(L.focus === 'in' ? '실내' : '실외') + ' 여가 섬에서 내가 표시한 활동 모아보기'}>
               모아보기 ▶</button>`}
 
-            <!-- 섬마다 아래에 이전 / 다음 -->
-            ${L.islands.map(function (is) {
-              /* ⚠ 섬 고르기 화면에는 쪽 넘김을 두지 않습니다.
-                   카드를 한 장도 안 놓았는데 `1 / 4 쪽` 만 남아 있어서,
-                   무엇을 넘기는 것인지 알 수 없었습니다. */
-              if (!L.focus || is.pages <= 1) return null;
-              var r = is.region;
-              return html`<div key=${'nav' + is.key} class="island-nav"
-                  style=${{ left: r.x + 'px', top: (r.y + r.h - 46) + 'px', width: r.w + 'px' }}>
-                <button type="button" class="isl-btn prev" aria-label=${is.label + ' 앞 활동 보기'}
-                  disabled=${is.page === 0} onClick=${function () { turn(is.key, -1); }}>◀ 이전</button>
-                <span class="isl-page">
-                  <b>${is.page + 1} / ${is.pages} 쪽</b>
-                  <span class="isl-dots">
-                    ${Array.apply(null, { length: is.pages }).map(function (_, i) {
-                      return html`<i key=${i} class=${i === is.page ? 'on' : ''}></i>`;
-                    })}
-                  </span>
-                </span>
-                <button type="button" class="isl-btn next" aria-label=${is.label + ' 다음 활동 보기'}
-                  disabled=${is.page >= is.pages - 1} onClick=${function () { turn(is.key, 1); }}>다음 ▶</button>
-              </div>`;
-            })}
           </div>
 
           <!-- ★ '나는 10가지 여가활동을 해봤어요.' 흰 바를 없앴습니다.
