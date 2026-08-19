@@ -221,8 +221,8 @@
          실내섬 #FFFBE6 (파스텔 노랑 — 방 안 바닥)
          실외섬 #EBF6FC (하늘색 — 바깥 하늘)
        ★ 배경을 새로 그리면 가장자리 색도 다시 재어 여기를 고치세요. */
-    var islandSea = islandS[0] === 'in' ? '#fbf9f4'
-                  : (islandS[0] === 'out' ? '#f0f7fd' : null);
+    var islandSea = islandS[0] === 'in' ? '#fefdfb'
+                  : (islandS[0] === 'out' ? '#f9fbfe' : null);
     /* 지금 깔린 배경 그림의 **실제 가로세로비**를 재어 둡니다.
        그림을 세로로 긴 것으로 바꾸든 가로로 넓은 것으로 바꾸든,
        섬 이름·단추·카드가 늘 그림 안에 제대로 앉습니다. */
@@ -488,17 +488,30 @@
                 var r = is.region;
                 var list = is.key === 'in' ? indoor : outdoor;
                 var done = list.filter(function (c) { return statusOf(c.id).tried; }).length;
+                /* ★ 섬 고르기 화면에서는 칸을 **그림 꼭대기 가까이까지** 늘립니다.
+                     원래 칸(region)은 나 카드 아래에서 시작하는데, 섬은 그
+                     카드 양옆에 있어서 더 위까지 쓸 수 있습니다.
+                     그래야 섬 이름이 섬 꼭대기(구름 자리)에 앉습니다.
+                   ▸ 위아래 자리는 css 의 .island-gate padding 이 정합니다. */
+                var gy = L.H * 0.07;
+                var gh = (r.y + r.h) - gy;
                 return html`<button key=${'gate' + is.key} type="button"
                     class=${'island-gate ' + is.key}
-                    style=${{ left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' }}
+                    style=${{ left: r.x + 'px', top: gy + 'px', width: r.w + 'px', height: gh + 'px' }}
                     onClick=${function () { islandS[1](is.key); App.speakFor(student, is.label + '에 가요'); }}
                     aria-label=${is.label + '. ' + list.length + '곳 가운데 ' + done + '곳을 해봤어요. 눌러서 들어가요.'}>
+                  <!-- 위 : 섬 이름 (섬 꼭대기 하늘 자리) -->
                   <span class="gate-name">${is.label}</span>
-                  <span class="gate-count">
-                    ${footImg ? html`<img src=${footImg} alt="" />` : null}
-                    <b>${done}</b> / ${list.length} 곳
+                  <!-- 아래 : 발자국 수 + 들어가기 (탐험의 시작 팻말 옆 자리).
+                       둘을 갈라 놓아야 섬 그림 가운데(집·자전거·돗자리 …)를
+                       가리지 않습니다. -->
+                  <span class="gate-foot">
+                    <span class="gate-count">
+                      ${footImg ? html`<img src=${footImg} alt="" />` : null}
+                      <b>${done}</b> / ${list.length} 곳
+                    </span>
+                    <span class="gate-go">들어가기 ▶</span>
                   </span>
-                  <span class="gate-go">들어가기 ▶</span>
                 </button>`;
               })}
 

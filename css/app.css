@@ -818,7 +818,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
        (2026-08-19 마지막 지도 : 가장자리 평균 #B3DFFC).
        색이 이어지면 남는 자리가 '빈 곳' 이 아니라 '바다가 더 넓은 것' 으로
        보입니다. 배경 그림을 새로 그리면 가장자리 색도 다시 재어 맞추세요. */
-  background-color:#b3dffc;
+  background-color:#dbf0fe;
 }
 .map-canvas{ position:absolute; top:0; left:0; transform-origin:0 0; }
 .map-paths{ position:absolute; inset:0; pointer-events:none; }
@@ -1994,12 +1994,18 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   position:absolute; display:flex; flex-direction:column;
   align-items:center; justify-content:center; gap:.5rem;
   background:transparent; border:none; cursor:pointer; padding:0;
-  /* ★ 이름·발자국·들어가기 세 줄을 섬 한가운데보다 **조금 위로** 올립니다.
-       한가운데에 두면 섬 아래쪽 그림(가위·보드게임·텐트 …)을 덮고,
-       위쪽은 비어 보였습니다. 조금 올리면 위아래가 고르게 보입니다.
-     ▸ 더/덜 올리려면 아래 숫자만 고치세요 (음수가 위쪽). px 가 아니라
-       섬 높이에 대한 **비율**이라 화면이 달라져도 같은 자리에 옵니다. */
-  transform:translateY(-16%);
+  /* ★ 이름은 **맨 위**, 발자국 수와 들어가기는 **맨 아래**로 갈라 놓습니다.
+       한 덩어리로 가운데 두면 섬 그림 한가운데(집·자전거·돗자리 …)를
+       통째로 덮었습니다. 위아래로 나누면 그림이 그대로 보입니다.
+     ▸ 위아래 여백(padding)이 이름 바와 아래 묶음의 자리를 정합니다.
+       더/덜 밀려면 이 두 숫자만 고치세요. px 가 아니라 섬 높이에 대한
+       **비율**이라 화면이 달라져도 같은 자리에 옵니다. */
+  justify-content:space-between;
+  padding:4% 0 10%;
+}
+/* 아래 묶음 — 발자국 수 + 들어가기 */
+.gate-foot{
+  display:flex; flex-direction:column; align-items:center; gap:.4rem;
 }
 .island-gate:hover .gate-name{ transform:translateY(-3px); }
 .gate-name{
@@ -2050,7 +2056,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      남는 자리가 '빈 곳' 이 아니라 '그 섬이 더 넓은 것' 으로 보입니다. */
 .map-wrap.in-island{
   background-image:var(--island-bg, var(--mapbg));
-  background-color:var(--island-sea, #b3dffc);
+  background-color:var(--island-sea, #dbf0fe);
 }
 
 /* ===========================================================
