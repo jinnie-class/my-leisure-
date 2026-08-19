@@ -23,25 +23,56 @@
   var COLS = 2, ROWS = 2;              // 한 섬에 2줄 × 2칸 = 4장씩
   var PER = COLS * ROWS;
 
-  /* 섬 한 칸 안에 카드 4장을 가장 크게 놓기 (아래 화살표 자리는 빼고) */
-  function gridFor(region, list) {
+  /* 섬 한 곳에 들어갔을 때 어떻게 놓을지.
+     ⚠ 칸 수를 못박으면 안 됩니다. 4칸 × 2줄로 두었더니 **높이에 걸려**
+       카드가 175 → 89px 로 오히려 작아졌습니다. 지도 칸은 옆으로 넓고
+       위아래로 낮아서, 줄을 늘리면 카드가 바로 쪼그라듭니다.
+     ▸ 그래서 아래 짜임 가운데 **카드가 가장 커지는 것**을 그때그때 고릅니다.
+       카드 크기가 거의 같으면(5% 안) 한 쪽에 더 많이 담기는 쪽을 씁니다. */
+  var F_PLANS = [[4, 1], [5, 1], [6, 1], [4, 2], [5, 2], [6, 2]];
+
+  function bestPlan(region) {
+    var best = null;
+    F_PLANS.forEach(function (pl) {
+      var cols = pl[0], rows = pl[1];
+      var innerW = region.w - PAD * 2;
+      var innerH = region.h - LABEL_H - NAV_H;
+      var cw = Math.max(60, Math.min(
+        (innerW - GAP * (cols - 1)) / cols,
+        (innerH - GAP * (rows - 1)) / rows));
+      var per = cols * rows;
+      if (!best || cw > best.cw * 1.05 || (cw > best.cw * 0.95 && per > best.per)) {
+        best = { cols: cols, rows: rows, per: per, cw: cw };
+      }
+    });
+    return best;
+  }
+
+  /* 칸 안에 카드를 가장 크게 놓기 (아래 화살표 자리는 빼고) */
+  function gridFor(region, list, cols, rows) {
+    cols = cols || COLS; rows = rows || ROWS;
     var innerW = region.w - PAD * 2;
     var innerH = region.h - LABEL_H - NAV_H;
-    var cellW = (innerW - GAP * (COLS - 1)) / COLS;
-    var cellH = (innerH - GAP * (ROWS - 1)) / ROWS;
+    var cellW = (innerW - GAP * (cols - 1)) / cols;
+    var cellH = (innerH - GAP * (rows - 1)) / rows;
     var cw = Math.max(60, Math.min(cellW, cellH));   // 정사각형
-    var totalW = COLS * cw + (COLS - 1) * GAP;
-    var totalH = ROWS * cw + (ROWS - 1) * GAP;
+    var totalW = cols * cw + (cols - 1) * GAP;
+    var totalH = rows * cw + (rows - 1) * GAP;
     var x0 = region.x + (region.w - totalW) / 2;
     var y0 = region.y + LABEL_H + Math.max(0, (innerH - totalH) / 2);
     return list.map(function (card, i) {
-      var r = Math.floor(i / COLS), c = i % COLS;
+      var r = Math.floor(i / cols), c = i % cols;
       return { card: card, x: x0 + c * (cw + GAP), y: y0 + r * (cw + GAP), w: cw, h: cw };
     });
   }
 
-  /* 전체 자리 잡기 — 섬마다 제 쪽(page)의 카드만 놓습니다 */
-  function layoutOf(box, indoor, outdoor, pageIn, pageOut) {
+  /* 전체 자리 잡기.
+     ★ 두 걸음으로 나눕니다.
+       focus 가 없으면 → **섬 고르기** (카드를 아예 안 놓습니다)
+       focus 가 'in'/'out' 이면 → **그 섬 안** (폭을 통째로 써서 카드가 커집니다)
+     예전에는 한 화면에 카드 8장(섬마다 4장)이 늘 떠 있어서, 섬 그림이 거의
+     다 덮이고 볼 것이 한꺼번에 너무 많았습니다. */
+  function layoutOf(box, indoor, outdoor, pageIn, pageOut, focus) {
     var w = Math.max(320, box.w), h = Math.max(240, box.h);
     /* '나' 는 맨 위 가운데, 그 아래 왼쪽에 실내 섬 · 오른쪽에 실외 섬 */
     var cs = Math.max(110, Math.min(170, Math.min(w * 0.17, h * 0.26)));
@@ -53,13 +84,39 @@
     var regionOut = { x: PAD * 2 + islandW, y: top, w: islandW, h: islandH };
     var side = true;
 
+    /* 섬 하나에 들어갔으면 그 섬이 화면 폭을 통째로 씁니다 */
+    var full = { x: PAD, y: top, w: w - PAD * 2, h: islandH };
+    if (focus) {
+      var list = (focus === 'in') ? indoor : outdoor;
+      var plan = bestPlan(full);
+      var fPages = Math.max(1, Math.ceil(list.length / plan.per));
+      var fp = Math.min(focus === 'in' ? pageIn : pageOut, fPages - 1);
+      var fPlaced = gridFor(full, list.slice(fp * plan.per, fp * plan.per + plan.per),
+          plan.cols, plan.rows)
+        .map(function (q) { return Object.assign(q, { island: focus }); });
+      var fTop = fPlaced.length
+        ? Math.min.apply(null, fPlaced.map(function (q) { return q.y; }))
+        : top + LABEL_H;
+      return {
+        W: w, H: h, side: side, placed: fPlaced, center: center,
+        labelTop: fTop - 11, focus: focus,
+        pagesIn: focus === 'in' ? fPages : 1, pagesOut: focus === 'out' ? fPages : 1,
+        pageIn: focus === 'in' ? fp : 0, pageOut: focus === 'out' ? fp : 0,
+        islands: [{
+          key: focus,
+          label: focus === 'in' ? '실내 여가 섬' : '실외 여가 섬',
+          region: full, labelBox: { x: full.x, w: full.w },
+          tone: focus === 'in' ? '#c9a87f' : '#8fbb85',
+          page: fp, pages: fPages
+        }]
+      };
+    }
+
     var pagesIn = Math.max(1, Math.ceil(indoor.length / PER));
     var pagesOut = Math.max(1, Math.ceil(outdoor.length / PER));
     var pi = Math.min(pageIn, pagesIn - 1), po = Math.min(pageOut, pagesOut - 1);
-    var placed = gridFor(regionIn, indoor.slice(pi * PER, pi * PER + PER))
-        .map(function (q) { return Object.assign(q, { island: 'in' }); })
-      .concat(gridFor(regionOut, outdoor.slice(po * PER, po * PER + PER))
-        .map(function (q) { return Object.assign(q, { island: 'out' }); }));
+    /* 섬 고르기 화면에서는 **카드를 놓지 않습니다** (섬 그림이 다 보이게) */
+    var placed = [];
 
     /* 섬 이름 바는 **활동 카드 바로 위**에 붙입니다.
        카드는 남는 자리에 따라 위아래로 조금씩 움직이므로, 섬 칸 맨 위가 아니라
@@ -116,10 +173,16 @@
     var outdoor = cards.filter(function (c) { return c.area === 'outdoor'; });
 
     var pIn = useState(0), pOut = useState(0);   // 섬마다 따로 넘깁니다
+    /* 어느 섬에 들어가 있는지 (null 이면 섬 고르기 화면) */
+    var islandS = useState(null);
+    /* 섬마다 다른 배경 그림 (없으면 지도 배경을 그대로 씁니다) */
+    var islandBg = islandS[0]
+      ? App.uiImage(islandS[0] === 'in' ? 'islandIn' : 'islandOut')
+      : null;
     var L = useMemo(function () {
-      return layoutOf(box[0], indoor, outdoor, pIn[0], pOut[0]);
+      return layoutOf(box[0], indoor, outdoor, pIn[0], pOut[0], islandS[0]);
     }, [cards.map(function (c) { return c.id; }).join(','),
-        Math.round(box[0].w), Math.round(box[0].h), pIn[0], pOut[0]]);
+        Math.round(box[0].w), Math.round(box[0].h), pIn[0], pOut[0], islandS[0]]);
     function turn(key, d) {
       var s = key === 'in' ? pIn : pOut;
       var max = (key === 'in' ? L.pagesIn : L.pagesOut) - 1;
@@ -283,7 +346,10 @@
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
         <div class="stage-fit" style=${{ display: 'flex', flexDirection: 'column', gap: '.45rem' }}>
 
-          <!-- 나의 여가 도장판 : 5곳마다 발자국 도장 하나 -->
+          <!-- 나의 여가 도장판 : 5곳마다 발자국 도장 하나.
+               ★ **섬 고르기 화면에서만** 보여 줍니다. 섬 안에서는 활동에만
+                 마음을 쓰게 두는 것이 좋습니다 (한꺼번에 보이는 것 줄이기). -->
+          ${!L.focus && html`
           <div class="stampcard"
               role="group" aria-label=${'나의 여가 도장판. 모두 ' + cards.length + '곳 가운데 ' + triedCount + '곳 다녀왔어요.'}>
             <span class="stampcard-lab">나의 여가 도장판
@@ -305,7 +371,7 @@
                 </button>`;
               })}
             </div>
-          </div>
+          </div>`}
 
           <!-- 선생님 도구 한 줄 — 도장판 바로 아래, 왼쪽 찾아보기 · 오른쪽 도움말.
                ★ 맨 위 줄(집 단추 · 스피커 · 이름표)에 두었더니 그 줄이 빽빽해
@@ -331,17 +397,42 @@
                  실제로 그리는 곳은 아래 map-foot 입니다.
                  ※ 이 주석은 html 템플릿 안이라 백틱을 쓰면 템플릿이 끊깁니다. -->
 
-          <div class="map-wrap grow" ref=${wrapRef}>
+          <!-- 섬 안에서는 그 섬만의 배경 그림을 씁니다
+               (images/지도/실내섬.png · 실외섬.png — 없으면 지도 배경 그대로) -->
+          <div class=${'map-wrap grow' + (L.focus ? ' in-island' : '')} ref=${wrapRef}
+              style=${islandBg ? { '--island-bg': 'url("' + islandBg + '")' } : null}>
             <div class="map-canvas" style=${{ width: W + 'px', height: H + 'px',
                 transform: 'translate(' + offX + 'px,' + offY + 'px) scale(' + scale + ')' }}>
 
-              <!-- 섬 이름 바 — 활동 카드 첫 줄 바로 위 -->
-              ${L.islands.map(function (is) {
+              <!-- 섬 이름 바 — 활동 카드 첫 줄 바로 위 (섬에 들어갔을 때만) -->
+              ${L.focus && L.islands.map(function (is) {
                 var r = is.labelBox || is.region;
                 return html`<div key=${'t' + is.key} class=${'island-head ' + is.key}
                     style=${{ left: r.x + 'px', top: L.labelTop + 'px', width: r.w + 'px' }}>
                   <span class="island-label">${is.label}</span>
                 </div>`;
+              })}
+
+              <!-- ★ 섬 고르기 — 카드 대신 **섬 두 개만**.
+                     한 화면에 카드 8장이 늘 떠 있어서 섬 그림이 거의 다 덮이고,
+                     볼 것이 한꺼번에 너무 많았습니다.
+                     여기서는 어느 섬에 갈지부터 학생이 정합니다. -->
+              ${!L.focus && L.islands.map(function (is) {
+                var r = is.region;
+                var list = is.key === 'in' ? indoor : outdoor;
+                var done = list.filter(function (c) { return statusOf(c.id).tried; }).length;
+                return html`<button key=${'gate' + is.key} type="button"
+                    class=${'island-gate ' + is.key}
+                    style=${{ left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' }}
+                    onClick=${function () { islandS[1](is.key); App.speakFor(student, is.label + '에 가요'); }}
+                    aria-label=${is.label + '. ' + list.length + '곳 가운데 ' + done + '곳을 해봤어요. 눌러서 들어가요.'}>
+                  <span class="gate-name">${is.label}</span>
+                  <span class="gate-count">
+                    ${footImg ? html`<img src=${footImg} alt="" />` : null}
+                    <b>${done}</b> / ${list.length} 곳
+                  </span>
+                  <span class="gate-go">들어가기 ▶</span>
+                </button>`;
               })}
 
 
@@ -374,6 +465,11 @@
                 </button>`;
               })}
             </div>
+
+            <!-- 섬에 들어갔을 때 : 지도로 되돌아가는 길 -->
+            ${L.focus && html`<button type="button" class="island-back"
+              onClick=${function () { islandS[1](null); }}
+              aria-label="여가 지도로 돌아가기">◀ 지도로</button>`}
 
             <!-- 섬마다 아래에 이전 / 다음 -->
             ${L.islands.map(function (is) {

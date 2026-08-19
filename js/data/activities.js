@@ -58,7 +58,11 @@
       /* 앞 질문으로 돌아가는 화살표 (없으면 코드로 그린 화살표가 나옵니다) */
       back: 'images/화살표.png',
       /* 홈 왼쪽 위 '나의 여가' 글자 그림 — 누르면 표지로 갑니다 */
-      coverWord: 'images/나의여가 표지글자.png'
+      coverWord: 'images/나의여가 표지글자.png',
+      /* 섬 안에 들어갔을 때 깔리는 배경 (없으면 여가지도 배경을 그대로 씁니다).
+         가로로 넓은 그림입니다 — 규격은 images/지도/README.md 를 보세요. */
+      islandIn: 'images/지도/실내섬.png',
+      islandOut: 'images/지도/실외섬.png'
     },
     /* 그림에 동그라미가 없어서 흰 동그라미 단추 **안에** 넣어야 하는 것들 */
     uiInset: { home: true }
