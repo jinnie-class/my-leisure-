@@ -56,8 +56,19 @@
     var lv = (student && student.diaryLevel) || 1;
     var pics = [];
     if (lv === 1) {
-      if (plan.date) pics.push({ key: 'date', label: App.fmtDateShort(plan.date),
-        art: html`<${C.PickArt} kind="when" word=${App.fmtDateShort(plan.date)} iconKey="calendar" /> ` });
+      /* ⚠ 날짜 그림은 `8월 20일` 이 아니라 **`오늘`·`내일`** 로 찾아야 합니다.
+           images/시간/ 에 있는 파일 이름이 그렇기 때문입니다.
+           날짜로 찾으면 그림이 없어 달력 아이콘으로 떨어지는데, 학생은
+           방금 `내일` 그림을 골랐으므로 계획표에서 그림이 바뀐 것처럼 보입니다.
+         ▸ App.dayWord 는 문장(App.whenPhrase)이 쓰는 것과 **같은 함수**라,
+           그림과 문장이 늘 같은 말을 씁니다. */
+      if (plan.date) {
+        var dayW = App.dayWord(plan.date);
+        pics.push({ key: 'date', label: dayW || App.fmtDateShort(plan.date),
+          art: dayW
+            ? html`<${C.PickArt} kind="when" word=${dayW} iconKey="calendar" />`
+            : html`<${C.PickArt} kind="when" word="날짜 고르기" iconKey="calendar" />` });
+      }
       if (App.timeWord(plan.time)) pics.push({ key: 'time', label: App.timeWord(plan.time),
         art: html`<${C.PickArt} kind="when" word=${App.timeWord(plan.time)} iconKey="clock" />` });
       whoList.forEach(function (pt) {
@@ -253,8 +264,14 @@
     /* 1단계 그림 띠 — 문장 차례대로 (언제 · 누구와 · 어디에서 · 무엇을) */
     function planPics() {
       var out = [];
-      if (passed('when') && draft.date) out.push({ key: 'date', label: dateWord(),
-        art: html`<${C.PickArt} kind="when" word=${dateWord()} iconKey="calendar" />` });
+      /* ⚠ 그림을 찾는 말과 글로 보여 주는 말은 다릅니다.
+           글은 `8월 20일` 이어도 되지만, 그림은 images/시간/ 에 있는
+           `오늘 · 내일 · 날짜 고르기` 가운데 하나로 찾아야 합니다. */
+      if (passed('when') && draft.date) {
+        var dayW = App.dayWord(draft.date);
+        out.push({ key: 'date', label: dateWord(),
+          art: html`<${C.PickArt} kind="when" word=${dayW || '날짜 고르기'} iconKey="calendar" />` });
+      }
       if (passed('time') && App.timeWord(draft.time)) {
         var tw = App.timeWord(draft.time);
         out.push({ key: 'time', label: tw,
