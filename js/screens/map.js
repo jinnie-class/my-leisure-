@@ -76,8 +76,24 @@
        focus 가 'in'/'out' 이면 → **그 섬 안** (폭을 통째로 써서 카드가 커집니다)
      예전에는 한 화면에 카드 8장(섬마다 4장)이 늘 떠 있어서, 섬 그림이 거의
      다 덮이고 볼 것이 한꺼번에 너무 많았습니다. */
+  /* 배경 그림의 가로세로비 (그림을 바꾸면 여기도 맞춰 주세요).
+       여가지도 1536x1024 = 1.50 · 섬 배경 1536x832 = 1.85 */
+  var BG_RATIO = { map: 1536 / 1024, island: 1536 / 832 };
+
+  /* 배경을 `contain` 으로 깔면 그림이 칸 **한가운데에** 놓이고 둘레가 남습니다.
+     그 **그려진 자리**를 재서 돌려줍니다. 섬 이름·단추·카드를 이 안에 놓아야
+     그림 위 제자리에 앉습니다 (칸 전체에 놓으면 바다 위로 삐져나갑니다). */
+  function fitBox(w, h, ratio) {
+    var iw = w, ih = w / ratio;
+    if (ih > h) { ih = h; iw = h * ratio; }
+    return { x: (w - iw) / 2, y: (h - ih) / 2, w: iw, h: ih };
+  }
+
   function layoutOf(box, indoor, outdoor, pageIn, pageOut, focus) {
-    var w = Math.max(320, box.w), h = Math.max(240, box.h);
+    var W0 = Math.max(320, box.w), H0 = Math.max(240, box.h);
+    /* 그림이 실제로 그려진 자리 안에서만 자리를 잡습니다 */
+    var art = fitBox(W0, H0, focus ? BG_RATIO.island : BG_RATIO.map);
+    var w = art.w, h = art.h;
     /* '나' 는 맨 위 가운데, 그 아래 왼쪽에 실내 섬 · 오른쪽에 실외 섬 */
     var cs = Math.max(110, Math.min(170, Math.min(w * 0.17, h * 0.26)));
     var top = PAD + cs + 26;                        // 발자국 길 자리까지 포함
@@ -491,10 +507,14 @@
               onClick=${function () { islandS[1](null); }}
               aria-label="여가 지도로 돌아가기">◀ 지도로</button>`}
 
-            <!-- 내가 표시한 활동 모아보기 (오른쪽 위) -->
-            <button type="button" class="map-collect"
-              onClick=${function () { p.nav('mymap'); }}
-              aria-label="내가 표시한 활동 모아보기">모아보기 ▶</button>
+            <!-- 모아보기 (오른쪽 위) — **섬 안에서만**.
+                 큰 여가지도(섬 고르기)에서는 아직 어느 섬인지 정해지지 않았고,
+                 여기서 할 일은 '어느 섬에 갈까?' 하나뿐입니다.
+                 들어온 섬을 안고 가서, 그 섬 활동만 모아 보여 줍니다. -->
+            ${L.focus && html`<button type="button" class="map-collect"
+              onClick=${function () { p.nav('mymap', { island: L.focus }); }}
+              aria-label=${(L.focus === 'in' ? '실내' : '실외') + ' 여가 섬에서 내가 표시한 활동 모아보기'}>
+              모아보기 ▶</button>`}
 
             <!-- 섬마다 아래에 이전 / 다음 -->
             ${L.islands.map(function (is) {
@@ -688,7 +708,16 @@
     var MY_PER = 4;
     if (!student) return null;
 
-    var cards = App.visibleCards(student, null);
+    /* ★ 모아보기는 **들어온 섬 것만** 보여 줍니다.
+         실외 여가 섬에서 들어오면 실외 활동만, 실내에서 들어오면 실내만.
+         섬 안에서 하던 일을 그대로 이어 보는 것이라, 갑자기 다른 섬 활동까지
+         섞여 나오면 '여기가 어디지?' 가 됩니다.
+       ▸ 나가는 단추도 그 섬 하나뿐입니다 (아래 backTo). */
+    var island = (p.params && p.params.island) || null;   // 'in' | 'out' | null
+    var area = island === 'in' ? 'indoor' : (island === 'out' ? 'outdoor' : null);
+    var islandName = island === 'in' ? '실내 여가 섬' : (island === 'out' ? '실외 여가 섬' : null);
+
+    var cards = App.visibleCards(student, area);
     var statusMap = App.store.mapOf(student.id);
     function statusOf(id) { return (statusMap && statusMap[id]) || {}; }
 
@@ -713,9 +742,11 @@
 
     if (!open) {
       body = html`<${React.Fragment}>
+        <!-- 어느 섬 것을 보고 있는지 질문에 함께 적습니다.
+             그래야 개수가 적어도 '왜 이것뿐이지?' 하지 않습니다. -->
         <${C.Question} bar=${true}
-          speakText="내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.">
-          내가 표시한 활동을 모아 볼까요?<//>
+          speakText=${(islandName ? islandName + '에서 ' : '') + '내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.'}>
+          ${islandName ? islandName + ' — ' : ''}내가 표시한 활동을 모아 볼까요?<//>
         <div class="mymap-grid">
           ${App.DATA.mapStates.map(function (m) {
             var n = listOf(m.id).length;
@@ -787,16 +818,16 @@
       <${C.Stage}
         top=${open ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { openS[1](null); }}>네 가지로 돌아가기<//>` : null}
-        <!-- ★ 나갈 때 **어느 섬으로 갈지** 학생이 고릅니다.
-               예전에는 '여가 지도로' 하나였는데, 그러면 섬 고르기 화면으로
-               돌아가서 한 번 더 골라야 했습니다. 여기서 바로 섬에 들어가면
-               걸음이 하나 줄고, 무엇을 하러 가는지도 분명해집니다. -->
-        action=${html`<div class="mymap-go">
-          <${C.Btn} kind="ok" icon="next"
-            onClick=${function () { p.nav('map', { island: 'in' }); }}>실내 여가 섬으로!<//>
-          <${C.Btn} kind="ok" icon="next"
-            onClick=${function () { p.nav('map', { island: 'out' }); }}>실외 여가 섬으로!<//>
-        </div>`}>
+        <!-- ★ 나가는 길은 **들어온 그 섬 하나**입니다.
+               실외 섬에서 들어왔으면 실외 섬으로, 실내면 실내로 돌아갑니다.
+               고를 것을 만들지 않는 편이 낫습니다 — 학생은 하던 일을
+               이어서 하려는 것이지, 어디로 갈지 새로 정하려는 게 아닙니다. -->
+        action=${islandName
+          ? html`<${C.Btn} kind="ok" icon="next"
+              onClick=${function () { p.nav('map', { island: island }); }}>
+              ${islandName}으로!<//>`
+          : html`<${C.Btn} kind="ok" icon="back"
+              onClick=${function () { p.nav('map'); }}>다 봤어요 · 여가 지도로<//>`}>
         ${body}
       <//>
     </div>`;

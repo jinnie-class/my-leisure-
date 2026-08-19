@@ -803,10 +803,17 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   background-image:
     var(--mapbg),
     radial-gradient(900px 520px at 50% 45%, #f4fcf0 0%, rgba(244,252,240,0) 72%);
-  background-size:cover, auto;
+  /* ★ `cover` 가 아니라 **`contain`** 입니다.
+       cover 는 칸을 꽉 채우려고 그림을 잘라 냅니다. 그래서 섬의 위아래(또는
+       좌우)가 잘려서 섬이 통째로 안 보였습니다.
+       contain 이면 **그림 전체가 늘 들어옵니다.** 남는 자리는 바다색으로
+       채워서 그림이 바다 위에 떠 있는 것처럼 이어 보입니다.
+     ▸ 섬 이름·들어가기 단추도 그려진 그림 안쪽에 놓입니다
+       (map.js 의 fitBox — 그림이 놓인 자리를 재어 그 안에 자리를 잡습니다). */
+  background-size:contain, auto;
   background-position:center center, center center;
   background-repeat:no-repeat, no-repeat;
-  background-color:#fbfdf7;
+  background-color:#cdeaf6;          /* 그림 둘레를 메우는 바다색 */
 }
 .map-canvas{ position:absolute; top:0; left:0; transform-origin:0 0; }
 .map-paths{ position:absolute; inset:0; pointer-events:none; }
@@ -2026,9 +2033,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
 .map-collect:hover{ transform:translateY(-2px); }
-/* 모아보기에서 나갈 때 — 어느 섬으로 갈지 학생이 고릅니다 (한 줄에 둘) */
-.mymap-go{ display:flex; gap:.6rem; width:100%; }
-.mymap-go > *{ flex:1 1 0; }
 /* 섬마다 다른 배경 — js 가 --island-bg 를 넣어 줍니다 (없으면 지도 배경 그대로) */
 .map-wrap.in-island{ background-image:var(--island-bg, var(--mapbg)); }
 
