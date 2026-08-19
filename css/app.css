@@ -813,7 +813,11 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   background-size:contain, auto;
   background-position:center center, center center;
   background-repeat:no-repeat, no-repeat;
-  background-color:#cdeaf6;          /* 그림 둘레를 메우는 바다색 */
+  /* 그림 둘레를 메우는 바다색.
+     ★ 지도 그림의 **가장자리 색을 재서** 맞췄습니다 (위 #DAF2FC · 아래 #D6EFF9).
+       색이 이어지면 남는 자리가 '빈 곳' 이 아니라 '바다가 더 넓은 것' 으로
+       보입니다. 배경 그림을 새로 그리면 가장자리 색도 다시 재어 맞추세요. */
+  background-color:#d8f0fa;
 }
 .map-canvas{ position:absolute; top:0; left:0; transform-origin:0 0; }
 .map-paths{ position:absolute; inset:0; pointer-events:none; }
