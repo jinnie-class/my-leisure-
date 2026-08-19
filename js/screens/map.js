@@ -390,7 +390,11 @@
                  답답해 보였습니다. 도장판 아래는 원래 비어 있던 자리라
                  지도를 줄이지 않고도 둘 곳이 생깁니다.
                ※ 선생님이 켤 때에만 나옵니다 — 학생 화면에는 지도만 보입니다. -->
-          ${student && student.mapTools && html`<div class="map-toolrow">
+          <!-- ★ 섬 고르기 화면(1층)에는 **두지 않습니다.**
+                 여기서 할 일은 '어느 섬에 갈까?' 하나뿐인데, 찾아보기와
+                 도움말이 함께 있으면 고를 것이 셋으로 늘어납니다.
+                 둘 다 활동 카드를 볼 때 쓰는 것이라 섬 안(2층)에만 둡니다. -->
+          ${L.focus && student && student.mapTools && html`<div class="map-toolrow">
             <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
               찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
             ${filter[0] !== 'all' && html`<span class="chip">
@@ -485,7 +489,10 @@
 
             <!-- 섬마다 아래에 이전 / 다음 -->
             ${L.islands.map(function (is) {
-              if (is.pages <= 1) return null;
+              /* ⚠ 섬 고르기 화면에는 쪽 넘김을 두지 않습니다.
+                   카드를 한 장도 안 놓았는데 `1 / 4 쪽` 만 남아 있어서,
+                   무엇을 넘기는 것인지 알 수 없었습니다. */
+              if (!L.focus || is.pages <= 1) return null;
               var r = is.region;
               return html`<div key=${'nav' + is.key} class="island-nav"
                   style=${{ left: r.x + 'px', top: (r.y + r.h - 46) + 'px', width: r.w + 'px' }}>
