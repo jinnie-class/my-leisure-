@@ -870,16 +870,26 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 /* 상태 표시 : 카드 오른쪽 위에 겹쳐 놓습니다 (카드 안 글자를 가리지 않게) */
 .mapcard .mb{
-  position:absolute; top:-10px; right:-6px;
+  /* 표시를 키운 만큼 밖으로 내미는 정도는 줄입니다 — 안 그러면
+     맨 오른쪽 카드의 표시가 지도 칸을 넘어갑니다. */
+  position:absolute; top:-10px; right:0;
   display:flex; gap:3px; flex-wrap:nowrap;
 }
+/* ★ 표시 그림(발자국 · 하트 · 별 · 물음표)을 **크게**.
+     22~34px 이면 무엇인지 알아보기 어려웠습니다. 카드 폭의 0.19 → 0.30,
+     상한 34 → 52px 로 올렸습니다.
+   ▸ 카드 자체가 조금 작아지더라도 이 표시가 잘 보이는 쪽이 낫습니다 —
+     학생이 지도에서 읽어 내는 것이 바로 이 표시이기 때문입니다.
+   ▸ 넷이 다 붙어도 카드를 넘지 않게 겹쳐 놓습니다 (아래 margin-left). */
 .mapcard .mb i{
-  width:clamp(22px, calc(var(--cw) * .19), 34px);
-  height:clamp(22px, calc(var(--cw) * .19), 34px);
+  width:clamp(30px, calc(var(--cw) * .30), 52px);
+  height:clamp(30px, calc(var(--cw) * .30), 52px);
   border-radius:999px; border:2px solid #fff;
   box-shadow:var(--shadow);
   display:grid; place-items:center; background:#fff;
 }
+/* 표시가 셋 넘게 붙으면 조금씩 겹쳐서 카드 밖으로 나가지 않게 합니다 */
+.mapcard .mb i + i{ margin-left:calc(var(--cw) * -0.075); }
 .mapcard .mb i svg{ width:74%; height:74%; }
 .mapcard .mb i.tried{ background:var(--paper-2); }
 .mapcard .mb i.like{ background:var(--paper-2); }

@@ -41,6 +41,9 @@ $targets = @{
   '준비물'     = $Quality
   'activities' = $Quality
   'avatars'    = $Quality
+  # 섬 배경은 지도 칸 전체를 덮습니다 (폭 1024px). 1536 이면 넉넉합니다.
+  # 512 로 줄이면 흐릿해지므로 여기에 따로 적어 둡니다.
+  '지도'       = 1536
 }
 $rootFiles = @{           # images 바로 밑에 있는 그림들
   '표지.png'     = 1500   # 첫 화면을 다 덮으므로 크게

@@ -29,7 +29,11 @@
        위아래로 낮아서, 줄을 늘리면 카드가 바로 쪼그라듭니다.
      ▸ 그래서 아래 짜임 가운데 **카드가 가장 커지는 것**을 그때그때 고릅니다.
        카드 크기가 거의 같으면(5% 안) 한 쪽에 더 많이 담기는 쪽을 씁니다. */
-  var F_PLANS = [[4, 1], [5, 1], [6, 1], [4, 2], [5, 2], [6, 2]];
+  /* ★ 한 쪽에 **4장까지만**. 5~6장을 놓아 보니 자극이 너무 많았습니다.
+       섬 안에 들어온 까닭이 '조금씩 천천히 보기' 인데, 칸을 늘리면
+       1층에서 카드를 다 펼쳐 두던 때와 다를 것이 없어집니다.
+     ▸ 4장이면 카드가 가장 커지기도 합니다 (한 줄이면 화면 높이를 다 씁니다). */
+  var F_PLANS = [[4, 1], [2, 2]];
 
   function bestPlan(region) {
     var best = null;
@@ -175,10 +179,18 @@
     var pIn = useState(0), pOut = useState(0);   // 섬마다 따로 넘깁니다
     /* 어느 섬에 들어가 있는지 (null 이면 섬 고르기 화면) */
     var islandS = useState(null);
-    /* 섬마다 다른 배경 그림 (없으면 지도 배경을 그대로 씁니다) */
+    /* 섬마다 다른 배경 그림 (없으면 지도 배경을 그대로 씁니다).
+       ⚠ 주소를 **문서 기준 절대 주소**로 바꿔서 넣어야 합니다.
+         CSS 변수(--island-bg) 안의 상대 주소는 그 값을 쓰는 **스타일시트
+         (css/app.css) 자리**를 기준으로 풀립니다. 그대로 두면
+         `css/images/지도/실내섬.png` 를 찾다가 못 찾습니다.
+         (app.js 의 --wallpaper · --mapbg 도 같은 까닭으로 이렇게 합니다) */
     var islandBg = islandS[0]
       ? App.uiImage(islandS[0] === 'in' ? 'islandIn' : 'islandOut')
       : null;
+    if (islandBg) {
+      try { islandBg = new URL(islandBg, document.baseURI).href; } catch (e) {}
+    }
     var L = useMemo(function () {
       return layoutOf(box[0], indoor, outdoor, pIn[0], pOut[0], islandS[0]);
     }, [cards.map(function (c) { return c.id; }).join(','),
