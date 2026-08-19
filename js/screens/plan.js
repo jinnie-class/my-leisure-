@@ -50,8 +50,36 @@
       ${plan.memo ? html`<div class="row"><span class="k">메모</span><b>${plan.memo}</b></div>` : null}
     </div>`;
 
+    /* ★ 1단계는 **그림과 문장을 함께** 냅니다 (인쇄해도 그대로).
+         아직 글을 읽기 어려운 학생은 그림 차례만 보고도 계획을 읽습니다.
+         2·3단계는 문장만 냅니다 — 글로 읽을 수 있으니까요. */
+    var lv = (student && student.diaryLevel) || 1;
+    var pics = [];
+    if (lv === 1) {
+      if (plan.date) pics.push({ key: 'date', label: App.fmtDateShort(plan.date),
+        art: html`<${C.PickArt} kind="when" word=${App.fmtDateShort(plan.date)} iconKey="calendar" /> ` });
+      if (App.timeWord(plan.time)) pics.push({ key: 'time', label: App.timeWord(plan.time),
+        art: html`<${C.PickArt} kind="when" word=${App.timeWord(plan.time)} iconKey="clock" />` });
+      whoList.forEach(function (pt) {
+        pics.push({ key: 'who-' + pt.id, label: pt.name,
+          art: html`<${C.PartnerArt} partner=${pt} student=${student} />` });
+      });
+      if (plan.place) pics.push({ key: 'place', label: plan.place,
+        art: html`<${C.PickArt} kind="place" word=${plan.place} iconKey="map" />` });
+      if (a) pics.push({ key: 'act', label: a.name, art: html`<${C.ActivityArt} activity=${a} />` });
+    }
+
     return html`<div class="sheet">
       <div class="sheet-title">오늘의 여가 계획표</div>
+      ${pics.length ? html`<div class="sheet-pics"
+        aria-label=${'계획 그림 : ' + pics.map(function (x) { return x.label; }).join(', ')}>
+        ${pics.map(function (it, i) {
+          return html`<${React.Fragment} key=${it.key}>
+            ${i > 0 && html`<span class="sheet-pics-sep" aria-hidden="true">›</span>`}
+            <span class="sheet-pics-item" role="img" aria-label=${it.label}>${it.art}</span>
+          <//>`;
+        })}
+      </div>` : null}
       <div class="sentence sentence-center" style=${{ marginTop: '.6rem' }}>
         ${App.sentences.plan(plan)}</div>
       <div class="sheet-body">
@@ -187,6 +215,87 @@
       if (passed('place') && draft.place) bits.push(draft.place + '에서');
       bits.push(a.planText || (a.name + '을 할 거예요'));
       return bits.join(' ') + (key === 'confirm' ? '.' : ' …');
+    }
+
+    /* ══════════ 흰 칸 맨 위 노란 바 — **단계에 맞게** ══════════
+       ★ 일기와 **같은 단계**를 씁니다 (student.diaryLevel).
+         학생에게 `나는 2단계` 가 하나뿐이어야 헷갈리지 않고,
+         선생님도 한 번만 정하면 됩니다.
+       ※ `간단히 / 자세히`(draft.level)는 **묻는 항목 수**라서 다른 축입니다.
+         둘은 겹치지 않으므로 그대로 함께 씁니다.
+
+         1단계 : 고른 그림이 차례로 + 아래 문장 한 줄
+         2단계 : 문장이 만들어지되 고른 낱말은 **빨강 + 굵게**,
+                 아직 안 고른 것은 **빈 흰 칸**
+         3단계 : 문장만 (지금까지 해 오던 것)
+
+       ▸ 빨강은 **눈에 띄게 하려는 것**이지 뜻을 나르지 않습니다.
+         고른 것과 안 고른 것은 '글자가 있나 없나' 로 갈리므로,
+         색을 못 가려도 흑백으로 인쇄해도 뜻이 그대로입니다. */
+    var lv = (student && student.diaryLevel) || 1;
+    function jo(w, pair) {
+      if (!w) return pair.split('/')[1] || pair.split('/')[0];
+      return App.josa(w, pair).slice(String(w).length);
+    }
+    function dateWord() {
+      var t = App.todayKey();
+      if (!draft.date) return '';
+      if (draft.date === t) return '오늘';
+      if (draft.date === App.addDays(t, 1)) return '내일';
+      return App.fmtDateShort(draft.date);
+    }
+    function whoWord() {
+      return who().map(function (id) {
+        var q = App.partner(id); return q ? q.name : '';
+      }).filter(Boolean).join(', ');
+    }
+
+    /* 1단계 그림 띠 — 문장 차례대로 (언제 · 누구와 · 어디에서 · 무엇을) */
+    function planPics() {
+      var out = [];
+      if (passed('when') && draft.date) out.push({ key: 'date', label: dateWord(),
+        art: html`<${C.PickArt} kind="when" word=${dateWord()} iconKey="calendar" />` });
+      if (passed('time') && App.timeWord(draft.time)) {
+        var tw = App.timeWord(draft.time);
+        out.push({ key: 'time', label: tw,
+          art: html`<${C.PickArt} kind="when" word=${tw} iconKey="clock" />` });
+      }
+      if (passed('who')) who().forEach(function (id) {
+        var pt = App.partner(id); if (!pt) return;
+        out.push({ key: 'who-' + id, label: pt.name,
+          art: html`<${C.PartnerArt} partner=${pt} student=${student} />` });
+      });
+      if (passed('place') && draft.place) out.push({ key: 'place', label: draft.place,
+        art: html`<${C.PickArt} kind="place" word=${draft.place} iconKey="map" />` });
+      if (passed('what') && draft.activityId) {
+        var a2 = App.act(draft.activityId);
+        if (a2) out.push({ key: 'act', label: a2.name,
+          art: html`<${C.ActivityArt} activity=${a2} />` });
+      }
+      return out;
+    }
+
+    /* 2단계 빈칸 — 고른 것은 빨강, 아직 안 고른 것은 빈 칸 */
+    function slot(v) {
+      var on = !!(v && String(v).trim());
+      return html`<span class=${'blank' + (on ? ' on hi' : '')}>${on ? v : '　　　'}</span>`;
+    }
+    function planBlankLine() {
+      var a2 = App.act(draft.activityId);
+      var w1 = passed('when') ? dateWord() : '';
+      var wT = passed('time') ? (App.timeWord(draft.time) || '') : '';
+      var w2 = passed('who') ? whoWord() : '';
+      var w3 = passed('place') ? (draft.place || '') : '';
+      var w4 = (passed('what') && a2) ? App.frameWord(a2) : '';
+      var alone = who().length === 1 && who()[0] === 'alone';
+      var hasTime = KEYS.indexOf('time') >= 0, hasPlace = KEYS.indexOf('place') >= 0;
+      return html`<div class="frame-line">
+        <b>나는</b> ${slot(w1)}
+        ${hasTime && slot(wT)}
+        ${slot(w2)}<b>${alone ? '' : (jo(w2, '과/와') + ' 함께')}</b>
+        ${hasPlace && html`<${React.Fragment}>${slot(w3)}<b>에서</b><//>`}
+        ${slot(w4)}<b>${jo(w4, '을/를') + ' 할 거예요.'}</b>
+      </div>`;
     }
 
     function canNext() {
@@ -566,8 +675,26 @@
        ※ 하위 활동 화면에서 `다른 활동 고르기` 도 맨 위 화살표가 합니다
          (`p.onBack` 이 `back()` 을 부르도록 아래에서 이어 두었습니다). */
     var backBtn = soFar
-      ? html`<div class="plan-top">
-          <span class="plan-sofar" aria-live="polite">${soFar}</span>
+      ? html`<div class="plan-top" aria-live="polite">
+          ${lv === 1
+            /* 1단계 : 그림 띠 + 그 아래 문장 한 줄 */
+            ? html`<div class="plan-l1">
+                <span class="pic-sofar"
+                  aria-label=${'지금까지 고른 것 : ' + planPics().map(function (it) { return it.label; }).join(', ')}>
+                  ${planPics().map(function (it, i) {
+                    return html`<${React.Fragment} key=${it.key}>
+                      ${i > 0 && html`<span class="pic-sofar-sep" aria-hidden="true">›</span>`}
+                      <span class="pic-sofar-item" role="img" aria-label=${it.label}>${it.art}</span>
+                    <//>`;
+                  })}
+                </span>
+                <span class="plan-l1-say">${soFar}</span>
+              </div>`
+            : (lv === 2
+              /* 2단계 : 빈칸이 채워지는 문장 (고른 낱말은 빨강) */
+              ? planBlankLine()
+              /* 3단계 : 문장만 */
+              : html`<span class="plan-sofar">${soFar}</span>`)}
         </div>` : null;
 
     return html`<div class="app" data-corner="plan">

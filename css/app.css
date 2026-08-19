@@ -2365,6 +2365,38 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .pic-sofar-sep{ flex:0 0 auto; font-weight:900; color:#b09a55; font-size:1.1rem; }
 
+/* 계획하기 1단계 — 그림 띠 + 그 아래 문장 한 줄.
+   ★ 그림만으로도 계획이 읽히고, 문장은 아래에서 같이 보여 줍니다.
+   ▸ 문장은 **한 줄로 작게** 둡니다. 두 줄이 되면 그만큼 고르는 칸이 줄어듭니다. */
+.plan-l1{
+  flex:1 1 auto; min-width:0;
+  display:flex; flex-direction:column; align-items:center; gap:.15rem;
+  padding:.3rem .9rem; border-radius:18px;
+  background:var(--note); border:2px solid var(--note-line);
+}
+.plan-l1 .pic-sofar{ background:none; border:none; padding:0; }
+.plan-l1-say{
+  max-width:100%; font-size:clamp(.85rem,.5rem + .75vh,1.1rem); font-weight:800;
+  color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* 계획하기 2단계 — 고른 낱말을 눈에 띄게.
+   ▸ 빨강은 **눈에 띄게 하려는 것**이지 뜻을 나르지 않습니다.
+     고른 것과 안 고른 것은 '글자가 있나 없나' 로 갈리므로,
+     색을 못 가려도 흑백으로 인쇄해도 뜻이 그대로입니다. */
+.blank.on.hi{
+  color:#d2384f; font-weight:900;
+  border-bottom-color:#d2384f; border-bottom-width:4px;
+}
+
+/* 인쇄용 계획표 1단계 — 제목 아래 그림 띠 (인쇄해도 그대로 나옵니다) */
+.sheet-pics{
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  flex-wrap:wrap; margin-top:.5rem;
+}
+.sheet-pics-item{ width:clamp(44px,7vh,72px); height:clamp(44px,7vh,72px); flex:0 0 auto; display:block; }
+.sheet-pics-item img,.sheet-pics-item svg{ width:100%; height:100%; object-fit:contain; display:block; }
+.sheet-pics-sep{ font-weight:900; color:#b09a55; }
+
 /* 날짜 · 시간대 카드는 읽어주기를 **글자 아래에 크게**.
    ★ 다른 화면은 글자 옆에 작게 붙이지만(`.pick-name`), 이 두 화면은
      카드가 크고 글자 아래에 빈 자리가 남아서 작게 두면 눌러 보고 싶지
