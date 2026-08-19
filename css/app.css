@@ -881,15 +881,18 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    ▸ 카드 자체가 조금 작아지더라도 이 표시가 잘 보이는 쪽이 낫습니다 —
      학생이 지도에서 읽어 내는 것이 바로 이 표시이기 때문입니다.
    ▸ 넷이 다 붙어도 카드를 넘지 않게 겹쳐 놓습니다 (아래 margin-left). */
+/* ⚠ 겹치게 하지 마세요. 음수 여백으로 포개 보았더니 발자국 위에 하트가
+     올라타서 무엇인지 알아볼 수 없었습니다.
+   ▸ 대신 **넷이 나란히 들어가는 가장 큰 크기**로 잡습니다.
+     카드 폭에서 사이 여백(3px x 3)과 여유를 뺀 뒤 4로 나눕니다.
+     카드 188px 이면 44px — 예전 34px 보다 여전히 훨씬 큽니다. */
 .mapcard .mb i{
-  width:clamp(30px, calc(var(--cw) * .30), 52px);
-  height:clamp(30px, calc(var(--cw) * .30), 52px);
+  width:clamp(26px, calc((var(--cw) - 14px) / 4), 48px);
+  height:clamp(26px, calc((var(--cw) - 14px) / 4), 48px);
   border-radius:999px; border:2px solid #fff;
   box-shadow:var(--shadow);
   display:grid; place-items:center; background:#fff;
 }
-/* 표시가 셋 넘게 붙으면 조금씩 겹쳐서 카드 밖으로 나가지 않게 합니다 */
-.mapcard .mb i + i{ margin-left:calc(var(--cw) * -0.075); }
 .mapcard .mb i svg{ width:74%; height:74%; }
 .mapcard .mb i.tried{ background:var(--paper-2); }
 .mapcard .mb i.like{ background:var(--paper-2); }
