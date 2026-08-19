@@ -2024,10 +2024,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* ★ 바를 **작게**. 크면 집·텐트를 덮어서 무슨 섬인지 안 보입니다.
      구름 사이에 얹히는 작은 팻말 정도면 충분합니다. */
 .gate-name{
-  padding:.2rem 1rem; border-radius:999px; white-space:nowrap;
-  background:#fffdf3; border:2px solid #8a6a4e; color:#5a4230;
-  font-size:clamp(.85rem, .55rem + .8vh, 1.2rem); font-weight:900;
-  box-shadow:0 2px 0 rgba(0,0,0,.1);
+  padding:.3rem 1.3rem; border-radius:999px; white-space:nowrap;
+  background:#fffdf3; border:3px solid #8a6a4e; color:#5a4230;
+  /* ★ 하늘 자리가 그림 위 20% 쯤까지 있는데 바는 10% 밖에 안 썼습니다.
+       섬 그림(집·텐트)이 시작되기 전까지만 키웁니다. 상한 1.2 -> 1.9rem.
+     ⚠ 더 키우면 지붕과 텐트 꼭대기에 닿습니다. */
+  font-size:clamp(1rem, .55rem + 1.5vh, 1.9rem); font-weight:900;
+  box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
 .island-gate.out .gate-name{ border-color:#5f8f57; color:#38612f; }
 .gate-count{
