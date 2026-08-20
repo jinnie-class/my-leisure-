@@ -393,8 +393,24 @@
     }
 
     return html`<div class="app" data-corner="map">
+      <!-- ★ 파란 화살표가 **한 걸음씩** 되짚습니다.
+             섬 안이면 → 큰 지도(섬 고르기)
+             섬 고르기면 → 앞 화면(보통 나의 여가)
+           그래서 지도 안에 있던 지도로 알약을 지웠습니다 — 화살표와 같은
+           일을 하는데 자리만 둘이었습니다. -->
       <${C.TopBar} title="여가 지도"
-        onBack=${function () { p.back("home"); }}
+        onBack=${function () {
+          if (islandS[0]) {
+            /* 섬을 나올 때는 찾아보기도 처음으로 되돌립니다 */
+            filter[1]('all'); toolsS[1](false); islandS[1](null); return;
+          }
+          /* ⚠ 여기서는 `지나온 길`(p.back)을 쓰지 않습니다.
+               지도 ↔ 모아보기를 오간 것이 길에 쌓여 있어서, 큰 지도에서
+               화살표를 누르면 홈이 아니라 **모아보기로 되돌아갔습니다.**
+               큰 지도는 코너의 첫 화면이므로 늘 홈으로 나갑니다. */
+          p.nav('home');
+        }}
+        backLabel=${islandS[0] ? '여가 지도로' : '나의 여가로'}
         onTitle=${function () { p.nav("home"); }}>
         <!-- '일기 쓰기' 는 두지 않습니다. 여기는 지도를 보는 곳이고,
              일기는 홈의 계획 카드나 기록하GO! 에서 씁니다 (규칙 7 — 중복 금지) -->
@@ -589,16 +605,8 @@
               })}
             </div>
 
-            <!-- 섬에 들어갔을 때 : 지도로 되돌아가는 길 (왼쪽 위) -->
-            ${L.focus && html`<button type="button" class="island-back"
-              onClick=${function () {
-                /* ★ 섬을 나올 때 **찾아보기를 처음으로 되돌립니다.**
-                     섬 안에서 `해봤어요만 보기` 를 켠 채 나오면 그 상태가
-                     큰 지도까지 따라와서, 다음에 섬에 들어갔을 때 활동이
-                     몇 개만 보이는데 까닭을 알 수 없었습니다. */
-                filter[1]('all'); toolsS[1](false); islandS[1](null);
-              }}
-              aria-label="여가 지도로 돌아가기">◀ 지도로</button>`}
+            <!-- 되돌아가는 길은 맨 위 파란 화살표가 맡습니다.
+                 여기 있던 지도로 알약은 지웠습니다 (같은 일을 하는 길이 둘). -->
 
             <!-- 모아보기 (오른쪽 위) — **섬 안에서만**.
                  큰 여가지도(섬 고르기)에서는 아직 어느 섬인지 정해지지 않았고,
@@ -887,28 +895,27 @@
     }
 
     return html`<div class="app" data-corner="map">
+      <!-- ★ 파란 화살표 하나로 **한 걸음씩 되짚습니다.**
+             표시 하나를 열어 보고 있으면 → 네 가지 표시로
+             네 가지 표시 화면이면      → 들어온 섬으로
+           그래서 위쪽 알약과 아래 초록 바를 지웠습니다.
+           같은 일을 하는 길이 셋이나 있었습니다 (규칙 7 — 중복 금지). -->
       <${C.TopBar} title="나의 여가 모아보기"
-        onBack=${function () { p.back("home"); }}
+        onBack=${function () {
+          if (openS[0]) { openS[1](null); return; }
+          if (island) { p.nav('map', { island: island }); return; }
+          p.nav('map');   /* 섬 없이 들어왔으면 큰 지도로 (같은 까닭으로 p.back 을 안 씁니다) */
+        }}
+        backLabel=${openS[0] ? '네 가지 표시로' : (islandName ? islandName + '으로' : '여가 지도로')}
         onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${open ? open.name + '. ' + open.help : '내가 표시한 활동을 모아 볼 수 있어요.'} />
         <${C.WhoChip} student=${student} />
       <//>
 
-      <!-- ⚠ 태그의 **속성 사이에 주석을 넣지 마세요.**
-             htm 은 그것을 글자로 읽어서 속성 이름이 화면에 그대로 찍힙니다.
-             주석은 이렇게 태그 **밖**에 둡니다.
-           ★ 나가는 길은 들어온 그 섬 하나입니다. 실외 섬에서 들어왔으면
-             실외 섬으로, 실내면 실내로. 학생은 하던 일을 이어서 하려는 것이지
-             어디로 갈지 새로 정하려는 게 아닙니다. -->
-      <${C.Stage}
-        top=${open ? html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
-          onClick=${function () { openS[1](null); }}>네 가지로 돌아가기<//>` : null}
-        action=${islandName
-          ? html`<${C.Btn} kind="ok" icon="next"
-              onClick=${function () { p.nav('map', { island: island }); }}>
-              ${islandName}으로!<//>`
-          : html`<${C.Btn} kind="ok" icon="back"
-              onClick=${function () { p.nav('map'); }}>다 봤어요 · 여가 지도로<//>`}>
+      <!-- 되짚는 길은 맨 위 파란 화살표가 모두 맡습니다.
+           예전에는 여기 위쪽에 알약, 아래에 초록 바가 또 있어서 같은 일을
+           하는 길이 셋이었습니다 (규칙 7 — 중복 금지). -->
+      <${C.Stage}>
         ${body}
       <//>
     </div>`;
