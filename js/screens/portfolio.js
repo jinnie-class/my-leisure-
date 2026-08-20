@@ -370,6 +370,8 @@
     /* 모음 셋 가운데 무엇을 볼지 — **학생이 고릅니다.**
        무엇을 보여 줄지 고르는 것도 발표의 한 부분이라서요. */
     var folioTab = useState('plan');   // plan | map | diary
+    /* 여가지도 칸에서 네 가지 표시 가운데 무엇을 보고 있는지 */
+    var mapPick = useState('tried');   // tried | like | challenge | unsure
     var showS = useState(false);    // 교실 TV 전시 모드
     var range = rangeOf(student);
 
@@ -383,6 +385,7 @@
       var likes = cards.filter(function (c) { return (statusMap[c.id] || {}).like; });
       var challenges = cards.filter(function (c) { return (statusMap[c.id] || {}).challenge; });
       var tried = cards.filter(function (c) { return (statusMap[c.id] || {}).tried; });
+      var unsure = cards.filter(function (c) { return (statusMap[c.id] || {}).unsure; });
       /* 이 기간에 처음 해본 활동 = 기간 안 일기에 나오고, 기간 이전 일기에는 없던 활동 */
       var before = {};
       App.store.diaries(student.id).forEach(function (d) {
@@ -397,7 +400,7 @@
         (d.photoIds || []).forEach(function (id) { if (photoIds.indexOf(id) < 0) photoIds.push(id); });
       });
       return { from: range.from, to: range.to, diaries: diaries, plans: plans, likes: likes,
-               challenges: challenges, tried: tried, newTried: newTried,
+               challenges: challenges, tried: tried, unsure: unsure, newTried: newTried,
                exhibited: exhibited, photoIds: photoIds };
     }, [student, range.from, range.to, App.store.get()]);
 
@@ -548,34 +551,58 @@
             <//>`}
           <//>`}
 
-          ${folioTab[0] === 'map' && html`<${C.Sec} title="나의 여가지도"
-            speakText=${'나의 여가지도. 해봤어요 ' + data.tried.length + '가지, 좋아해요 '
-              + data.likes.length + '가지, 도전하고 싶어요 ' + data.challenges.length + '가지예요.'}>
-            <div class="folio-sum">
-              <span class="folio-sum-item"><b>${data.tried.length}</b>가지 해봤어요</span>
-              <span class="folio-sum-item"><b>${data.likes.length}</b>가지 좋아해요</span>
-              <span class="folio-sum-item"><b>${data.challenges.length}</b>가지 도전하고 싶어요</span>
-              ${data.newTried.length ? html`<span class="folio-sum-item new">
-                <b>${data.newTried.length}</b>가지 처음 해봤어요</span>` : null}
-            </div>
-            <div class="folio-grid" style=${{ marginTop: '.5rem' }}>
-              ${data.likes.concat(data.challenges.filter(function (c) {
-                return data.likes.indexOf(c) < 0;
-              })).slice(0, 12).map(function (c) {
-                var st = App.store.statusOf(student.id, c.id);
-                return html`<span key=${c.id} class="folio-card as-view"
-                    role="img" aria-label=${c.name + (st.like ? ', 좋아해요' : '') + (st.challenge ? ', 도전하고 싶어요' : '')}>
-                  <span class="folio-art"><${C.ActivityArt} activity=${c} /></span>
-                  <span class="folio-name">${c.name}</span>
-                  <span class="folio-date">${st.like ? '♥ 좋아해요' : '★ 도전'}</span>
-                </span>`;
-              })}
-            </div>
-            <div class="wrap" style=${{ marginTop: '.5rem', justifyContent: 'center' }}>
-              <${C.Btn} size="small" icon="map"
-                onClick=${function () { p.nav('map'); }}>여가지도 보기<//>
-            </div>
-          <//>`}
+          <!-- ★ 나의 여가지도 — **실내·실외를 한꺼번에** 봅니다.
+                 여가지도는 섬마다 따로 보는 곳이라, 합쳐서 보는 자리가
+                 여기 말고는 없었습니다. 포트폴리오는 원래 모아서 보는 곳이라
+                 이 자리가 알맞습니다.
+               ▸ 네 가지 표시를 눌러 고르면 그 활동만 카드로 나옵니다.
+               ▸ 카드마다 실내·실외 표시가 붙어서, 합쳐 봐도 어느 섬 것인지 압니다. -->
+          ${folioTab[0] === 'map' && (function () {
+            var pick = mapPick[0];
+            var lists = {
+              tried: data.tried, like: data.likes,
+              challenge: data.challenges, unsure: data.unsure
+            };
+            var shown = lists[pick] || [];
+            return html`<${C.Sec} title="나의 여가지도 — 실내·실외 한눈에"
+              speakText=${'나의 여가지도. 해봤어요 ' + data.tried.length + '가지, 좋아해요 '
+                + data.likes.length + '가지, 도전하고 싶어요 ' + data.challenges.length
+                + '가지, 잘 모르겠어요 ' + data.unsure.length + '가지예요.'}>
+              <!-- 네 가지 표시 — 눌러서 고릅니다 -->
+              <div class="folio-marks">
+                ${App.DATA.mapStates.map(function (m) {
+                  var on = pick === m.id;
+                  return html`<button key=${m.id} type="button"
+                      class=${'folio-mark' + (on ? ' on' : '')}
+                      aria-pressed=${on ? 'true' : 'false'}
+                      onClick=${function () { mapPick[1](m.id); }}>
+                    <span class="fm-art" aria-hidden="true"><${C.StateArt} state=${m} /></span>
+                    <span class="fm-txt"><b>${(lists[m.id] || []).length}</b>가지<br />${m.name}</span>
+                  </button>`;
+                })}
+              </div>
+
+              ${shown.length ? html`<div class="folio-grid" style=${{ marginTop: '.7rem' }}>
+                ${shown.map(function (c) {
+                  var inside = c.area === 'indoor';
+                  return html`<span key=${c.id} class="folio-card as-view"
+                      role="img" aria-label=${(inside ? '실내' : '실외') + ' ' + c.name}>
+                    <span class="folio-art"><${C.ActivityArt} activity=${c} /></span>
+                    <span class="folio-name">${c.name}</span>
+                    <span class=${'folio-where ' + (inside ? 'in' : 'out')}>
+                      ${inside ? '실내' : '실외'}</span>
+                  </span>`;
+                })}
+              </div>` : html`<${C.Banner} icon="cornerMap" style=${{ marginTop: '.7rem' }}>
+                아직 여기에 표시한 활동이 없어요. 여가지도에서 표시해 보아요.
+              <//>`}
+
+              <div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
+                <${C.Btn} size="small" icon="map"
+                  onClick=${function () { p.nav('map'); }}>여가지도 보기<//>
+              </div>
+            <//>`;
+          })()}
 
           ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 여가 일기장 — 전시할 것을 골라 보세요">
             ${data.diaries.length ? html`<div class="stack">

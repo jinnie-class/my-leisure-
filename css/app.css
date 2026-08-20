@@ -2885,6 +2885,35 @@ textarea.sentence-edit,
   line-height:1.2; overflow:hidden; text-overflow:ellipsis; max-width:100%;
 }
 .folio-date{ font-size:.78rem; font-weight:800; color:var(--ink-soft); }
+/* ★ 나의 여가지도 — 네 가지 표시를 눌러 고르는 줄.
+     여가지도는 섬마다 따로 보는 곳이라, 실내·실외를 합쳐서 보는 자리가
+     여기 말고는 없었습니다. */
+.folio-marks{
+  display:grid; gap:.6rem;
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+}
+.folio-mark{
+  display:flex; align-items:center; gap:.6rem; cursor:pointer; min-width:0;
+  padding:.55rem .7rem; background:#fff;
+  border:3px solid var(--line); border-radius:18px; box-shadow:var(--shadow);
+  text-align:left;
+}
+.folio-mark:hover{ border-color:var(--sel-line); transform:translateY(-2px); }
+.folio-mark.on{ background:var(--sel-bg); border-color:var(--sel-line); border-width:4px; }
+.fm-art{ width:clamp(38px,5.5vh,52px); height:clamp(38px,5.5vh,52px); flex:0 0 auto; display:block; }
+.fm-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.fm-txt{ min-width:0; font-size:.88rem; font-weight:800; line-height:1.25; color:var(--ink-soft); }
+.fm-txt b{ font-size:1.35em; font-weight:900; color:var(--ink); }
+
+/* 카드마다 실내·실외 표시 — 합쳐 봐도 어느 섬 것인지 알 수 있게.
+   색만으로 가르지 않도록 글자도 함께 넣습니다. */
+.folio-where{
+  padding:.05rem .5rem; border-radius:999px;
+  font-size:.76rem; font-weight:900; border:2px solid;
+}
+.folio-where.in{ background:#ffe9cc; border-color:#c96a1e; color:#8a4a12; }
+.folio-where.out{ background:#d6ebf9; border-color:#1f6e9e; color:#14526f; }
+
 /* 지도 요약 — 해봤어요 · 좋아해요 · 도전 */
 .folio-sum{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; }
 .folio-sum-item{
