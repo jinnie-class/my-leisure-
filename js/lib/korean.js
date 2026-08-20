@@ -188,6 +188,13 @@
     if (when) bits.push(when);
     var pp = partnerPhrase(plan.partnerId, plan.partnerIds);
     if (pp) bits.push(pp);
+    /* ★ 장소도 문장에 넣습니다.
+       예전에는 활동 이름이 `공원 가기` 처럼 장소를 담고 있어서, 장소를 또
+       넣으면 `공원에서 공원 가기를` 이 되었습니다. 이제 활동 이름에서
+       장소를 뺐으므로 `공원에서 공원 나들이를` 처럼 매끄럽게 이어집니다.
+     ⚠ 계획하기 노란 바(sentenceSoFar)에는 장소가 나오는데 계획표에는
+       안 나와서 둘이 서로 달랐습니다. */
+    if (plan.place) bits.push(plan.place + '에서');
     bits.push(a ? a.planText : '여가활동을 할 거예요');
     return bits.join(' ') + '.';
   };
@@ -201,6 +208,7 @@
     if (when) bits.push(when);
     var pp = partnerPhrase(d.partnerId, d.partnerIds);
     if (pp) bits.push(pp);
+    if (d.place) bits.push(d.place + '에서');
     bits.push(a ? a.diaryText : '여가활동을 했어요');
     return bits.join(' ') + '.';
   };
