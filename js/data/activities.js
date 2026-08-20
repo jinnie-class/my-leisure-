@@ -194,8 +194,8 @@
         A({ id: 'cook-eggrice', area: 'indoor', name: '간장계란밥', icon: 'eggrice', imageKey: '간장계란밥',
             planText: '간장계란밥을 만들 거예요', diaryText: '간장계란밥을 만들었어요',
             defaultPlace: '조리실', defaultSupplies: ['밥', '계란', '간장'] }),
-        A({ id: 'cook-nofire', area: 'indoor', name: '불을 사용하지 않는 요리', icon: 'fruit', imageKey: '불을 사용하지 않는 요리',
-            planText: '불을 사용하지 않는 요리를 할 거예요', diaryText: '불을 사용하지 않는 요리를 했어요',
+        A({ id: 'cook-nofire', area: 'indoor', name: '과일 요거트', icon: 'fruit', imageKey: '과일 요거트',
+            planText: '과일 요거트를 만들 거예요', diaryText: '과일 요거트를 만들었어요',
             defaultPlace: '교실', defaultSupplies: ['과일', '접시', '포크'] })
       ]
     }),
