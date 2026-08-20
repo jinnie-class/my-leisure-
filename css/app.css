@@ -1632,6 +1632,15 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .dv-paper .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
 .dv:hover .dv-paper{ border-color:var(--sel-line); box-shadow:var(--shadow-2); }
+/* 그림 자리를 옮기는 동안에는 단추가 아니라 그냥 칸입니다.
+   테두리를 초록으로 바꿔서 '지금 옮길 수 있다' 를 색만이 아니라
+   왼쪽 초록 단추와 **같은 색**으로 짝지어 알려 줍니다. */
+.dv-arrange .dv-paper{ border-color:var(--ok); border-width:3px; }
+.dv-arrange:hover .dv-paper{ border-color:var(--ok); }
+
+/* 완성 화면에서 고치는 길 세 줄 (노란 상자 바로 아래) */
+.fix-here{ display:flex; flex-direction:column; gap:.45rem; margin-top:.15rem; }
+.fix-here .btn{ align-self:stretch; }
 .dv-cap{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
 /* 크게 보기 (팝업 안) */
 .dv-big{

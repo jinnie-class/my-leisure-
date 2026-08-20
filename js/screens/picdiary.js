@@ -543,6 +543,13 @@
     var d = p.draft;
     if (!d || !d.activityId) return null;
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />`;
+    /* 그림 자리 바꾸기를 켜면(arrange) 종이 위의 그림을 끌어 옮기고 크기도 바꿉니다.
+       일기 고치기 화면과 **똑같은 것**을 씁니다 — 고치는 길이 둘이면 헷갈립니다. */
+    var live = p.arrange
+      ? html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text"
+          arrange=${true} onMoveArt=${p.onMoveArt}
+          picked=${p.picked} onPickArt=${p.onPickArt} />`
+      : sheet;
     /* ★ 짜임새 : **바 | 그림일기 | 바**.
          전에는 위에 `날짜·사람·장소 바꾸기`, 아래에 `눌러서 크게 보기` 가
          한 줄씩 차지해서, 그 두 줄만큼 그림일기를 작게 보여 줄 수밖에
@@ -558,11 +565,17 @@
           onClick=${function () { bigS[1](true); }}>눌러서 크게 보기<//>
       </div>
       <!-- 크기는 위 fitDv 가 화면에 맞게 재어 넣어 줍니다 (CSS 의 --dv 를 덮어씀) -->
-      <button type="button" class="dv" aria-label="완성된 그림일기 — 눌러서 크게 보기"
-          style=${{ '--dv': dvS[0] }}
-          onClick=${function () { bigS[1](true); }}>
-        <span class="dv-paper">${sheet}</span>
-      </button>
+      <!-- 자리 바꾸는 동안에는 **누르면 커지는 것**을 끕니다.
+           그림을 잡으려고 눌렀는데 큰 창이 떠 버리면 옮길 수가 없습니다. -->
+      ${p.arrange
+        ? html`<div class="dv dv-arrange" style=${{ '--dv': dvS[0] }}>
+            <span class="dv-paper">${live}</span>
+          </div>`
+        : html`<button type="button" class="dv" aria-label="완성된 그림일기 — 눌러서 크게 보기"
+            style=${{ '--dv': dvS[0] }}
+            onClick=${function () { bigS[1](true); }}>
+            <span class="dv-paper">${sheet}</span>
+          </button>`}
       ${bigS[0] && html`<${C.Modal} title="완성된 그림일기" wide=${true}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
@@ -636,16 +649,16 @@
       </span>
     </div>`;
 
+    /* ⚠ 맨 위 줄 왼쪽에 있던 '일기 고치기' 를 뺐습니다.
+         바로 앞 완성 화면에서 문장 · 그림 자리 · 다시 그리기 · 날짜를
+         모두 고치고 왔으므로, 같은 일을 또 권하는 셈이었습니다.
+       ▸ 어제 저장한 일기는 '나의 일기 모음' 에서 열어 고칩니다 (아래 journal).
+       ⚠ 이 설명을 태그 **속성 사이**에 두면 htm 이 다음 속성 이름(below=)을
+         글자 그대로 화면에 찍습니다. 반드시 태그 밖에 둡니다. */
     return html`<div class="app pd-app" data-corner="diary">
       <${C.TopBar} title="그림일기"
         onBack=${function () { p.back("home"); }}
         onTitle=${function () { p.nav("home"); }}
-        left=${html`<${React.Fragment}>
-          <!-- 고치는 일은 **좌우 2단 화면**에서 합니다.
-               처음부터 다시 고르는 것이 아니라, 그림과 문장만 바로 고칩니다. -->
-          ${d && html`<${C.Btn} size="small" icon="pencil" className="pastel-yellow"
-            onClick=${function () { p.nav('fixdiary', { diaryId: d.id }); }}>일기 고치기<//>`}
-        <//>`}
         below=${modeBar}>
         <${C.Speak} text=${d ? App.sentences.diaryBody(d) : '일기를 찾을 수 없어요.'} />
         <${C.WhoChip} student=${student} />

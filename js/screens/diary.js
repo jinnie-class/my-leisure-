@@ -145,6 +145,8 @@
     var editMetaS = useState(false);   // 바꾸기 창 : false 면 닫힘, 숫자면 그 쪽
     var drawS = useState(false);       // 직접 그리기 판이 열려 있는지
     var photoS = useState(false);      // 사진 고르기 팝업이 열려 있는지
+    var moveS = useState(false);       // 그림 자리를 옮기는 중인지 (완성 화면)
+    var pickedS = useState(null);      // 크기를 바꾸려고 고른 그림
     var madeS = useState(null);        // 방금 그린 그림 (완성 확인 창에서 보여 줍니다)
     var reDrawS = useState(null);      // '다시 그릴래요' 로 돌아갈 때 이어서 그릴 그림
     var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
@@ -204,7 +206,10 @@
         drawPhotoId: draft.drawPhotoId || null, exhibit: draft.exhibit,
         writeWay: draft.writeWay || 'key', writePhotoId: draft.writePhotoId || null,
         partnerIds: draft.partnerIds || [],
-        six: draft.six || {}
+        six: draft.six || {},
+        /* 완성 화면에서 옮기고 키운 그림 자리. 이것을 빠뜨리면 저장하는 순간
+           애써 맞춘 자리가 처음으로 되돌아갑니다. 인쇄할 때도 이 값을 씁니다. */
+        artLayout: draft.artLayout || null
       };
       var id;
       if (editing) {
@@ -644,6 +649,30 @@
       return (typeof v === 'number' && v >= 0 && v < META_TABS.length) ? v : 0;
     }
 
+    /* -------- 그림일기 위의 그림 자리·크기 (완성 화면에서 바로 고치기) --------
+       아직 저장 전이라 store 가 아니라 **draft** 에 담습니다.
+       담는 곳 이름(artLayout)은 저장 뒤와 같아서, 저장하면 그대로 이어집니다. */
+    function moveArt(key, pos) {
+      var cur = draft.artLayout || {};
+      var next = {};
+      for (var k in cur) if (Object.prototype.hasOwnProperty.call(cur, k)) next[k] = cur[k];
+      next[key] = pos;
+      patch({ artLayout: next });
+    }
+
+    /* 고른 그림의 크기를 한 단계씩 (0.5배 ~ 2배) */
+    function sizeArt(dir) {
+      var key = pickedS[0];
+      if (!key) { App.ui.toast('크기를 바꿀 그림을 먼저 눌러 주세요.'); return; }
+      var cur = draft.artLayout || {};
+      var now = cur[key] || {};
+      var sc = Math.max(0.5, Math.min(2, (now.s || 1) + dir * 0.15));
+      var next = {};
+      for (var k in cur) if (Object.prototype.hasOwnProperty.call(cur, k)) next[k] = cur[k];
+      next[key] = { x: now.x, y: now.y, s: Math.round(sc * 100) / 100 };
+      patch({ artLayout: next });
+    }
+
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
@@ -658,12 +687,44 @@
               onChange=${function (v) { patch({ bodyEdit: v }); }}
               onReset=${function () { patch({ bodyEdit: null }); }} />
             ${emptyBoneNote()}
+
+            <!-- ★ 고치는 길 넷을 **한 자리에** 모읍니다.
+                   위 노란 상자가 곧 글 고치기이고, 아래 세 줄이 나머지입니다.
+                   예전에는 글은 여기, 날짜는 그림일기 위, 그림은 저장한 뒤
+                   따로 있는 일기 고치기 화면에 흩어져 있었습니다.
+                   ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+            <div class="fix-here">
+              <${C.Btn} size="big" className=${'pastel-green fix-go' + (moveS[0] ? ' on' : '')}
+                icon="expand" onClick=${function () { moveS[1](!moveS[0]); }}>
+                ${moveS[0] ? '자리 옮기기 끝내기' : '그림 자리 · 크기 바꾸기'}<//>
+              <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
+                onClick=${function () { patch({ picKind: 'draw' }); drawS[1](true); }}>
+                그림 다시 그리기<//>
+              <${C.Btn} size="big" className="pastel-blue fix-go" icon="edit"
+                onClick=${function () { editMetaS[1](0); }}>날짜 · 사람 · 장소 바꾸기<//>
+            </div>
+
+            ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
+              speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꾸어 보아요.">
+              <b>그림을 끌어서 옮겨요.</b>
+              <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.
+                그림을 한 번 누르면 크기도 바꿀 수 있어요.</div>
+              <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.5rem' }}>
+                <${C.Btn} size="small" className="pastel-blue"
+                  onClick=${function () { sizeArt(-1); }}>고른 그림 작게<//>
+                <${C.Btn} size="small" className="pastel-blue"
+                  onClick=${function () { sizeArt(1); }}>고른 그림 크게<//>
+                <${C.Btn} size="small"
+                  onClick=${function () { patch({ artLayout: null }); pickedS[1](null); }}>
+                  처음 자리로<//>
+              </div>
+            <//>`}
           </div>
-          <!-- 날짜·날씨·사람·장소·활동을 고치는 길은 그림일기 **왼쪽 바**로.
-               위아래에 한 줄씩 두면 그만큼 그림일기가 작아집니다. -->
+          <!-- 오른쪽에는 크게 보기 하나만 남습니다. 고치는 길은 모두 왼쪽에 있어서,
+               학생이 한 곳만 보면 됩니다. -->
           <${C.DiaryPreview} draft=${draft} student=${student}
-            left=${html`<${C.Btn} size="small" icon="pencil" className="pastel-blue"
-              onClick=${function () { editMetaS[1](0); }}>날짜 · 사람 · 장소 바꾸기<//>`} />
+            arrange=${moveS[0]} onMoveArt=${moveArt}
+            picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />
         </div>
       <//>`;
     }

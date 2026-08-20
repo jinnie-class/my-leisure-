@@ -651,8 +651,10 @@
 
     return html`<div class="sentence-box">
       <div class="sentence-head">
-        <span class="sentence-cap">${p.title || '완성된 문장'}</span>
-        <span class="sentence-hint">✎ 눌러서 고쳐 쓸 수 있어요</span>
+        <span class="sentence-cap">${p.title || '완성된 일기'}</span>
+        <!-- 이 칸이 곧 '일기 내용 고치기' 입니다. 저장한 뒤 따로 있던 화면으로
+             가지 않고 여기서 바로 고칩니다 — 그래서 말도 그렇게 적습니다. -->
+        <span class="sentence-hint">✎ 여기를 눌러 일기를 고쳐 쓸 수 있어요</span>
       </div>
       <!-- 읽어주기를 노란 칸 **안쪽 왼쪽**에 넣습니다.
            칸 밖 아랫줄에 두면 그 한 줄만큼 아래 그림일기가 밀려 내려가서,
