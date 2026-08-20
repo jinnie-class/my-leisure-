@@ -69,7 +69,7 @@
       <${C.Question} bar=${true} speakText="무엇을 했나요?"
         right=${html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { areaS[1](null); pageS[1](0); }}>실내·실외 다시 고르기<//>`}>무엇을 했나요?<//>
-      <${C.PickGrid} cols=${6}>
+      <${C.PickGrid} cols=${3}>
         ${cards.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE).map(function (c) {
           var kids = App.visibleChildren(student, c);
           return html`<${C.ActivityPick} key=${c.id} activity=${c} childCount=${kids.length}

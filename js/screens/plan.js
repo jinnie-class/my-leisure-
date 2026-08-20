@@ -373,7 +373,7 @@
         else if (subCard.id === 'toy') subQ = '어떤 놀잇감으로 놀까요?';
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText=${subQ}>${subQ}<//>
-          <${C.PickGrid} cols=${kids.length > 4 ? 6 : 4} label="세부 활동">
+          <${C.PickGrid} cols=${kids.length > 4 ? 3 : 2} label="세부 활동">
             ${kids.map(function (ch) {
               return html`<${C.ActivityPick} key=${ch.id} activity=${ch}
                 selected=${draft.activityId === ch.id}
@@ -407,7 +407,7 @@
       if (key === 'what') {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} hint=${'모두 ' + cards.length + '가지'} speakText="무엇을 할까요?">무엇을 할까요?<//>
-          <${C.PickGrid} cols=${6} label="활동 목록">
+          <${C.PickGrid} cols=${3} label="활동 목록">
             ${pageCards.map(function (c) {
               var kids = App.visibleChildren(student, c);
               return html`<${C.ActivityPick} key=${c.id} activity=${c} childCount=${kids.length}

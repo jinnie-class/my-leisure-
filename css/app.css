@@ -393,6 +393,9 @@ ul{ margin:0; padding:0; list-style:none; }
   break-inside:avoid;
 }
 .pick-grid.cols-2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+/* 한 쪽에 여섯 장을 놓는 곳(활동 고르기 등)은 3열 두 줄로 반듯하게 놓습니다.
+   4열이면 둘째 줄에 두 장만 남아 오른쪽이 휑하게 비어 보입니다. */
+.pick-grid.cols-3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
 .pick-grid.cols-4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
 .pick-grid.cols-5{ grid-template-columns:repeat(5,minmax(0,1fr)); }
 .pick-grid.cols-6{ grid-template-columns:repeat(6,minmax(0,1fr)); }
@@ -1369,6 +1372,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 반응형 : 좁은 화면 */
 @media (max-width: 900px){
   .pick-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  /* cols-3 은 좁아져도 3열 그대로 — 2열이면 여섯 장이 세 줄이 되어
+     흰 칸을 넘치고, 격자가 통째로 다음 쪽으로 밀려 1쪽이 텅 빕니다. */
+  .pick-grid.cols-3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
   .pick-grid.cols-4,.pick-grid.cols-5{ grid-template-columns:repeat(3,minmax(0,1fr)); }
   .pick-grid.cols-6,.pick-grid.cols-7,.pick-grid.cols-8{
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -1376,6 +1382,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .topbar .sub{ display:none; }
 }
 @media (max-width: 620px){
+  .pick-grid.cols-3,
   .pick-grid.cols-4,.pick-grid.cols-5{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   .pick-grid.cols-6,.pick-grid.cols-7,.pick-grid.cols-8{
     grid-template-columns:repeat(3,minmax(0,1fr));
