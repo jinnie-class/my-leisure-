@@ -984,6 +984,16 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .isl-dots i.on{ background:#5ec8f2; }
 
 .map-tools{ display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
+/* ★ 지금 무엇으로 걸러 보고 있는지 알려 주는 알약.
+     아래 `찾아보기` 단추에서 고른 것과 **같은 색**(--apricot)으로 둡니다.
+     색이 같으면 `찾아보기가 지금 무엇을 하고 있는지` 를 눈으로 바로 잇습니다.
+     흰 알약이면 그냥 안내 글로 보였습니다.
+   ▸ 색만으로 알리지 않도록 그림도 함께 넣습니다 (filter-art). */
+.chip.filter-now{
+  display:inline-flex; align-items:center; gap:.35rem;
+  background:var(--apricot); border-color:#d99a55; border-width:3px;
+  font-weight:900;
+}
 /* '찾아보기' 를 눌렀을 때만 나오는 도구 상자 */
 .map-toolbox{
   flex:0 0 auto;
@@ -2225,6 +2235,24 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* 도움말 창의 요약 글 — 큰 글씨로 다섯 줄이면 창이 글자로 빽빽해집니다 */
 .map-sum{ font-size:1rem; line-height:1.5; }
+
+/* ★ 지도 표시 뜻 — 네 가지를 **큼직한 줄 넷**으로.
+     예전에는 작은 알약 다섯 개가 한 줄에 몰려 있고 그 아래 요약 다섯 줄이
+     창을 채워서, 정작 알려 주려던 표시 뜻이 눈에 안 들어왔습니다. */
+.help-marks{
+  list-style:none; margin:0; padding:0;
+  display:flex; flex-direction:column; gap:.5rem;
+}
+.help-marks li{
+  display:flex; align-items:center; gap:.8rem;
+  padding:.55rem .9rem; border:3px solid var(--line); border-radius:16px;
+  background:#fff;
+}
+.hm-art{ width:clamp(40px,6vh,56px); height:clamp(40px,6vh,56px); flex:0 0 auto; display:block; }
+.hm-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.hm-txt{ display:flex; flex-direction:column; min-width:0; line-height:1.3; }
+.hm-txt b{ font-size:clamp(1.05rem,.7rem + .9vh,1.35rem); font-weight:900; }
+.hm-help{ font-size:.92rem; font-weight:800; color:var(--ink-soft); }
 
 /* ===========================================================
    나의 여가 모아보기 (지도 다음 화면)

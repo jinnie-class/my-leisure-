@@ -310,7 +310,9 @@
       { id: 'tried', name: '해봤어요', icon: 'foot' },
       { id: 'like', name: '좋아해요', icon: 'heart' },
       { id: 'challenge', name: '도전하고 싶어요', icon: 'star' },
-      { id: 'none', name: '아직 안 해봤어요', icon: 'dash' }
+      /* `아직 안 해봤어요` 와 `아직 잘 모르겠어요` 는 학생에게 같은 뜻이라
+         말과 그림을 하나로 묶었습니다 (options.js 의 notTried 주석 참고) */
+      { id: 'none', name: App.DATA.notTried.name, icon: App.DATA.notTried.icon }
     ];
 
     var summary = App.sentences.mapSummary(statusMap, cards);
@@ -448,9 +450,18 @@
           ${L.focus && student && student.mapTools && html`<div class="map-toolrow">
             <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
               찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
-            ${filter[0] !== 'all' && html`<span class="chip">
-              ${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name} 만 보여요
-            </span>`}
+            <!-- ★ 지금 고른 것을 **아래 단추와 같은 색**으로 보여 줍니다.
+                   색이 같으면 '찾아보기가 지금 무엇을 하고 있는지' 를
+                   눈으로 바로 잇습니다. 흰 알약이면 그냥 안내 글로 보였습니다.
+                   그림도 함께 넣어 색만으로 알리지 않습니다. -->
+            ${filter[0] !== 'all' && (function () {
+              var f = FILTERS.filter(function (x) { return x.id === filter[0]; })[0];
+              return html`<span class="chip filter-now">
+                <span class="filter-art" aria-hidden="true"
+                  dangerouslySetInnerHTML=${{ __html: App.icon(f.icon) }} />
+                ${f.name} 만 보여요
+              </span>`;
+            })()}
             <span class="grow"></span>
             <${C.Btn} size="small" icon="question"
               onClick=${function () { helpS[1](true); }}>지도 도움말<//>
@@ -580,7 +591,13 @@
 
             <!-- 섬에 들어갔을 때 : 지도로 되돌아가는 길 (왼쪽 위) -->
             ${L.focus && html`<button type="button" class="island-back"
-              onClick=${function () { islandS[1](null); }}
+              onClick=${function () {
+                /* ★ 섬을 나올 때 **찾아보기를 처음으로 되돌립니다.**
+                     섬 안에서 `해봤어요만 보기` 를 켠 채 나오면 그 상태가
+                     큰 지도까지 따라와서, 다음에 섬에 들어갔을 때 활동이
+                     몇 개만 보이는데 까닭을 알 수 없었습니다. */
+                filter[1]('all'); toolsS[1](false); islandS[1](null);
+              }}
               aria-label="여가 지도로 돌아가기">◀ 지도로</button>`}
 
             <!-- 모아보기 (오른쪽 위) — **섬 안에서만**.
@@ -600,7 +617,11 @@
                요약 문장은 그대로 살아 있습니다 — 맨 위 읽어주기와
                지도 도움말 창에서 다섯 줄을 다 들려주고 보여 줍니다. -->
 
-          ${student && student.mapTools && toolsS[0] && html`<div class="map-toolbox">
+          <!-- ⚠ 찾아보기 상자도 **섬 안에서만**.
+                 큰 여가지도에는 활동 카드가 한 장도 없으니 걸러 볼 것이 없습니다.
+                 섬 안에서 켜 둔 채 지도로 를 누르면 이 상자만 덩그러니
+                 남아 있었습니다 (아래 배율 단추도 함께). -->
+          ${L.focus && student && student.mapTools && toolsS[0] && html`<div class="map-toolbox">
             <div class="map-tools">
               ${FILTERS.map(function (f) {
                 return html`<button key=${f.id} type="button"
@@ -636,27 +657,25 @@
       </div>
 
 
-      ${helpS[0] && html`<${C.Modal} title="지도 표시 뜻과 요약" onClose=${function () { helpS[1](false); }}
+      <!-- ★ '지도 표시 뜻' 만 남깁니다.
+             요약 다섯 줄(나는 15가지 여가활동을 해봤어요 …)은 뺐습니다.
+             표시 뜻을 알려 주는 창인데 긴 문장이 그것을 덮었고, 같은 내용이
+             도장판과 모아보기에 이미 있습니다 (규칙 7 — 중복 금지).
+             요약은 읽어주기로 그대로 들려줍니다. -->
+      ${helpS[0] && html`<${C.Modal} title="지도 표시 뜻" onClose=${function () { helpS[1](false); }}
         speakText=${summary.join(' ')}
+        style=${{ width: 'auto', maxWidth: 'min(520px, 100%)' }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { helpS[1](false); }}>닫기<//>`}>
-        <div class="stack">
-          <div class="wrap">
-            ${App.DATA.mapStates.map(function (m) {
-              return html`<${C.StateChip} key=${m.id} state=${m} />`;
-            })}
-            <span class="chip none">
-              <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('dash') }} />
-              <span>표시가 없으면 아직 안 해봤어요</span></span>
-          </div>
-          <!-- 요약 글은 조금 작게 (map-sum). 큰 글씨로 다섯 줄이면 창이 글자로 빽빽해집니다 -->
-          <div class="sentence map-sum">
-            ${summary.map(function (s, i) { return html`<div key=${i}>${s}</div>`; })}
-          </div>
-          <!-- 아래 두 줄은 **가운데**로 (창 맨 아래 안내라 가운데가 읽기 편합니다) -->
-          ${filter[0] !== 'all' && html`<p class="small muted" style=${{ textAlign: 'center' }}>
-            지금 보이는 활동 : ${shownCount}가지 (${FILTERS.filter(function (f) { return f.id === filter[0]; })[0].name})</p>`}
-          <p class="small muted" style=${{ textAlign: 'center' }}>활동카드를 누르면 표시를 고를 수 있어요.</p>
-        </div>
+        <ul class="help-marks">
+          ${App.DATA.mapStates.map(function (m) {
+            return html`<li key=${m.id}>
+              <span class="hm-art" aria-hidden="true"><${C.StateArt} state=${m} /></span>
+              <span class="hm-txt"><b>${m.name}</b><span class="hm-help">${m.help}</span></span>
+            </li>`;
+          })}
+        </ul>
+        <p class="small muted" style=${{ textAlign: 'center', marginTop: '.6rem' }}>
+          활동카드를 누르면 표시를 고를 수 있어요.</p>
       <//>`}
 
       <!-- 도장을 누르면 그때까지 해본 활동과 날짜가 나옵니다.

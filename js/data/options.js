@@ -168,9 +168,12 @@
     { id: 'tried',     name: '해봤어요',       icon: 'foot',     help: '한 번이라도 해본 활동이에요.' },
     { id: 'like',      name: '좋아해요',       icon: 'heart',    help: '내가 좋아하는 활동이에요.' },
     { id: 'challenge', name: '도전하고 싶어요', icon: 'star',    help: '다음에 해보고 싶은 활동이에요.' },
-    { id: 'unsure',    name: '아직 잘 모르겠어요', icon: 'question', help: '더 해보고 정하고 싶어요.' }
+    { id: 'unsure',    name: '잘 모르겠어요', icon: 'question', help: '더 해보고 정하고 싶어요.' }
   ];
-  D.notTried = { id: 'none', name: '아직 안 해봤어요', icon: 'dash' };
+  /* ★ '아직 안 해봤어요' 와 '아직 잘 모르겠어요' 는 학생에게 같은 뜻입니다.
+     말과 그림을 **하나로** 묶었습니다 — 물음표 + 잘 모르겠어요.
+     둘을 갈라 두면 물음표와 줄표 두 가지를 따로 익혀야 합니다. */
+  D.notTried = { id: 'none', name: '잘 모르겠어요', icon: 'question' };
 
   /* ------------------------- 첫 화면 코너 ------------------------- */
   D.corners = [
