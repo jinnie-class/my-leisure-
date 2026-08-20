@@ -480,6 +480,34 @@
       <//>`;
     }
 
+    /* 1단계 그림 띠 아래에 붙는 **한 줄 문장** (계획하기 1단계와 같은 모양).
+       지나온 단계까지만 넣어서, 고를 때마다 문장이 조금씩 자랍니다. */
+    function diarySoFar1(step) {
+      var a = App.act(draft.activityId);
+      var t = App.todayKey();
+      var bits = ['나는'];
+      if (step > 0 && draft.date) {
+        bits.push(draft.date === t ? '오늘'
+          : (draft.date === App.addDays(t, -1) ? '어제' : App.fmtDateShort(draft.date) + '에'));
+      }
+      if (step > 1) {
+        var pp = App.partnerPhrase(draft.partnerId, whoIds());
+        if (pp) bits.push(pp);
+      }
+      if (step > 2 && draft.place) bits.push(draft.place + '에서');
+      if (step > 3 && a) {
+        /* 활동 문장 뒤에 마침표를 붙여야 기분 문장과 이어 붙지 않습니다
+           (`곤충을 키워 보았어요 기분이 신나요` 처럼 붙어 나왔습니다) */
+        bits.push((a.diaryText || (App.eulReul(a.name) + ' 했어요')) + '.');
+      }
+      if (step > 4 && draft.moodIds.length) {
+        var mo = App.mood(draft.moodIds[0]);
+        if (mo) bits.push('기분이 ' + mo.name + '.');
+      }
+      /* 활동을 아직 안 골랐으면 문장이 끝나지 않았다는 뜻으로 … 를 붙입니다 */
+      return bits.join(' ') + ((step > 3 && a) ? '' : ' …');
+    }
+
     /* ── 흰 빈칸이 채워지는 두 줄 문장 (2·3단계) ──────────────────
        ★ 고른 것을 줄글로 죽 이어 붙이면, 뒤에 기분·제목이 붙을수록
          앞 내용이 옆으로 밀려나 안 보였습니다. **빈칸 채우기**로 되돌립니다.
@@ -1041,16 +1069,23 @@
     if (step < lastStep) {
       if (level === 1) {
         var pics1 = picsSoFar1(step);
-        if (pics1.length) backBtn = html`<div class="plan-top">
-          <span class="pic-sofar" aria-live="polite"
-            aria-label=${'지금까지 고른 것 : ' + pics1.map(function (it) { return it.label; }).join(', ')}>
-            ${pics1.map(function (it, i) {
-              return html`<${React.Fragment} key=${it.key}>
-                ${i > 0 && html`<span class="pic-sofar-sep" aria-hidden="true">›</span>`}
-                <span class="pic-sofar-item" role="img" aria-label=${it.label}>${it.art}</span>
-              <//>`;
-            })}
-          </span>
+        /* ★ 계획하기 1단계와 **같은 모양** : 그림 띠 + 그 아래 문장 한 줄.
+             그림만 있으면 '무엇을 고르는 중인지' 는 알아도 그것들이 모여
+             어떤 문장이 되는지는 안 보였습니다. 계획과 일기가 같은 모습이면
+             학생이 익힐 것이 하나로 줍니다. */
+        if (pics1.length) backBtn = html`<div class="plan-top" aria-live="polite">
+          <div class="plan-l1">
+            <span class="pic-sofar"
+              aria-label=${'지금까지 고른 것 : ' + pics1.map(function (it) { return it.label; }).join(', ')}>
+              ${pics1.map(function (it, i) {
+                return html`<${React.Fragment} key=${it.key}>
+                  ${i > 0 && html`<span class="pic-sofar-sep" aria-hidden="true">›</span>`}
+                  <span class="pic-sofar-item" role="img" aria-label=${it.label}>${it.art}</span>
+                <//>`;
+              })}
+            </span>
+            <span class="plan-l1-say">${diarySoFar1(step)}</span>
+          </div>
         </div>`;
       } else {
         backBtn = html`<div class="frame-top" aria-live="polite">${frameBar()}</div>`;
