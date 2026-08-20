@@ -897,14 +897,27 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
          ③ 바탕 흰색 -> 연한 크림  (흑백 인쇄에서도 남습니다)
      ※ 카드 위 발자국 표시가 이미 같은 것을 말해 주므로, 테두리는
        그것을 거들 뿐 혼자 뜻을 나르지 않습니다. */
+/* ⚠ 주황·파랑을 밝게 두면 흑백으로 바꿨을 때 밝기가 6 밖에 차이 나지 않아
+     사실상 같아 보입니다. **어둡게** 잡아야 갈립니다. */
 .mapcard.tried{
-  /* ⚠ 주황을 밝게 두면(#E8883C) 흑백으로 바꿨을 때 파랑과 밝기가 6 밖에
-       차이 나지 않아 사실상 같아 보입니다. **어둡게** 잡아야 갈립니다. */
   border-width:5px; border-color:#c96a1e;
   background:#ffe9cc;
   box-shadow:0 3px 0 rgba(150,90,30,.28);
 }
 .mapcard.tried:hover{ background:#ffdfb5; }
+
+/* ★ 섬마다 **바탕색을 다르게**.
+     실내 섬 배경은 파스텔 노랑이라 주황이 잘 어울리고,
+     실외 섬 배경은 파스텔 파랑이라 하늘빛이 잘 어울립니다.
+     섬을 오갈 때 색이 바뀌면 '지금 어느 섬인가' 가 한 번 더 보입니다.
+   ※ 색만으로 뜻을 나르지 않습니다 — 해본 곳은 **테두리가 5px 로 두껍고
+     바탕이 칠해져** 있어서, 색을 못 가려도 안 해본 곳과 갈립니다. */
+.mapcard.outdoor.tried{
+  border-color:#1f6e9e;
+  background:#d6ebf9;
+  box-shadow:0 3px 0 rgba(20,80,120,.28);
+}
+.mapcard.outdoor.tried:hover{ background:#c4e2f6; }
 /* 그림을 크게 — 카드 높이의 절반 넘게 */
 .mapcard .mi{ width:calc(var(--cw) * .52); height:calc(var(--cw) * .52); flex:0 0 auto; }
 .mapcard .mi svg,.mapcard .mi img{ width:100%; height:100%; display:block; object-fit:contain; }
