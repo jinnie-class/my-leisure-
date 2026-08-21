@@ -464,6 +464,14 @@
         plans: st.plans.filter(function (p) { return ids.indexOf(p.studentId) >= 0; }),
         diaries: st.diaries.filter(function (d) { return ids.indexOf(d.studentId) >= 0; }),
         map: map,
+        /* ★ 선생님이 더한 것들도 함께 담습니다.
+             예전에는 빠져 있어서, 백업을 다른 기기에서 불러오면
+             **우리 반 활동 · 사람 · 기분이 통째로 사라졌습니다.**
+             학생 기록은 그것들을 id 로 가리키므로, 함께 옮기지 않으면
+             일기에 활동 이름이 안 나오고 문장도 비어 버립니다. */
+        customActivities: (st.customActivities || []).slice(),
+        customPartners: (st.customPartners || []).slice(),
+        customMoods: (st.customMoods || []).slice(),
         photos: App.photos ? App.photos.exportRecords(studentId) : []
       };
     },
@@ -479,6 +487,10 @@
         state.plans = (data.plans || []).slice();
         state.diaries = (data.diaries || []).slice();
         state.map = Object.assign({}, data.map || {});
+        state.customActivities = (data.customActivities || []).slice();
+        state.customPartners = (data.customPartners || []).slice();
+        state.customMoods = (data.customMoods || []).slice();
+        syncCustom();                     // 목록에 바로 반영
         state.currentStudentId = incoming.length ? incoming[0].id : null;
         state.seeded = true;
         saveNow(); notify();
@@ -519,6 +531,14 @@
           m[idMap[k] || k] = Object.assign({}, m[idMap[k] || k] || {}, data.map[k]);
         });
         x.map = m;
+        /* 더한 것들은 **id 가 같으면 이미 있는 것**이라 건너뜁니다.
+           id 를 새로 매기면 학생 기록이 가리키던 것과 끊어집니다. */
+        ['customActivities', 'customPartners', 'customMoods'].forEach(function (k) {
+          var have = {};
+          (x[k] || []).forEach(function (o) { have[o.id] = true; });
+          var add = (data[k] || []).filter(function (o) { return o && o.id && !have[o.id]; });
+          if (add.length) x[k] = (x[k] || []).concat(add);
+        });
         if (!x.currentStudentId && x.students.length) x.currentStudentId = x.students[0].id;
       });
       if (App.photos) return App.photos.importRecords(data.photos || [], idMap);
