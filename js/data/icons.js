@@ -24,6 +24,11 @@
     question: '<circle cx="24" cy="24" r="17" fill="#dfe7f3"/><path d="M19 19c0-3 2.4-5 5-5s5 2 5 4.6c0 3.4-5 3.6-5 7.4"/><circle cx="24" cy="33" r="1.9" fill="' + L + '" stroke="none"/>',
     check: '<circle cx="24" cy="24" r="17" fill="#cfe9d3"/><path d="M15 24.5l6.5 6.5L34 18.5"/>',
     dash: '<circle cx="24" cy="24" r="17" fill="#f1ece4"/><path d="M15 24h18"/>',
+    /* 책갈피 — 일기에 붙이는 `중요 표시`.
+       ⛔ 별·하트를 쓰지 않는 까닭 : 지도에서 별은 `도전하고 싶어요`,
+         하트는 `좋아해요` 를 뜻합니다. 같은 모양을 두 뜻으로 쓰면
+         학생이 어느 쪽인지 알 수 없습니다. */
+    bookmark: '<path d="M14 8h20a2 2 0 0 1 2 2v30l-12-8-12 8V10a2 2 0 0 1 2-2z" fill="#f7c8a0"/>',
     home: '<path d="M8 23L24 9l16 14" fill="none"/><path d="M12 21v18h24V21" fill="#ffe1a8"/><path d="M20 39V28h8v11" fill="#fff"/>',
     back: '<circle cx="24" cy="24" r="17" fill="#fff"/><path d="M27 15l-9 9 9 9"/>',
     next: '<circle cx="24" cy="24" r="17" fill="#fff"/><path d="M21 15l9 9-9 9"/>',

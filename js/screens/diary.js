@@ -1429,13 +1429,22 @@
       <//>`;
     }
     if (p.step === 1) {
-      var q3 = '이 일기를 전시하고 싶어요?';
-      return html`<${C.Modal} title=${q3} speakText=${'내가 전시하고 싶은 활동을 골라 보세요. ' + q3}>
-        <p class="small muted center">전시하기로 고른 기록에는 큰 별이 붙고, 포트폴리오에 실려요.</p>
+      /* ★ 예전에는 `이 일기를 전시하고 싶어요?` 라고 물었습니다.
+           그런데 **게시판에 붙이는 일은 선생님 몫**입니다. 학생에게 전시를
+           정하게 하면, 고른 말과 실제로 벌어지는 일이 어긋납니다.
+           그래서 학생은 `나에게 중요한가` 만 표시하고, 그 표시를 보고
+           선생님이 전시판형·교실 TV 로 무엇을 보여 줄지 정합니다.
+         ⛔ 그림도 별(★)에서 **책갈피**로 바꿨습니다. 지도에서 별은
+           `도전하고 싶어요` 를 뜻해서, 한 모양이 두 뜻으로 보였습니다. */
+      var q3 = '이 일기에 중요 표시를 할까요?';
+      return html`<${C.Modal} title=${q3}
+          speakText=${'나에게 중요한 일기를 골라 표시해 보세요. ' + q3}>
+        <p class="small muted center">중요 표시를 한 일기에는 책갈피가 붙고,
+          포트폴리오에서 바로 찾을 수 있어요.</p>
         <${C.PickGrid} cols=${2} label=${q3}>
-          <${C.Pick} label="전시할래요" speakText="전시할래요" selected=${!!d.exhibit}
-            onClick=${function () { setExhibit(true); }} art=${html`<${C.Art} iconKey="star" />`} />
-          <${C.Pick} label="전시하지 않을래요" speakText="전시하지 않을래요"
+          <${C.Pick} label="중요 표시할래요" speakText="중요 표시할래요" selected=${!!d.exhibit}
+            onClick=${function () { setExhibit(true); }} art=${html`<${C.Art} iconKey="bookmark" />`} />
+          <${C.Pick} label="표시하지 않을래요" speakText="표시하지 않을래요"
             onClick=${function () { setExhibit(false); }} art=${html`<${C.Art} iconKey="dash" />`} />
         <//>
       <//>`;
