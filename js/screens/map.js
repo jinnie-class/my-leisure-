@@ -833,11 +833,24 @@
 
     if (!open) {
       body = html`<${React.Fragment}>
-        <!-- 어느 섬 것을 보고 있는지 질문에 함께 적습니다.
-             그래야 개수가 적어도 '왜 이것뿐이지?' 하지 않습니다. -->
-        <${C.Question} bar=${true}
-          speakText=${(islandName ? islandName + '에서 ' : '') + '내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.'}>
-          ${islandName ? islandName + ' — ' : ''}내가 표시한 활동을 모아 볼까요?<//>
+        <!-- ★ 어느 섬 것인지를 질문 글 안에 적어 두었더니 분홍 바가 길어지고,
+               그 말이 **읽을 것**일 뿐 아무 일도 하지 않았습니다.
+               이제 질문 **왼쪽 알약**으로 떼어 내고, 누르면 그 섬으로 돌아갑니다.
+               이름표와 돌아가는 길을 한 가지가 겸합니다.
+             ▸ 색은 포트폴리오의 실내·실외 표시(folio-where)와 **같은 색**입니다.
+               실내 밝은 주황 · 실외 밝은 하늘. 같은 뜻에는 같은 색을 씁니다.
+             ▸ 맨 위 파란 화살표도 같은 곳으로 가지만, 화면 끝이라 멉니다.
+               여기 알약은 **보고 있는 자리 바로 옆**에 있는 지름길입니다. -->
+        <div class="mymap-head">
+          ${island && html`<button type="button" class=${'mymap-island ' + island}
+            title=${islandName + '으로 돌아가기'}
+            aria-label=${islandName + '으로 돌아가기'}
+            onClick=${function () { p.nav('map', { island: island }); }}>
+            ◀ ${islandName}<//>`}
+          <${C.Question} bar=${true}
+            speakText=${(islandName ? islandName + '에서 ' : '') + '내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.'}>
+            내가 표시한 활동을 모아 볼까요?<//>
+        </div>
         <div class="mymap-grid">
           ${App.DATA.mapStates.map(function (m) {
             var n = listOf(m.id).length;
