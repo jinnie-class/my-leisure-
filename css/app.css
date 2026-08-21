@@ -1524,11 +1524,24 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      보통의 그림일기 양식에는 있지만, **여가 일기**에 기상·취침 시간은 필요하지 않습니다.
      그 46px 을 그림칸과 원고지에 돌려주었습니다. */
 
-/* 3. 그림 칸 — 남는 자리를 모두 씁니다 */
+/* 3. 그림 칸 — **3:2 로 못박습니다** (picdiary.js 의 ART_H 와 같은 값)
+
+   ⚠ 예전에는 `flex:1` 이라 **남는 자리**를 받았습니다. 원고지가 제 몫을 먼저
+     가져가서, 글이 길수록 그림칸이 눌렸습니다 (320px, 가로세로 2.47).
+     그림일기인데 글에 따라 그림 크기가 널뛰었고, 납작해진 칸에서는
+     장소 배경 그림의 위아래가 잘려 나갔습니다.
+   ▸ 장소 그림 19장이 모두 512x341(=1.501) 입니다. 칸을 3:2 로 두면
+     `background-size:cover` 로 깔아도 **한 픽셀도 잘리지 않습니다.**
+   ▸ 속 너비 770 = 794 - 테두리 4 - 안쪽 여백 20 → 속 높이 770/1.5 = 513
+   ▸ `flex:0 1 auto` 라 20칸에서도 넘칠 만큼 글이 길 때만 양보합니다(최소 180px).
+   ⚠ 이 값을 고치면 picdiary.js 의 ART_RATIO · GRID_BUDGET 도 함께 고쳐야 합니다. */
 .pd-draw{
-  flex:1 1 auto; min-height:180px;      /* 글이 길어져도 그림칸이 사라지지 않게 */
+  flex:0 1 auto;
+  height:calc(770px / 1.501 + 22px);   /* 속 513 + 여백 20 + 밑줄 2 = 535 */
+  min-height:180px;                     /* 글이 아주 길어도 그림칸이 사라지지 않게 */
   border-bottom:2px solid #333; padding:10px;
   display:flex; align-items:center; justify-content:center;
+  box-sizing:border-box;
 }
 /* 그림은 한 장만. 잘라내지 않습니다(contain) —
    학생이 그린 그림이 잘리면 안 되기 때문입니다. */
@@ -1593,8 +1606,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 인쇄 모양 3가지 — **단계마다 고를 수 있는 것이 다릅니다** (`MODES_BY_LEVEL`)
      t-text  1단계 `글자` · 3단계 `내가 쓴 글` : 글이 그대로 나옵니다
      t-trace 2단계 `따라 쓰기`               : 연한 회색 — 그 위에 따라 씁니다
-     t-empty 2단계 `스스로 쓰기` · 3단계 `빈 줄` : 칸·줄만 나옵니다
-   ※ `t-first`(첫글자만) 는 없앴습니다. 2단계를 '따라 쓰기 / 스스로 쓰기'
+     t-empty 2단계 `힌트 보고 쓰기` · 3단계 `빈 줄` : 칸·줄만 나옵니다
+   ※ `t-first`(첫글자만) 는 없앴습니다. 2단계를 '따라 쓰기 / 힌트 보고 쓰기'
      두 가지로 못박은 고정 규칙과 어긋나서입니다. */
 .pd-sheet.t-trace .pd-ch{ color:#c9c9d2; }
 .pd-sheet.t-empty .pd-grid .pd-ch,
@@ -1756,7 +1769,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .wthr-nm{ font-size:.9rem; }
 
 /* 생각 도움말 — 빈 칸·빈 줄로 인쇄할 때만 칸 바로 위에 나옵니다.
-   2단계 `스스로 쓰기` → 학생이 고른 내용 · 3단계 `빈 줄` → 생각 질문.
+   2단계 `힌트 보고 쓰기` → 학생이 고른 내용 · 3단계 `빈 줄` → 생각 질문.
    ★ 인쇄해서 쓰는 종이라 **연한 회색**으로 둡니다. 학생 글씨를 방해하지 않게. */
 .pd-hint{
   flex:0 0 auto; display:flex; flex-wrap:wrap; align-items:center;
@@ -2986,11 +2999,11 @@ textarea.sentence-edit,
 .folio-sum-item b{ font-weight:900; font-size:1.15em; }
 .folio-sum-item.new{ background:#fffbe8; border-color:var(--note-line); }
 
-/* 오른쪽 끝 칸 — 스스로 쓰기일 때만 나오는 힌트 보기 */
+/* 오른쪽 끝 칸 — 힌트 보고 쓰기일 때만 나오는 힌트 보기 */
 .pd-modehint{ grid-column:3; justify-self:end; display:flex; }
 
 /* 힌트 보기 — 그림 자리에 완성된 문장을 크게.
-   ★ 스스로 쓰기(빈 칸·빈 줄)에서 혼자 쓰기 어려운 학생이 막히지 않게,
+   ★ 힌트 보고 쓰기(빈 칸·빈 줄)에서 혼자 쓰기 어려운 학생이 막히지 않게,
      보고 쓸 문장을 바로 위에 띄웁니다. 인쇄해도 그대로 나오므로
      종이에 쓸 때에도 보고 쓸 수 있습니다.
    ※ .pd-sheet 안이라 크기는 **px** 로 잡습니다 (794 고정 캔버스). */

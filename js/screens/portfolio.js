@@ -647,7 +647,7 @@
                       <span>${d.exhibit ? '전시할래요' : '전시하지 않을래요'}</span>
                     </button>
                     <${C.Btn} size="small" icon="book"
-                      onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기<//>
+                      onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'folio' }); }}>그림일기<//>
                     <${C.Btn} size="small" icon="pencil"
                       onClick=${function () { p.nav('diary', { diaryId: d.id }); }}>일기 고치기<//>
                   </div>

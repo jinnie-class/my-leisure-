@@ -137,7 +137,14 @@
          뼈대 차례가 바뀌면 그 번호가 엉뚱한 질문을 가리킵니다.
          계획에서 가져온 내용은 이미 채워져 있고 위 띠에도 보이므로,
          그냥 처음부터 훑으며 넘기는 편이 안전하고 헷갈리지 않습니다. */
-    var stepS = useState(0);
+    /* ▸ `step:'last'` 로 오면 **맨 마지막 질문(완성 화면)** 에서 엽니다.
+         그림일기에서 파란 화살표로 되돌아올 때 씁니다 — 첫 질문부터 다시
+         훑게 하면 `바로 전단계` 가 아닙니다.
+       ⚠ 단계 목록(L1/L2/L3)은 아래에서 정해지므로, 여기서는 **가장 긴 것**을
+         기준으로 잡고 아래에서 실제 길이에 맞춰 깎습니다. */
+    var stepS = useState(function () {
+      return (params.step === 'last') ? 99 : 0;
+    });
     var placePageS = useState(0);      // 장소 19곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
     var afterS = useState(null);       // 저장 후 물어보는 순서
     var savedIdS = useState(null);
@@ -1183,6 +1190,8 @@
     /* --------------------- 화면 조립 --------------------- */
     var step = stepS[0];
     var steps = level === 2 ? L2 : (level === 3 ? L3 : L1);
+    /* `step:'last'` 로 넣어 둔 99 를 여기서 실제 마지막 번호로 깎습니다 */
+    if (stepS[0] > steps.length - 1) stepS[1](steps.length - 1);
     var lastStep = steps.length - 1;
     var body, action = null, backBtn = null;
 
@@ -1482,7 +1491,7 @@
          지도·포트폴리오·홈은 그림일기 화면에서 이어서 갈 수 있습니다. */
     return html`<${C.Modal} title="모두 마쳤어요" speakText="일기를 다 썼어요. 완성한 그림일기를 볼까요?"
       actions=${html`<${C.Btn} kind="primary" size="big" icon="book"
-        onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>완성한 그림일기 보기<//>`}>
+        onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'diary' }); }}>완성한 그림일기 보기<//>`}>
       <${C.Banner} tone="ok" icon="check">
         <!-- 가운데로 모읍니다 — 마지막 창은 알림 한 덩어리라 가운데가 읽기 편합니다 -->
         <div style=${{ textAlign: 'center' }}>
