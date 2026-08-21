@@ -242,10 +242,18 @@
                 ${on ? '✓ ' : ''}${x.name}</button>`;
             })}
           </div>
-          ${App.DATA.partners.filter(function (x) { return x.variants; }).length ? html`
-            <p class="muted small" style=${{ marginTop: '.4rem' }}>그림 고르기 (남 / 여)</p>
+          <!-- ★ 그림 고르기는 **위에서 켠 사람만** 나옵니다.
+                 형제자매가 없는 학생은 위에서 '형제자매' 를 끄는데, 예전에는
+                 그래도 아래에 남녀 고르기가 남아 있었습니다. 쓰지도 않을 그림을
+                 고르라고 하는 셈이라, 선생님이 껐는지 안 껐는지 헷갈립니다.
+               ▸ 거르는 일은 App.partnersFor 가 이미 합니다 — 학생 화면에서도
+                 같은 함수를 씁니다. 여기서 또 만들면 둘이 어긋날 수 있습니다.
+               ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+          ${App.partnersFor(current).filter(function (x) { return x.variants; }).length ? html`
+            <p class="muted small" style=${{ marginTop: '.4rem' }}>
+              그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요</p>
             <div class="wrap">
-              ${App.DATA.partners.filter(function (x) { return x.variants; }).map(function (x) {
+              ${App.partnersFor(current).filter(function (x) { return x.variants; }).map(function (x) {
                 var cur = App.partnerVariant(x, current);
                 return html`<span key=${x.id} class="wrap" style=${{ gap: '.2rem', alignItems: 'center' }}>
                   <b class="small">${x.name}</b>
