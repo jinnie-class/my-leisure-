@@ -829,6 +829,17 @@
               onClick=${function () { textS[1](!textS[0]); }}>
               ${textS[0] ? '글 고치기 닫기' : '일기 내용 수정하기'}<//>
 
+            <!-- 내가 그린 그림(또는 사진)으로 바꾼 뒤 **되돌릴 길**.
+                 완성 화면과 같은 말을 씁니다 — 두 화면이 다른 말을 쓰면
+                 학생이 다른 일로 봅니다.
+                 그린 그림은 지워지지 않고 그대로 남습니다. -->
+            ${(d.picKind === 'draw' || d.picKind === 'photo') && html`<div class="fix-undo">
+              <${C.Btn} size="small" icon="back"
+                onClick=${function () { App.store.updateDiary(d.id, { picKind: 'app' }); }}>
+                고른 그림으로 되돌리기<//>
+              <span class="small muted">그린 그림은 지워지지 않아요.</span>
+            </div>`}
+
             <!-- ★ 설명·고치는 칸은 단추 바로 밑에 붙이지 않고, 단추 아래
                    **남는 자리 가운데**에 띄웁니다. 붙여 두면 단추의 일부처럼
                    보여서, 그것이 설명이라는 것을 알기 어려웠습니다.

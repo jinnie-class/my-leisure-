@@ -707,6 +707,18 @@
                 onClick=${function () { editMetaS[1](0); }}>날짜 · 사람 · 장소 바꾸기<//>
             </div>
 
+            <!-- 내가 그린 그림(또는 사진)으로 바꾼 뒤에는 **되돌릴 길**이 있어야 합니다.
+                 노란 칸의 '고른 낱말로 되돌리기' 와 짝이 되게 말도 맞췄습니다.
+                 ▸ 그린 그림은 지워지지 않습니다. 다시 '그림 다시 그리기' 를 누르면
+                   그대로 나옵니다 — 그래서 마음 놓고 눌러 볼 수 있습니다.
+                 ▸ 처음(고른 그림)일 때는 되돌릴 것이 없으므로 나오지 않습니다. -->
+            ${(draft.picKind === 'draw' || draft.picKind === 'photo') && html`<div class="fix-undo">
+              <${C.Btn} size="small" icon="back"
+                onClick=${function () { patch({ picKind: 'app' }); }}>
+                고른 그림으로 되돌리기<//>
+              <span class="small muted">그린 그림은 지워지지 않아요.</span>
+            </div>`}
+
             ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
               speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꾸어 보아요.">
               <b>그림을 끌어서 옮겨요.</b>

@@ -1641,6 +1641,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 완성 화면에서 고치는 길 세 줄 (노란 상자 바로 아래) */
 .fix-here{ display:flex; flex-direction:column; gap:.45rem; margin-top:.15rem; }
 .fix-here .btn{ align-self:stretch; }
+/* 그린 그림 → 고른 그림 되돌리기.
+   세 줄과 같은 굵기로 두면 네 번째 길처럼 보입니다. 이것은 **되돌리기**라
+   작게, 오른쪽에 붙입니다 (노란 칸의 `고른 낱말로 되돌리기` 와 같은 결). */
+.fix-undo{
+  display:flex; align-items:center; justify-content:flex-end;
+  flex-wrap:wrap; gap:.4rem .6rem; margin-top:.15rem;
+}
+.fix-undo .small{ font-size:.8rem; }
 .dv-cap{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
 /* 크게 보기 (팝업 안) */
 .dv-big{
