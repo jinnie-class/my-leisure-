@@ -1,11 +1,12 @@
 /* ===========================================================
    나의 여가 — 모아보GO! (나의 여가 포트폴리오 · 나의 여가 전시관)
 
-   ★ 학생은 `중요 표시` 만 하고, **전시는 선생님이 정합니다.**
-     예전에는 학생에게 `이 일기를 전시하고 싶어요?` 라고 물었는데,
-     게시판에 붙이는 일은 선생님 몫이라 고른 말과 벌어지는 일이 어긋났습니다.
-     담아 두는 값 이름(`exhibit`)은 그대로 두었습니다 — 저장해 둔 일기가
-     이미 그 이름을 쓰고 있어서, 이름을 바꾸면 예전 기록의 표시가 사라집니다.
+   ★ 전시할 일기는 **학생이 고릅니다.** 무엇을 남에게 보일지 고르는 것은
+     학생이 배울 몫입니다. `전시` 라는 말도 학교에서 늘 쓰는 구체적인 말이라
+     그대로 익히게 둡니다 (한때 `중요 표시` 로 바꿔 보았으나, `중요` 는
+     눈에 보이지 않는 추상어라 오히려 어려워 되돌렸습니다).
+   ⛔ 다만 표시 그림은 별(★)이 아니라 **책갈피**입니다.
+     지도에서 별은 `도전하고 싶어요` 를 뜻해서, 한 모양이 두 뜻이 됩니다.
    계획 · 일기 · 사진 · 작품 · 여가지도를 기간별로 모아 보여 주고
    전시판형 / 책자형으로 인쇄하거나 PDF 로 저장할 수 있습니다.
    =========================================================== */
@@ -86,7 +87,7 @@
               transform: 'scale(' + fit[0] + ')' }}>
             <${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />
           </div>`
-          : html`<p class="tv-empty">중요 표시한 일기가 아직 없어요.</p>`}
+          : html`<p class="tv-empty">전시하기로 고른 일기가 아직 없어요.</p>`}
       </div>
 
       <div class="tv-dots" aria-hidden="true">
@@ -197,7 +198,7 @@
           <div class="sheet-title">나의 여가</div>
           <div class="sheet-meta">${s.name} · ${App.fmtDateShort(d.from)} ~ ${App.fmtDateShort(d.to)}</div>
         </div>
-        <div class="star-badge">중요 표시한 일기 ${d.exhibited.length}개</div>
+        <div class="star-badge">전시할 일기 ${d.exhibited.length}개</div>
       </div>
 
       <div style=${{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: '12px', marginTop: '12px' }}>
@@ -219,7 +220,7 @@
                 <div class="small" style=${{ marginTop: '.2rem' }}>${App.sentences.diaryBody(dy)}</div>
               </div>`;
             })}
-            ${!d.exhibited.length && html`<div class="banner small">중요 표시한 일기가 아직 없어요.</div>`}
+            ${!d.exhibited.length && html`<div class="banner small">전시할 일기를 골라 주세요.</div>`}
             ${s.word && html`<div class="sentence" style=${{ fontSize: '1.05rem' }}>“${s.word}”</div>`}
           </div>
         </div>
@@ -284,7 +285,7 @@
       <div class="book-page">
         <div class="sheet-title" style=${{ fontSize: '1.4rem' }}>기간 동안의 활동 기록</div>
         <table class="tbl" style=${{ marginTop: '.6rem' }}>
-          <thead><tr><th>날짜</th><th>활동</th><th>함께한 사람</th><th>기분</th><th>중요</th></tr></thead>
+          <thead><tr><th>날짜</th><th>활동</th><th>함께한 사람</th><th>기분</th><th>전시</th></tr></thead>
           <tbody>
             ${d.diaries.map(function (dy) {
               var a = App.act(dy.activityId), pt = App.partner(dy.partnerId);
@@ -293,7 +294,7 @@
                 <td>${a ? a.name : ''}</td>
                 <td>${pt ? pt.name : ''}</td>
                 <td>${dy.moodIds.map(function (m) { return (App.mood(m) || {}).name; }).join(', ')}</td>
-                <td>${dy.exhibit ? '중요' : ''}</td>
+                <td>${dy.exhibit ? '전시' : ''}</td>
               </tr>`;
             })}
             ${!d.diaries.length && html`<tr><td colspan="5">이 기간에 쓴 일기가 없어요.</td></tr>`}
@@ -317,7 +318,7 @@
               <div class="sheet-title" style=${{ fontSize: '1.3rem' }}>${dy.title || (a ? a.name : '여가 일기')}</div>
               <div class="sheet-meta">${App.fmtDateLong(dy.date)} · ${pt ? pt.name : ''} ${dy.place ? '· ' + dy.place : ''}</div>
             </div>
-            <span class="star-badge">중요 표시한 일기</span>
+            <span class="star-badge">전시하고 싶은 일기</span>
           </div>
           ${dy.photoIds && dy.photoIds.length ? html`<div class="exh-grid" style=${{ marginTop: '.6rem',
               gridTemplateColumns: 'repeat(' + Math.min(3, dy.photoIds.length) + ',1fr)' }}>
@@ -458,7 +459,7 @@
     var rangeBar = html`<div class="banner ok sec">
       <b>지금 보는 기간</b> : ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}
       <span class="chip" style=${{ marginLeft: '.4rem' }}>일기 ${data.diaries.length}개</span>
-      <span class="chip">중요 표시 ${data.exhibited.length}개</span>
+      <span class="chip">전시 ${data.exhibited.length}개</span>
     </div>`;
 
     /* 그림일기를 모아 한 권으로 — 선생님 도구 */
@@ -478,7 +479,7 @@
       <div class="wrap" style=${{ marginTop: '.5rem' }}>
         <${C.Btn} icon="expand" disabled=${!showList.length}
           onClick=${function () { showS[1](true); }}>
-          교실 TV 로 보기 (${showList.length}장)<//>
+          교실 TV 전시 (${showList.length}장)<//>
         <span class="small muted">저절로 넘어가요. ← → 로도 넘길 수 있어요.</span>
       </div>
     <//>`;
@@ -487,9 +488,9 @@
       <${C.TopBar} title="여가 포트폴리오"
         onBack=${function () { p.back("home"); }}
         onTitle=${function () { p.nav("home"); }}>
-        <${C.Speak} text=${'나의 여가 포트폴리오. 나에게 중요한 일기를 표시해 보세요. ' +
+        <${C.Speak} text=${'나의 여가 포트폴리오. 내가 전시하고 싶은 일기를 골라 보세요. ' +
           App.fmtDateShort(data.from) + '부터 ' + App.fmtDateShort(data.to) + '까지, 일기 ' +
-          data.diaries.length + '개 가운데 ' + data.exhibited.length + '개에 중요 표시를 했어요.'} />
+          data.diaries.length + '개 가운데 ' + data.exhibited.length + '개를 골랐어요.'} />
         ${folioTools && html`<div class="tabs">
           <button type="button" class=${'tab' + (tab[0] === 'pick' ? ' on' : '')}
             aria-pressed=${tab[0] === 'pick'} onClick=${function () { tab[1]('pick'); }}>기록 고르기</button>
@@ -610,7 +611,7 @@
             <//>`;
           })()}
 
-          ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 여가 일기장 — 중요한 일기를 표시해 보세요">
+          ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 여가 일기장 — 전시할 것을 골라 보세요">
             ${data.diaries.length ? html`<div class="stack">
               ${data.diaries.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);
@@ -620,7 +621,7 @@
                     <div class="grow" style=${{ minWidth: 0 }}>
                       <div class="row" style=${{ gap: '.35rem' }}>
                         <b>${d.title || (a ? a.name : '여가 일기')}</b>
-                        ${d.exhibit && html`<span class="star-badge">중요 표시한 일기</span>`}
+                        ${d.exhibit && html`<span class="star-badge">전시할 일기</span>`}
                       </div>
                       <div class="small muted">${App.fmtDateLong(d.date)} · ${pt ? pt.name : ''} ${d.place ? '· ' + d.place : ''}</div>
                       <div class="small" style=${{ marginTop: '.25rem' }}>${App.sentences.diaryBody(d)}</div>
@@ -639,11 +640,11 @@
                       onClick=${function () {
                         var next = !d.exhibit;
                         App.store.updateDiary(d.id, { exhibit: next });
-                        App.ui.toast(next ? '중요 표시를 했어요.' : '중요 표시를 지웠어요.');
+                        App.ui.toast(next ? '전시할 일기로 골랐어요.' : '전시하지 않기로 했어요.');
                       }}>
                       <span class="ico" aria-hidden="true"
                         dangerouslySetInnerHTML=${{ __html: App.icon(d.exhibit ? 'bookmark' : 'dash') }} />
-                      <span>${d.exhibit ? '중요 표시함' : '중요 표시 안 함'}</span>
+                      <span>${d.exhibit ? '전시할래요' : '전시하지 않을래요'}</span>
                     </button>
                     <${C.Btn} size="small" icon="book"
                       onClick=${function () { p.nav('picdiary', { diaryId: d.id }); }}>그림일기<//>
@@ -685,7 +686,7 @@
         <//>` : html`<${React.Fragment}>
           ${rangeBar}
           <${C.Sec} title=${view === 'board'
-            ? '전시판형 미리보기 — 중요 표시한 일기로 만듭니다'
+            ? '전시판형 미리보기 — 전시할 일기로 만듭니다'
             : '책자형 미리보기'}>
             <div class="banner info" style=${{ marginBottom: '.6rem' }}>
               <b>인쇄하기</b> 를 누르면 인쇄 미리보기가 열려요. 인쇄 창에서 <b>대상을 “PDF로 저장”</b> 으로 바꾸면 PDF 파일로 저장돼요.
