@@ -426,7 +426,10 @@
                 art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
             ${lastPl && html`<div class="pick" style=${{ cursor: 'default' }}>
-              <span class="thumb"><${C.Art} iconKey="pencil" /></span>
+              <!-- 제목 고르기의 '직접 쓰기' 와 **같은 그림**을 씁니다.
+                   뜻이 같은데 그림이 다르면 학생이 다른 것으로 봅니다. -->
+              <span class="thumb">
+                <${C.Art} src=${App.pickImage('title', '직접 쓰기')} iconKey="pencil" /></span>
               <span class="label">직접 쓰기</span>
               <input class="field" value=${draft.place || ''} placeholder="예) 우리 집 거실"
                 onChange=${function (e) { patch({ place: e.target.value }); }} />
@@ -762,11 +765,11 @@
           <${C.Pick} label="사진 넣기" speakText="사진 넣기"
             note="누르면 사진을 골라요" selected=${kind === 'photo'}
             onClick=${function () { patch({ picKind: 'photo' }); photoS[1](true); }}
-            art=${html`<${C.Art} iconKey="camera" />`} />
+            art=${html`<${C.Art} src=${App.pickImage('word', '사진 넣기')} iconKey="camera" />`} />
           <${C.Pick} label="내가 그리기" speakText="내가 그리기"
             note="누르면 그림판이 열려요" selected=${kind === 'draw'}
             onClick=${function () { patch({ picKind: 'draw' }); drawS[1](true); }}
-            art=${html`<${C.Art} iconKey="pencil" />`} />
+            art=${html`<${C.Art} src=${App.pickImage('word', '내가 그리기')} iconKey="pencil" />`} />
         <//>
 
         ${chosenPic && html`<div class="picked-row">
@@ -866,23 +869,34 @@
             }}
             art=${w.mood
               ? html`<${C.MoodArt} mood=${w.mood} />`
-              : html`<${C.Art} iconKey=${w.icon} />`} />`;
+              : html`<${C.Art} src=${wordImage(w)} iconKey=${w.icon} />`} />`;
         })}
       <//>`;
     }
 
+    /* 낱말 카드 그림.
+       ▸ use : **이미 있는 그림**을 그대로 씁니다. 뜻이 같은데 그림을 또 그리면
+         학생이 둘을 다른 것으로 봅니다 (`잘 모르겠어요` 를 한 장으로 모은 것과 같은 뜻).
+       ▸ use 가 없으면 images/일기 낱말/<이름>.png 를 찾고, 없으면 icon 의 SVG.
+       ⛔ 별(star)·하트(heart) 는 쓰지 않습니다 — 지도에서 도전·좋아해요 를 뜻합니다. */
     var F3_WORDS = [
-      { name: '친구와 함께한 것', icon: 'pFriend' },
+      { name: '친구와 함께한 것', icon: 'pFriend', use: 'images/제목/함께한.png' },
       { name: '만든 작품',       icon: 'frame' },
       { name: '맛있게 먹은 것',   icon: 'food' },
-      { name: '새로 해본 것',     icon: 'star' }
+      { name: '새로 해본 것',     icon: 'avSprout', use: 'images/제목/처음 해 본.png' }
     ];
     var F4_WORDS = [
-      { name: '또',          icon: 'next' },
+      { name: '또',          icon: 'next',  use: 'images/또하기/또 하고 싶어요.png' },
       { name: '더 오래',      icon: 'clock' },
-      { name: '다른 활동을',  icon: 'dice' },
-      { name: '친구와 같이',  icon: 'pFriend' }
+      { name: '다른 활동을',  icon: 'dice',  use: 'images/또하기/다른 것도 하고 싶어요.png' },
+      { name: '친구와 같이',  icon: 'pFriend', use: 'images/제목/함께한.png' }
     ];
+
+    /* 낱말 카드에 붙일 그림 주소 (없으면 null → icon 의 SVG 가 나옵니다) */
+    function wordImage(w) {
+      if (!w) return null;
+      return w.use ? App.imgUrl(w.use) : App.pickImage('word', w.name);
+    }
 
     /* 제목 후보 — 고른 내용에서 만들어 줍니다. 직접 쓸 수도 있어요. */
     function titleWords(f) {

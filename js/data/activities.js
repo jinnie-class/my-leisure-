@@ -32,6 +32,10 @@
        그림은 **제목의 꼴**을 나타내므로 파일 이름은 늘 같습니다.
        자세한 것은 images/제목/README.md 를 보세요. */
     title: 'images/제목/',
+    /* 일기에서 고르는 낱말 카드 그림 (기억에 남는 것 · 다음에는 · 넣을 그림).
+       파일 이름은 **화면에 보이는 말 그대로** 입니다.
+       자세한 것은 images/일기 낱말/README.md 를 보세요. */
+    word: 'images/일기 낱말/',
     supply: 'images/준비물/',        // 가방.png · 물통.png · 앞치마.png …
     corner: 'images/코너명/',        // 여가 계획하기.png · 여가 지도.png · 여가 일기.png · 여가 포트폴리오.png
     ext: '.png',

@@ -528,7 +528,10 @@
                 art=${html`<${C.PickArt} kind="place" word=${s} iconKey="map" />`} />`;
             })}
             ${lastPage && html`<div class="pick" style=${{ cursor: 'default' }}>
-              <span class="thumb"><${C.Art} iconKey="pencil" /></span>
+              <!-- 일기의 '직접 쓰기' 와 **같은 그림**을 씁니다.
+                   뜻이 같은데 그림이 다르면 학생이 다른 것으로 봅니다. -->
+              <span class="thumb">
+                <${C.Art} src=${App.pickImage('title', '직접 쓰기')} iconKey="pencil" /></span>
               <span class="label">직접 쓰기</span>
               <input class="field" value=${draft.place || ''} placeholder="예) 우리 집 거실"
                 onChange=${function (e) { patch({ place: e.target.value }); }} />
