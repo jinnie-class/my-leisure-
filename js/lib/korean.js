@@ -167,6 +167,38 @@
      (plan.js 의 `지금까지 만들어진 한 문장`). */
   App.partnerPhrase = partnerPhrase;
 
+  /* ─────────────────────────────────────────────────────────────
+     `가족과 함께` 처럼 **함께까지 붙인** 말을 만듭니다.
+     ─────────────────────────────────────────────────────────────
+     ★ 이 규칙이 여러 곳에 흩어져 있었습니다. 그림일기 아래 알약만
+       `${partner.name}와 함께` 로 **`와` 를 못박아** 두어서, 받침이 있는
+       이름에서 `가족와 함께` 가 나왔습니다.
+     ⚠ 그리고 `혼자` 는 사람 이름이 아니라 **혼자 했다는 말**입니다.
+       `혼자와 함께` 는 말이 되지 않습니다 (인수인계 14-7 에서 한 번 고쳤던 함정).
+     ▸ 그래서 **한 곳에 모아 둡니다.** 새로 쓰는 곳은 반드시 이것을 쓰세요.
+       손으로 `와`·`과` 를 붙이지 마세요. */
+  /* `혼자` 인지 가리는 것도 한 곳에서 — 3단계는 학생이 손으로 `혼자` 라고 씁니다.
+     id(`alone`)로만 가리면 손으로 쓴 `혼자` 를 놓쳐 `혼자와 함께` 가 됩니다. */
+  App.isAloneWord = function (name) {
+    return String(name == null ? '' : name).trim() === '혼자';
+  };
+  App.withPhrase = function (name) {
+    var w = String(name == null ? '' : name).trim();
+    if (!w) return '';
+    if (App.isAloneWord(w)) return '혼자';
+    if (/함께$/.test(w)) return w;          // 이미 붙어 있으면 그대로
+    return App.waGwa(w) + ' 함께';
+  };
+
+  /* 고른 사람(여러 명 포함)으로 `엄마와 아빠와 함께` 를 만듭니다 */
+  App.partnerWith = function (partnerId, partnerIds) {
+    var pp = partnerPhrase(partnerId, partnerIds);
+    if (!pp) return '';
+    if (pp === '혼자') return '혼자';
+    if (/함께$/.test(pp)) return pp;        // 여러 명이면 partnerPhrase 가 이미 붙였습니다
+    return pp + ' 함께';                    // 한 명이면 `가족과` → `가족과 함께`
+  };
+
   App.partnerSpeech = function (pt) {
     if (!pt) return '';
     if (pt.id === 'alone') return '혼자 할 거예요';
@@ -264,9 +296,9 @@
     var what = v.f1b || (a ? a.name : '');
     /* ⚠ `혼자와 함께` 는 말이 되지 않습니다. `혼자` 는 사람 이름이 아니라
          **혼자 했다는 말**이라서, `과/와 함께` 를 붙이면 안 됩니다.
-         `혼자 요가를 했어요.` 처럼 그대로 씁니다. */
-    var alone = (who === '혼자');
-    var withWho = alone ? '혼자' : (who ? App.waGwa(who) + ' 함께' : '');
+         `혼자 요가를 했어요.` 처럼 그대로 씁니다.
+       ▸ 규칙은 App.withPhrase 한 곳에 있습니다 — 여기서 또 만들지 않습니다. */
+    var withWho = App.withPhrase(who);
     if (withWho && what) out.push('나는 ' + withWho + ' ' + App.eulReul(what) + ' 했어요.');
     else if (what) out.push('나는 ' + App.eulReul(what) + ' 했어요.');
     else if (withWho) out.push('나는 ' + withWho + ' 했어요.');

@@ -549,6 +549,16 @@ ul{ margin:0; padding:0; list-style:none; }
 .q-bar .q-pill h2{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .q-bar > .hint{ position:absolute; right:3.6rem; }
 .q-bar > .speak{ position:absolute; right:0; }
+/* 질문 줄 오른쪽에 늘 보이는 **일기 단계 안내** (보기: 틀 없이 내 말로 써요).
+   ▸ 질문 알약과 헷갈리지 않게 **테두리 없는 연한 글씨**로 둡니다.
+     여기서 또 알약을 쓰면 무엇이 질문인지 흐려집니다.
+   ▸ 읽어주기(4.4rem) 자리를 비켜 앉습니다. */
+.q-bar > .q-note{
+  margin-left:auto; margin-right:4.4rem;
+  font-size:.95rem; font-weight:800; color:#8a8a96;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46%;
+}
+.q-bar.has-right > .q-note{ margin-right:.6rem; }
 /* 질문 줄 오른쪽에 붙는 단추 (보기: `실내·실외 다시 고르기`).
    margin-left:auto 로 오른쪽 끝까지 밀고, 읽어주기 자리만 비워 둡니다. */
 /* ⚠ 여기에 margin-right 를 또 주면 안 됩니다. `.q-bar` 의 padding-right 가
@@ -1454,6 +1464,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
        자리를 내어 줍니다. 그림일기 자체는 크기가 고정이라 안 줄어듭니다. */
   .confirm-2col > .confirm-left{ flex:1 1 0; min-width:min(360px, 40%); }
   .confirm-2col > .dv-row{ flex:0 1 auto; min-width:0; margin-top:0; }
+  /* ⚠ 1단계 크게 보기(.look-row)에도 같은 규칙을 주어야 합니다.
+       그러지 않으면 왼쪽 칸(flex:1 1 0)이 폭을 다 가져가 오른쪽이 눌리고,
+       속 그림은 그대로라 **오른쪽이 잘려 나갑니다** (1920 에서 162px 잘렸습니다). */
+  .confirm-2col > .look-row{ flex:0 0 auto; min-width:0; margin-top:0; }
 }
 .confirm-left{ display:flex; flex-direction:column; gap:.5rem; min-width:0; }
 
@@ -1590,8 +1604,12 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* 5. 원고지 — 한 칸에 한 글자.
    글자 크기는 칸 수에 따라 picdiary.js 가 인라인으로 정해 줍니다. */
+/* ⚠ 칸(.pd-box)은 **오른쪽·아래쪽 선만** 그립니다. 그래서 격자 자체에
+   위선·왼선을 주지 않으면 **맨 윗줄과 맨 왼쪽 칸이 뚫린 채**로 보입니다.
+   (실제로 맨 윗칸 윗선이 잘려 보인다는 지적을 받았습니다) */
 .pd-grid{
   flex:0 0 auto; display:grid; margin-right:-1px; margin-bottom:-1px;
+  border-top:1px solid #333; border-left:1px solid #333;
 }
 .pd-box{
   aspect-ratio:1; min-width:0;
@@ -1644,6 +1662,50 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   box-shadow:var(--shadow);
 }
 .dv-paper .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
+
+/* ═══════ 1단계 크게 보기 — 그림과 문장만 ═══════
+   ★ 1단계 학생은 글자를 못 읽습니다. 그림이 핵심이고 문장은 읽어주기로 듣습니다.
+     인쇄용 A4 를 통째로 줄이면 정작 봐야 할 것이 가장 작아집니다
+     (1280x720 에서 종이 226x320, 글자 13px 이었습니다).
+   ▸ 크기는 picdiary.js 의 C.BigLook 이 **남은 자리를 재서** 정합니다.
+     스크롤이 생기면 안 되기 때문입니다 (규칙 10). CSS 로 크기를 못박지 마세요. */
+.look-row{
+  display:flex; flex-direction:column; align-items:center; gap:.5rem;
+  min-width:0; min-height:0;
+}
+.look-bar{ display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center; align-items:center; }
+/* ★ 그림 | 문장 을 **옆으로** 놓습니다.
+   A4 는 세로로 길어서 높이가 늘 병목입니다. 문장을 아래에 두면 그 높이만큼
+   그림이 작아집니다. 가로는 늘 남으므로 옆에 두면 세로를 그림이 통째로 씁니다. */
+.look-main{ display:flex; align-items:stretch; gap:.7rem; min-width:0; max-width:100%; }
+/* 종이의 그림 부분만 보이게 자릅니다 (종이 자체는 그대로라 사진·그린 그림도 그대로) */
+.look-art{
+  position:relative; overflow:hidden; flex:0 0 auto;
+  max-width:100%;
+  border:3px solid var(--line); border-radius:14px; background:#fff;
+  box-shadow:var(--shadow);
+}
+.look-clip{ position:absolute; left:0; top:0; transform-origin:top left; }
+.look-clip .pd-sheet{ box-shadow:none; }
+/* 문장은 큰 글씨로. 그림 옆에 세로로 섭니다 */
+.look-say{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.5rem;
+  flex:1 1 12rem; min-width:0; max-width:17rem; padding:.6rem .8rem;
+  background:#fffdf3; border:2px solid #efdb92; border-radius:14px;
+}
+.look-txt{
+  min-width:0; text-align:center;
+  font-size:clamp(1.05rem, 2.2vh, 1.7rem); font-weight:800; line-height:1.5;
+  color:#4a3608; overflow:hidden;
+}
+/* 폭이 좁으면 문장이 **아래**로 내려갑니다 (그러면 그림이 폭을 통째로 씁니다).
+   옆과 아래 가운데 어느 쪽이 그림을 크게 만드는지는 picdiary.js 가 재서 고릅니다. */
+.look-main.below{ flex-direction:column; align-items:center; }
+.look-main.below .look-say{ max-width:100%; width:100%; flex-direction:row; }
+@media (max-width: 900px){
+  .look-main{ flex-direction:column; align-items:center; }
+  .look-say{ max-width:100%; width:100%; flex-direction:row; }
+}
 .dv:hover .dv-paper{ border-color:var(--sel-line); box-shadow:var(--shadow-2); }
 /* 그림 자리를 옮기는 동안에는 단추가 아니라 그냥 칸입니다.
    테두리를 초록으로 바꿔서 '지금 옮길 수 있다' 를 색만이 아니라
@@ -1720,13 +1782,33 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .six-in{ flex:1 1 14rem; min-width:0; }
 
 /* 글쓰기 단계에 함께 보이는 '내가 만든 뼈대' 띠 */
+/* 내가 만든 뼈대 — ★ 이름표와 **내가 쓴 문장**이 한 줄로 이어져 있어서
+   이름표가 문장의 첫머리처럼 읽혔습니다 (`내가 만든 뼈대나는 어제 가족과…`).
+   ▸ 이름표는 **알약**으로 떼어 내고, 문장은 **흰 칸**에 담아 줄을 나눕니다.
+     학생이 쓴 말이 어디부터인지 눈으로 바로 갈라집니다. */
 .bones{
-  display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+  display:grid; grid-template-columns:1fr auto; gap:.5rem .8rem;
+  align-items:center;
   margin-bottom:.6rem; padding:.6rem .8rem;
   background:#fdf1c9; border:2px solid #efdb92; border-radius:14px;
 }
-.bones-lab{ flex:0 0 auto; font-weight:900; color:#6b5410; }
-.bones-txt{ flex:1 1 12rem; min-width:0; font-weight:800; color:#4a3608; }
+.bones-lab{
+  grid-column:1 / -1; justify-self:start;
+  padding:.15rem .8rem; border-radius:999px;
+  background:#efdb92; color:#5c4708;
+  font-size:.9rem; font-weight:900; letter-spacing:.02em;
+}
+.bones-txt{
+  grid-column:1; min-width:0;
+  padding:.5rem .7rem; border-radius:10px;
+  background:#fff; border:1.5px solid #e6d9a8;
+  font-weight:800; color:#4a3608; line-height:1.5;
+}
+.bones > .btn{ grid-column:2; align-self:center; }
+@media (max-width:640px){
+  .bones{ grid-template-columns:1fr; }
+  .bones > .btn{ grid-column:1; justify-self:stretch; }
+}
 
 /* '그림 그리기' — 이 화면에서 학생이 지금 할 일입니다.
    가운데에 큰 바로 두어 눈에 바로 들어오게 합니다. */
@@ -3021,3 +3103,21 @@ textarea.sentence-edit,
   margin:0; font-size:30px; font-weight:800; line-height:1.5;
   text-indent:1em; color:#4a4a55;
 }
+/* ★ 1·2단계 힌트는 **아래 원고지와 같은 칸 모양**으로 보여 줍니다.
+   글자만 줄글로 보여 주면 학생이 어느 칸에 무엇을 쓸지 스스로 옮겨야 합니다.
+   띄어쓰기 한 칸과 문장부호 자리까지 **눈으로 그대로 베낄 수 있어야** 합니다.
+   칸 크기·글자 크기는 picdiary.js 가 상자에 맞춰 인라인으로 정합니다. */
+.pd-hintgrid{
+  align-self:center; display:grid;
+  margin-right:-1px; margin-bottom:-1px;
+  border-top:1px solid #8a7a3a; border-left:1px solid #8a7a3a;
+  background:#fff;
+}
+.pd-hintbox{
+  min-width:0; overflow:hidden;
+  border-right:1px solid #8a7a3a; border-bottom:1px solid #8a7a3a;
+  display:flex; align-items:center; justify-content:center;
+}
+.pd-hintbox .pd-ch{ color:#4a4a55; }
+/* 힌트 보기 단추 — `힌트 보고 쓰기` 바로 오른쪽에 붙습니다 */
+.pd-hintbtn{ margin-left:.35rem; }

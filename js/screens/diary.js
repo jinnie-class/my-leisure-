@@ -34,7 +34,7 @@
              장소는 앞 단계에서 19곳 가운데 골랐으므로, 같은 말을 쓰면
              학생이 방금 답한 것을 또 묻는 줄 압니다.
              ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
-        <${C.Question} bar=${true} speakText="실내에서 했나요, 실외에서 했나요?">
+        <${C.Question} bar=${true} note=${p.note} speakText="실내에서 했나요, 실외에서 했나요?">
           실내에서 했나요, 실외에서 했나요?<//>
         <${C.PickGrid} cols=${2}>
           <${C.Pick} label="실내에서 했어요" speakText="실내에서 했어요" bare=${true}
@@ -49,7 +49,7 @@
     if (subS[0]) {
       var kids = App.visibleChildren(student, subS[0]);
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText=${'무엇을 했나요? ' + subS[0].name}>무엇을 했나요? — ${subS[0].name}<//>
+        <${C.Question} bar=${true} note=${p.note} speakText=${'무엇을 했나요? ' + subS[0].name}>무엇을 했나요? — ${subS[0].name}<//>
         <${C.PickGrid} cols=${kids.length > 4 ? 3 : 2}>
           ${kids.map(function (ch) {
             return html`<${C.ActivityPick} key=${ch.id} activity=${ch} selected=${p.value === ch.id}
@@ -66,7 +66,7 @@
     var pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
     var page = Math.min(pageS[0], pages - 1);
     return html`<${React.Fragment}>
-      <${C.Question} bar=${true} speakText="무엇을 했나요?"
+      <${C.Question} bar=${true} note=${p.note} speakText="무엇을 했나요?"
         right=${html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { areaS[1](null); pageS[1](0); }}>실내·실외 다시 고르기<//>`}>무엇을 했나요?<//>
       <${C.PickGrid} cols=${3}>
@@ -176,6 +176,12 @@
     }
 
     var level = draft.level;
+    /* 지금 고른 일기 단계가 **무엇을 하는 것인지** 한 줄 설명.
+       질문 줄 오른쪽에 늘 같은 자리로 나갑니다 (options.js 의 note). */
+    var lvNote = (function () {
+      var lv = (App.DATA.diaryLevels || []).filter(function (x) { return x.id === level; })[0];
+      return lv ? (lv.id + '단계 · ' + lv.note) : null;
+    })();
     var moods = App.moodsFor(student);
     var partners = App.partnersFor(student);
     var act = App.act(draft.activityId);
@@ -368,7 +374,7 @@
 
       if (step === 0) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="언제 했나요?">언제 했나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="언제 했나요?">언제 했나요?<//>
           ${boneWrite(0)}
           <!-- bigSpeak : 읽어주기를 글자 아래에 크게 (질문 옆 읽어주기와 비슷한 크기) -->
           <${C.PickGrid} cols=${3} bigSpeak=${true}>
@@ -391,7 +397,7 @@
 
       if (step === 1) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
           ${boneWrite(1)}
           <${C.PickGrid} cols=${7}>
             ${partners.map(function (pt) {
@@ -421,7 +427,7 @@
         var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
         var lastPl = plPage === plPages - 1;
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="어디에서 했나요?">어디에서 했나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="어디에서 했나요?">어디에서 했나요?<//>
           ${boneWrite(2)}
           <${C.PickGrid} cols=${3} big=${true} label="장소">
             <!-- 고르면 낱말 하나가 아니라 짧은 문장으로 읽습니다 — 집 처럼
@@ -456,7 +462,7 @@
         return html`<${React.Fragment}>
           ${boneWrite(3)}
           <${C.ActivityChooser} student=${student} value=${draft.activityId}
-            area=${act ? act.area : null}
+            area=${act ? act.area : null} note=${lvNote}
             onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
               place: draft.place || (a ? a.defaultPlace : '') }); }} />
         <//>`;
@@ -464,7 +470,7 @@
 
       if (step === 4) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
           ${boneWrite(4)}
           <${C.PickGrid} cols=${moods.length > 4 ? 4 : moods.length}>
             ${moods.map(function (m) {
@@ -483,7 +489,7 @@
 
       /* 또 하고 싶나 — 여가지도의 `또 하고 싶어요` 기록으로 이어집니다 */
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
+        <${C.Question} bar=${true} note=${lvNote} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
         <${C.PickGrid} cols=${3}>
           ${App.DATA.agains.map(function (g) {
             return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id}
@@ -536,6 +542,42 @@
       return html`<span class=${'blank' + (on ? ' on' : '') + (wide ? ' wide' : '')}>
         ${on ? v : '　　　'}</span>`;
     }
+    /* ══════ 틀의 고정 말이 학생 글과 겹치면 붙이지 않습니다 ══════
+       3단계는 학생이 **자기 말로** 씁니다. 안내 예시부터 `예) 친구 민수와`,
+       `예) 학교 놀이터에서` 처럼 **조사까지 포함**해 쓰라고 되어 있습니다.
+       그런데 틀은 1·2단계용 고정 말을 그대로 또 붙여서 이렇게 됐습니다.
+
+         나는 [나는 어제] [가족과 함께]와 함께 [강당에서]에서 [노래부르기를 했어요.]를 했어요.
+
+       ★ 그래서 **이미 있는 말은 또 붙이지 않습니다.**
+         낱말로 써도(`가족` → 가족과 함께) 어구로 써도(`가족과 함께` → 그대로)
+         양쪽 다 자연스럽습니다.
+       ⛔ 낱말만 쓰게 강제하지 않습니다. 그러면 아래 `내가 만든 뼈대`가
+         `어제 가족 강당 노래부르기` 처럼 단어 나열이 되어 버립니다.
+       ▸ 1·2단계는 고른 낱말이 그대로 들어오므로 겹칠 일이 없습니다 (그대로 붙습니다). */
+    /* 앞에 붙는 말(`나는` · `기분이`)이 학생 글에 이미 있으면 생략합니다 */
+    function headWord(v, word) {
+      var s = String(v || '').trim();
+      return (s.indexOf(word) === 0) ? '' : word;
+    }
+    /* 뒤에 붙는 말을 정합니다. 이미 그렇게 끝나면 빈 글자를 돌려줍니다.
+         v     학생이 쓴 글(또는 고른 낱말)
+         re    이미 이렇게 끝나면 붙이지 않을 모양
+         make  붙일 말을 만드는 함수
+       ⚠ 끝나는 말을 **하나하나 나열하면 반드시 빠집니다** (`재미있었어요` 를
+         놓쳐서 `재미있었어요를 했어요.` 가 나왔습니다). 종결어미 모양으로 잡습니다. */
+    function tailWord(v, re, make) {
+      var s = String(v || '').trim().replace(/[.。!?]+$/, '');
+      if (!s) return make(v);                          // 빈칸이면 틀을 그대로 보여 줍니다
+      return re.test(s) ? '' : make(v);
+    }
+    /* 문장이 끝나는 모양 — 이렇게 끝나면 `을/를 했어요.` 를 또 붙이지 않습니다 */
+    var RE_END = /(어요|아요|여요|예요|에요|습니다|했다|았다|었다|였다|한다|이다|았어|었어|였어)$/;
+    /* 이미 마침표로 끝났으면 마침표를 또 찍지 않습니다 */
+    function dotOf(v) {
+      return /[.。!?]$/.test(String(v || '').trim()) ? '' : '.';
+    }
+
     function frameBar() {
       var six = sixOf();
       /* 3단계는 쓴 글을, 1·2단계는 고른 것을 넣습니다 */
@@ -555,28 +597,45 @@
         var mo = App.mood(m); return mo ? mo.name : '';
       }).filter(Boolean).join(', ');
 
-      var alone = (level !== 3) && whoIds().length === 1 && whoIds()[0] === 'alone';
       var w1 = say('when', dateWord), w2 = say('who', whoWord);
       var w3 = say('where', draft.place), w4 = say('what', actWord);
+      /* 1·2단계는 고른 것(id)으로, 3단계는 **칸에 든 말**로 가립니다.
+         id 로만 보면 3단계에서 손으로 쓴 `혼자` 를 놓쳐 `혼자와 함께` 가 됩니다.
+         ⚠ w2 가 정해진 **뒤에** 가려야 합니다. 앞에서 가리면 3단계에서 늘 빈 값을 봅니다. */
+      var alone = (whoIds().length === 1 && whoIds()[0] === 'alone' && level !== 3)
+               || App.isAloneWord(w2);
       var f = (level === 2) ? frames() : {};
+
+      /* 겹치는 고정 말은 붙이지 않습니다 (위 tailWord 주석 참고) */
+      var 나는 = headWord(w1, '나는');
+      var 함께 = alone ? ''
+        : tailWord(w2, /(와|과|이랑|랑|함께)$/,
+            function (v) { return josaOf(v, '과/와') + ' 함께'; });
+      var 에서 = tailWord(w3, /(에서|에)$/, function () { return '에서'; });
+      var 했어요 = tailWord(w4, RE_END,
+            function (v) { return josaOf(v, '을/를') + ' 했어요.'; });
+      /* 서술어로 끝나서 `을/를 했어요.` 를 뺐으면 **마침표만** 찍어 줍니다.
+         (`…술래잡기를 했다` 처럼 첫 줄이 마침표 없이 끝나 버립니다) */
+      if (!했어요 && String(w4 || '').trim()) 했어요 = dotOf(w4);
+      var howWord = say('how', moodWord);
 
       return html`<${React.Fragment}>
         <div class="frame-line">
-          <b>나는</b> ${blank(w1)}
+          ${나는 && html`<b>${나는}</b>`} ${blank(w1)}
           <!-- 혼자는 와 함께 를 붙이지 않습니다 (혼자와 함께 는 말이 안 됩니다).
                이미 있는 App.partnerPhrase 와 같은 규칙을 씁니다. -->
-          ${blank(w2)}<b>${alone ? '' : (josaOf(w2, '과/와') + ' 함께')}</b>
-          ${blank(w3)}<b>에서</b>
-          ${blank(w4, true)}<b>${josaOf(w4, '을/를') + ' 했어요.'}</b>
+          ${blank(w2)}${함께 && html`<b>${함께}</b>`}
+          ${blank(w3)}${에서 && html`<b>${에서}</b>`}
+          ${blank(w4, true)}${했어요 && html`<b>${했어요}</b>`}
         </div>
         <div class="frame-line">
-          <b>기분이</b> ${blank(say('how', moodWord))}<b>.</b>
+          ${headWord(howWord, '기분이') && html`<b>기분이</b>`} ${blank(howWord)}<b>${dotOf(howWord)}</b>
           ${level === 2 && html`<${React.Fragment}>
             <b>기억에 남는 것은</b> ${blank(f.f3)}<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
             <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
           <//>`}
           ${level === 3 && html`<${React.Fragment}>
-            <b>왜냐하면</b> ${blank(say('why', ''), true)}<b>.</b>
+            <b>왜냐하면</b> ${blank(say('why', ''), true)}<b>${dotOf(say('why', ''))}</b>
           <//>`}
         </div>
       <//>`;
@@ -602,7 +661,7 @@
       /* 그림 — 사진 넣기 · 내가 그리기 (2단계와 같은 화면) */
       if (step === 6) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="그림일기에 넣을 그림을 골라요">
+          <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
             그림일기에 넣을 그림을 골라요<//>
           ${photoSection(true)}
         <//>`;
@@ -685,7 +744,7 @@
 
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
+        <${C.Question} bar=${true} note=${lvNote} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
              위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다. -->
         <div class="confirm-2col">
@@ -743,10 +802,17 @@
             <//>`}
           </div>
           <!-- 오른쪽에는 크게 보기 하나만 남습니다. 고치는 길은 모두 왼쪽에 있어서,
-               학생이 한 곳만 보면 됩니다. -->
-          <${C.DiaryPreview} draft=${draft} student=${student}
-            arrange=${moveS[0]} onMoveArt=${moveArt}
-            picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />
+               학생이 한 곳만 보면 됩니다.
+               ★ 1단계는 글자를 못 읽으므로 종이를 통째로 줄여 보여 주면 그림도 글도
+                 너무 작습니다. 그림과 문장만 크게 보여 줍니다 (C.BigLook).
+                 인쇄 모양은 그 안의 인쇄 모양 보기 로 봅니다. -->
+          ${level === 1
+            ? html`<${C.BigLook} draft=${draft} student=${student}
+                arrange=${moveS[0]} onMoveArt=${moveArt}
+                picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`
+            : html`<${C.DiaryPreview} draft=${draft} student=${student}
+                arrange=${moveS[0]} onMoveArt=${moveArt}
+                picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`}
         </div>
       <//>`;
     }
@@ -912,6 +978,12 @@
     var F4_WORDS = [
       { name: '또',          icon: 'next',  use: 'images/또하기/또 하고 싶어요.png' },
       { name: '더 오래',      icon: 'clock' },
+      /* ★ 또하기의 `다른 것도 하고 싶어요` 와 **같은 그림 한 벌**을 씁니다.
+           둘 다 `이 활동 말고 다른 것` 이라는 한 가지 뜻입니다.
+           뜻이 같은 자리에 그림을 또 그리면 학생이 **둘을 다른 것으로** 봅니다 (14-10).
+         ⚠ 한때 이 자리에 전용 그림을 따로 두었는데, 거의 같은 그림이 **두 벌**이 되어
+           테두리 색만 미묘하게 다른 두 판이 생겼습니다. 한 벌로 모았습니다.
+           그림을 바꾸려면 `images/또하기/다른 것도 하고 싶어요.png` **하나만** 바꾸세요. */
       { name: '다른 활동을',  icon: 'dice',  use: 'images/또하기/다른 것도 하고 싶어요.png' },
       /* ⚠ `친구와 같이` 였습니다. `친구와 함께한 것`(기억) · `아빠와 함께한`(제목)
            과 **같은 뜻인데 말이 달랐습니다.** `함께` 로 맞춥니다 (셋 중 둘이 이미 함께).
@@ -969,7 +1041,7 @@
         <div class="frame-line"><b>제목 :</b>
           <span class=${'blank wide' + (draft.title ? ' on' : '')}>${draft.title || '　　　　'}</span>
         </div>
-        <${C.Question} bar=${true} speakText="일기 제목을 골라요. 그림일기 맨 위에 들어가요.">일기 제목을 골라요<//>
+        <${C.Question} bar=${true} note=${lvNote} speakText="일기 제목을 골라요. 그림일기 맨 위에 들어가요.">일기 제목을 골라요<//>
         <${C.PickGrid} cols=${6}>
           ${titleWords(f).map(function (w) {
             var on = draft.title === w.name;
@@ -1005,21 +1077,21 @@
         return html`<${React.Fragment}>
           <!-- 만들어지는 문장은 흰 칸 맨 위 두 줄(frameBar)에 있습니다.
                여기에 또 두면 같은 말이 두 번 나옵니다. -->
-          <${C.Question} bar=${true} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
           ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
         <//>`;
       }
       if (step === 3) {
         return html`<${React.Fragment}>
           <!-- 위와 같은 까닭으로 낱개 문장 줄을 뺐습니다 -->
-          <${C.Question} bar=${true} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
           ${wordCards(F4_WORDS, 'f4', f.f4, 4)}
         <//>`;
       }
       if (step === 4) return titleStep();
       if (step === 5) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="그림일기에 넣을 그림을 골라요">
+          <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
             그림일기에 넣을 그림을 골라요<//>
           ${photoSection(true)}
         <//>`;
@@ -1098,7 +1170,7 @@
       step = L3_OLD[step] != null ? L3_OLD[step] : 6;
       if (step === 4) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="일기 제목을 써요">일기 제목을 써요<//>
+          <${C.Question} bar=${true} note=${lvNote} speakText="일기 제목을 써요">일기 제목을 써요<//>
           <div class="row">
             <div class="grow"><${C.Field} label="일기 제목" value=${draft.title}
               placeholder="예) 친구와 슬라임 놀이" onChange=${function (v) { patch({ title: v }); }} /></div>
@@ -1110,7 +1182,7 @@
       }
       if (step === 5) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="그림일기에 넣을 그림을 골라요">
+          <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
             그림일기에 넣을 그림을 골라요<//>
           ${photoSection(true)}
         <//>`;
@@ -1120,7 +1192,7 @@
       /* step 1 — 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
       var bones = sixLines();
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
+        <${C.Question} bar=${true} note=${lvNote} speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
         ${bones.length ? html`<div class="bones">
           <span class="bones-lab">내가 만든 뼈대</span>
           <span class="bones-txt">${bones.join(' ')}</span>
@@ -1476,9 +1548,11 @@
           교실에 전시해요.</p>
         <${C.PickGrid} cols=${2} label=${q3}>
           <${C.Pick} label="전시할래요" speakText="전시할래요" selected=${!!d.exhibit}
-            onClick=${function () { setExhibit(true); }} art=${html`<${C.Art} iconKey="bookmark" />`} />
+            onClick=${function () { setExhibit(true); }}
+            art=${html`<${C.Art} src=${App.uiImage('exhibitYes')} iconKey="bookmark" />`} />
           <${C.Pick} label="전시하지 않을래요" speakText="전시하지 않을래요"
-            onClick=${function () { setExhibit(false); }} art=${html`<${C.Art} iconKey="dash" />`} />
+            onClick=${function () { setExhibit(false); }}
+            art=${html`<${C.Art} src=${App.uiImage('exhibitNo')} iconKey="dash" />`} />
         <//>
       <//>`;
     }

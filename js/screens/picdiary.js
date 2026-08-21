@@ -67,6 +67,14 @@
   var GRID_BUDGET = SHEET_INNER - DATE_H - ART_H - TITLE_H - FOOT_H;   // 414
   App.PD_ART_H = ART_H;                // css 와 값을 맞추려고 내어 둡니다
 
+  /* 힌트 보기(그림칸에 뜨는 원고지)가 쓸 수 있는 속 크기.
+     그림칸 속(770 × 513)에서 노란 상자의 테두리·여백과 `보고 써요` 딱지를 뺀 값입니다.
+       가로 : 770 - 여백 22*2 - 테두리 3*2 = 720
+       세로 : 513 - 여백 14*2 - 테두리 3*2 - 딱지 26 - 사이 8 = 445
+     ⚠ css 의 `.pd-hintbig` 여백·테두리를 고치면 이 값도 같이 고쳐야 합니다. */
+  var HINT_INNER_W = ART_INNER_W - 22 * 2 - 3 * 2;   // 720
+  var HINT_INNER_H = Math.round(ART_INNER_W / ART_RATIO) - 14 * 2 - 3 * 2 - 26 - 8;  // 445
+
   /* 짧게 써도 서식이 비어 보이지 않게 최소 5줄.
      5줄은 10칸에서 5 x 79 = 395px 라 GRID_BUDGET(464) 안에 넉넉히 들어갑니다.
      → 글이 짧은 학생은 **가장 큰 글씨(10칸)** 를 그대로 씁니다. */
@@ -483,9 +491,37 @@
              ▸ 힌트를 끄면 다시 그림이 나옵니다. */
           ? html`<div class="pd-hintbig">
               <span class="pd-hintbig-lab">보고 써요</span>
-              ${hintLines.map(function (s, i) {
-                return html`<p key=${i} class="pd-hintbig-ln">${s}</p>`;
-              })}
+              ${useLines
+                /* 3단계는 밑줄에 쓰므로 원고지가 없습니다 — 문장 그대로 보여 줍니다 */
+                ? hintLines.map(function (s, i) {
+                    return html`<p key=${i} class="pd-hintbig-ln">${s}</p>`;
+                  })
+                /* ★ 1·2단계는 **아래 원고지와 똑같은 칸 모양**으로 보여 줍니다.
+                     글자만 줄글로 보여 주면 학생이 「어느 칸에 무엇을 쓰는지」를
+                     스스로 옮겨 놓아야 합니다. 띄어쓰기 한 칸, 문장부호가 들어갈
+                     칸까지 **눈으로 그대로 베낄 수 있어야** 보고 쓰기가 됩니다.
+                   ▸ 칸 수(g.cols)와 줄(g.rows)은 아래 원고지와 **같은 것을 씁니다.**
+                     따로 계산하면 언젠가 둘이 어긋납니다. */
+                : (function () {
+                    var rows = g.rows.filter(function (r) {
+                      return r.some(function (ch) { return String(ch).trim() !== ''; });
+                    });
+                    if (!rows.length) rows = g.rows.slice(0, 1);
+                    /* 힌트 상자 속에 들어갈 칸 한 변 — 폭과 높이 가운데 작은 쪽에 맞춥니다 */
+                    var cell = Math.min(HINT_INNER_W / g.cols, HINT_INNER_H / rows.length);
+                    return html`<div class="pd-hintgrid"
+                      style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', ' + cell + 'px)',
+                                fontSize: Math.round(cell * GLYPH_FILL) + 'px' }}>
+                      ${rows.map(function (row, r) {
+                        return row.map(function (ch, c) {
+                          var two = String(ch).length > 1;
+                          return html`<span key=${r + '-' + c} class="pd-hintbox"
+                            style=${{ height: cell + 'px' }}>
+                            <span class=${'pd-ch' + (two ? ' two' : '')}>${ch}</span></span>`;
+                        });
+                      })}
+                    </div>`;
+                  })()}
             </div>`
           : pic
           ? html`<div class="pd-photo"><img src=${pic} alt="사진 또는 내가 그린 그림" /></div>`
@@ -565,7 +601,11 @@
           return html`<span key=${m} class="pd-chip">
             <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(mo.icon) }} />${mo.name}</span>`;
         })}
-        ${partner && html`<span class="pd-chip">${partner.name}와 함께</span>`}
+        <!-- 조사는 손으로 붙이지 않습니다. 와 를 못박아 두어서 '가족와 함께' 가
+             나왔고, 혼자 일 때는 '혼자와 함께' 가 되었습니다.
+             App.partnerWith 가 받침과 혼자 를 함께 다룹니다.
+             ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 끊깁니다 (인수인계 2-3). -->
+        ${partner && html`<span class="pd-chip">${App.partnerWith(d.partnerId, d.partnerIds)}</span>`}
         ${d.place && html`<span class="pd-chip">${d.place}</span>`}
       </div>
     </div>`;
@@ -579,6 +619,102 @@
      저장했습니다. 완성품은 저장 뒤 여러 창을 지나서야 나왔습니다.
      눌러서 크게 볼 수도 있습니다 — 작은 그림만으로는 글자를 읽기 어렵습니다.
      `draft` 는 아직 저장 안 된 일기지만 모양이 같아서 그대로 넣을 수 있습니다. */
+  /* ══════════ 1단계 크게 보기 (그림과 문장만) ══════════
+     ★ 1단계 학생은 **글자를 못 읽습니다.** 그림이 핵심이고 문장은 읽어주기로 듣습니다.
+       그런데 예전에는 **인쇄용 A4 종이를 통째로 줄여** 보여 주어서,
+       정작 봐야 할 그림과 문장이 가장 작아졌습니다.
+
+       1280x720 에서 잰 값 : 종이 226x320 (배율 0.285), 원고지 글자가 화면에서 13px.
+       가로는 490px 이나 남는데 **세로가 모자라** 폭까지 눌린 것입니다
+       (A4 는 세로로 길어서 높이가 모자라면 폭도 못 늘립니다).
+
+     ▸ 그래서 종이의 **그림 부분(날짜줄 + 그림칸)까지만** 크게 잘라 보여 주고,
+       문장은 그 아래에 **큰 글씨**로 따로 씁니다.
+       인쇄 모양 전체는 `인쇄 모양 보기` 로 언제든 볼 수 있습니다.
+     ▸ 종이를 그대로 쓰므로 **사진 · 내가 그린 그림 · 조립 그림이 모두 그대로** 나옵니다.
+       따로 그리면 둘이 언젠가 어긋납니다.
+     ⛔ 스크롤이 생기면 안 됩니다 (규칙 10). 그래서 크기를 **재서** 정합니다. */
+  var LOOK_TOP_H = DATE_H + ART_H;          // 599 — 종이 위에서 그림칸 끝까지
+
+  C.BigLook = function (p) {
+    var d = p.draft;
+    if (!d || !d.activityId) return null;
+    var bigS = useState(false);
+    var boxRef = useRef(null);
+    var fitS = useState({ s: 0.4, side: true });
+
+    /* 배율을 **창 크기로** 잽니다.
+       ⚠ 제 칸(.look-row)을 재면 안 됩니다. 그 칸은 내용만큼 커지는 칸이라,
+         자기 크기를 재서 자기 자식 크기를 정하는 **돌림**이 됩니다.
+         (그렇게 했더니 그림이 처음 값 그대로 351px 에서 꿈쩍하지 않았습니다.)
+       ▸ 250 은 맨 위 줄 · 질문 줄 · 아래 단추 · 여백이 쓰는 높이입니다 (재서 넣은 값).
+       ▸ 420 은 왼쪽 칸(문장 고치기 · 고치는 길 셋)과 사이 여백입니다.
+       ★ 문장을 그림 **아래**가 아니라 **옆**에 둡니다. A4 는 세로로 길어서
+         높이가 언제나 병목입니다. 문장이 세로를 먹으면 그림이 커지지 못합니다.
+         가로는 늘 남으므로 옆에 두면 세로를 그림이 통째로 씁니다. */
+    /* 문장을 **옆에** 둘지 **아래에** 둘지 두 가지를 다 셈해 **큰 쪽**을 고릅니다.
+       ★ 넓은 화면(전자칠판·노트북)은 세로가 병목이라 **옆**이 유리하고,
+         아이패드(1024x768)처럼 폭이 좁으면 **아래**가 유리합니다.
+         한쪽으로 못박으면 한 기기에서 반드시 손해를 봅니다.
+         (1024 에서 옆에 두면 407px, 아래에 두면 549px 였습니다) */
+    useLayoutEffect(function () {
+      function measure() {
+        var availH = window.innerHeight - 250;   // 맨 위 줄·질문 줄·아래 단추·여백
+        var availW = Math.max(280, window.innerWidth - 420);   // 왼쪽 칸과 사이 여백
+        var sayW = Math.min(260, availW * 0.3);
+        var sSide  = Math.min((availW - sayW - 16) / A4_W, availH / LOOK_TOP_H);
+        var sBelow = Math.min(availW / A4_W, (availH - 104) / LOOK_TOP_H);
+        var side = sSide >= sBelow;
+        var s = Math.max(0.18, Math.min(1, side ? sSide : sBelow));
+        fitS[1](function (prev) {
+          return (prev && Math.abs(prev.s - s) < 0.004 && prev.side === side)
+            ? prev : { s: s, side: side };
+        });
+      }
+      measure();
+      window.addEventListener('resize', measure);
+      window.addEventListener('orientationchange', measure);
+      return function () {
+        window.removeEventListener('resize', measure);
+        window.removeEventListener('orientationchange', measure);
+      };
+    }, []);
+
+    var sheet = html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />`;
+    var live = p.arrange
+      ? html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text"
+          arrange=${true} onMoveArt=${p.onMoveArt}
+          picked=${p.picked} onPickArt=${p.onPickArt} />`
+      : sheet;
+    var s = fitS[0].s, side = fitS[0].side;
+    var say = (d.bodyEdit !== undefined && d.bodyEdit !== null)
+      ? d.bodyEdit : App.sentences.diaryMade(d);
+
+    return html`<div class="look-row" ref=${boxRef}>
+      <div class="look-bar">
+        ${p.left}
+        <${C.Btn} size="small" icon="expand" className="pastel-yellow"
+          onClick=${function () { bigS[1](true); }}>인쇄 모양 보기<//>
+      </div>
+      <!-- 그림은 왼쪽, 문장은 오른쪽. 종이 자체를 쓰므로 사진 · 그린 그림도 그대로 나옵니다. -->
+      <div class=${'look-main' + (side ? '' : ' below')}>
+        <div class="look-art" style=${{ width: Math.round(A4_W * s) + 'px',
+                                        height: Math.round(LOOK_TOP_H * s) + 'px' }}>
+          <div class="look-clip" style=${{ transform: 'scale(' + s + ')' }}>${live}</div>
+        </div>
+        <div class="look-say">
+          <span class="look-txt">${say}</span>
+          <${C.Speak} text=${say} />
+        </div>
+      </div>
+      ${bigS[0] && html`<${C.Modal} title="인쇄 모양" wide=${true}
+        onClose=${function () { bigS[1](false); }}
+        actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
+        <div class="dv-big">${sheet}</div>
+      <//>`}
+    </div>`;
+  };
+
   C.DiaryPreview = function (p) {
     var bigS = useState(false);
 
@@ -696,23 +832,29 @@
       <!-- 왼쪽 끝 : 이 학생이 몇 단계인지. 늘 같은 자리에 있어야 눈에 익습니다. -->
       <span class="pd-lv" title=${LEVEL_INFO[lv].sub}>
         <b>${lv}단계</b> ${LEVEL_INFO[lv].name}</span>
-      <!-- 가운데 : 눌러서 고르는 인쇄 모양 -->
+      <!-- 가운데 : 눌러서 고르는 인쇄 모양.
+           ★ 힌트 보기 단추는 **힌트 보고 쓰기 바로 오른쪽**에 붙입니다.
+             그 모양을 골라야만 나타나는 단추라, 원인과 결과가 떨어져 있으면
+             둘이 이어진 것인 줄 모릅니다. 예전에는 줄 오른쪽 끝(pd-modehint)에
+             멀찍이 있어서, 눌러 볼 생각을 못 한다는 지적을 받았습니다.
+           ⚠ 흰 종이 안에는 두지 않습니다 — 종이는 **인쇄되는 결과물**이라
+             조작 단추가 섞이면 안 됩니다.
+           ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 거기서 끊깁니다 (인수인계 2-3). -->
       <span class="pd-modes">
         ${myModes.length > 1 && html`<span class="small" style=${{ fontWeight: 900 }}>인쇄 모양</span>`}
         ${myModes.map(function (m) {
           var on = traceS[0] === m.id;
-          return html`<button key=${m.id} type="button" class=${'tab' + (on ? ' on' : '')}
-            style=${{ minHeight: '40px', padding: '.1rem .7rem', fontSize: '.85rem' }}
-            aria-pressed=${on ? 'true' : 'false'} title=${m.desc}
-            onClick=${function () { traceS[1](m.id); }}>${m.name}<//>`;
+          return html`<${React.Fragment} key=${m.id}>
+            <button type="button" class=${'tab' + (on ? ' on' : '')}
+              style=${{ minHeight: '40px', padding: '.1rem .7rem', fontSize: '.85rem' }}
+              aria-pressed=${on ? 'true' : 'false'} title=${m.desc}
+              onClick=${function () { traceS[1](m.id); }}>${m.name}<//>
+            ${on && m.id === 'empty' && html`<${C.Btn} size="small" icon="eye"
+              className=${'pastel-yellow pd-hintbtn' + (hintS[0] ? ' on' : '')}
+              onClick=${function () { hintS[1](!hintS[0]); }}>
+              ${hintS[0] ? '힌트 숨기기' : '힌트 보기'}<//>`}
+          <//>`;
         })}
-      </span>
-      <!-- 오른쪽 끝 : 힌트 보고 쓰기일 때만 나오는 힌트 보기 -->
-      <span class="pd-modehint">
-        ${canHint && html`<${C.Btn} size="small" icon="eye"
-          className=${'pastel-yellow' + (hintS[0] ? ' on' : '')}
-          onClick=${function () { hintS[1](!hintS[0]); }}>
-          ${hintS[0] ? '힌트 숨기기' : '힌트 보기'}<//>`}
       </span>
     </div>`;
 

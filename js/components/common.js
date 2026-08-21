@@ -631,6 +631,12 @@
         <span class="q-pill"><h2>${p.children}</h2></span>
         ${p.hint && html`<span class="hint">${p.hint}</span>`}
         ${p.speak !== false && html`<${C.Speak} text=${p.speakText || (typeof p.children === 'string' ? p.children : '')} />`}
+        <!-- note : 지금 고른 일기 단계가 무엇을 하는 것인지 한 줄로.
+             ★ 예전에는 이 설명이 단추의 title= 툴팁에만 있어서, 마우스를 올려야
+               보였습니다. 태블릿 · 전자칠판에는 올릴 마우스가 없어 아무도 못 봤습니다.
+             ▸ 학생에게 읽어 줄 말이 아니라 지금 무엇을 하는 중인지 알리는 안내라
+               읽어주기에는 넣지 않습니다. -->
+        ${p.note && html`<span class="q-note">${p.note}</span>`}
         <!-- 질문 줄 오른쪽 끝 : 되돌아가는 단추처럼 '질문에 딸린 단추' 를
              여기에 둡니다. 아래에 두면 쪽 넘기는 단추와 섞여
              무엇이 무엇인지 헷갈립니다. -->
