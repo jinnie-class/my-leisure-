@@ -895,13 +895,21 @@
       { name: '친구와 함께한 것', icon: 'pFriend', use: 'images/제목/함께한.png' },
       { name: '만든 작품',       icon: 'frame' },
       { name: '맛있게 먹은 것',   icon: 'food' },
-      { name: '새로 해본 것',     icon: 'avSprout', use: 'images/제목/처음 해 본.png' }
+      /* ⚠ `새로 해본 것` 이었습니다. 제목 칸의 `처음 해 본 ○○` 과 **같은 뜻인데
+           말이 둘**이었습니다. 그림은 이미 같은 것을 쓰고 있었는데 말만 갈렸습니다.
+         한 가지 뜻에는 **한 가지 말**을 씁니다. 낱말 자체가 배울 거리인데,
+         같은 것을 두 말로 가르치면 익힐 것이 곱절이 됩니다.
+         `처음` 이 `새로` 보다 아이들이 자주 쓰고 뜻이 또렷합니다. */
+      { name: '처음 해 본 것',    icon: 'avSprout', use: 'images/제목/처음 해 본.png' }
     ];
     var F4_WORDS = [
       { name: '또',          icon: 'next',  use: 'images/또하기/또 하고 싶어요.png' },
       { name: '더 오래',      icon: 'clock' },
       { name: '다른 활동을',  icon: 'dice',  use: 'images/또하기/다른 것도 하고 싶어요.png' },
-      { name: '친구와 같이',  icon: 'pFriend', use: 'images/제목/함께한.png' }
+      /* ⚠ `친구와 같이` 였습니다. `친구와 함께한 것`(기억) · `아빠와 함께한`(제목)
+           과 **같은 뜻인데 말이 달랐습니다.** `함께` 로 맞춥니다 (셋 중 둘이 이미 함께).
+         문장도 자연스럽습니다 : `다음에는 친구와 함께 하고 싶어요.` */
+      { name: '친구와 함께',  icon: 'pFriend', use: 'images/제목/함께한.png' }
     ];
 
     /* 낱말 카드에 붙일 그림 주소 (없으면 null → icon 의 SVG 가 나옵니다) */
