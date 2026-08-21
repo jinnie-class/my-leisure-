@@ -1638,6 +1638,23 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .dv-arrange .dv-paper{ border-color:var(--ok); border-width:3px; }
 .dv-arrange:hover .dv-paper{ border-color:var(--ok); }
 
+/* 사람 그림을 **상반신만** 보이게 자릅니다 (제목 고르기 칸).
+   사람 그림은 발끝까지 있는 **전신**이라, 정사각 칸에 통째로 넣으면
+   얼굴이 아주 작아집니다. 얼굴이 보여야 누구인지 알아봅니다.
+   ▸ 그림 파일은 건드리지 않습니다 — 같은 파일을 사람 고르기·그림일기에서도
+     쓰기 때문입니다. 여기서 보이는 자리만 바꿉니다.
+   ▸ C.Art 가 인라인으로 object-fit:contain 을 주므로 !important 가 필요합니다. */
+.bust{ width:100%; height:100%; display:block; overflow:hidden; }
+.bust img{
+  width:100%; height:100%; display:block;
+  object-fit:cover !important; object-position:50% 0;
+  /* cover 만 쓰면 정사각 칸에 그림 세로의 64% 가 들어옵니다 (허벅지까지).
+     위를 기준으로 1.25배 키워 **머리부터 허리까지 51%** 만 보이게 조입니다.
+     ⚠ transform-origin 을 top 으로 두어야 머리가 안 잘립니다. */
+  transform:scale(1.25); transform-origin:50% 0;
+}
+.bust svg{ width:100%; height:100%; object-fit:contain; }   /* 코드 그림은 그대로 */
+
 /* 완성 화면에서 고치는 길 세 줄 (노란 상자 바로 아래) */
 .fix-here{ display:flex; flex-direction:column; gap:.45rem; margin-top:.15rem; }
 .fix-here .btn{ align-self:stretch; }

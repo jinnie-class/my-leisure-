@@ -919,15 +919,26 @@
            지도에서 **하트 = 좋아해요**, **별 = 도전하고 싶어요** 를 뜻합니다.
            여기에도 같은 모양을 쓰면 한 그림이 서로 다른 뜻으로 두 번 보입니다.
          ▸ img 는 images/제목/<이름>.png. 파일이 없으면 icon 의 SVG 가 나옵니다. */
-      var out = [{ name: act ? act.name : '나의 여가', img: '제목 그대로', icon: 'paper' }];
+      /* 첫 칸은 **활동 이름이 그대로** 제목이 됩니다 (`자전거 타기`).
+         그러니 그 활동의 그림을 그대로 보여 줍니다 — 학생이 무엇을 고르는지
+         한눈에 압니다. 팻말 같은 다른 그림을 두면 오히려 무엇을 뜻하는지
+         한 번 더 생각해야 합니다. */
+      var out = [{ name: act ? act.name : '나의 여가', act: act, icon: 'paper' }];
       /* ⚠ `가족와 함께한` 처럼 나오던 것을 고쳤습니다.
            받침에 따라 `과/와` 가 달라지므로 App.waGwa 를 씁니다 (가족과 · 친구와).
          ⚠ 혼자 한 날은 `혼자와 함께한` 이 되어 말이 되지 않았습니다.
            혼자일 때는 `혼자 한 ○○` 로 바꿉니다. */
+      /* 사람 칸도 **실제로 고른 사람 그림**을 씁니다 (아빠면 아빠, 혼자면 혼자).
+         ⚠ 예전에는 누구를 골랐든 `함께한.png`(손 잡은 두 아이)를 붙였습니다.
+           그래서 `혼자 한 요가` 에 두 아이가 나왔습니다 — 글은 고쳤는데
+           그림이 그대로여서 말과 그림이 어긋났습니다. */
+      var whoP = App.partner(draft.partnerId);
+      if (whoP && whoP.name !== who) whoP = null;   // 손수 고쳐 쓴 이름이면 그림을 못 찾습니다
       if (who === '혼자') {
-        out.push({ name: '혼자 한 ' + short, img: '함께한', icon: 'pAlone' });
+        out.push({ name: '혼자 한 ' + short, partner: whoP, img: '함께한', icon: 'pAlone' });
       } else if (who) {
-        out.push({ name: App.waGwa(who) + ' 함께한 ' + short, img: '함께한', icon: 'pFriend' });
+        out.push({ name: App.waGwa(who) + ' 함께한 ' + short,
+                   partner: whoP, img: '함께한', icon: 'pFriend' });
       }
       if (mood) out.push({ name: (mood.pre || mood.name) + ' ' + short, mood: mood, icon: mood.icon });
       out.push({ name: '처음 해 본 ' + short, img: '처음 해 본', icon: 'avSprout' });
@@ -949,7 +960,11 @@
             var on = draft.title === w.name;
             return html`<${C.Pick} key=${w.name} selected=${on} label=${w.name} speakText=${w.name}
               onClick=${function () { patch({ title: w.name }); App.speakFor(student, w.name); }}
-              art=${w.mood
+              art=${w.act
+                ? html`<${C.ActivityArt} activity=${w.act} />`
+                : w.partner
+                ? html`<span class="bust"><${C.PartnerArt} partner=${w.partner} student=${student} /></span>`
+                : w.mood
                 ? html`<${C.MoodArt} mood=${w.mood} />`
                 : html`<${C.Art} src=${App.pickImage('title', w.img)} iconKey=${w.icon} />`} />`;
           })}
