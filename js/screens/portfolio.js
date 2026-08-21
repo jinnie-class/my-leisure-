@@ -166,13 +166,26 @@
   /* ------------------------- 모음 셋 -------------------------
      포트폴리오는 세 코너에서 만든 것을 한곳에 모아 두는 곳입니다.
      한 번에 하나만 보여 주고, 무엇을 볼지는 학생이 고릅니다. */
+  /* ★ 한 번에 **하나만** 봅니다. 다 펼치면 좌우 여러 쪽이 되어 넘겨야 하고,
+       무엇부터 볼지 학생이 정할 수 없습니다.
+     ⚠ `나의 한마디`(한마디 + 돌아보기)도 넷째 칸으로 넣었습니다.
+       예전에는 모음 아래에 **늘 붙어 있어서**, 일기장을 고르면 4쪽까지 갈라졌습니다. */
   var FOLIO_TABS = [
     { id: 'plan',  name: '내가 세운 계획', icon: 'cornerPlan',
       count: function (d) { return d.plans.length + '장'; } },
     { id: 'map',   name: '나의 여가지도',  icon: 'cornerMap',
       count: function (d) { return d.tried.length + '가지'; } },
     { id: 'diary', name: '나의 일기장',    icon: 'cornerDiary',
-      count: function (d) { return d.diaries.length + '장'; } }
+      count: function (d) { return d.diaries.length + '장'; } },
+    { id: 'me',    name: '나의 한마디',    icon: 'pencil',
+      count: function (d, st) {
+        if (!st) return '';
+        var n = (st.word ? 1 : 0);
+        var rv = st.review || {};
+        (App.DATA.reviewFrames || []).forEach(function (f) { if (rv[f.id]) n++; });
+        var all = 1 + (App.DATA.reviewFrames || []).length;
+        return n + ' / ' + all;
+      } }
   ];
 
   /* ------------------------- 기간 계산 ------------------------- */
@@ -456,32 +469,57 @@
     /* --------------- 기간 표시 ---------------
        기간을 바꾸는 단추는 '선생님 설정 → 포트폴리오' 한 곳에만 두었습니다.
        학생 화면에는 지금 어느 기간을 보고 있는지만 글로 알려 줍니다. */
-    var rangeBar = html`<div class="banner ok sec">
-      <b>지금 보는 기간</b> : ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}
-      <span class="chip" style=${{ marginLeft: '.4rem' }}>일기 ${data.diaries.length}개</span>
-      <span class="chip">전시 ${data.exhibited.length}개</span>
-    </div>`;
+    /* ══════════ 선생님 도구는 **창 하나**에 모읍니다 ══════════
+       ★ 예전에는 기간 바 · 일기장 바 · 판형 탭이 학생 화면 **위에 층층이** 쌓였습니다.
+         1366x768 에서 상단바 72 + 기간 52 + 일기장 197 + 모음 113 + 내용 213
+         + 한마디 125 + 돌아보기 295 = 화면을 훌쩍 넘겨 **좌우 3쪽**으로 갈라졌고,
+         학생이 화살표로 넘겨야 제 것을 다 볼 수 있었습니다.
+       ▸ 인쇄 · 판형 · 기간은 **선생님 일**입니다. 학생 화면에서 빼고 창으로 모으면
+         학생 화면은 한 쪽에 들어가고, 학생이 할 일도 분명해집니다.
+       ▸ 학생 화면에는 **지금 어느 기간을 보고 있는지**만 작게 남깁니다. */
+    var toolsS = useState(false);
 
-    /* 그림일기를 모아 한 권으로 — 선생님 도구 */
-    var journalBar = html`<${C.Sec} title="나의 여가 일기장">
-      <p class="muted small">
-        이 기간에 쓴 그림일기 <b>${bookDiaries.length}장</b>을 A4 여러 쪽으로 한꺼번에 인쇄해요.
-        묶으면 그대로 한 권이 됩니다.
-      </p>
-      <div class="wrap" style=${{ marginTop: '.4rem' }}>
-        <${C.Btn} icon="print" disabled=${!bookDiaries.length}
-          onClick=${function () { printJournal('text'); }}>일기장 인쇄하기<//>
-        <${C.Btn} size="small" icon="print" disabled=${!bookDiaries.length}
-          onClick=${function () { printJournal('trace'); }}>따라쓰기 판으로<//>
-        <${C.Btn} size="small" icon="print" disabled=${!bookDiaries.length}
-          onClick=${function () { printJournal('empty'); }}>빈칸 판으로<//>
+    var toolsModal = toolsS[0] && html`<${C.Modal} title="선생님 도구" wide=${true}
+        onClose=${function () { toolsS[1](false); }}
+        actions=${html`<${C.Btn} kind="ok" onClick=${function () { toolsS[1](false); }}>닫기<//>`}>
+      <div class="banner ok">
+        <b>지금 보는 기간</b> : ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}
+        <span class="chip" style=${{ marginLeft: '.4rem' }}>일기 ${data.diaries.length}개</span>
+        <span class="chip">전시 ${data.exhibited.length}개</span>
+        <div class="small muted" style=${{ marginTop: '.3rem' }}>
+          기간을 바꾸려면 선생님 설정 → 포트폴리오 에서 고릅니다.</div>
       </div>
-      <div class="wrap" style=${{ marginTop: '.5rem' }}>
-        <${C.Btn} icon="expand" disabled=${!showList.length}
-          onClick=${function () { showS[1](true); }}>
-          교실 TV 전시 (${showList.length}장)<//>
-        <span class="small muted">저절로 넘어가요. ← → 로도 넘길 수 있어요.</span>
-      </div>
+
+      <${C.Sec} title="나의 일기장 인쇄">
+        <p class="muted small">
+          이 기간에 쓴 그림일기 <b>${bookDiaries.length}장</b>을 A4 여러 쪽으로 한꺼번에 인쇄해요.
+          묶으면 그대로 한 권이 됩니다.
+        </p>
+        <!-- 가장 자주 쓰는 것 하나만 크게. 판형 둘은 작게 곁들입니다.
+             넷이 같은 크기로 늘어서 있으면 무엇이 중요한지 보이지 않습니다. -->
+        <div class="wrap" style=${{ marginTop: '.4rem' }}>
+          <${C.Btn} kind="primary" icon="print" disabled=${!bookDiaries.length}
+            onClick=${function () { printJournal('text'); }}>일기장 인쇄하기<//>
+          <${C.Btn} size="small" icon="print" disabled=${!bookDiaries.length}
+            onClick=${function () { printJournal('trace'); }}>따라쓰기 판<//>
+          <${C.Btn} size="small" icon="print" disabled=${!bookDiaries.length}
+            onClick=${function () { printJournal('empty'); }}>빈칸 판<//>
+        </div>
+      <//>
+
+      <${C.Sec} title="모아서 인쇄 · 전시">
+        <div class="wrap">
+          <${C.Btn} icon="print" onClick=${function () { tab[1]('board'); toolsS[1](false); }}>
+            전시판형 보기<//>
+          <${C.Btn} icon="print" onClick=${function () { tab[1]('book'); toolsS[1](false); }}>
+            책자형 보기<//>
+          <${C.Btn} icon="expand" disabled=${!showList.length}
+            onClick=${function () { toolsS[1](false); showS[1](true); }}>
+            교실 TV 전시 (${showList.length}장)<//>
+        </div>
+        <div class="small muted" style=${{ marginTop: '.4rem' }}>
+          교실 TV 전시는 저절로 넘어가요. ← → 로도 넘길 수 있어요.</div>
+      <//>
     <//>`;
 
     return html`<div class="app" data-corner="portfolio">
@@ -491,22 +529,25 @@
         <${C.Speak} text=${'나의 여가 포트폴리오. 내가 전시하고 싶은 일기를 골라 보세요. ' +
           App.fmtDateShort(data.from) + '부터 ' + App.fmtDateShort(data.to) + '까지, 일기 ' +
           data.diaries.length + '개 가운데 ' + data.exhibited.length + '개를 골랐어요.'} />
-        ${folioTools && html`<div class="tabs">
-          <button type="button" class=${'tab' + (tab[0] === 'pick' ? ' on' : '')}
-            aria-pressed=${tab[0] === 'pick'} onClick=${function () { tab[1]('pick'); }}>기록 고르기</button>
-          <button type="button" class=${'tab' + (tab[0] === 'board' ? ' on' : '')}
-            aria-pressed=${tab[0] === 'board'} onClick=${function () { tab[1]('board'); }}>전시판형</button>
-          <button type="button" class=${'tab' + (tab[0] === 'book' ? ' on' : '')}
-            aria-pressed=${tab[0] === 'book'} onClick=${function () { tab[1]('book'); }}>책자형</button>
-        </div>`}
+        <!-- 판형을 보는 중일 때만 돌아갈 길을 둡니다. 평소에는 학생 화면 하나뿐이라
+             탭이 필요 없습니다 (탭이 늘 있으면 학생이 무엇을 눌러야 할지 헷갈립니다). -->
+        ${folioTools && tab[0] !== 'pick' && html`<${C.Btn} size="small" icon="back"
+          onClick=${function () { tab[1]('pick'); }}>포트폴리오로 돌아가기<//>`}
+        ${folioTools && tab[0] === 'pick' && html`<${C.Btn} size="small" icon="gear"
+          className="pastel-blue" onClick=${function () { toolsS[1](true); }}>선생님 도구<//>`}
         <${C.WhoChip} student=${student} />
       <//>
 
-      <${C.Stage} action=${folioTools ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
+      <!-- 인쇄 단추는 **판형을 보고 있을 때만** 아래에 둡니다.
+           학생 화면(pick)에 두면 학생 것과 선생님 것이 한 화면에 섞입니다. -->
+      <${C.Stage} action=${(folioTools && view !== 'pick') ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
           ${view === 'book' ? '책자형 인쇄하기' : '전시판형 인쇄하기'}<//>` : null}>
         ${view === 'pick' ? html`<${React.Fragment}>
-          ${folioTools ? rangeBar : null}
-          ${folioTools ? journalBar : null}
+          <!-- 학생 화면에는 **지금 어느 기간을 보고 있는지**만 한 줄로.
+               인쇄 · 판형 · 기간 고르기는 위 선생님 도구 창으로 옮겼습니다. -->
+          ${folioTools ? html`<div class="folio-range small muted">
+            ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록
+          </div>` : null}
 
           <!-- ★ 포트폴리오는 **세 코너에서 만든 것을 한곳에 모아 두는 곳**입니다.
                  보관 · 전시 · 발표를 여기서 합니다.
@@ -530,12 +571,12 @@
                 <span class="folio-tab-art" aria-hidden="true"
                   dangerouslySetInnerHTML=${{ __html: App.icon(t.icon) }} />
                 <span class="folio-tab-nm">${t.name}</span>
-                <span class="folio-tab-n">${t.count(data)}</span>
+                <span class="folio-tab-n">${t.count(data, student)}</span>
               </button>`;
             })}
           </div>
 
-          ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 여가계획들 · ' + data.plans.length + '장'}
+          ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 계획 · ' + data.plans.length + '장'}
             speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요.'}>
             ${data.plans.length ? html`<div class="folio-grid">
               ${data.plans.map(function (pl) {
@@ -571,7 +612,7 @@
               challenge: data.challenges, unsure: data.unsure
             };
             var shown = lists[pick] || [];
-            return html`<${C.Sec} title="나의 여가지도 — 실내·실외 한눈에"
+            return html`<${C.Sec} title="나의 여가지도 — 실내·실외 한눈에 보기"
               speakText=${'나의 여가지도. 해봤어요 ' + data.tried.length + '가지, 좋아해요 '
                 + data.likes.length + '가지, 도전하고 싶어요 ' + data.challenges.length
                 + '가지, 잘 모르겠어요 ' + data.unsure.length + '가지예요.'}>
@@ -611,7 +652,7 @@
             <//>`;
           })()}
 
-          ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 여가 일기장 — 전시할 것을 골라 보세요">
+          ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 일기장 — 전시할 것을 골라 보세요">
             ${data.diaries.length ? html`<div class="stack">
               ${data.diaries.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);
@@ -661,18 +702,28 @@
             <//>`}
           <//>`}
 
-          ${folioTools ? html`<${React.Fragment}>
-            <${C.Sec} title="학생의 한마디">
+          <!-- ★ 한마디와 돌아보기는 **학생이 쓰는 것**입니다.
+                 그런데 선생님 도구를 켰을 때만 나와서, 정작 학생은 쓸 수 없었습니다.
+                 학생 화면으로 옮겼습니다.
+               ▸ 말도 학생에게 하는 말로 바꿨습니다 (학생의 한마디 → 나의 한마디). -->
+          <!-- 둘 다 **학생이 글을 쓰는 곳**이라 나란히 둡니다.
+               위아래로 쌓으면 162 + 332 = 494px 라 화면을 넘겨 2쪽이 됩니다.
+               옆으로 놓으면 큰 쪽(332px) 높이만 쓰면 되어 한 쪽에 들어갑니다.
+             ⚠ 예전에는 이 두 칸이 **모음 아래에 늘 붙어** 있었습니다. 그래서
+               일기장을 고르면 일기 카드까지 더해져 4쪽까지 갈라졌습니다.
+               지금은 넷째 칸(나의 한마디)을 골랐을 때만 나옵니다. -->
+          ${folioTab[0] === 'me' && html`<div class="folio-write">
+            <${C.Sec} title="나의 한마디" speakText="여가생활을 하며 하고 싶은 말을 적어요">
               <${C.Field} label="여가생활을 하며 하고 싶은 말을 적어요"
                 value=${student.word || ''} placeholder="예) 친구와 함께하는 여가가 제일 즐거워요."
                 onChange=${function (v) { App.store.updateStudent(student.id, { word: v }); }} />
             <//>
-            <${C.Sec} title="마지막 돌아보기">
+            <${C.Sec} title="돌아보기" speakText="빈칸을 채워 나의 여가를 돌아보아요">
               <div class="stack">
                 ${App.DATA.reviewFrames.map(function (f) {
-                  return html`<div key=${f.id} class="row">
+                  return html`<div key=${f.id} class="row review-row">
                     <b>${f.before}</b>
-                    <input class="field" style=${{ width: '16rem' }} value=${(student.review || {})[f.id] || ''}
+                    <input class="field review-in" value=${(student.review || {})[f.id] || ''}
                       onChange=${function (e) {
                         var rv = Object.assign({}, student.review || {}); rv[f.id] = e.target.value;
                         App.store.updateStudent(student.id, { review: rv });
@@ -682,9 +733,11 @@
                 })}
               </div>
             <//>
-          <//>` : null}
+          </div>`}
         <//>` : html`<${React.Fragment}>
-          ${rangeBar}
+          <div class="folio-range small muted">
+            ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록
+          </div>
           <${C.Sec} title=${view === 'board'
             ? '전시판형 미리보기 — 전시할 일기로 만듭니다'
             : '책자형 미리보기'}>
@@ -701,6 +754,8 @@
           <//>
         <//>`}
       <//>
+
+      ${toolsModal}
 
       ${showS[0] && html`<${C.ShowMode} diaries=${showList} student=${student}
         onClose=${function () { showS[1](false); }} />`}

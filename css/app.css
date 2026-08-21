@@ -1665,6 +1665,17 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .dv-paper .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
 
+/* 포트폴리오 — 지금 보는 기간을 한 줄로만 (인쇄·판형·기간 고르기는 선생님 도구 창으로) */
+.folio-range{ text-align:center; margin:.1rem 0 .35rem; }
+/* 「나의 한마디」와 「돌아보기」 — 둘 다 학생이 글을 쓰는 곳이라 나란히.
+   위아래로 쌓으면 494px 라 화면을 넘겨 2쪽이 됩니다. */
+.folio-write{ display:grid; grid-template-columns:1fr; gap:.6rem; }
+@media (min-width: 1000px){
+  .folio-write{ grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:start; }
+}
+.review-row{ flex-wrap:nowrap; gap:.35rem; }
+.review-in{ flex:1 1 6rem; min-width:0; }
+
 /* ═══════ 1단계 크게 보기 — 그림과 문장만 ═══════
    ★ 1단계 학생은 글자를 못 읽습니다. 그림이 핵심이고 문장은 읽어주기로 듣습니다.
      인쇄용 A4 를 통째로 줄이면 정작 봐야 할 것이 가장 작아집니다
@@ -3005,13 +3016,19 @@ textarea.sentence-edit,
 /* 모음 셋 고르기 — 계획 / 지도 / 일기장.
    한 번에 하나만 보여 줍니다. 셋을 다 펼치면 좌우 3쪽이 되어 넘겨야 하고,
    무엇부터 볼지 학생이 정할 수 없습니다. */
+/* ⚠ 여백을 더 넓히지 마세요. 이 화면은 계획 213 + 한마디·돌아보기 350
+   + 모음 고르기 + 기간 한 줄로 무대(696px)에 **아슬아슬하게** 들어갑니다.
+   조금만 더 벌어져도 좌우 2쪽으로 갈라집니다. */
+/* ⚠ 칸 수가 늘면 **열 수도 같이** 늘려야 합니다. 4칸을 3열에 두었더니
+   두 줄로 접혀 높이가 113 → 220px 이 되었고, 그만큼 아래가 밀려 쪽이 갈라졌습니다. */
 .folio-pick{
-  display:grid; gap:.6rem; margin-bottom:.7rem;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  display:grid; gap:.5rem; margin-bottom:.45rem;
+  grid-template-columns:repeat(4, minmax(0,1fr));
 }
+@media (max-width: 760px){ .folio-pick{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 .folio-tab{
-  display:flex; flex-direction:column; align-items:center; gap:.15rem;
-  padding:.6rem .4rem; cursor:pointer; min-width:0;
+  display:flex; flex-direction:column; align-items:center; gap:.1rem;
+  padding:.45rem .4rem; cursor:pointer; min-width:0;
   background:#fff; border:3px solid var(--line); border-radius:18px;
   box-shadow:var(--shadow);
 }
