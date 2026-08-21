@@ -222,9 +222,13 @@
         <div class="tsec">
           <label>6. 학생 화면에 도구 보이기
             <span class="muted" style=${{ fontWeight: 400, fontSize: '.85em' }}>기본은 숨김이에요</span></label>
+          <!-- ⚠ 「지도 찾아보기·확대」 스위치를 뺐습니다.
+                 찾아보기와 지도 도움말은 이제 **섬 안에서 늘 보입니다**.
+                 아무 일도 하지 않는 스위치를 남겨 두면 켜고 꺼도 화면이 그대로라
+                 선생님이 고장인 줄 압니다. 하는 일이 없어진 스위치는 지웁니다.
+               ▸ 담아 두는 값(mapTools)은 지우지 않았습니다 — 예전 기록에 남아 있어도
+                 해가 없고, 지우면 되돌리기 어려워집니다. -->
           <div class="wrap">
-            <${C.Switch} label="지도 찾아보기·확대" on=${!!current.mapTools}
-              onChange=${function (v) { upd(current.id, { mapTools: v }); }} />
             <${C.Switch} label="포트폴리오 기간·인쇄" on=${!!current.folioTools}
               onChange=${function (v) { upd(current.id, { folioTools: v }); }} />
             <${C.Switch} label="활동 고르는 화면의 ＋ 활동 더하기" on=${current.addTools !== false}
