@@ -72,6 +72,8 @@
     var fileRef = useRef(null);
     var markOpen = useState(null);
     var newActS = useState(null);          // '우리 반 활동 더하기' 창
+    var newPartnerS = useState(false);     // '함께하는 사람 더하기' 창
+    var newMoodS = useState(false);        // '기분 더하기' 창
     var current = App.store.current();
     var students = store.students;
     var customs = store.customActivities || [];
@@ -237,11 +239,27 @@
           <div class="wrap">
             ${App.DATA.partners.map(function (x) {
               var on = (current.partnerIds || []).indexOf(x.id) >= 0;
-              return html`<button key=${x.id} type="button" class=${'tchoice' + (on ? ' on' : '')}
+              return html`<button key=${x.id} type="button"
+                class=${'tchoice' + (on ? ' on' : '') + (x.custom ? ' mine' : '')}
                 aria-pressed=${on} onClick=${function () { toggleIn('partnerIds', App.DATA.partners, x.id); }}>
                 ${on ? '✓ ' : ''}${x.name}</button>`;
             })}
+            <!-- 학급마다 함께하는 사람이 다릅니다 (사촌 · 이웃 · 활동보조 선생님 …) -->
+            <button type="button" class="tchoice add"
+              onClick=${function () { newPartnerS[1](true); }}>＋ 사람 더하기</button>
           </div>
+          <!-- 더한 사람은 지울 수도 있어야 합니다. 기본 일곱은 끄기만 됩니다. -->
+          ${App.DATA.partners.filter(function (x) { return x.custom; }).length ? html`
+            <p class="muted small" style=${{ marginTop: '.35rem' }}>
+              더한 사람 지우기 —
+              ${App.DATA.partners.filter(function (x) { return x.custom; }).map(function (x) {
+                return html`<button key=${x.id} type="button" class="tchoice sm"
+                  onClick=${function () {
+                    if (!window.confirm('「' + x.name + '」 을(를) 지울까요?')) return;
+                    App.store.removePartner(x.id);
+                  }}>✕ ${x.name}</button>`;
+              })}
+            </p>` : null}
           <!-- ★ 그림 고르기는 **위에서 켠 사람만** 나옵니다.
                  형제자매가 없는 학생은 위에서 '형제자매' 를 끄는데, 예전에는
                  그래도 아래에 남녀 고르기가 남아 있었습니다. 쓰지도 않을 그림을
@@ -275,11 +293,25 @@
           <div class="wrap">
             ${App.DATA.moods.map(function (x) {
               var on = (current.moodIds || []).indexOf(x.id) >= 0;
-              return html`<button key=${x.id} type="button" class=${'tchoice' + (on ? ' on' : '')}
+              return html`<button key=${x.id} type="button"
+                class=${'tchoice' + (on ? ' on' : '') + (x.custom ? ' mine' : '')}
                 aria-pressed=${on} onClick=${function () { toggleIn('moodIds', App.DATA.moods, x.id); }}>
                 ${on ? '✓ ' : ''}${x.name}</button>`;
             })}
+            <button type="button" class="tchoice add"
+              onClick=${function () { newMoodS[1](true); }}>＋ 기분 더하기</button>
           </div>
+          ${App.DATA.moods.filter(function (x) { return x.custom; }).length ? html`
+            <p class="muted small" style=${{ marginTop: '.35rem' }}>
+              더한 기분 지우기 —
+              ${App.DATA.moods.filter(function (x) { return x.custom; }).map(function (x) {
+                return html`<button key=${x.id} type="button" class="tchoice sm"
+                  onClick=${function () {
+                    if (!window.confirm('「' + x.name + '」 을(를) 지울까요?')) return;
+                    App.store.removeMood(x.id);
+                  }}>✕ ${x.name}</button>`;
+              })}
+            </p>` : null}
         </div>
 
         <div class="tsec">
@@ -459,6 +491,10 @@
         </div>
       </div>
 
+      ${newPartnerS[0] && html`<${C.AddPartnerModal}
+        onClose=${function () { newPartnerS[1](false); }} />`}
+      ${newMoodS[0] && html`<${C.AddMoodModal}
+        onClose=${function () { newMoodS[1](false); }} />`}
       ${newActS[0] && html`<${C.AddActivityModal} area=${newActS[0].area}
         onClose=${function () { newActS[1](null); }} />`}
     </div>`;

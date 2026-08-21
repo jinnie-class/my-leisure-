@@ -105,7 +105,15 @@
     return html`<div class="mask"
         onMouseDown=${function (e) { if (e.target === e.currentTarget && p.onClose) p.onClose(); }}
         onKeyDown=${function (e) { if (e.key === 'Escape' && p.onClose) p.onClose(); }}>
-      <div class=${'modal' + (p.wide ? ' wide' : '')} ref=${ref} role="dialog" aria-modal="true"
+      <!-- 창 폭은 **속에 든 것에 맞춰** 고릅니다.
+           wide   그림판 · 인쇄 모양처럼 넓어야 하는 것 (1100px)
+           (기본) 사진 격자 · 목록 (760px)
+           narrow 단추 한둘뿐인 것 (460px)
+           ⚠ 속은 단추 하나인데 wide 를 주면 화면 폭을 통째로 먹어
+             쓸데없이 옆으로 긴 창이 됩니다.
+           ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 끊깁니다 (인수인계 2-3). -->
+      <div class=${'modal' + (p.wide ? ' wide' : '') + (p.narrow ? ' narrow' : '')}
+          ref=${ref} role="dialog" aria-modal="true"
           aria-label=${p.title || ''} style=${p.style}>
         ${p.title && html`<div class="q" style=${{ marginBottom: '.4rem' }}>
           <h2 class="grow">${p.title}</h2>
@@ -1096,6 +1104,117 @@
           <div class="small">문장은 이렇게 만들어져요.</div>
           <div><b>${'계획 : 나는 오늘 ' + App.eulReul(name) + ' 할 거예요.'}</b></div>
           <div><b>${'일기 : 나는 오늘 ' + App.eulReul(name) + ' 했어요.'}</b></div>
+        <//>`}
+      </div>
+    <//>`;
+  };
+
+  /* ═══════ 함께하는 사람 더하기 ═══════
+     학급마다 함께하는 사람이 다릅니다 (활동보조 선생님 · 사촌 · 이웃 …).
+     ▸ 조사는 손으로 붙이지 않습니다 — App.waGwa 가 받침을 보고 정합니다. */
+  var PARTNER_ICONS = ['pFriend', 'pFamily', 'pMom', 'pDad', 'pSibling', 'pTeacher', 'pAlone', 'heart', 'star'];
+
+  C.AddPartnerModal = function (p) {
+    var nameS = useState('');
+    var iconS = useState('pFriend');
+    var name = nameS[0].trim();
+
+    function save() {
+      if (!name) { App.ui.toast('누구인지 이름을 써 주세요.'); return; }
+      var dup = (App.DATA.partners || []).some(function (x) { return x.name === name; });
+      if (dup) { App.ui.toast('같은 이름이 이미 있어요.'); return; }
+      App.store.addPartner({ name: name, icon: iconS[0] });
+      App.ui.toast('「' + name + '」 을(를) 더했어요.');
+      p.onClose();
+    }
+
+    return html`<${C.Modal} title="함께하는 사람 더하기" onClose=${p.onClose}
+      actions=${html`<${React.Fragment}>
+        <${C.Btn} onClick=${p.onClose}>그만두기<//>
+        <${C.Btn} kind="ok" icon="check" disabled=${!name} onClick=${save}>이 사람 더하기<//>
+      <//>`}>
+      <div class="stack">
+        <${C.Field} label="누구인가요?" value=${nameS[0]}
+          placeholder="예) 사촌 · 이웃 · 활동보조 선생님"
+          onChange=${function (v) { nameS[1](v); }} />
+        <div>
+          <span class="lab">그림 고르기</span>
+          <div class="icon-pick">
+            ${PARTNER_ICONS.map(function (k) {
+              var on = iconS[0] === k;
+              return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
+                aria-pressed=${on} aria-label=${'그림 ' + k}
+                onClick=${function () { iconS[1](k); }}>
+                <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
+              </button>`;
+            })}
+          </div>
+          <p class="small muted" style=${{ marginTop: '.3rem' }}>
+            <b>images/avatars/${name || '이름'}.png</b> 파일을 넣어 두면 그 그림이 대신 나와요.
+          </p>
+        </div>
+        ${name && html`<${C.Banner} icon="check">
+          <div class="small">문장은 이렇게 만들어져요.</div>
+          <div><b>${'나는 오늘 ' + App.withPhrase(name) + ' 놀이를 했어요.'}</b></div>
+        <//>`}
+      </div>
+    <//>`;
+  };
+
+  /* ═══════ 기분 더하기 ═══════
+     ⚠ 기분은 **일기 문장에 그대로 들어갑니다** (기분이 ○○○.).
+       `설레요` 를 그대로 쓰면 `기분이 설레요.` 가 되어 어색하므로,
+       일기에 쓸 말(`설렜어요`)을 따로 받습니다. 비워 두면 이름을 그대로 씁니다. */
+  var MOOD_ICONS = ['moodFun', 'moodExcited', 'moodCalm', 'moodProud',
+                    'moodSorry', 'moodTired', 'moodSad', 'moodAngry', 'heart', 'star'];
+
+  C.AddMoodModal = function (p) {
+    var nameS = useState('');
+    var pastS = useState('');
+    var iconS = useState('moodFun');
+    var name = nameS[0].trim();
+    var past = pastS[0].trim() || name;
+
+    function save() {
+      if (!name) { App.ui.toast('기분 이름을 써 주세요.'); return; }
+      var dup = (App.DATA.moods || []).some(function (x) { return x.name === name; });
+      if (dup) { App.ui.toast('같은 기분이 이미 있어요.'); return; }
+      App.store.addMood({ name: name, past: past, conn: past, stem: name, pre: name, icon: iconS[0] });
+      App.ui.toast('「' + name + '」 기분을 더했어요.');
+      p.onClose();
+    }
+
+    return html`<${C.Modal} title="기분 더하기" onClose=${p.onClose}
+      actions=${html`<${React.Fragment}>
+        <${C.Btn} onClick=${p.onClose}>그만두기<//>
+        <${C.Btn} kind="ok" icon="check" disabled=${!name} onClick=${save}>이 기분 더하기<//>
+      <//>`}>
+      <div class="stack">
+        <${C.Field} label="고를 때 보이는 말" value=${nameS[0]}
+          placeholder="예) 설레요 · 놀라워요"
+          onChange=${function (v) { nameS[1](v); }} />
+        <${C.Field} label="일기에 쓸 말 (안 써도 돼요)" value=${pastS[0]}
+          placeholder=${name ? '예) ' + name.replace(/요$/, '었어요') : '예) 설렜어요'}
+          onChange=${function (v) { pastS[1](v); }} />
+        <div>
+          <span class="lab">그림 고르기</span>
+          <div class="icon-pick">
+            ${MOOD_ICONS.map(function (k) {
+              var on = iconS[0] === k;
+              return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
+                aria-pressed=${on} aria-label=${'그림 ' + k}
+                onClick=${function () { iconS[1](k); }}>
+                <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
+              </button>`;
+            })}
+          </div>
+          <p class="small muted" style=${{ marginTop: '.3rem' }}>
+            <b>images/얼굴표정/${past || '일기에쓸말'}.png</b> 파일을 넣어 두면 그 그림이 대신 나와요.
+          </p>
+        </div>
+        ${name && html`<${C.Banner} icon="check">
+          <div class="small">일기 문장은 이렇게 만들어져요.</div>
+          <div><b>${'기분이 ' + past + '.'}</b></div>
         <//>`}
       </div>
     <//>`;

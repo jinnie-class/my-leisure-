@@ -659,11 +659,28 @@
          (1024 에서 옆에 두면 407px, 아래에 두면 549px 였습니다) */
     useLayoutEffect(function () {
       function measure() {
-        var availH = window.innerHeight - 250;   // 맨 위 줄·질문 줄·아래 단추·여백
-        var availW = Math.max(280, window.innerWidth - 420);   // 왼쪽 칸과 사이 여백
+        /* ★★ 창 크기로 어림잡지 않고 **흰 칸을 직접 잽니다.**
+           어림값은 화면마다 맞기도 하고 안 맞기도 해서, 1366x768 에서
+           이 칸이 흰 칸보다 넓어져 **좌우 4쪽**으로 갈라졌습니다.
+           흰 칸(.stage-track)에서 형제(질문 줄)와 왼쪽 문장 칸이 쓰는 만큼을
+           빼면 이 칸이 진짜 쓸 수 있는 자리가 나옵니다. */
+        var track = document.querySelector('.stage-track');
+        var availH, availW;
+        if (track && track.clientHeight > 120) {
+          var col = track.querySelector('.confirm-2col');
+          var used = 0;
+          [].forEach.call(track.children, function (c) {
+            if (c !== col) used += c.getBoundingClientRect().height;
+          });
+          availH = track.clientHeight - used - 18;
+          availW = Math.max(280, track.clientWidth - 380);   // 왼쪽 문장 칸
+        } else {
+          availH = window.innerHeight - 250;
+          availW = Math.max(280, window.innerWidth - 420);
+        }
         var sayW = Math.min(260, availW * 0.3);
-        var sSide  = Math.min((availW - sayW - 16) / A4_W, availH / LOOK_TOP_H);
-        var sBelow = Math.min(availW / A4_W, (availH - 104) / LOOK_TOP_H);
+        var sSide  = Math.min((availW - sayW - 16) / A4_W, (availH - 52) / LOOK_TOP_H);
+        var sBelow = Math.min(availW / A4_W, (availH - 52 - 104) / LOOK_TOP_H);
         var side = sSide >= sBelow;
         var s = Math.max(0.18, Math.min(1, side ? sSide : sBelow));
         fitS[1](function (prev) {
@@ -672,9 +689,13 @@
         });
       }
       measure();
+      /* 흰 칸은 처음 그릴 때 크기가 없을 수 있어 한 박자 뒤에 다시 잽니다 */
+      var r1 = requestAnimationFrame(measure);
+      var t1 = setTimeout(measure, 220);
       window.addEventListener('resize', measure);
       window.addEventListener('orientationchange', measure);
       return function () {
+        cancelAnimationFrame(r1); clearTimeout(t1);
         window.removeEventListener('resize', measure);
         window.removeEventListener('orientationchange', measure);
       };
@@ -702,7 +723,11 @@
                                         height: Math.round(LOOK_TOP_H * s) + 'px' }}>
           <div class="look-clip" style=${{ transform: 'scale(' + s + ')' }}>${live}</div>
         </div>
-        <div class="look-say">
+        <!-- ⚠ 아래 배치일 때 문장칸에 폭 상한을 **픽셀로** 걸어야 합니다.
+             width:100% 로만 두면 부모 폭을 따라가고, 부모는 다시 이 칸을 따라가
+             서로 부풀어 오릅니다 (실제로 1285px 이 되어 무대 1257 을 넘겼고,
+             완성 화면이 3쪽으로 갈라졌습니다). -->
+        <div class="look-say" style=${side ? null : { maxWidth: Math.round(A4_W * s) + 'px' }}>
           <span class="look-txt">${say}</span>
           <${C.Speak} text=${say} />
         </div>
@@ -726,8 +751,30 @@
          구간으로 끊지 말고 **재서** 정해야 어느 크기에서나 맞습니다.
        ▸ 400 은 맨 위 줄(110) · 질문 바(60) · 아래 단추(66) · 여백이 쓰는 높이입니다.
          ⚠ 질문 바를 빼먹었다가 940px 높이에서 또 갈라졌습니다.
-       ▸ 560 은 왼쪽 문장 칸과 양옆 여백입니다. */
+       ▸ 560 은 왼쪽 문장 칸과 양옆 여백입니다.
+
+       ★★ 창 크기로 어림잡던 것을 **흰 칸을 직접 재는 것**으로 바꿨습니다.
+         어림값(400)은 화면마다 맞기도 하고 안 맞기도 합니다. 실제로
+         1920x1080 에서 종이가 680px 이 되어 흰 칸(761px)에 질문 줄과 함께
+         들어가지 못했고, `break-inside:avoid` 때문에 **본문이 통째로 2쪽으로
+         밀려 1쪽에는 질문 줄만 남았습니다.**
+       ▸ 흰 칸(.stage-track) 높이에서 **형제(질문 줄 등)가 쓰는 높이**를 빼면
+         이 칸이 진짜로 쓸 수 있는 높이가 나옵니다.
+       ▸ 흰 칸을 아직 못 찾으면(첫 그림) 예전처럼 창 크기로 어림잡습니다. */
     function fitDv() {
+      var track = document.querySelector('.stage-track');
+      var col = track && track.querySelector('.confirm-2col');
+      if (track && track.clientHeight > 120) {
+        var used = 0;
+        [].forEach.call(track.children, function (c) {
+          if (c !== col) used += c.getBoundingClientRect().height;
+        });
+        var availH = track.clientHeight - used - 18;      // 18 = 칸 사이 여백
+        var availW = track.clientWidth - 380;             // 왼쪽 문장 칸
+        return Math.max(0.16, Math.min(0.62,
+          (availH - 52) / A4_H,                           // 52 = 위 단추 줄(눌러서 크게 보기)
+          availW / A4_W));
+      }
       return Math.max(0.16, Math.min(0.62,
         (window.innerHeight - 400) / A4_H,
         (window.innerWidth - 560) / A4_W));
@@ -739,8 +786,15 @@
         dvS[1](function (prev) { return Math.abs(prev - s) < 0.004 ? prev : s; });
       }
       onResize();
+      /* 흰 칸은 처음 그릴 때 아직 크기가 없을 수 있어 한 박자 뒤에 다시 잽니다.
+         (그러지 않으면 첫 화면만 어림값으로 그려져 쪽이 갈라진 채 남습니다) */
+      var r1 = requestAnimationFrame(onResize);
+      var t1 = setTimeout(onResize, 220);
       window.addEventListener('resize', onResize);
-      return function () { window.removeEventListener('resize', onResize); };
+      return function () {
+        cancelAnimationFrame(r1); clearTimeout(t1);
+        window.removeEventListener('resize', onResize);
+      };
     }, []);
 
     var d = p.draft;

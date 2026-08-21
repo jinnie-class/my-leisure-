@@ -1445,7 +1445,11 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 @media (max-height: 780px){ .dv{ --dv:.30; } .dv-big{ --dv:.4; } }
 
 /* 완성 화면 : 기본은 위아래로 쌓습니다 */
-.confirm-2col{ display:flex; flex-direction:column; gap:.5rem; break-inside:avoid; }
+/* ★ 무대는 여러 단(column)으로 쪽을 나눕니다. 그 안의 칸이 **단보다 넓으면
+   두 단을 차지**해서, 넘길 쪽이 늘고 빈 쪽이 생깁니다.
+   실제로 1920x1080 에서 이 칸이 2062px 이 되어(단 폭 1013px) 3쪽이 됐습니다.
+   ⛔ 무대 안에 놓는 flex/grid 칸에는 반드시 max-width:100% 를 주세요. */
+.confirm-2col{ display:flex; flex-direction:column; gap:.5rem; break-inside:avoid; max-width:100%; }
 /* ★ 넓은 화면에서는 **좌우로** 나눕니다.
      문장 칸과 완성된 그림일기를 위아래로 쌓으면 828px 가 되어 흰 칸을 넘고,
      완성 화면이 2~3쪽으로 갈라져 **1쪽이 텅 비어** 보였습니다.
@@ -1685,6 +1689,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .look-row{
   display:flex; flex-direction:column; align-items:center; gap:.5rem;
   min-width:0; min-height:0;
+  /* ★ 속이 부풀어도 무대 밖으로 넘지 않게. 이게 없으면 문장칸이 커질 때
+       이 칸까지 따라 커져 완성 화면이 여러 쪽으로 갈라집니다. */
+  max-width:100%;
 }
 .look-bar{ display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center; align-items:center; }
 /* ★ 그림 | 문장 을 **옆으로** 놓습니다.
@@ -1929,6 +1936,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    직접 그리기 (그림일기에 넣을 그림)
    =========================================================== */
 .modal.wide{ width:min(1100px, 100%); }
+/* 단추 한둘뿐인 창 — 속은 작은데 창만 넓으면 쓸데없이 옆으로 길어 보입니다 */
+.modal.narrow{ width:min(460px, 100%); }
 .dp{ display:flex; flex-direction:column; gap:.55rem; }
 .dp-tools{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
 .dp-gap{ width:.6rem; }

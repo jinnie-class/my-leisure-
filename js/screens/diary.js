@@ -1419,7 +1419,12 @@
       <//>`}
 
       <!-- 사진 고르기 팝업 — '사진 넣기' 를 누르면 바로 열립니다 -->
-      ${photoS[0] && html`<${C.Modal} title="그림일기에 넣을 사진을 골라요" wide=${true}
+      <!-- 사진이 없으면 속이 '사진 넣기' 단추 하나뿐이라 좁은 창으로,
+           사진이 있으면 격자를 펼쳐야 하니 보통 폭(760px)으로 엽니다.
+           예전에는 늘 wide(1100px) 라 단추 하나에 화면 폭을 다 썼습니다.
+           ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 끊겨 화면이 통째로 빕니다 (2-3). -->
+      ${photoS[0] && html`<${C.Modal} title="그림일기에 넣을 사진을 골라요"
+        narrow=${!(draft.photoIds || []).length}
         onClose=${function () { photoS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" icon="check"
           onClick=${function () { photoS[1](false); }}>이 사진으로 할래요<//>`}>

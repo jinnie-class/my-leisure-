@@ -58,6 +58,8 @@
       diaries: [],
       map: {},
       customActivities: [],   // 선생님이 더한 '우리 반 활동'
+      customPartners: [],     // 선생님이 더한 '함께하는 사람'
+      customMoods: [],        // 선생님이 더한 '기분'
       seeded: false
     };
   }
@@ -139,6 +141,8 @@
       out.diaries = out.diaries || [];
       out.map = out.map || {};
       out.customActivities = out.customActivities || [];
+      out.customPartners = out.customPartners || [];
+      out.customMoods = out.customMoods || [];
       if (!out.students.length) return seed(emptyState());
       if (!out.currentStudentId || !out.students.some(function (s) { return s.id === out.currentStudentId; })) {
         out.currentStudentId = out.students[0].id;
@@ -165,17 +169,21 @@
 
   function notify() { listeners.slice().forEach(function (f) { try { f(); } catch (e) {} }); }
 
-  /* 우리 반 활동을 활동 목록에 반영합니다 (저장할 때마다 다시 읽어 들임) */
+  /* 선생님이 더한 것들을 목록에 반영합니다 (저장할 때마다 다시 읽어 들임) */
   function syncCustom() {
     if (App.setCustomActivities) App.setCustomActivities(state.customActivities || []);
+    if (App.setCustomPartners) App.setCustomPartners(state.customPartners || []);
+    if (App.setCustomMoods) App.setCustomMoods(state.customMoods || []);
   }
 
   function set(mutator) {
     var next = Object.assign({}, state);
     var before = state.customActivities;
+    var beforeP = state.customPartners, beforeM = state.customMoods;
     mutator(next);
     state = next;
-    if (next.customActivities !== before) syncCustom();
+    if (next.customActivities !== before
+      || next.customPartners !== beforeP || next.customMoods !== beforeM) syncCustom();
     save();
     notify();
     return state;
@@ -208,6 +216,37 @@
         });
       });
     },
+    /* --------------- 우리 반 사람 · 기분 (선생님이 더한 것) ---------------
+       활동과 **같은 방식**입니다. 지우면 학생마다 켜 둔 목록에서도 함께 지웁니다. */
+    addPartner: function (o) {
+      var a = Object.assign({ id: uid('px'), name: '', icon: 'pFriend', createdAt: Date.now() }, o);
+      set(function (x) { x.customPartners = (x.customPartners || []).concat([a]); });
+      return a.id;
+    },
+    removePartner: function (id) {
+      set(function (x) {
+        x.customPartners = (x.customPartners || []).filter(function (a) { return a.id !== id; });
+        x.students = x.students.map(function (s) {
+          var v = (s.partnerIds || []).filter(function (k) { return k !== id; });
+          return v.length === (s.partnerIds || []).length ? s : Object.assign({}, s, { partnerIds: v });
+        });
+      });
+    },
+    addMood: function (o) {
+      var a = Object.assign({ id: uid('mx'), name: '', icon: 'moodFun', createdAt: Date.now() }, o);
+      set(function (x) { x.customMoods = (x.customMoods || []).concat([a]); });
+      return a.id;
+    },
+    removeMood: function (id) {
+      set(function (x) {
+        x.customMoods = (x.customMoods || []).filter(function (a) { return a.id !== id; });
+        x.students = x.students.map(function (s) {
+          var v = (s.moodIds || []).filter(function (k) { return k !== id; });
+          return v.length === (s.moodIds || []).length ? s : Object.assign({}, s, { moodIds: v });
+        });
+      });
+    },
+
     removeActivity: function (id) {
       set(function (x) {
         x.customActivities = (x.customActivities || []).filter(function (a) { return a.id !== id; });

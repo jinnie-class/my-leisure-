@@ -298,4 +298,66 @@
     var on = s && s.moodIds;
     return D.moods.filter(function (m) { return !on || on.indexOf(m.id) >= 0; });
   };
+
+  /* ═══════ 선생님이 더한 사람 · 기분 ═══════
+     `우리 반 활동 더하기` 와 **같은 방식**입니다 (activities.js 의 setCustomActivities).
+     ▸ 기본 목록은 그대로 두고, 더한 것을 **뒤에 붙입니다.**
+       기본을 건드리면 예전 기록이 가리키던 것이 사라집니다.
+     ▸ 문장에 쓸 말은 선생님이 안 쓰면 **이름에서 자동으로** 만듭니다.
+       조사는 손으로 붙이지 않고 App.waGwa 를 씁니다 (가족과 · 엄마와). */
+  var BASE_PARTNERS = D.partners.slice();
+  var BASE_MOODS = D.moods.slice();
+
+  /* ⛔ 목록을 **새 배열로 갈아 끼우면 안 됩니다.**
+       App.partner · App.mood 는 `finder(D.partners)` 로 만들어져
+       **그때의 배열을 붙잡고** 있습니다. 새 배열을 대입하면 고르는 칸에는
+       나오는데 `App.mood(id)` 는 못 찾아서, 문장이 통째로 빈 채로 나옵니다.
+     ▸ 그래서 **제자리에서** 비우고 다시 채웁니다 (배열 자체는 그대로). */
+  function refill(arr, items) {
+    arr.length = 0;
+    items.forEach(function (x) { arr.push(x); });
+    return arr;
+  }
+
+  App.setCustomPartners = function (list) {
+    refill(D.partners, BASE_PARTNERS.concat((list || []).map(function (o) {
+      var name = String(o.name || '').trim();
+      return {
+        id: o.id, name: name,
+        /* `가족과` 처럼 조사까지 붙인 꼴. 혼자 같은 예외는 기본 목록에만 있습니다 */
+        phrase: o.phrase || (App.waGwa ? App.waGwa(name) : name + '와'),
+        icon: o.icon || 'pFriend',
+        imageKey: o.imageKey || name,      // images/avatars/<이름>.png 가 있으면 씁니다
+        custom: true
+      };
+    })));
+  };
+
+  App.setCustomMoods = function (list) {
+    refill(D.moods, BASE_MOODS.concat((list || []).map(function (o) {
+      var name = String(o.name || '').trim();
+      /* `설레요` → 어간 `설레` : 끝의 `요` · `어요` · `해요` 를 떼어 씁니다.
+         정확한 활용은 한국어라 어려우므로, 선생님이 `일기에 쓸 말` 을 직접 쓰면
+         그것을 그대로 씁니다 (아래 past). */
+      var past = o.past || name;
+      return {
+        id: o.id, name: name,
+        past: past,                       // 일기 문장 : 기분이 **설렜어요**.
+        conn: o.conn || name,             // 여럿일 때 잇는 말
+        stem: o.stem || name,
+        pre: o.pre || name,
+        icon: o.icon || 'moodFun',
+        imageKey: o.imageKey || past,     // images/얼굴표정/<일기에 쓸 말>.png
+        custom: true
+      };
+    })));
+  };
+  App.isCustomPartner = function (id) {
+    var p = D.partners.filter(function (x) { return x.id === id; })[0];
+    return !!(p && p.custom);
+  };
+  App.isCustomMood = function (id) {
+    var m = D.moods.filter(function (x) { return x.id === id; })[0];
+    return !!(m && m.custom);
+  };
 })();
