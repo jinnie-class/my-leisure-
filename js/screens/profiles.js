@@ -145,10 +145,22 @@
       }, 350);
     }
 
+    /* 왼쪽 위 : 홈 화면과 **똑같이** `나의 여가` 글자 그림입니다.
+       ⚠ 예전에는 집 모양이었는데 누르면 **표지**로 갔습니다. 그림과 가는 곳이
+         달라서, 집을 누르면 홈으로 갈 줄 알게 됩니다. 여기서는 학생을 아직
+         안 골랐으니 홈으로 갈 수도 없습니다.
+       ▸ 홈 화면 왼쪽 위와 같은 자리·같은 그림·같은 곳 — 한 번 익히면 어디서나 같습니다. */
+    var coverWord = App.uiImage('coverWord');
+
     return html`<div class="app" data-corner="home">
       <${C.TopBar}
-        left=${html`<${C.IconBtn} uiKey="home" icon="home" label="표지로 가기"
-          onClick=${function () { p.nav('cover'); }} />`} />
+        left=${html`<button type="button" class="cover-word"
+            onClick=${function () { p.nav('cover'); }}
+            aria-label="표지로 가기" title="표지로 가기">
+          ${coverWord
+            ? html`<img src=${coverWord} alt="" />`
+            : html`<span class="cover-word-text">나의 여가</span>`}
+        </button>`} />
 
       <${C.Stage}>
         <div class="q">
@@ -166,7 +178,17 @@
             </button>`;
           })}
         </div>` : html`<${C.Banner} icon="people">
-          아직 등록된 학생이 없어요. 표지의 <b>톱니바퀴</b> 를 눌러 선생님 설정에서 학생을 추가해 주세요.
+          <!-- ★ 안내만 하지 않고 **누르면 바로 그 일이 일어나게** 합니다.
+                 예전에는 '표지의 톱니바퀴를 눌러 …' 라고 딴 화면을 가리켰습니다.
+                 선생님이 표지로 돌아가 톱니바퀴를 찾아야 했습니다.
+                 갈 곳을 말로 알려 주는 대신 **여기에 그 단추를 둡니다.**
+                 ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+          <b>아직 등록된 학생이 없어요.</b>
+          <div class="small">선생님 설정에서 학생을 추가해 주세요.</div>
+          <div class="wrap" style=${{ marginTop: '.6rem' }}>
+            <${C.Btn} kind="primary" icon="gear"
+              onClick=${function () { p.nav('teacher'); }}>선생님 설정 열기<//>
+          </div>
         <//>`}
 
       <//>
