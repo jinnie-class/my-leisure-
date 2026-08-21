@@ -28,6 +28,10 @@
     time:  'images/시간/',
     place: 'images/장소/',           // 교실.png · 집.png · 조리실.png …
     again: 'images/또하기/',         // 또 하고 싶어요.png · … (일기 저장 뒤 질문)
+    /* 일기 제목 고르기 칸의 그림. 제목은 활동에 따라 달라지지만(텃밭 가꾸기 …)
+       그림은 **제목의 꼴**을 나타내므로 파일 이름은 늘 같습니다.
+       자세한 것은 images/제목/README.md 를 보세요. */
+    title: 'images/제목/',
     supply: 'images/준비물/',        // 가방.png · 물통.png · 앞치마.png …
     corner: 'images/코너명/',        // 여가 계획하기.png · 여가 지도.png · 여가 일기.png · 여가 포트폴리오.png
     ext: '.png',

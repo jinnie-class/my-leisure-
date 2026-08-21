@@ -889,10 +889,22 @@
       var short = App.shortName(act) || (act ? act.name : '여가활동');
       var who = f.f1a || '';
       var mood = App.mood((draft.moodIds || [])[0]);
-      var out = [{ name: act ? act.name : '나의 여가', icon: 'star' }];
-      if (who) out.push({ name: who + '와 함께한 ' + short, icon: 'pFriend' });
+      /* ⛔ 하트 · 별은 쓰지 않습니다.
+           지도에서 **하트 = 좋아해요**, **별 = 도전하고 싶어요** 를 뜻합니다.
+           여기에도 같은 모양을 쓰면 한 그림이 서로 다른 뜻으로 두 번 보입니다.
+         ▸ img 는 images/제목/<이름>.png. 파일이 없으면 icon 의 SVG 가 나옵니다. */
+      var out = [{ name: act ? act.name : '나의 여가', img: '제목 그대로', icon: 'paper' }];
+      /* ⚠ `가족와 함께한` 처럼 나오던 것을 고쳤습니다.
+           받침에 따라 `과/와` 가 달라지므로 App.waGwa 를 씁니다 (가족과 · 친구와).
+         ⚠ 혼자 한 날은 `혼자와 함께한` 이 되어 말이 되지 않았습니다.
+           혼자일 때는 `혼자 한 ○○` 로 바꿉니다. */
+      if (who === '혼자') {
+        out.push({ name: '혼자 한 ' + short, img: '함께한', icon: 'pAlone' });
+      } else if (who) {
+        out.push({ name: App.waGwa(who) + ' 함께한 ' + short, img: '함께한', icon: 'pFriend' });
+      }
       if (mood) out.push({ name: (mood.pre || mood.name) + ' ' + short, mood: mood, icon: mood.icon });
-      out.push({ name: '처음 해 본 ' + short, icon: 'heart' });
+      out.push({ name: '처음 해 본 ' + short, img: '처음 해 본', icon: 'avSprout' });
       var seen = {}, uniq = [];
       out.forEach(function (o) { if (!seen[o.name]) { seen[o.name] = 1; uniq.push(o); } });
       return uniq.slice(0, 4);
@@ -913,10 +925,11 @@
               onClick=${function () { patch({ title: w.name }); App.speakFor(student, w.name); }}
               art=${w.mood
                 ? html`<${C.MoodArt} mood=${w.mood} />`
-                : html`<${C.Art} iconKey=${w.icon} />`} />`;
+                : html`<${C.Art} src=${App.pickImage('title', w.img)} iconKey=${w.icon} />`} />`;
           })}
           <div class="pick" style=${{ cursor: 'default' }}>
-            <span class="thumb"><${C.Art} iconKey="pencil" /></span>
+            <span class="thumb">
+              <${C.Art} src=${App.pickImage('title', '직접 쓰기')} iconKey="pencil" /></span>
             <span class="label">직접 쓰기</span>
             <input class="field" value=${draft.title || ''} placeholder="제목을 써 보아요"
               onChange=${function (e) { patch({ title: e.target.value }); }} />
