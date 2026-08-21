@@ -2454,17 +2454,30 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .fw-bit{
   position:absolute; left:0; top:0; width:11px; height:11px; border-radius:3px;
   background:var(--c); opacity:0;
-  animation:fw-fly 1.15s cubic-bezier(.2,.7,.3,1) both;
+  /* 1.15s → 1.6s. 조각이 더 천천히 날아 오르고 더 오래 떠 있다가 떨어집니다.
+     자리마다 터지는 사이(js 의 d)와 함께 셈해야 합니다 — 마지막 자리가
+     1.7초에 터지므로 1.7 + 1.6 = 3.3초에 끝나고, js 는 3.5초에 치웁니다. */
+  /* ⚠ `both` 가 아니라 `forwards` 입니다.
+       `both` 는 **기다리는 동안에도 0% 칸의 모양**(opacity:1)을 씌웁니다.
+       그래서 아직 안 터진 조각들이 터질 자리에 작은 점으로 미리 보였습니다.
+       자리가 셋이고 사이가 0.44초일 때는 잘 안 보였지만, 여섯 곳에
+       1.7초로 벌리자 점 덩어리가 오래 앉아 있게 되었습니다.
+       `forwards` 면 기다리는 동안에는 위 `opacity:0` 이 그대로라 안 보입니다. */
+  animation:fw-fly 1.6s cubic-bezier(.2,.7,.3,1) forwards;
 }
 @keyframes fw-fly{
   0%   { transform:translate(0,0) scale(.4) rotate(0deg); opacity:1; }
-  70%  { opacity:1; }
-  100% { transform:translate(var(--dx), calc(var(--dy) + 46px)) scale(1) rotate(260deg); opacity:0; }
+  /* 오래 보이게 사라지는 때를 뒤로 미룹니다 (70% → 82%).
+     그러면 떨어지는 마지막 순간에만 옅어져서 더 오래 보입니다. */
+  82%  { opacity:1; }
+  100% { transform:translate(var(--dx), calc(var(--dy) + 74px)) scale(1) rotate(320deg); opacity:0; }
 }
-/* 움직임을 줄여 달라고 한 학생에게는 조용히 나타났다 사라집니다 */
+/* 움직임을 줄여 달라고 한 학생에게는 조용히 나타났다 사라집니다.
+   ⚠ 이쪽도 함께 늘려 주세요. 안 그러면 그 학생만 폭죽이 먼저 끝나고
+     빈 화면을 2초 넘게 보게 됩니다. */
 @media (prefers-reduced-motion: reduce){
-  .fw-bit{ animation:fw-soft .9s ease-out both; }
-  @keyframes fw-soft{ 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
+  .fw-bit{ animation:fw-soft 1.4s ease-out forwards; }
+  @keyframes fw-soft{ 0%{opacity:0} 25%{opacity:1} 75%{opacity:1} 100%{opacity:0} }
 }
 
 /* 질문 바 안의 표시 그림 — `해봤어요` 앞에 발자국처럼 말 앞에 붙습니다.

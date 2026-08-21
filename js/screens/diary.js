@@ -969,8 +969,12 @@
         <//>`;
       }
 
-      /* 완성 — 1단계와 같은 화면을 씁니다 (완성된 그림일기를 함께 보여 줍니다) */
-      return confirmStep(App.sentences.diaryFramesLines(Object.assign({}, draft, { frames: f })).join('\n'));
+      /* 완성 — 1단계와 같은 화면을 씁니다 (완성된 그림일기를 함께 보여 줍니다)
+         ★ 문장 사이는 **한 칸 띄우기**입니다 (예전에는 줄바꿈).
+           일기는 문장이 끝나도 줄을 바꾸지 않고 이어 쓰고, 원고지에서도
+           줄바꿈은 **새 문단**을 뜻해 줄마다 첫 칸이 비어 버립니다.
+           1단계(diaryMade)와 같은 규칙이라야 두 단계가 어긋나지 않습니다. */
+      return confirmStep(App.sentences.diaryFramesLines(Object.assign({}, draft, { frames: f })).join(' '));
     }
 
 

@@ -257,8 +257,20 @@
     var pic = null;
     if (kind === 'draw' && d.drawPhotoId) pic = App.photos.url(d.drawPhotoId);
     else if (kind === 'photo' && pickId) pic = App.photos.url(pickId);
+    /* 원고지에 놓을 **문단** 배열입니다. 한 칸(원소)이 한 문단입니다.
+       ★ 저절로 만들어진 문장은 한 칸 띄워 죽 이어지므로 보통 **한 문단**입니다.
+         학생이 노란 칸에서 손수 줄을 바꾸었을 때만 문단이 여럿이 됩니다.
+       ▸ d.text(더 쓴 글)도 새 문단으로 떼지 않고 **마지막 문단에 이어 붙입니다.**
+         떼어 놓으면 그것만 첫 칸이 비어서, 학생 눈에는 까닭 없이 들여쓴
+         한 줄이 됩니다. */
     var lines = App.sentences.diaryShown(d).split('\n')
-      .concat(d.text ? [d.text] : []).filter(function (s) { return s && s.trim(); });
+      .map(function (s) { return String(s || '').trim(); })
+      .filter(function (s) { return s; });
+    if (d.text && String(d.text).trim()) {
+      var extra = String(d.text).trim();
+      if (lines.length) lines[lines.length - 1] += ' ' + extra;
+      else lines = [extra];
+    }
     if (!lines.length) lines = [App.sentences.diaryBody(d)].filter(Boolean);
 
     /* ★ 고정 규칙 : 1·2단계는 **칸**, 3단계는 **줄**. 절대 바꾸지 마세요.

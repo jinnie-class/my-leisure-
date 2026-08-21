@@ -262,9 +262,14 @@
     var out = [];
     var who = v.f1a || (p ? p.name : '');
     var what = v.f1b || (a ? a.name : '');
-    if (who && what) out.push('나는 ' + App.waGwa(who) + ' 함께 ' + App.eulReul(what) + ' 했어요.');
+    /* ⚠ `혼자와 함께` 는 말이 되지 않습니다. `혼자` 는 사람 이름이 아니라
+         **혼자 했다는 말**이라서, `과/와 함께` 를 붙이면 안 됩니다.
+         `혼자 요가를 했어요.` 처럼 그대로 씁니다. */
+    var alone = (who === '혼자');
+    var withWho = alone ? '혼자' : (who ? App.waGwa(who) + ' 함께' : '');
+    if (withWho && what) out.push('나는 ' + withWho + ' ' + App.eulReul(what) + ' 했어요.');
     else if (what) out.push('나는 ' + App.eulReul(what) + ' 했어요.');
-    else if (who) out.push('나는 ' + App.waGwa(who) + ' 함께 했어요.');
+    else if (withWho) out.push('나는 ' + withWho + ' 했어요.');
     if (v.f2) out.push('활동을 하니 ' + App.moodWord(v.f2) + '.');
     if (v.f3) out.push('가장 기억에 남는 것은 ' + App.iEyo(v.f3) + '.');
     if (v.f4) out.push('다음에는 ' + v.f4 + ' 하고 싶어요.');
@@ -272,12 +277,18 @@
   };
   S.diaryFrames = function (d) { return S.diaryFramesLines(d).join(' '); };
 
-  /* 고른 낱말로 저절로 만들어진 문장 — 노란 칸에는 '한 줄에 한 문장' 으로 보여 줍니다 */
+  /* 고른 낱말로 저절로 만들어진 문장 */
   S.diaryMadeLines = function (d) {
     if (!d || d.level === 3) return [];
     return d.level === 2 ? S.diaryFramesLines(d) : S.diaryAutoLines(d);
   };
-  S.diaryMade = function (d) { return S.diaryMadeLines(d).join('\n'); };
+  /* ★ 문장이 끝나면 **줄을 바꾸지 않고 한 칸 띄워** 이어 씁니다.
+       일기는 원래 그렇게 씁니다. 문장마다 줄을 바꾸면 원고지에서
+       **문장 하나하나가 새 문단**이 되어, 줄마다 첫 칸이 비고 줄 끝에도
+       빈 칸이 줄줄이 남습니다 (규칙 2 — 새 문단은 첫 칸을 비움).
+     ▸ 학생이 노란 칸에서 손수 줄을 바꾼 것(bodyEdit)은 그대로 둡니다.
+       그때는 정말로 문단을 나눈 것이기 때문입니다. */
+  S.diaryMade = function (d) { return S.diaryMadeLines(d).join(' '); };
 
   /* 학생 수준에 맞는 일기 본문
      bodyEdit : 학생이 점선 칸에서 직접 고쳐 쓴 문장. 있으면 그것을 씁니다. */
