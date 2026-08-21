@@ -1062,8 +1062,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
        `width:fit-content` 로 제목 칸을 글자만큼만 좁히고 (가운데 정렬은
        좌우 `margin:auto`), 밑줄은 그 칸의 `width:100%` 로 긋습니다.
      그래서 제목이 길어지면 밑줄도 같이 길어집니다.
-   ※ `images/여가 계획표 밑줄.png` 은 지우지 않고 그대로 두었습니다
-     (다른 곳에 쓸 수 있습니다). 지금은 어디에서도 부르지 않습니다. */
+   ※ 손그림 밑줄은 **등록도 지웠습니다** (2026-08-22). 그림 파일도 없고 부르는
+     코드도 없는데 IMAGE_BASE.ui 에 이름만 남아 있어서, 그림 점검을 돌릴 때마다
+     `없는 그림 1장` 으로 잡혔습니다. 안 쓰기로 한 것은 등록도 지워야
+     점검 결과가 깨끗합니다. */
 .sheet .sheet-title{
   font-size:1.35rem; font-weight:900; letter-spacing:-.03em; text-align:center;
   color:#1c7fa8;
