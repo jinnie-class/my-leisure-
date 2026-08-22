@@ -136,9 +136,16 @@
     function patch(o) { setDraft(Object.assign({}, draft, o)); }
 
     var detail = draft.level === 'detail';
+    /* ★ 쉬운 계획에도 **어디에서**를 묻습니다.
+         예전에는 쉬운 계획에 장소가 아예 없어서, 계획에는 장소가 없는데
+         일기에서는 장소를 물어 **같은 활동을 두 번 다르게** 적게 됐습니다.
+       ▸ 일기에서 이미 같은 문제를 고쳤습니다 — **묻는 내용은 수준이 같고,
+         다른 것은 `얼마나 자세히 적는가`(시간 · 준비물 · 메모)** 뿐입니다.
+       ▸ 자리는 자세한 계획과 **같은 차례**(언제 다음)에 둡니다. 두 수준을
+         오가도 묻는 차례가 같아야 학생이 헷갈리지 않습니다. */
     var KEYS = detail
       ? ['area', 'what', 'who', 'when', 'time', 'place', 'supplies', 'confirm']
-      : ['area', 'what', 'who', 'when', 'confirm'];
+      : ['area', 'what', 'who', 'when', 'place', 'confirm'];
     var key = KEYS[step];
 
     /* ★ 예전에는 고르면 0.45초 뒤에 **저절로 다음 질문으로 넘어갔습니다.**
