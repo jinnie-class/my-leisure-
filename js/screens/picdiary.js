@@ -763,7 +763,11 @@
        ▸ 흰 칸을 아직 못 찾으면(첫 그림) 예전처럼 창 크기로 어림잡습니다. */
     function fitDv() {
       var track = document.querySelector('.stage-track');
-      var col = track && track.querySelector('.confirm-2col');
+      /* ⚠ **흰 칸의 직계 자식**을 찾아야 합니다. 본문은 이제 .confirm-fit
+           껍데기에 싸여 있어서(빈 쪽 막는 장치 — diary.js useFitOnePage),
+           .confirm-2col 로 찾으면 그것이 형제로 잡혀 **본문 높이까지 빼버립니다.**
+           그러면 자리가 확 줄어 그림이 아주 작아집니다. */
+      var col = track && (track.querySelector('.confirm-fit') || track.querySelector('.confirm-2col'));
       if (track && track.clientHeight > 120) {
         var used = 0;
         [].forEach.call(track.children, function (c) {

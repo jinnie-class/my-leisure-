@@ -833,7 +833,10 @@
 
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} note=${lvNote} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
+        <!-- ⚠ 여기에는 단계 설명(note)을 두지 않습니다.
+               단계 설명은 **무엇을 하는 중인지** 알려 주는 말인데, 완성 화면은
+               이미 다 만든 뒤라 알려 줄 일이 없습니다. 오른쪽 자리도 좁습니다. -->
+        <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
              위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다.
              ★ 바깥 껍데기(.confirm-fit)에 zoom 을 걸어 흰 칸을 넘으면 통째로 줄입니다.
@@ -894,18 +897,18 @@
               </div>
             <//>`}
           </div>
-          <!-- 오른쪽에는 크게 보기 하나만 남습니다. 고치는 길은 모두 왼쪽에 있어서,
+          <!-- 오른쪽에는 **완성된 그림일기 그대로**. 고치는 길은 모두 왼쪽에 있어서
                학생이 한 곳만 보면 됩니다.
-               ★ 1단계는 글자를 못 읽으므로 종이를 통째로 줄여 보여 주면 그림도 글도
-                 너무 작습니다. 그림과 문장만 크게 보여 줍니다 (C.BigLook).
-                 인쇄 모양은 그 안의 인쇄 모양 보기 로 봅니다. -->
-          ${level === 1
-            ? html`<${C.BigLook} draft=${draft} student=${student}
-                arrange=${moveS[0]} onMoveArt=${moveArt}
-                picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`
-            : html`<${C.DiaryPreview} draft=${draft} student=${student}
-                arrange=${moveS[0]} onMoveArt=${moveArt}
-                picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`}
+               ★ 여기는 **편집 화면**입니다. 왼쪽에서 그림·문장을 고치면 오른쪽
+                 그림일기가 그대로 바뀌는 것을 보아야 합니다. 그래서 **세 단계 모두**
+                 종이 모양(원고지 칸 · 그림칸)을 그대로 보여 줍니다.
+               ⚠ 한때 1단계만 그림·문장을 크게 잘라 보여 주었습니다(C.BigLook).
+                 글자를 못 읽는 학생을 배려한 것이었지만, **완성 화면은 다 만든
+                 일기를 확인하고 손보는 자리**라 종이 모양이 그대로 보여야 합니다.
+                 크게 보기는 글자를 만드는 단계에서 쓸 것입니다. -->
+          <${C.DiaryPreview} draft=${draft} student=${student}
+            arrange=${moveS[0]} onMoveArt=${moveArt}
+            picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />
         </div>
         </div>
       <//>`;
