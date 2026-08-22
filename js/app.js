@@ -139,6 +139,8 @@
     }
     useIfExists(App.IMAGE_BASE.wallpaper, '--wallpaper');
     useIfExists(App.IMAGE_BASE.mapbg, '--mapbg');
+    /* 포트폴리오 첫 화면 창 다섯 안쪽의 바탕 그림 */
+    useIfExists(App.IMAGE_BASE.folioBg, '--folio-bg');
 
     var root = document.getElementById('root');
     var render = function () {

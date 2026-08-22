@@ -170,14 +170,28 @@
        무엇부터 볼지 학생이 정할 수 없습니다.
      ⚠ `나의 한마디`(한마디 + 돌아보기)도 넷째 칸으로 넣었습니다.
        예전에는 모음 아래에 **늘 붙어 있어서**, 일기장을 고르면 4쪽까지 갈라졌습니다. */
+  /* ★ 네 칸의 그림은 **그 코너에서 쓰는 그림 그대로**입니다 (2026-08-22).
+       예전에는 여기만 코드로 그린 SVG 를 써서, 홈의 코너 그림과 달랐습니다.
+       같은 곳을 가리키는데 그림이 둘이면 학생은 다른 것으로 봅니다.
+         내가 세운 계획 → images/코너명/여가 계획하기.png
+         나의 여가지도  → images/코너명/여가 지도.png
+         나의 일기장    → images/코너명/여가 일기.png
+       ▸ `나의 한마디` 는 코너가 아니라 **여기에서 하는 일**이라 짝이 될 코너
+         그림이 없습니다. 그래서 그림을 따로 그렸습니다 :
+           나의 한마디 → images/나의 한마디.png (App.uiImage 의 `myword`)
+         (한때 `직접 쓰기` + `내가 그리기` 두 장을 나란히 놓았습니다. 넷 가운데
+          하나만 그림이 둘이라 줄이 어긋나 보였습니다 — 한 장으로 되돌립니다) */
   var FOLIO_TABS = [
     /* 네 탭이 **같은 꼴**로 셉니다. 아무것도 없을 때는 `0장` 대신 `아직 없어요`.
        숫자 0 은 못했다는 표시처럼 보입니다 — 앱이 모아보기에서 쓰는 말과 맞췄습니다. */
     { id: 'plan',  name: '내가 세운 계획', icon: 'cornerPlan',
+      art: function () { return html`<${C.PickArt} kind="corner" word="여가 계획하기" iconKey="cornerPlan" />`; },
       count: function (d) { return d.plans.length ? (d.plans.length + '장') : '아직 없어요'; } },
     { id: 'map',   name: '나의 여가지도',  icon: 'cornerMap',
+      art: function () { return html`<${C.PickArt} kind="corner" word="여가 지도" iconKey="cornerMap" />`; },
       count: function (d) { return d.tried.length ? (d.tried.length + '가지') : '아직 없어요'; } },
     { id: 'diary', name: '나의 일기장',    icon: 'cornerDiary',
+      art: function () { return html`<${C.PickArt} kind="corner" word="여가 일기" iconKey="cornerDiary" />`; },
       count: function (d) { return d.diaries.length ? (d.diaries.length + '장') : '아직 없어요'; } },
     /* ⚠ 여기만 `0 / 5` 처럼 **분수로** 세고 있었습니다.
          · 다른 세 탭은 `1장` · `3가지` · `3장` 인데 혼자 꼴이 달라 어수선했습니다.
@@ -185,6 +199,7 @@
            아직 안 쓴 것이 잘못한 것처럼 보이면 안 됩니다.
        ★ 다른 탭과 **같은 꼴**로 쓴 만큼만 셉니다. 못 채운 칸은 세지 않습니다. */
     { id: 'me',    name: '나의 한마디',    icon: 'pencil',
+      art: function () { return html`<${C.Art} src=${App.uiImage('myword')} iconKey="pencil" />`; },
       count: function (d, st) {
         if (!st) return '';
         var n = (st.word ? 1 : 0);
@@ -193,6 +208,50 @@
         return n ? (n + '줄') : '아직 없어요';
       } }
   ];
+
+  /* ═══════ 4개씩 2줄로 끊어 보여 주고, 넘치면 **양쪽 화살표**로 넘기기 ═══════
+     ★ 이 앱은 학생 화면에 **스크롤을 만들지 않습니다.** 고를 것이 많다고
+       칸을 늘리면 흰 칸을 넘겨 좌우 여러 쪽으로 갈라지고, 학생은 제 것을
+       다 보려면 화면을 넘겨야 합니다.
+     ▸ 한 쪽에 **여섯 개(3 x 2)** 씩만 놓고, 남은 것은 화살표로 넘깁니다.
+       칸 수가 몇이든 화면 높이가 늘 같아서 쪽이 갈라지지 않습니다.
+     ▸ 화살표는 되돌아가기와 **같은 채워진 삼각형**입니다 (인수인계 15-10).
+     ★ 한 줄에 **셋**입니다. 넷씩 놓았더니 그림이 작아 보기 힘들고, 한 번에
+       여덟 개가 쏟아져 학생이 무엇을 볼지 헤맸습니다. 셋이면 칸이 넓어
+       그림이 크고, 한 쪽에 여섯이라 한눈에 담깁니다. */
+  var PER_PAGE = 6;
+  /* per 를 주면 그만큼씩 끊습니다 (일기 카드는 키가 커서 **넉 장**씩) */
+  function pageOf(list, pg, per) {
+    var n = per || PER_PAGE;
+    var pages = Math.max(1, Math.ceil((list || []).length / n));
+    var p = Math.min(Math.max(0, pg || 0), pages - 1);
+    return { pages: pages, page: p, items: (list || []).slice(p * n, p * n + n) };
+  }
+  /* info : pageOf 가 낸 것 · onGo(새 쪽번호) · gridCls : 안쪽 격자의 class
+     hideCount : `1 / 2` 를 여기 말고 **다른 데**(칸 머리줄) 에 둘 때 씁니다.
+       한 줄이 18px 인데, 창이 둘이면 36px 입니다. 그만큼 그림이 작아집니다. */
+  function flowBox(info, onGo, gridCls, kids, label, hideCount) {
+    var multi = info.pages > 1;
+    function arrow(dir) {
+      var off = dir < 0;
+      return html`<button type="button" class="flow-arrow"
+          aria-label=${(label || '') + (off ? ' 앞으로' : ' 다음')}
+          disabled=${off ? info.page === 0 : info.page >= info.pages - 1}
+          onClick=${function () { onGo(info.page + dir); }}>
+        <span class="ico" aria-hidden="true"
+          dangerouslySetInnerHTML=${{ __html: App.icon(off ? 'back' : 'next') }} />
+      </button>`;
+    }
+    return html`<div class="flow">
+      ${multi ? arrow(-1) : null}
+      <div class="flow-mid">
+        <div class=${gridCls}>${kids}</div>
+        ${(multi && !hideCount) ? html`<span class="flow-n" role="status" aria-live="polite">
+          ${info.page + 1} / ${info.pages}</span>` : null}
+      </div>
+      ${multi ? arrow(1) : null}
+    </div>`;
+  }
 
   /* ------------------------- 기간 계산 ------------------------- */
   function rangeOf(student) {
@@ -378,9 +437,13 @@
       <div class="book-page">
         <div class="sheet-title" style=${{ fontSize: '1.4rem' }}>마지막 돌아보기</div>
         <div class="stack" style=${{ marginTop: '.7rem' }}>
+          <!-- 조사(을/를 · 이에요/예요)는 넣은 말에 맞춰 App.reviewLine 이 고릅니다.
+               아직 안 쓴 줄은 밑줄만 남기고 조사도 붙이지 않습니다. -->
           ${App.DATA.reviewFrames.map(function (f) {
+            var v = rv[f.id];
             return html`<div key=${f.id} class="sentence">
-              ${f.before}<u style=${{ padding: '0 .4rem' }}>${rv[f.id] || '　　　　　　'}</u>${f.after}
+              ${v ? App.reviewLine(f, v)
+                  : html`<${React.Fragment}>${f.before}<u style=${{ padding: '0 .4rem' }}>　　　　　　</u>${f.after}<//>`}
             </div>`;
           })}
         </div>
@@ -393,12 +456,25 @@
     App.useStore();
     var student = App.store.current();
     var tab = useState('pick');     // pick | board | book
-    /* 모음 셋 가운데 무엇을 볼지 — **학생이 고릅니다.**
-       무엇을 보여 줄지 고르는 것도 발표의 한 부분이라서요. */
-    var folioTab = useState('plan');   // plan | map | diary
+    /* 모음 넷 가운데 무엇을 볼지 — **학생이 고릅니다.**
+       무엇을 보여 줄지 고르는 것도 발표의 한 부분이라서요.
+       ★ `tab` 을 받아서 엽니다. 그림일기·일기 고치기에서 돌아올 때
+         **떠났던 칸(나의 일기장)** 으로 돌아와야 앞 화면으로 느껴집니다. */
+    /* ★ 아무것도 안 골랐으면(null) **첫 화면**입니다 — 큰 창 넷만 놓입니다.
+         홈의 코너 화면과 같은 짜임이라, 학생이 이미 아는 모습입니다. */
+    var folioTab = useState(function () { return (p.params && p.params.tab) || null; });
     /* 여가지도 칸에서 네 가지 표시 가운데 무엇을 보고 있는지 */
     var mapPick = useState('tried');   // tried | like | challenge | unsure
+    var mapPageS = useState({});       // 실내·실외 창이 지금 몇 쪽을 보고 있는지
+    var diaryPageS = useState(0);      // 일기장이 지금 몇 쪽을 보고 있는지
     var showS = useState(false);    // 교실 TV 전시 모드
+    var planOpenS = useState(null);    // 눌러서 열어 본 계획 (계획표 창)
+    /* 나의 한마디 — 일기와 **같은 세 단계**. 처음에는 그 학생의 일기 단계로 엽니다. */
+    var meLvS = useState(function () { return (student && student.diaryLevel) || 1; });
+    var meRowS = useState('r1');       // 돌아보기에서 지금 채우고 있는 줄
+    var mePartS = useState('word');    // 보는 쪽 : word(한마디) | review(돌아보기)
+    var meSlotS = useState('act');     // 한마디에서 채우는 자리 : act | mood
+    var mePageS = useState({});        // 고르는 칸이 지금 몇 쪽을 보고 있는지
     var range = rangeOf(student);
 
     var data = useMemo(function () {
@@ -476,6 +552,448 @@
       </div>`);
     }
 
+    /* --------------- 내가 세운 계획 모음 ---------------
+       이 기간의 계획표를 **한 장씩 이어** 인쇄합니다. 일기장 인쇄와 같은 방식이라
+       (`.book-page` 가 쪽을 나눕니다) 묶으면 그대로 계획 모음집이 됩니다. */
+    function printPlans() {
+      if (!data.plans.length) { App.ui.toast('이 기간에 세운 계획이 없어요.'); return; }
+      App.printNode(html`<div>
+        ${data.plans.map(function (pl) {
+          return html`<div key=${pl.id} class="book-page">
+            <${C.PlanSheet} plan=${pl} student=${student} />
+          </div>`;
+        })}
+      </div>`);
+    }
+
+    /* 계획 하나를 눌러 열어 본 창 — **내가 쓴 계획표 그대로** 보여 줍니다 */
+    var openPlan = planOpenS[0] ? App.store.plan(planOpenS[0]) : null;
+    var planModal = openPlan && html`<${C.Modal} title="내가 세운 계획" wide=${true}
+        speakText=${App.sentences.plan(openPlan)}
+        onClose=${function () { planOpenS[1](null); }}
+        actions=${html`<${React.Fragment}>
+          <${C.Btn} icon="print" onClick=${function () {
+            App.printNode(html`<${C.PlanSheet} plan=${openPlan} student=${student} />`);
+          }}>이 계획표 인쇄하기<//>
+          <${C.Btn} kind="ok" onClick=${function () { planOpenS[1](null); }}>닫기<//>
+        <//>`}>
+      <${C.PlanSheet} plan=${openPlan} student=${student} />
+    <//>`;
+
+    /* ══════════════ 나의 한마디 — 일기와 **같은 세 단계** ══════════════
+       ★ 예전에는 세 단계 모두 **글자를 쳐 넣는 칸**뿐이었습니다. 아직 글을
+         못 쓰는 1단계 학생은 여기를 아예 쓸 수 없었습니다.
+       ▸ 담기는 곳은 단계와 상관없이 **한 곳**입니다 (student.word · student.review).
+         그래야 전시판형 · 책자형 인쇄가 단계를 몰라도 그대로 나옵니다.
+       ▸ 단계마다 다른 것은 **고르는 방법**뿐입니다.
+           1단계  그림 두 개를 골라 문장이 만들어집니다
+           2단계  낱말 알약을 골라 빈칸을 채웁니다 (직접 써도 됩니다)
+           3단계  내 말로 씁니다 (막히면 도움말을 봅니다)
+       ▸ `돌아보기` 네 줄은 세 단계가 **같은 짜임**입니다 — 왼쪽에서 채울 줄을
+         고르고 오른쪽에서 넣을 것을 고릅니다. 네 줄을 한꺼번에 펼치면
+         그림이 네 벌이라 화면을 넘겨 2쪽이 됩니다. */
+    var meLv = meLvS[0];
+
+    /* 고를 거리 — 이 기간에 **해 본 활동**이 먼저입니다.
+       제 기록에서 고르는 것이라 남의 말이 아니라 제 말이 됩니다.
+       아직 표시가 없으면 일기에 나온 활동, 그것도 없으면 우리 반 활동 전부.
+       ⚠ 여덟 개로 자르지 않습니다 — 한 쪽에 여덟씩 놓고 **화살표로 넘깁니다**
+         (pageOf · flowBox). 잘라 두면 뒤쪽 활동은 아예 고를 수 없었습니다. */
+    function meActs() {
+      var out = data.tried.slice();
+      if (!out.length) {
+        var seen = {};
+        data.diaries.forEach(function (dy) {
+          var a = App.act(dy.activityId);
+          if (a && !seen[a.id]) { seen[a.id] = 1; out.push(a); }
+        });
+      }
+      if (!out.length) out = App.visibleCards(student);
+      return out;
+    }
+    function saveWord(v) { App.store.updateStudent(student.id, { word: v }); }
+    function saveWordPick(next) {
+      var wp = Object.assign({}, student.wordPick || {}, next);
+      var a = App.act(wp.actId), mo = App.mood(wp.moodId);
+      /* 둘 다 골랐을 때에만 문장을 만듭니다. 하나만 골랐을 때 반쪽 문장을
+         넣어 두면, 인쇄한 종이에 말이 안 되는 줄이 남습니다.
+         ⚠ 활동 이름은 **줄이지 않습니다.** App.shortName 을 쓰면
+           `나는 수집을 할 때` 처럼 하다 만 말이 됩니다 (수집하기 → 수집).
+           조사는 App.eulReul 이 이름에 맞춰 을/를 을 고릅니다. */
+      var say = (a && mo)
+        ? ('나는 ' + App.eulReul(a.name) + ' 할 때 ' + mo.name + '.')
+        : (student.word || '');
+      App.store.updateStudent(student.id, { wordPick: wp, word: say });
+    }
+    /* 줄에 채워 넣은 **말로 활동을 되찾습니다.**
+       담기는 것은 글자(이름)뿐이라, 그림을 보여 주려면 이름으로 찾아야 합니다.
+       ★ 담는 것을 id 로 바꾸지 않은 까닭 : 학생이 **직접 쓴 말**도 들어오고
+         (2·3단계 직접 쓰기), 인쇄·전시판형이 이미 글자를 그대로 씁니다. */
+    function actByName(nm) {
+      if (!nm) return null;
+      var all = App.allActivities();
+      for (var i = 0; i < all.length; i++) if (all[i].name === nm) return all[i];
+      return null;
+    }
+
+    function saveReview(id, v) {
+      var rv = Object.assign({}, student.review || {});
+      rv[id] = v;
+      App.store.updateStudent(student.id, { review: rv });
+    }
+
+    /* 돌아보기 — 왼쪽 네 줄(고를 줄) + 오른쪽 채울 거리.
+       ★ 줄마다 **읽어주기**를 붙입니다. 1단계 학생은 글을 못 읽으므로,
+         읽어 주지 않으면 어느 줄을 고르는지 알 수가 없습니다.
+       ★ 조사는 App.reviewLine 이 넣은 말에 맞춰 고릅니다
+         (`나는 만들기을 좋아해요` 처럼 되지 않게). */
+    /* ═══════════ 나의 한마디 · 돌아보기 — 세 단계가 **같은 짜임** ═══════════
+       ★ 화면을 왼쪽 기둥 · 오른쪽 마당으로 나눕니다.
+           왼쪽  무엇을 하는 칸인지(알약) · 지금 채우는 자리(알약) · **누구의 것인지**
+           오른쪽 고르는 것(4개씩 2줄 + 양쪽 화살표) · 만들어지는 문장
+         세 단계가 같은 자리를 쓰므로, 단계를 옮겨도 학생이 다시 익힐 것이 없습니다.
+       ▸ 다른 것은 **고르는 방법**뿐입니다 : 그림(1) · 낱말(2) · 내 말(3).
+       ▸ 한마디와 돌아보기는 **한 번에 하나만** 봅니다 (맨 위 줄 작은 탭).
+         3단계도 나눕니다 — 둘을 함께 두면 무엇을 하는 화면인지 흐려집니다. */
+
+    /* 왼쪽 기둥 — 무엇을 하는 칸인지 · 지금 채우는 자리 · 누구의 것인지 */
+    /* ⚠ 예전에는 왼쪽 기둥 하나(meSide)에 알약과 나 캐릭터를 함께 담았습니다.
+         지금은 **바 둘**로 나뉘어, 알약은 위 바 · 나 캐릭터는 아래 바에
+         각각 들어갑니다. 그래서 그 함수는 지웠습니다. */
+
+    /* 고르는 칸 — 넘치면 양쪽 화살표.
+         낱말(2·3단계) : 3개씩 2줄 = 여섯 개
+         그림(1단계)   : **4개씩 한 줄** — 줄이 하나뿐이라 그림을 크게 담습니다.
+                        1단계 학생에게는 그림이 크고 개수가 적어야 합니다. */
+    function mePicks(key, list, render, label, per, gridCls) {
+      var info = pageOf(list, mePageS[0][key], per);
+      return flowBox(info, function (n) {
+        var next = Object.assign({}, mePageS[0]); next[key] = n;
+        mePageS[1](next);
+      }, gridCls || 'me-picks', info.items.map(render), label);
+    }
+
+    /* 만들어지는 한마디 — 고를 때마다 여기서 문장이 자랍니다 */
+    function meSayBar() {
+      var say = student.word || '나는 　　　 할 때 　　　.';
+      return html`<div class="me-saybar">
+        <p class="me-say" aria-live="polite">${say}</p>
+        <${C.Speak} text=${say} />
+      </div>`;
+    }
+
+    /* 돌아보기 네 줄.
+       ★ 줄마다 **읽어주기**를 붙입니다. 1단계 학생은 글을 못 읽으므로
+         읽어 주지 않으면 어느 줄인지 알 수가 없습니다.
+       ★ 조사는 App.reviewLine 이 넣은 말에 맞춰 고릅니다
+         (`나는 만들기을 좋아해요` 처럼 되지 않게).
+       ▸ writeIn 이면 줄 안에서 **바로 씁니다** (3단계). */
+    function reviewRows(writeIn) {
+      var frames = App.DATA.reviewFrames || [];
+      var cur = meRowS[0];
+      var rv = student.review || {};
+      return html`<div class="me-rows">
+        ${frames.map(function (f) {
+          var on = cur === f.id;
+          var val = rv[f.id] || '';
+          var say = val ? App.reviewLine(f, val) : (f.before + '무엇' + f.after);
+          var tail = (val && f.josa)
+            ? (f.josa.indexOf('/') >= 0 ? App.josa(val, f.josa).slice(val.length) : f.josa)
+            : '';
+          var got = actByName(val);
+          return html`<div key=${f.id} class=${'me-row' + (on ? ' on' : '')}>
+            <!-- ★ 채워 넣은 활동의 **그림을 줄 맨 왼쪽에 크게**.
+                   1단계 학생은 글을 못 읽습니다. 그림이 없으면 어느 줄에
+                   무엇을 넣었는지 소리로 들어야만 알 수 있었습니다.
+                   왼쪽에 두면 네 줄을 훑을 때 그림만 따라가면 됩니다.
+                 ▸ 학생이 직접 쓴 말이면 짝이 되는 활동이 없어 그림도 없습니다.
+                   그때도 줄이 어긋나지 않게 **빈 자리는 남겨 둡니다**. -->
+            <span class=${'me-row-art' + (got ? '' : ' none')}
+                  role=${got ? 'img' : null} aria-label=${got ? got.name : null}>
+              ${got && html`<${C.ActivityArt} activity=${got} />`}</span>
+            ${writeIn
+              ? html`<span class="me-row-txt">
+                  <span>${f.before}</span>
+                  <input class="field me-row-in" value=${val}
+                    onFocus=${function () { meRowS[1](f.id); }}
+                    onChange=${function (e) { saveReview(f.id, e.target.value); }} />
+                  <span>${tail + f.after}</span>
+                </span>`
+              : html`<button type="button" class="me-row-txt"
+                    aria-pressed=${on ? 'true' : 'false'}
+                    onClick=${function () { meRowS[1](f.id); }}>
+                  <span>${f.before}</span>
+                  <span class=${'blank' + (val ? ' on' : '')}>${val || '　　　'}</span>
+                  <span>${tail + f.after}</span>
+                <//>`}
+            <${C.Speak} text=${say} />
+          </div>`;
+        })}
+      </div>`;
+    }
+
+    /* 나의 한마디 + 돌아보기를 **한 장에 함께** 인쇄합니다.
+       둘은 하나의 마무리 글이라, 따로 내면 종이가 둘로 갈라집니다. */
+    function printMe() {
+      var rv = student.review || {};
+      return html`<div class="sheet">
+        <div class="sheet-title">나의 한마디</div>
+        <div class="sheet-meta">${student.name} · ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</div>
+        <div class="sentence me-print-say">${student.word || '　'}</div>
+        <div class="sheet-title" style=${{ marginTop: '20px' }}>돌아보기</div>
+        <div class="stack">
+          ${(App.DATA.reviewFrames || []).map(function (f) {
+            var txt = App.reviewLine(f, rv[f.id]);
+            return html`<div key=${f.id} class="sentence">
+              ${txt || html`<${React.Fragment}>${f.before}
+                <u style=${{ padding: '0 .5rem' }}>　　　　　　</u>${f.after}<//>`}
+            </div>`;
+          })}
+        </div>
+      </div>`;
+    }
+
+    /* ══════════ 나의 여가 포트폴리오 책자 — **네 코너를 한 권으로** ══════════
+       ★ 코너마다 따로 인쇄하면 종이가 네 뭉치로 흩어집니다. 이 코너는 원래
+         모아 두는 곳이므로, **한 번에 이어서** 낼 수 있어야 묶어서 한 권이 됩니다.
+         차례 : 표지 → 내가 세운 계획 → 나의 여가지도 → 나의 일기장 → 나의 한마디
+       ▸ 쪽 나누기는 `.book-page`(종이 한 장)와 `.pd-page`(그림일기 A4)가 맡습니다
+         (print.css 의 break-after:page).
+       ▸ 아무것도 없는 코너는 **건너뜁니다** — 빈 종이가 끼면 묶을 때 헷갈립니다. */
+    function bookMapSheet() {
+      var statusMap = App.store.mapOf(student.id);
+      var cards = App.visibleCards(student).filter(function (c) {
+        var s = statusMap[c.id];
+        return s && (s.tried || s.like || s.challenge || s.unsure);
+      });
+      if (!cards.length) return null;
+      var sides = [{ k: 'indoor', nm: '실내', cls: 'in' }, { k: 'outdoor', nm: '실외', cls: 'out' }];
+      return html`<div class="sheet">
+        <div class="sheet-title">나의 여가지도</div>
+        <div class="sheet-meta">${student.name} · ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</div>
+        ${sides.map(function (side) {
+          var mine = cards.filter(function (c) { return c.area === side.k; });
+          return html`<div key=${side.k} class="bk-side">
+            <div class="bk-side-head">
+              <span class=${'folio-where ' + side.cls}>${side.nm}</span>
+              <b>${mine.length}가지</b>
+            </div>
+            ${mine.length ? html`<div class="bk-grid">
+              ${mine.map(function (c) {
+                var s = statusMap[c.id] || {};
+                var on = App.DATA.mapStates.filter(function (m) { return s[m.id]; });
+                return html`<div key=${c.id} class="bk-card">
+                  <span class="bk-art"><${C.ActivityArt} activity=${c} /></span>
+                  <span class="bk-nm">${c.name}</span>
+                  <span class="bk-marks">
+                    ${on.map(function (m) {
+                      return html`<span key=${m.id} class="bk-mark" title=${m.name}
+                        ><${C.StateArt} state=${m} /></span>`;
+                    })}
+                  </span>
+                </div>`;
+              })}
+            </div>` : html`<p class="muted small">아직 없어요.</p>`}
+          </div>`;
+        })}
+      </div>`;
+    }
+
+    function printBook() {
+      var mapSheet = bookMapSheet();
+      return html`<div>
+        <!-- 표지 — 누구의 책인지, 어느 기간인지, 무엇이 담겼는지 -->
+        <div class="book-page bk-cover">
+          <div class="bk-cover-face"><${C.AvatarArt} student=${student} /></div>
+          <div class="bk-cover-title">나의 여가 포트폴리오</div>
+          <div class="bk-cover-name">${student.name}</div>
+          <div class="bk-cover-range">
+            ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</div>
+          <div class="bk-cover-list">
+            <div>내가 세운 계획 · ${data.plans.length}장</div>
+            <div>나의 여가지도 · ${data.tried.length}가지</div>
+            <div>나의 일기장 · ${data.diaries.length}장</div>
+            <div>나의 한마디</div>
+          </div>
+        </div>
+
+        ${data.plans.map(function (pl) {
+          return html`<div key=${'p' + pl.id} class="book-page">
+            <${C.PlanSheet} plan=${pl} student=${student} />
+          </div>`;
+        })}
+
+        ${mapSheet && html`<div class="book-page">${mapSheet}</div>`}
+
+        ${data.diaries.map(function (d) {
+          return html`<div key=${'d' + d.id} class="pd-page">
+            <${C.PicDiarySheet} diary=${d} student=${student} trace="text" />
+          </div>`;
+        })}
+
+        <div class="book-page">${printMe()}</div>
+      </div>`;
+    }
+
+    function meBody() {
+      var acts = meActs();
+      var moods = App.moodsFor(student);
+      var wp = student.wordPick || {};
+      var mePart = mePartS[0];
+      var slot = meSlotS[0];
+      var rv = student.review || {};
+      var cur = meRowS[0];
+
+      /* 맨 위 줄 : 단계 1·2·3 + 그 단계 설명 + 한마디 / 돌아보기 */
+      var lvTabs = html`<div class="wrap me-lv" style=${{ gap: '.25rem' }}>
+        <span class="small" style=${{ fontWeight: 900 }}>한마디 단계</span>
+        ${App.DATA.diaryLevels.map(function (lv) {
+          return html`<button key=${lv.id} type="button" class=${'tab' + (meLv === lv.id ? ' on' : '')}
+            style=${{ minHeight: '38px', padding: '.1rem .55rem', fontSize: '.85rem' }}
+            aria-pressed=${meLv === lv.id ? 'true' : 'false'} title=${lv.desc}
+            onClick=${function () { meLvS[1](lv.id); }}>${lv.id}<//>`;
+        })}
+        <span class="q-note">${(App.DATA.diaryLevels[meLv - 1] || {}).note || ''}</span>
+        <!-- ★ 셋째 칸 「나의 한마디 모음」 — 다 쓰고 나서 **완성된 것을 함께**
+               보는 자리입니다. 인쇄와 나가는 길도 여기 있습니다.
+             ▸ 돌아보기 안에 따로 바를 두지 않은 까닭 : 들어가는 길이 둘이 되면
+               학생이 어느 쪽이 맞는지 헷갈립니다. 셋을 나란히 두면
+               「쓰기 → 쓰기 → 보기」 차례가 그대로 보입니다.
+             ⛔ 이 주석 안에 백틱을 쓰지 마세요 (인수인계 2-3). -->
+        <span class="me-parts">
+          ${[{ id: 'word', nm: '나의 한마디' }, { id: 'review', nm: '돌아보기' },
+             { id: 'done', nm: '나의 한마디 모음' }].map(function (x) {
+            return html`<button key=${x.id} type="button" class=${'tab' + (mePart === x.id ? ' on' : '')}
+              style=${{ minHeight: '38px', padding: '.1rem .8rem', fontSize: '.9rem' }}
+              aria-pressed=${mePart === x.id ? 'true' : 'false'}
+              onClick=${function () { mePartS[1](x.id); }}>${x.nm}<//>`;
+          })}
+        </span>
+      </div>`;
+
+      /* ── 나의 한마디 모음 ────────────────────────────────────────
+         다 쓰고 나서 **완성된 것을 함께** 보는 자리입니다.
+         인쇄에 나가는 종이 그대로 보여 줍니다 — 보는 것과 나오는 것이
+         같아야 학생이 무엇을 인쇄하는지 압니다.
+         인쇄 · 나가는 길은 흰 칸 아래 단추에 있습니다. */
+      if (mePart === 'done') {
+        return html`<${React.Fragment}>
+          ${lvTabs}
+          <div class="me-done">${printMe()}</div>
+        <//>`;
+      }
+
+      /* ── 나의 한마디 ─────────────────────────────────────────────
+         왼쪽에서 `무엇을 할 때` · `어떤 기분인가요` 를 고르면
+         오른쪽에 그것을 고르는 칸이 나옵니다. 고른 것은 알약 안에 남습니다. */
+      if (mePart === 'word') {
+        var list = slot === 'act' ? acts : moods;
+        /* ⚠ 여기에 「나의 한마디」 알약을 두지 않습니다. 아래 바에 이미 있고,
+             맨 위 줄 제목도 「나의 한마디」 입니다 — 한 화면에 같은 말이 셋이
+             되어 무엇이 무엇인지 흐려졌습니다.
+             여기 남는 것은 **채우는 자리 두 알약**뿐입니다.
+           ⛔ 여기는 JS 자리입니다. HTML 주석(<!-- -->)을 쓰면 문법 오류가 납니다. */
+        var pills = html`<${React.Fragment}>
+          ${[{ id: 'act', nm: '무엇을 할 때' }, { id: 'mood', nm: '어떤 기분인가요' }].map(function (x) {
+            var on = slot === x.id;
+            var got = x.id === 'act' ? App.act(wp.actId) : App.mood(wp.moodId);
+            return html`<button key=${x.id} type="button" class=${'me-slot' + (on ? ' on' : '')}
+                aria-pressed=${on ? 'true' : 'false'}
+                onClick=${function () { meSlotS[1](x.id); }}>
+              <span class="me-slot-nm">${x.nm}</span>
+              ${got && html`<span class="me-slot-got">${got.name}</span>`}
+            <//>`;
+          })}
+        <//>`;
+
+        var picks = (meLv === 1)
+          /* 1단계 — 그림을 골라 문장이 만들어집니다 */
+          ? mePicks(slot, list, function (x) {
+              var on = slot === 'act' ? (wp.actId === x.id) : (wp.moodId === x.id);
+              return html`<${C.Pick} key=${x.id} label=${x.name} speakText=${x.name} selected=${on}
+                onClick=${function () {
+                  saveWordPick(slot === 'act' ? { actId: x.id } : { moodId: x.id });
+                }}
+                art=${slot === 'act'
+                  ? html`<${C.ActivityArt} activity=${x} />`
+                  : html`<${C.MoodArt} mood=${x} />`} />`;
+            }, slot === 'act' ? '활동' : '기분', 4, 'me-picks four')
+          /* 2·3단계 — 낱말 알약. 3단계에서는 **도움**입니다 (글은 제 말로 씁니다) */
+          : mePicks(slot, list, function (x) {
+              var on = slot === 'act' ? (wp.actId === x.id) : (wp.moodId === x.id);
+              return html`<button key=${x.id} type="button" class=${'me-word' + (on ? ' on' : '')}
+                aria-pressed=${on ? 'true' : 'false'}
+                onClick=${function () {
+                  saveWordPick(slot === 'act' ? { actId: x.id } : { moodId: x.id });
+                }}>${x.name}<//>`;
+            }, slot === 'act' ? '활동' : '기분');
+
+        /* ★ 화면을 **바 둘**로 나눕니다 (2026-08-22).
+             위 바 : 채우는 자리(왼쪽 알약) + 고르는 칸(오른쪽)
+             아래 바 : 나 캐릭터(왼쪽) + 만들어지는 말(오른쪽 · 가운데 정렬)
+           고르는 일과 만들어진 말을 눈으로 갈라 두면, 지금 무엇을 하는
+           중인지가 분명해집니다. */
+        return html`<${React.Fragment}>
+          ${lvTabs}
+          <div class="me-bar">
+            <div class="me-slots">${pills}</div>
+            <div class="me-pickarea">${picks}</div>
+          </div>
+          <div class="me-bar">
+            <div class="me-who">
+              <span class="me-who-face"><${C.AvatarArt} student=${student} /></span>
+              <b class="me-who-nm">${student.name}</b>
+            </div>
+            <div class="me-saycol">
+              <span class="me-cap">나의 한마디</span>
+              ${meSayBar()}
+              ${meLv !== 1 && html`<div class="me-write"><${C.Field}
+                label=${meLv === 3 ? '내 말로 써요 — 위 낱말은 도움이에요' : '직접 쓰기 — 내 말로 고쳐도 좋아요'}
+                value=${student.word || ''}
+                placeholder="예) 친구와 함께하는 여가가 제일 즐거워요."
+                onChange=${saveWord} /></div>`}
+            </div>
+          </div>
+        <//>`;
+      }
+
+      /* ── 돌아보기 ────────────────────────────────────────────────
+         1·2단계 : 채울 줄을 고르고 → 오른쪽에서 넣을 것을 고릅니다.
+         3단계   : 네 줄에 **바로 씁니다.** 위 칸은 도움으로 남습니다. */
+      var rPicks = (meLv === 1)
+        ? mePicks('rv', acts, function (a) {
+            return html`<${C.Pick} key=${a.id} label=${a.name} speakText=${a.name}
+              selected=${(rv[cur] || '') === a.name}
+              onClick=${function () { saveReview(cur, a.name); App.speakFor(student, a.name); }}
+              art=${html`<${C.ActivityArt} activity=${a} />`} />`;
+          }, '활동', 4, 'me-picks four')
+        : mePicks('rv', acts, function (a) {
+            return html`<button key=${a.id} type="button"
+              class=${'me-word' + ((rv[cur] || '') === a.name ? ' on' : '')}
+              onClick=${function () { saveReview(cur, a.name); }}>${a.name}<//>`;
+          }, '활동');
+
+      return html`<${React.Fragment}>
+        ${lvTabs}
+        <!-- 돌아보기의 위 바는 **고르는 칸만** 있습니다. 채울 자리는 아래
+             네 줄에서 고르므로, 왼쪽에 알약을 둘 까닭이 없습니다.
+             왼쪽 칸을 비워 두면 그만큼 카드가 좁아지므로 한 칸으로 폅니다. -->
+        <div class="me-bar wide">
+          <div class="me-pickarea">${rPicks}</div>
+        </div>
+        <div class="me-bar">
+          <div class="me-who">
+            <span class="me-who-face"><${C.AvatarArt} student=${student} /></span>
+            <b class="me-who-nm">${student.name}</b>
+          </div>
+          <div class="me-saycol">
+            <span class="me-cap">돌아보기</span>
+            ${reviewRows(meLv === 3)}
+          </div>
+        </div>
+      <//>`;
+    }
+
     /* --------------- 기간 표시 ---------------
        기간을 바꾸는 단추는 '선생님 설정 → 포트폴리오' 한 곳에만 두었습니다.
        학생 화면에는 지금 어느 기간을 보고 있는지만 글로 알려 줍니다. */
@@ -530,32 +1048,101 @@
         <div class="small muted" style=${{ marginTop: '.4rem' }}>
           교실 TV 전시는 저절로 넘어가요. ← → 로도 넘길 수 있어요.</div>
       <//>
+
+      <!-- 나의 한마디 · 돌아보기는 학생이 **화면 안에서** 쓰고, 인쇄는 여기에서.
+           학생 화면에 인쇄 단추를 두면 고르고 쓰는 일에서 눈이 흩어집니다. -->
+      <${C.Sec} title="나의 한마디 인쇄">
+        <p class="muted small">
+          학생이 쓴 <b>나의 한마디</b>와 <b>돌아보기</b> 네 줄을 A4 한 장에 함께 냅니다.
+        </p>
+        <div class="wrap" style=${{ marginTop: '.4rem' }}>
+          <${C.Btn} icon="print" onClick=${function () {
+            toolsS[1](false); App.printNode(printMe());
+          }}>나의 한마디 · 돌아보기 인쇄하기<//>
+        </div>
+      <//>
     <//>`;
 
     return html`<div class="app" data-corner="portfolio">
-      <${C.TopBar} title="여가 포트폴리오"
-        onBack=${function () { p.back("home"); }}
+      <!-- ★ 파란 화살표는 **한 걸음씩** 되짚습니다.
+             창 안에 있으면 → 포트폴리오 첫 화면으로
+             첫 화면이면   → 지나온 앞 화면으로
+           예전에는 창 안에서도 곧장 홈으로 튀어서, 창을 하나 열어 본 학생이
+           포트폴리오 밖으로 나가 버렸습니다. -->
+      <!-- ★ 창 안에서는 맨 위 줄 제목이 **그 창 이름**입니다.
+             예전에는 흰 칸 안에 제목(h3)을 또 두었습니다. 읽어주기까지 붙어
+             60px 을 먹었는데, 그만큼 그림이 작아졌습니다.
+             나가는 알약이 「여가 포트폴리오」 라고 적혀 있으므로
+             제목은 **지금 어디에 있는지**를 알려 주는 편이 낫습니다. -->
+      <${C.TopBar} title=${(view === 'pick' && folioTab[0])
+          ? (FOLIO_TABS.filter(function (t) { return t.id === folioTab[0]; })[0] || {}).name
+          : '여가 포트폴리오'}
+        onBack=${function () {
+          if (view === 'pick' && folioTab[0]) { folioTab[1](null); return; }
+          p.back("home");
+        }}
+        backLabel=${(view === 'pick' && folioTab[0]) ? '포트폴리오 첫 화면으로' : '앞 화면으로'}
         onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${'나의 여가 포트폴리오. 내가 전시하고 싶은 일기를 골라 보세요. ' +
           App.fmtDateShort(data.from) + '부터 ' + App.fmtDateShort(data.to) + '까지, 일기 ' +
           data.diaries.length + '개 가운데 ' + data.exhibited.length + '개를 골랐어요.'} />
-        <!-- 판형을 보는 중일 때만 돌아갈 길을 둡니다. 평소에는 학생 화면 하나뿐이라
-             탭이 필요 없습니다 (탭이 늘 있으면 학생이 무엇을 눌러야 할지 헷갈립니다). -->
+        <!-- 창 안에 있거나 판형을 보는 중일 때만 돌아갈 길을 둡니다.
+             첫 화면에는 나갈 길이 파란 화살표 하나뿐이라야 헷갈리지 않습니다. -->
         ${folioTools && tab[0] !== 'pick' && html`<${C.Btn} size="small" icon="back"
           onClick=${function () { tab[1]('pick'); }}>포트폴리오로 돌아가기<//>`}
-        ${folioTools && tab[0] === 'pick' && html`<${C.Btn} size="small" icon="gear"
+        ${folioTools && tab[0] === 'pick' && folioTab[0] && html`<${C.Btn} size="small" icon="back"
+          className="pastel-pink" onClick=${function () { folioTab[1](null); }}>
+          여가 포트폴리오<//>`}
+        ${folioTools && tab[0] === 'pick' && !folioTab[0] && html`<${C.Btn} size="small" icon="gear"
           className="pastel-blue" onClick=${function () { toolsS[1](true); }}>선생님 도구<//>`}
-        <${C.WhoChip} student=${student} />
+        <!-- ★ **누구의 것인지가 화면 안에 크게 있는 창**에서는 여기에 두지
+               않습니다. 같은 말이 두 번 보입니다.
+                 첫 화면      → 왼쪽 「나」 칸
+                 나의 한마디  → 아래 바의 나 캐릭터
+             ▸ 나머지 창은 화면이 기록으로 채워지므로, 다른 화면과 똑같이
+               맨 위 줄 오른쪽 끝에 알약으로 둡니다. -->
+        ${(tab[0] !== 'pick' || (folioTab[0] && folioTab[0] !== 'me'))
+          && html`<${C.WhoChip} student=${student} />`}
       <//>
 
-      <!-- 인쇄 단추는 **판형을 보고 있을 때만** 아래에 둡니다.
-           학생 화면(pick)에 두면 학생 것과 선생님 것이 한 화면에 섞입니다. -->
-      <${C.Stage} action=${(folioTools && view !== 'pick') ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
-          ${view === 'book' ? '책자형 인쇄하기' : '전시판형 인쇄하기'}<//>` : null}>
+      <!-- 흰 칸 맨 아래 단추
+             · 판형을 보는 중  → 그 판형 인쇄하기 (선생님 일)
+             · 나의 한마디 창  → **한마디와 돌아보기를 함께 인쇄** + 나의 여가로 돌아가기
+                                 둘은 하나의 마무리 글이라 한 장에 같이 냅니다.
+                                 여기가 포트폴리오의 **마지막 칸**이라 나가는 길도 둡니다.
+             · 그 밖         → 없음 (학생 것과 선생님 것을 섞지 않습니다) -->
+      <${C.Stage} action=${(folioTools && view !== 'pick')
+        ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
+            ${view === 'book' ? '책자형 인쇄하기' : '전시판형 인쇄하기'}<//>`
+        /* ★ 나의 한마디 창은 **모음 칸에서만** 아래 단추를 둡니다.
+             고르고 쓰는 칸에는 두지 않습니다 — 화면 안에서 고르고 쓰는
+             일에만 눈이 가야 합니다. 다 쓰고 모음 칸에 오면 그때
+             인쇄하고 나갑니다 (`쓰기 → 쓰기 → 보기·인쇄`). */
+        : (view === 'pick' && folioTab[0] === 'me' && mePartS[0] === 'done')
+        ? html`<${React.Fragment}>
+            <${C.Btn} kind="primary" icon="print"
+              onClick=${function () { App.printNode(printMe()); }}>
+              나의 한마디 · 돌아보기 인쇄하기<//>
+            <${C.Btn} icon="back" className="pastel-pink"
+              onClick=${function () { folioTab[1](null); }}>
+              여가 포트폴리오로 돌아가기<//>
+          <//>`
+        /* ★ 일기를 **한꺼번에 인쇄하는 자리**는 여기입니다 (2026-08-22).
+             예전에는 선생님 도구 창 안에만 있어서, 일기장을 보고 있어도
+             모아 인쇄하는 길이 화면에 없었습니다. 지금 보고 있는 것이
+             일기 모음이므로, 모아 내는 단추도 여기 있어야 합니다.
+           ▸ `따라쓰기 판` · `빈칸 판` 은 선생님이 쓰는 학습지라
+             선생님 도구 창에 그대로 둡니다. */
+        : (view === 'pick' && folioTab[0] === 'diary' && data.diaries.length)
+        ? html`<${C.Btn} kind="primary" icon="print"
+            onClick=${function () { printJournal('text'); }}>
+            일기장 모두 인쇄하기 (${data.diaries.length}장)<//>`
+        : null}>
         ${view === 'pick' ? html`<${React.Fragment}>
-          <!-- 학생 화면에는 **지금 어느 기간을 보고 있는지**만 한 줄로.
+          <!-- 창 안에서만 **지금 어느 기간을 보고 있는지**를 한 줄로 알려 줍니다.
+               첫 화면에서는 왼쪽 「나」 칸 안에 들어가 있습니다.
                인쇄 · 판형 · 기간 고르기는 위 선생님 도구 창으로 옮겼습니다. -->
-          ${folioTools ? html`<div class="folio-range small muted">
+          ${(folioTools && folioTab[0]) ? html`<div class="folio-range small muted">
             ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록
           </div>` : null}
 
@@ -564,44 +1151,85 @@
                    ① 내가 세운 여가계획들   (계획하GO!)
                    ② 나의 여가지도          (여가지도)
                    ③ 나의 여가 일기장        (기록하GO!)
-                 예전에는 ③만 있어서 ①②가 통째로 빠져 있었습니다.
-                 계획을 세워 본 일과 지도에 쌓인 발자국이 없으면,
-                 '내가 어떤 경험을 해 왔는지' 가 반쪽만 보입니다.
+                   ④ 나의 한마디            (여기에서 쓰는 것)
 
-               ★ 셋을 **학생이 골라** 봅니다 (한 번에 한 모음).
-                 셋을 다 펼치면 좌우 3쪽이 되어 넘겨야 하고, 무엇부터 볼지
-                 학생이 정할 수 없습니다. 무엇을 보여 줄지 고르는 것도
-                 발표의 한 부분이라, 고르는 쪽이 이 코너의 뜻에 맞습니다. -->
-          <div class="folio-pick">
-            ${FOLIO_TABS.map(function (t) {
-              var on = folioTab[0] === t.id;
-              return html`<button key=${t.id} type="button" class=${'folio-tab' + (on ? ' on' : '')}
-                  aria-pressed=${on ? 'true' : 'false'}
-                  onClick=${function () { folioTab[1](t.id); }}>
-                <span class="folio-tab-art" aria-hidden="true"
-                  dangerouslySetInnerHTML=${{ __html: App.icon(t.icon) }} />
-                <span class="folio-tab-nm">${t.name}</span>
-                <span class="folio-tab-n">${t.count(data, student)}</span>
-              </button>`;
-            })}
-          </div>
-
-          ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 계획 · ' + data.plans.length + '장'}
-            speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요.'}>
-            ${data.plans.length ? html`<div class="folio-grid">
-              ${data.plans.map(function (pl) {
-                var a = App.act(pl.activityId);
-                var done = !!pl.doneDiaryId;
-                return html`<button key=${pl.id} type="button" class="folio-card"
-                    onClick=${function () { p.nav('plan', { planId: pl.id }); }}
-                    aria-label=${App.fmtDateLong(pl.date) + ' ' + (a ? a.name : '') + (done ? ', 일기까지 마쳤어요' : '')}>
-                  <span class="folio-art"><${C.ActivityArt} activity=${a} /></span>
-                  <span class="folio-name">${a ? a.name : '여가 계획'}</span>
-                  <span class="folio-date">${App.fmtDateShort(pl.date)}</span>
-                  ${done && html`<span class="star-badge">✓ 해봤어요</span>`}
+               ★ 첫 화면은 **왼쪽에 「나」 · 오른쪽에 창 넷**입니다 (2줄 x 2칸).
+                 창 넷은 홈의 코너 화면과 **같은 짜임**이라 학생이 아는 모습입니다.
+                 창을 누르면 그 창 안으로 들어가서 거기서 활동합니다.
+               ★ 왼쪽 「나」 는 **누구의 포트폴리오인지**를 알려 줍니다.
+                 예전에는 맨 위 줄 오른쪽 끝의 작은 알약에만 있었습니다.
+                 여기는 제 기록을 모아 두고 **남에게 보여 주는** 곳이라,
+                 표지처럼 이름과 얼굴이 크게 있어야 제 것으로 느껴집니다.
+                 그래서 첫 화면에서는 맨 위 줄의 알약을 빼고 이리로 옮겼습니다
+                 (창 안으로 들어가면 알약이 다시 맨 위 줄에 나옵니다).
+               ⚠ 예전에는 작은 알약 넷을 늘 위에 띄워 두고 그 아래에 내용을
+                 함께 보였습니다. 첫 화면에 고르는 것과 고른 결과가 섞여 있어,
+                 여기가 무엇을 하는 곳인지 한눈에 들어오지 않았습니다.
+               ▸ 안으로 들어가면 맨 위 줄의 알약과 파란 화살표로 나옵니다. -->
+          ${!folioTab[0] ? html`<div class="folio-intro">
+            <div class="folio-left">
+              <div class="folio-who">
+                <span class="folio-who-face"><${C.AvatarArt} student=${student} /></span>
+                <b class="folio-who-nm">${student.name}</b>
+                <span class="folio-who-say">나의 여가 포트폴리오</span>
+                ${folioTools && html`<span class="folio-who-range">
+                  ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록</span>`}
+              </div>
+              <!-- ★ 네 코너를 **한 권으로** 내는 자리. 나 칸 바로 아래에 둡니다 —
+                     이 책이 누구의 것인지 바로 위에 적혀 있어서 이어집니다.
+                   ▸ 코너마다 따로 인쇄하면 종이가 네 뭉치로 흩어집니다.
+                     여기는 원래 모아 두는 곳이라 한 번에 이어 낼 수 있어야 합니다. -->
+              <${C.Btn} icon="print" className="folio-book"
+                onClick=${function () { App.printNode(printBook()); }}>
+                나의 여가 포트폴리오 책자<//>
+            </div>
+            <div class="corner-grid folio-home">
+              ${FOLIO_TABS.map(function (t) {
+                return html`<button key=${t.id} type="button" class="corner folio-corner"
+                    onClick=${function () { folioTab[1](t.id); }}
+                    aria-label=${t.name + '. ' + t.count(data, student)}>
+                  <span class="art" aria-hidden="true">
+                    ${t.art ? t.art() : html`<${C.Art} iconKey=${t.icon} />`}</span>
+                  <span class="txt">
+                    <span class="desc">${t.name}</span>
+                    <span class="name">${t.count(data, student)}</span>
+                  </span>
                 </button>`;
               })}
-            </div>` : html`<${C.Banner} icon="cornerPlan">
+            </div>
+          </div>` : null}
+
+          <!-- ★ 내가 세운 계획 — **한 줄에 넷**씩 늘어놓습니다.
+                 예전에는 남는 폭에 맞춰 저절로 채웠더니(auto-fill) 화면마다
+                 줄 수가 달라져, 같은 학생 것인데도 볼 때마다 모습이 달랐습니다.
+               ▸ 계획을 누르면 **내가 쓴 계획표를 그대로** 창으로 보여 줍니다.
+                 예전에는 계획 만들기 화면으로 넘어가서, 보려던 학생이
+                 처음부터 다시 고르는 화면을 만났습니다.
+               ▸ 「계획 모음 인쇄하기」 는 이 기간의 계획표를 **한 장씩 이어** 냅니다
+                 (일기장 인쇄와 같은 방식 — book-page 가 쪽을 나눕니다).
+             ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 거기서 끊깁니다 (인수인계 2-3). -->
+          ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 계획 · ' + data.plans.length + '장'}
+            speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요. 누르면 계획표를 볼 수 있어요.'}>
+            ${data.plans.length ? html`<${React.Fragment}>
+              <div class="folio-grid four">
+                ${data.plans.map(function (pl) {
+                  var a = App.act(pl.activityId);
+                  var done = !!pl.doneDiaryId;
+                  return html`<button key=${pl.id} type="button" class="folio-card"
+                      onClick=${function () { planOpenS[1](pl.id); }}
+                      aria-label=${App.fmtDateLong(pl.date) + ' ' + (a ? a.name : '') + (done ? ', 일기까지 마쳤어요' : '') + '. 누르면 계획표를 봐요.'}>
+                    <span class="folio-art"><${C.ActivityArt} activity=${a} /></span>
+                    <span class="folio-name">${a ? a.name : '여가 계획'}</span>
+                    <span class="folio-date">${App.fmtDateShort(pl.date)}</span>
+                    ${done && html`<span class="star-badge">✓ 해봤어요</span>`}
+                  </button>`;
+                })}
+              </div>
+              <div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
+                <${C.Btn} kind="primary" icon="print" onClick=${printPlans}>
+                  계획 모음 인쇄하기 (${data.plans.length}장)<//>
+              </div>
+            <//>` : html`<${C.Banner} icon="cornerPlan">
               아직 세운 계획이 없어요.
               <div class="wrap" style=${{ marginTop: '.4rem' }}>
                 <${C.Btn} size="small" onClick=${function () { p.nav('plan'); }}>계획 세우러 가기<//>
@@ -614,7 +1242,20 @@
                  여기 말고는 없었습니다. 포트폴리오는 원래 모아서 보는 곳이라
                  이 자리가 알맞습니다.
                ▸ 네 가지 표시를 눌러 고르면 그 활동만 카드로 나옵니다.
-               ▸ 카드마다 실내·실외 표시가 붙어서, 합쳐 봐도 어느 섬 것인지 압니다. -->
+
+               ★ 실내·실외를 **위아래 두 창으로 갈라** 놓습니다 (2026-08-22).
+                 예전에는 한 덩어리로 섞어 두고 카드마다 「실내」·「실외」 딱지를
+                 붙였습니다. 그러면 어느 쪽이 몇 가지인지 세어 보아야 알았습니다.
+                 갈라 놓으면 **한눈에** 들어옵니다.
+               ▸ 좌우가 아니라 **위아래**입니다. 좌우로 놓으면 한 창이 화면의
+                 절반뿐이라 카드가 좁아지고 그림이 작아집니다. 위아래로 놓으면
+                 창이 **화면 폭을 다 써서** 같은 자리에 그림을 훨씬 크게 담습니다.
+               ▸ 한 창에 **여덟씩**입니다. 대표 활동은 실내 15 · 실외 15 가지라
+                 가장 많을 때가 창마다 딱 **2줄**입니다 (8 + 7).
+                 그래서 두 창을 합쳐도 4줄이면 끝납니다.
+               ⚠ 「여가지도 보기」 단추는 뺐습니다. 여기는 **모아 보는 자리**이고,
+                 지도로 가려면 홈에서 지도 코너로 들어가는 것이 제 길입니다.
+             ⛔ 이 주석 안에 백틱을 쓰지 마세요 (인수인계 2-3). -->
           ${folioTab[0] === 'map' && (function () {
             var pick = mapPick[0];
             var lists = {
@@ -622,10 +1263,10 @@
               challenge: data.challenges, unsure: data.unsure
             };
             var shown = lists[pick] || [];
-            return html`<${C.Sec} title="나의 여가지도 — 실내·실외 한눈에 보기"
-              speakText=${'나의 여가지도. 해봤어요 ' + data.tried.length + '가지, 좋아해요 '
-                + data.likes.length + '가지, 도전하고 싶어요 ' + data.challenges.length
-                + '가지, 잘 모르겠어요 ' + data.unsure.length + '가지예요.'}>
+            /* ⚠ 여기에 제목(h3)을 두지 마세요. 읽어주기까지 붙어 60px 을 먹고,
+                 그만큼 그림이 작아집니다. 창 이름은 **맨 위 줄**에 있습니다.
+                 읽어주기도 맨 위 줄에 하나 있습니다 (규칙 4 — 화면마다 하나). */
+            return html`<${C.Sec}>
               <!-- 네 가지 표시 — 눌러서 고릅니다 -->
               <div class="folio-marks">
                 ${App.DATA.mapStates.map(function (m) {
@@ -633,40 +1274,63 @@
                   return html`<button key=${m.id} type="button"
                       class=${'folio-mark' + (on ? ' on' : '')}
                       aria-pressed=${on ? 'true' : 'false'}
-                      onClick=${function () { mapPick[1](m.id); }}>
+                      onClick=${function () { mapPick[1](m.id); mapPageS[1]({}); }}>
                     <span class="fm-art" aria-hidden="true"><${C.StateArt} state=${m} /></span>
                     <span class="fm-txt"><b>${(lists[m.id] || []).length}</b>가지<br />${m.name}</span>
                   </button>`;
                 })}
               </div>
 
-              ${shown.length ? html`<div class="folio-grid" style=${{ marginTop: '.7rem' }}>
-                ${shown.map(function (c) {
-                  var inside = c.area === 'indoor';
-                  return html`<span key=${c.id} class="folio-card as-view"
-                      role="img" aria-label=${(inside ? '실내' : '실외') + ' ' + c.name}>
-                    <span class="folio-art"><${C.ActivityArt} activity=${c} /></span>
-                    <span class="folio-name">${c.name}</span>
-                    <span class=${'folio-where ' + (inside ? 'in' : 'out')}>
-                      ${inside ? '실내' : '실외'}</span>
-                  </span>`;
-                })}
+              ${shown.length ? html`<div class="folio-two">
+                ${[{ k: 'indoor', nm: '실내', cls: 'in' }, { k: 'outdoor', nm: '실외', cls: 'out' }]
+                  .map(function (side) {
+                    var mine = shown.filter(function (c) { return c.area === side.k; });
+                    /* ★ **한 줄에 셋, 한 쪽에 셋**입니다. 두 줄로 두었더니
+                         그림이 작아 보기 힘들었습니다. 창이 둘(실내·실외)이라
+                         한 줄씩만 써도 화면에 두 줄이 들어갑니다. */
+                    var info = pageOf(mine, mapPageS[0][side.k], 3);
+                    return html`<div key=${side.k} class=${'folio-half ' + side.cls}>
+                      <!-- 쪽 표시를 머리줄에 붙입니다 — 격자 아래에 두면
+                           창마다 18px 씩, 둘이면 36px 을 먹습니다. -->
+                      <div class="folio-half-head">
+                        <span class=${'folio-where ' + side.cls}>${side.nm}</span>
+                        <b>${mine.length}가지</b>
+                        ${info.pages > 1 && html`<span class="flow-n" role="status" aria-live="polite">
+                          ${info.page + 1} / ${info.pages}</span>`}
+                      </div>
+                      ${mine.length ? flowBox(info, function (n) {
+                        var next = Object.assign({}, mapPageS[0]); next[side.k] = n;
+                        mapPageS[1](next);
+                      }, 'folio-grid wide', info.items.map(function (c) {
+                        return html`<span key=${c.id} class="folio-card as-view"
+                            role="img" aria-label=${side.nm + ' ' + c.name}>
+                          <span class="folio-art"><${C.ActivityArt} activity=${c} /></span>
+                          <span class="folio-name">${c.name}</span>
+                        </span>`;
+                      }), side.nm + ' 활동', true) : html`<p class="muted small folio-half-none">아직 없어요.</p>`}
+                    </div>`;
+                  })}
               </div>` : html`<${C.Banner} icon="cornerMap" style=${{ marginTop: '.7rem' }}>
                 아직 여기에 표시한 활동이 없어요. 여가지도에서 표시해 보아요.
               <//>`}
-
-              <div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
-                <${C.Btn} size="small" icon="map"
-                  onClick=${function () { p.nav('map'); }}>여가지도 보기<//>
-              </div>
             <//>`;
           })()}
 
-          ${folioTab[0] === 'diary' && html`<${C.Sec} title="나의 일기장 — 전시할 것을 골라 보세요">
-            ${data.diaries.length ? html`<div class="stack">
-              ${data.diaries.map(function (d) {
+          <!-- ★ 일기 카드는 **2칸 x 2줄, 넉 장씩** 놓고 화살표로 넘깁니다 (2026-08-22).
+                 한 줄에 하나씩 늘어놓았더니
+                   · 카드가 흰 칸 폭(1060px)을 다 써서 글줄이 너무 길었고
+                   · 일기가 쌓일수록 좌우 서너 쪽으로 갈라졌습니다.
+               ▸ 두 칸이면 글줄이 알맞고, 넉 장씩 끊으면 일기가 몇 장이든
+                 **화면 높이가 늘 같습니다** (이 창의 다른 칸과 같은 방식).
+               ⚠ 여러 쪽 나누기(stage-track 의 다단)에 맡기지 마세요. 격자는
+                 다단에서 제멋대로 쪼개져, 다 들어가는데도 4쪽이 되었습니다. -->
+          ${folioTab[0] === 'diary' && html`<${C.Sec}>
+            ${data.diaries.length ? (function () {
+              var info = pageOf(data.diaries, diaryPageS[0], 4);   /* 2칸 x 2줄 */
+              return flowBox(info, function (n) { diaryPageS[1](n); }, 'folio-diaries',
+                info.items.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);
-                return html`<div key=${d.id} class="card" style=${{ padding: '.6rem .8rem' }}>
+                return html`<div key=${d.id} class=${'card dcard' + (d.exhibit ? ' on' : '')}>
                   <div class="row" style=${{ alignItems: 'flex-start' }}>
                     <span style=${{ width: 54, height: 54, flex: '0 0 auto' }}><${C.ActivityArt} activity=${a} /></span>
                     <div class="grow" style=${{ minWidth: 0 }}>
@@ -697,14 +1361,20 @@
                         dangerouslySetInnerHTML=${{ __html: App.icon(d.exhibit ? 'bookmark' : 'dash') }} />
                       <span>${d.exhibit ? '전시할래요' : '전시하지 않을래요'}</span>
                     </button>
+                    <!-- ★ from:'folio' 를 넘겨야 **여기로 돌아옵니다.**
+                           그림일기·일기 고치기 화면의 파란 화살표는 지나온 길을
+                           되짚지 않고 이 표시를 보고 돌아올 곳을 정합니다.
+                         ▸ 일기 고치기는 step:'last' 로 **완성 화면**에서 엽니다.
+                           그러지 않으면 「언제 했나요?」 부터 다시 훑게 됩니다.
+                         ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
                     <${C.Btn} size="small" icon="book"
                       onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'folio' }); }}>그림일기<//>
                     <${C.Btn} size="small" icon="pencil"
-                      onClick=${function () { p.nav('diary', { diaryId: d.id }); }}>일기 고치기<//>
+                      onClick=${function () { p.nav('diary', { diaryId: d.id, step: 'last', from: 'folio' }); }}>일기 고치기<//>
                   </div>
                 </div>`;
-              })}
-            </div>` : html`<${C.Banner} icon="cornerDiary">
+              }), '일기');
+            })() : html`<${C.Banner} icon="cornerDiary">
               이 기간에 쓴 일기가 없어요. 기간을 늘리거나 일기를 먼저 써 보아요.
               <div class="wrap" style=${{ marginTop: '.4rem' }}>
                 <${C.Btn} size="small" onClick=${function () { p.nav('diary'); }}>일기 쓰러 가기<//>
@@ -722,28 +1392,14 @@
              ⚠ 예전에는 이 두 칸이 **모음 아래에 늘 붙어** 있었습니다. 그래서
                일기장을 고르면 일기 카드까지 더해져 4쪽까지 갈라졌습니다.
                지금은 넷째 칸(나의 한마디)을 골랐을 때만 나옵니다. -->
-          ${folioTab[0] === 'me' && html`<div class="folio-write">
-            <${C.Sec} title="나의 한마디" speakText="여가생활을 하며 하고 싶은 말을 적어요">
-              <${C.Field} label="여가생활을 하며 하고 싶은 말을 적어요"
-                value=${student.word || ''} placeholder="예) 친구와 함께하는 여가가 제일 즐거워요."
-                onChange=${function (v) { App.store.updateStudent(student.id, { word: v }); }} />
-            <//>
-            <${C.Sec} title="돌아보기" speakText="빈칸을 채워 나의 여가를 돌아보아요">
-              <div class="stack">
-                ${App.DATA.reviewFrames.map(function (f) {
-                  return html`<div key=${f.id} class="row review-row">
-                    <b>${f.before}</b>
-                    <input class="field review-in" value=${(student.review || {})[f.id] || ''}
-                      onChange=${function (e) {
-                        var rv = Object.assign({}, student.review || {}); rv[f.id] = e.target.value;
-                        App.store.updateStudent(student.id, { review: rv });
-                      }} />
-                    <b>${f.after}</b>
-                  </div>`;
-                })}
-              </div>
-            <//>
-          </div>`}
+          <!-- ★ 나의 한마디도 **일기와 같은 세 단계**로 나눕니다 (2026-08-22).
+                 예전에는 세 단계가 모두 **글자를 쳐 넣는 칸 하나**뿐이었습니다.
+                 그래서 아직 글을 못 쓰는 1단계 학생은 여기를 아예 못 썼습니다.
+                 일기가 이미 푼 문제라 **같은 틀**을 그대로 가져옵니다.
+               ▸ 담기는 곳은 단계와 상관없이 **한 곳**입니다 (student.word · review).
+                 그래서 전시판형 · 책자형 인쇄는 고칠 것이 없습니다.
+               ▸ 자세한 것은 아래 meBody 를 보세요. -->
+          ${folioTab[0] === 'me' && meBody()}
         <//>` : html`<${React.Fragment}>
           <div class="folio-range small muted">
             ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록
@@ -766,6 +1422,7 @@
       <//>
 
       ${toolsModal}
+      ${planModal}
 
       ${showS[0] && html`<${C.ShowMode} diaries=${showList} student=${student}
         onClose=${function () { showS[1](false); }} />`}

@@ -250,9 +250,10 @@
       if (goTimer.current) clearTimeout(goTimer.current);
       goTimer.current = setTimeout(function () {
         /* ※ 지금 단계 목록의 마지막을 넘지 않게 막습니다.
-             예전에는 `L2.length` 로 굳혀 두어서, 1단계 목록이 길어지면
-             마지막 단계로 못 가는 문제가 생길 자리였습니다. */
-        var list = (draft.level === 2) ? L2 : L1;
+             ⚠ 세 단계를 **모두** 적어야 합니다. 3단계가 빠져 있어서 L1(8칸)
+               길이로 깎였고, `또 하고 싶나` 를 제목 뒤(8번째)로 옮기자
+               3단계가 그 칸에서 더 못 넘어갔습니다 (2026-08-22). */
+        var list = (draft.level === 2) ? L2 : (draft.level === 3 ? L3 : L1);
         stepS[1](function (s) { return Math.min(s + 1, list.length - 1); });
       }, 450);
     }
@@ -414,16 +415,24 @@
          빠진 것이 있었습니다. 이제 **묻는 내용은 세 단계가 똑같고**,
          다른 것은 `학생이 스스로 하는 정도` 뿐입니다.
 
-         언제 → 누구와 → 어디에서 → 무엇을 → 기분 → 또 하고 싶나
+         언제 → 누구와 → 어디에서 → 무엇을 → 기분
 
        ▸ 1단계 : 그림으로 고르기만
        ▸ 2단계 : 그림으로 고르고, 낱말로 문장 만들기
        ▸ 3단계 : 그림으로 고르고, 그 자리에서 **한 줄씩 글로도** 씁니다
                 (그 여섯 줄이 모여 일기의 뼈대가 됩니다)
 
-       ⛔ 뼈대 차례를 바꾸지 마세요. 세 단계와 아래 `picsSoFar1` ·
-          `canNextBone` 이 모두 이 차례를 기준으로 움직입니다. */
-    var BONE = ['언제', '누구와', '어디에서', '무엇을', '기분', '또 하고 싶나'];
+       ★ `또 하고 싶나` 는 **뼈대에서 빼서 제목 뒤로** 옮겼습니다 (2026-08-22).
+         이것은 일기 문장을 만드는 물음이 아니라 **여가지도의 표시로 이어지는**
+         물음입니다. 일기를 다 쓰고 제목까지 정한 뒤에 묻는 것이 차례에 맞습니다.
+         (2단계에서 바로 뒤 `다음에는 어떻게 하고 싶나요?` 와 나란히 놓여
+          같은 것을 두 번 묻는 것처럼 보이기도 했습니다)
+
+       ⛔ 뼈대 다섯의 차례는 바꾸지 마세요. `picsSoFar1` · `diarySoFar1` ·
+          `canNextBone` · `BONE_WRITE` · `META_TABS` 가 이 차례의 **번호**를
+          그대로 씁니다. 뼈대 **뒤** 단계(제목 · 또 하고 싶나 · 그림 …)는
+          이름으로 가르므로 L1/L2/L3 에서 자유롭게 옮겨도 됩니다. */
+    var BONE = ['언제', '누구와', '어디에서', '무엇을', '기분'];
 
     /* 3단계가 각 뼈대 단계에서 함께 쓰는 글 (없는 단계는 그림만 고릅니다) */
     var BONE_WRITE = {
@@ -576,7 +585,14 @@
         <//>`;
       }
 
-      /* 또 하고 싶나 — 여가지도의 `또 하고 싶어요` 기록으로 이어집니다 */
+      return null;
+    }
+
+    /* 또 하고 싶나 — 여가지도의 `또 하고 싶어요` 기록으로 이어집니다.
+       ★ 뼈대(boneBody)에서 빼내어 **제목 뒤**에 놓습니다. 일기 문장을 만드는
+         물음이 아니라 지도로 이어지는 물음이라, 일기를 다 쓴 뒤가 맞습니다.
+       ▸ 세 단계가 이 하나를 함께 씁니다 — 따로 만들면 언젠가 어긋납니다. */
+    function againBody() {
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} note=${lvNote} speakText="또 하고 싶나요?">또 하고 싶나요?<//>
         <${C.PickGrid} cols=${3}>
@@ -739,24 +755,35 @@
       if (step === 2) return !!draft.place;
       if (step === 3) return !!draft.activityId;
       if (step === 4) return draft.moodIds.length > 0;
-      if (step === 5) return !!draft.againId;
+      /* `또 하고 싶나` 는 뼈대에서 빠져 제목 뒤로 갔습니다.
+         그 단계에서 넘어가도 되는지는 아래 canNextStep 이 봅니다. */
+      return true;
+    }
+    /* 지금 단계에서 다음으로 넘어가도 되는지 (뼈대 + 뼈대 밖 단계) */
+    function canNextStep(step) {
+      if (step < BONE.length) return canNextBone(step);
+      if (steps[step] === '또 하고 싶나') return !!draft.againId;
       return true;
     }
 
-    function level1Body(step) {
-      /* 뼈대 여섯 단계는 세 단계가 함께 쓰는 boneBody 가 그립니다.
-         (언제 · 누구와 · 어디에서 · 무엇을 · 기분 · 또 하고 싶나) */
-      if (step < BONE.length) return boneBody(step);
-      /* 그림 — 사진 넣기 · 내가 그리기 (2단계와 같은 화면) */
-      if (step === 6) {
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
-            그림일기에 넣을 그림을 골라요<//>
-          ${photoSection(true)}
-        <//>`;
-      }
+    /* 그림 고르기 — 세 단계가 같은 화면을 씁니다 */
+    function picStep() {
+      return html`<${React.Fragment}>
+        <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
+          그림일기에 넣을 그림을 골라요<//>
+        ${photoSection(true)}
+      <//>`;
+    }
 
-      /* 완성 */
+    /* ★ 단계는 **번호가 아니라 이름으로** 가릅니다.
+         예전에는 `step === 6` 처럼 번호로 갈랐습니다. 그래서 차례를 한 칸만
+         바꿔도 엉뚱한 화면이 나와, 주석에 `차례를 바꾸지 마세요` 를 달아야 했습니다.
+       ▸ 이름으로 가르면 차례를 바꿔도 그대로 맞습니다. */
+    function level1Body(step) {
+      if (step < BONE.length) return boneBody(step);
+      var key = L1[step];
+      if (key === '또 하고 싶나') return againBody();
+      if (key === '그림') return picStep();
       return confirmStep();
     }
 
@@ -845,35 +872,29 @@
         <div class="confirm-fit" ref=${fitBox}>
         <div class="confirm-2col" ref=${fitInner}>
           <div class="confirm-left">
-            <${C.SentenceEdit}
-              made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
-              value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
-              placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
-              onChange=${function (v) { patch({ bodyEdit: v }); }}
-              onReset=${function () { patch({ bodyEdit: null }); }} />
-            ${emptyBoneNote()}
-
-            <!-- ★ 고치는 길 넷을 **한 자리에** 모읍니다.
-                   위 노란 상자가 곧 글 고치기이고, 아래 세 줄이 나머지입니다.
-                   예전에는 글은 여기, 날짜는 그림일기 위, 그림은 저장한 뒤
-                   따로 있는 일기 고치기 화면에 흩어져 있었습니다.
-                   ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
-            <div class="fix-here">
-              <${C.Btn} size="big" className=${'pastel-green fix-go' + (moveS[0] ? ' on' : '')}
-                icon="expand" onClick=${function () { moveS[1](!moveS[0]); }}>
-                ${moveS[0] ? '자리 옮기기 끝내기' : '그림 자리 · 크기 바꾸기'}<//>
-              <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
-                onClick=${function () { patch({ picKind: 'draw' }); drawS[1](true); }}>
-                그림 다시 그리기<//>
-              <${C.Btn} size="big" className="pastel-blue fix-go" icon="edit"
-                onClick=${function () { editMetaS[1](0); }}>날짜 · 사람 · 장소 바꾸기<//>
+            <!-- ★ 왼쪽 고치는 길을 **오른쪽 그림일기의 차례와 나란히** 놓습니다.
+                   위 = 그림칸 → 그림 고치기 두 가지
+                   아래 = 원고지 → 글 고치기(노란 칸)
+                   맨 아래 = 날짜 · 사람 · 장소
+                 왼쪽과 오른쪽이 같은 차례로 놓이면, 어느 단추가 무엇을 고치는
+                 것인지 눈으로 바로 이어집니다. 학생이 「왼쪽에서 고치면 되는구나」
+                 를 설명 없이 알게 됩니다.
+                 ⛔ 이 주석에 백틱을 쓰면 템플릿이 끊깁니다 — 낫표(「」)만 쓸 것. -->
+            <div class="fix-part">
+              <span class="fix-lab">그림</span>
+              <div class="fix-body">
+                <${C.Btn} size="big" className=${'pastel-green fix-go' + (moveS[0] ? ' on' : '')}
+                  icon="expand" onClick=${function () { moveS[1](!moveS[0]); }}>
+                  ${moveS[0] ? '자리 옮기기 끝내기' : '그림 자리 · 크기 바꾸기'}<//>
+                <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
+                  onClick=${function () { patch({ picKind: 'draw' }); drawS[1](true); }}>
+                  그림 다시 그리기<//>
+              </div>
             </div>
 
-            <!-- 내가 그린 그림(또는 사진)으로 바꾼 뒤에는 **되돌릴 길**이 있어야 합니다.
-                 노란 칸의 '고른 낱말로 되돌리기' 와 짝이 되게 말도 맞췄습니다.
-                 ▸ 그린 그림은 지워지지 않습니다. 다시 '그림 다시 그리기' 를 누르면
-                   그대로 나옵니다 — 그래서 마음 놓고 눌러 볼 수 있습니다.
-                 ▸ 처음(고른 그림)일 때는 되돌릴 것이 없으므로 나오지 않습니다. -->
+            <!-- 내가 그린 그림(또는 사진)으로 바꾼 뒤 **되돌릴 길**.
+                 ★ 그림 묶음 바로 아래에 둡니다 — 그림에 딸린 일이라
+                   그림 자리에 있어야 무엇을 되돌리는지 압니다. -->
             ${(draft.picKind === 'draw' || draft.picKind === 'photo') && html`<div class="fix-undo">
               <${C.Btn} size="small" icon="back"
                 onClick=${function () { patch({ picKind: 'app' }); }}>
@@ -881,21 +902,61 @@
               <span class="small muted">그린 그림은 지워지지 않아요.</span>
             </div>`}
 
-            ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
-              speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꾸어 보아요.">
-              <b>그림을 끌어서 옮겨요.</b>
-              <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.
-                그림을 한 번 누르면 크기도 바꿀 수 있어요.</div>
-              <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.5rem' }}>
-                <${C.Btn} size="small" className="pastel-blue"
-                  onClick=${function () { sizeArt(-1); }}>고른 그림 작게<//>
-                <${C.Btn} size="small" className="pastel-blue"
-                  onClick=${function () { sizeArt(1); }}>고른 그림 크게<//>
-                <${C.Btn} size="small"
-                  onClick=${function () { patch({ artLayout: null }); pickedS[1](null); }}>
-                  처음 자리로<//>
+            <!-- ★ 자리 옮기기 안내는 **그림 묶음과 글 묶음 사이**에 놓습니다.
+                   ⚠ 켜고 끌 때 아래 칸들이 밀려 올라갔다 내려갔다 하면 안 됩니다.
+                     그래서 **자리는 늘 잡아 두고**(move-slot) 안 켰을 때만
+                     보이지 않게 합니다. 그러면 왼쪽 두 묶음이 오른쪽
+                     그림일기의 그림칸 · 원고지와 **처음부터 나란히** 놓입니다. -->
+            <div class=${'move-slot' + (moveS[0] ? '' : ' off')} aria-hidden=${moveS[0] ? 'false' : 'true'}>
+              <!-- ⚠ speakText 를 켤 때만 주면 **읽어주기 단추가 그때만 생겨**
+                     칸 높이가 달라지고, 아래 칸들이 53px 밀립니다.
+                     자리를 잡아 두는 것이 목적이므로 **늘 같은 것을 그립니다.**
+                     끈 동안에는 visibility 로 감추므로 눌리지 않습니다. -->
+              <${C.Banner} tone="info" icon="expand"
+                speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꾸어 보아요.">
+                <b>그림을 끌어서 옮겨요.</b>
+                <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.
+                  그림을 한 번 누르면 크기도 바꿀 수 있어요.</div>
+                <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.5rem' }}>
+                  <${C.Btn} size="small" className="pastel-blue"
+                    onClick=${function () { sizeArt(-1); }}>고른 그림 작게<//>
+                  <${C.Btn} size="small" className="pastel-blue"
+                    onClick=${function () { sizeArt(1); }}>고른 그림 크게<//>
+                  <${C.Btn} size="small"
+                    onClick=${function () { patch({ artLayout: null }); pickedS[1](null); }}>
+                    처음 자리로<//>
+                </div>
+              <//>
+            </div>
+
+            <div class="fix-part">
+              <span class="fix-lab">글</span>
+              <div class="fix-body">
+                <${C.SentenceEdit}
+                  made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
+                  value=${draft.bodyEdit === undefined ? null : draft.bodyEdit}
+                  placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
+                  onChange=${function (v) { patch({ bodyEdit: v }); }}
+                  onReset=${function () { patch({ bodyEdit: null }); }} />
+                ${emptyBoneNote()}
               </div>
-            <//>`}
+            </div>
+
+            <div class="fix-here">
+              <${C.Btn} size="big" className="pastel-blue fix-go" icon="edit"
+                onClick=${function () { editMetaS[1](0); }}>날짜 · 사람 · 장소 바꾸기<//>
+              <!-- ★ 저장은 **왼쪽 기둥 맨 아래**. 오른쪽은 보는 자리,
+                     왼쪽은 고치고 저장하는 자리로 갈라 둡니다. -->
+              <${C.Btn} kind="ok" size="big" icon="save" className="fix-save"
+                onClick=${save}>일기 저장하기<//>
+              <!-- ⚠ 「나의 일기장으로 돌아가기」 를 이 기둥에 두지 마세요.
+                     여기에 두었더니 눈에 안 띈다는 이야기가 있었고, 기둥이
+                     커진 만큼 한 쪽에 맞추는 장치(useFitOnePage)가 화면을
+                     통째로 줄여서 **그림일기가 11% 작아졌습니다.**
+                   ▸ 지금은 **맨 위 줄 화살표 자리**에 글자 단추로 있습니다
+                     (TopBar 의 backText). 흰 칸 높이를 먹지 않습니다. -->
+            </div>
+
           </div>
           <!-- 오른쪽에는 **완성된 그림일기 그대로**. 고치는 길은 모두 왼쪽에 있어서
                학생이 한 곳만 보면 됩니다.
@@ -994,7 +1055,10 @@
        예전에는 문장 4개 + 기분 + 또하기 + 그림이 한 화면에 몰려 있어서
        학생이 '지금 무엇을 해야 하는지' 알기 어려웠습니다.
        1단계처럼 한 번에 하나씩 묻고 넘어갑니다. (규칙 1·2) */
-    var L2 = BONE.concat(['기억', '다음에', '제목', '그림', '확인']);
+    /* ★ `또 하고 싶나` 를 **제목 뒤**에 둡니다 (지도 표시로 이어지는 물음).
+         `다음에는 어떻게 하고 싶나요?` 바로 옆에 있으면 같은 것을 두 번 묻는
+         것처럼 보였습니다. 일기를 다 만든 뒤에 묻습니다. */
+    var L2 = BONE.concat(['기억', '다음에', '제목', '또 하고 싶나', '그림', '확인']);
 
     function frames() {
       var f = Object.assign({}, draft.frames || {});
@@ -1168,9 +1232,9 @@
       /* 앞 여섯은 세 단계 공통 뼈대 (언제 · 누구와 · 어디에서 · 무엇을 · 기분 · 또 하고 싶나).
          예전에는 2단계가 누구와 · 기분만 물어서 날짜 · 장소가 통째로 빠져 있었습니다. */
       if (step < BONE.length) return boneBody(step);
-      /* 뒤 단계는 예전 번호를 그대로 씁니다 (기억 2 · 다음에 3 · 제목 4 · 그림 5 · 확인 6) */
-      step -= 4;
-      if (step === 2) {
+      /* ★ 뒤 단계도 **이름으로** 가릅니다 (예전에는 `step -= 4` 로 번호를 옮겨 썼습니다). */
+      var key = L2[step];
+      if (key === '기억') {
         return html`<${React.Fragment}>
           <!-- 만들어지는 문장은 흰 칸 맨 위 두 줄(frameBar)에 있습니다.
                여기에 또 두면 같은 말이 두 번 나옵니다. -->
@@ -1178,21 +1242,16 @@
           ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
         <//>`;
       }
-      if (step === 3) {
+      if (key === '다음에') {
         return html`<${React.Fragment}>
           <!-- 위와 같은 까닭으로 낱개 문장 줄을 뺐습니다 -->
           <${C.Question} bar=${true} note=${lvNote} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
           ${wordCards(F4_WORDS, 'f4', f.f4, 4)}
         <//>`;
       }
-      if (step === 4) return titleStep();
-      if (step === 5) {
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
-            그림일기에 넣을 그림을 골라요<//>
-          ${photoSection(true)}
-        <//>`;
-      }
+      if (key === '제목') return titleStep();
+      if (key === '또 하고 싶나') return againBody();
+      if (key === '그림') return picStep();
 
       /* 완성 — 1단계와 같은 화면을 씁니다 (완성된 그림일기를 함께 보여 줍니다)
          ★ 문장 사이는 **한 칸 띄우기**입니다 (예전에는 줄바꿈).
@@ -1235,7 +1294,7 @@
          예전에는 이 모든 것을 한 장에 담아서, 낮은 화면에서 **5쪽으로 갈라졌고**
          가장 중요한 글쓰기가 뒷쪽으로 밀려 1쪽에는 제목·그림만 보였습니다.
          (규칙 1 : 한 화면에 주요 질문 하나 · 규칙 10-1 : 한 쪽에 들어가야 함) */
-    var L3 = BONE.concat(['일기 쓰기', '제목', '그림', '완성']);
+    var L3 = BONE.concat(['일기 쓰기', '제목', '또 하고 싶나', '그림', '완성']);
 
     /* ★ 3단계 첫 단계는 **육하원칙 뼈대**입니다.
          빈 칸에 바로 긴 글을 쓰라고 하면 3단계 학생도 막막해집니다.
@@ -1262,10 +1321,9 @@
          ★ 예전에는 뼈대 여섯 칸을 한 화면에 몰아 넣어 스크롤이 생겼고,
            장소를 19곳에서 고르는 길도 없었습니다. */
       if (step < BONE.length) return boneBody(step);
-      /* 뒤 단계를 예전 번호로 바꿉니다 (일기 쓰기 1 · 제목 4 · 그림 5 · 완성 6) */
-      var L3_OLD = { 6: 1, 7: 4, 8: 5, 9: 6 };
-      step = L3_OLD[step] != null ? L3_OLD[step] : 6;
-      if (step === 4) {
+      /* ★ 뒤 단계도 **이름으로** 가릅니다 (예전에는 번호 표 `L3_OLD` 로 옮겨 썼습니다). */
+      var key = L3[step];
+      if (key === '제목') {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} note=${lvNote} speakText="일기 제목을 써요">일기 제목을 써요<//>
           <div class="row">
@@ -1277,16 +1335,11 @@
           ${weatherPicker()}
         <//>`;
       }
-      if (step === 5) {
-        return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} speakText="그림일기에 넣을 그림을 골라요">
-            그림일기에 넣을 그림을 골라요<//>
-          ${photoSection(true)}
-        <//>`;
-      }
-      if (step === 6) return confirmStep(draft.text || '');
+      if (key === '또 하고 싶나') return againBody();
+      if (key === '그림') return picStep();
+      if (key === '완성') return confirmStep(draft.text || '');
 
-      /* step 1 — 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
+      /* 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
       var bones = sixLines();
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} note=${lvNote} speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
@@ -1416,9 +1469,13 @@
     <//>`;
 
     var multiStep = (level !== 3) && (step === 1 || step === 4);   // 누구와 · 기분
+    /* ★ 완성 화면의 `일기 저장하기` 는 **맨 아래 띠가 아니라 왼쪽 칸 안**에
+         있습니다. 오른쪽은 그림일기를 보는 자리이고, 왼쪽이 고치고 저장하는
+         자리라 한 기둥으로 이어지는 것이 맞습니다.
+       ▸ 그래서 아래 action 은 완성 화면에서만 비웁니다. */
     action = step === lastStep
-      ? html`<${C.Btn} kind="ok" icon="save" onClick=${save}>일기 저장하기<//>`
-      : html`<${C.Btn} kind="primary" icon="next" disabled=${!canNextBone(step)}
+      ? null
+      : html`<${C.Btn} kind="primary" icon="next" disabled=${!canNextStep(step)}
           onClick=${function () { stepS[1](step + 1); }}>${multiStep ? '다 골랐어요' : '다음'}<//>`;
 
     /* 단계 표시는 길어서 제목·단추와 한 줄에 두면 서로 밀립니다 → 위쪽 줄의 아랫줄로.
@@ -1426,19 +1483,39 @@
     /* 맨 위 줄 화살표가 하는 일 :
        · 질문을 진행하는 중이면 → 앞 질문으로
        · 첫 질문이면 → 나의 여가로 (코너 네 개가 있는 홈) */
+    /* ★ 포트폴리오의 `나의 일기장` 에서 고치러 왔으면 **거기로** 돌아갑니다.
+         `p.back()` 은 지나온 길을 되짚는데, 그 길에는 포트폴리오의 어느 칸을
+         보고 있었는지가 없습니다. `from` 을 보고 곧장 그 칸으로 갑니다
+         (그림일기 화면이 쓰는 방법과 같습니다 — picdiary 의 goBack). */
     function diaryBack() {
+      /* ★ 포트폴리오에서 왔으면 **어느 단계에 있든** 곧장 나의 일기장으로.
+           화살표 자리에 「나의 일기장으로 돌아가기」 라고 적혀 있으므로,
+           적힌 곳과 가는 곳이 달라서는 안 됩니다.
+         ▸ 앞 질문으로 가려면 아래 단계 띠에서 그 칸을 누릅니다. */
+      if (params.from === 'folio') { p.nav('portfolio', { studentId: student.id, tab: 'diary' }); return; }
       if (step > 0) { stepS[1](step - 1); return; }
       p.back('home');
     }
-    var backLabel = step > 0 ? '앞 질문으로' : '앞 화면으로';
+    var backLabel = (params.from === 'folio') ? '나의 일기장으로'
+                  : (step > 0 ? '앞 질문으로' : '앞 화면으로');
 
-    var stepsBar = (level === 1 || (level !== 1 && draft.activityId))
+    /* 단계 띠는 **일기를 처음 쓸 때** 어디쯤 왔는지 알려 주는 것입니다.
+       ★ 포트폴리오에서 **다 쓴 일기를 고치러** 왔을 때에는 넣지 않습니다.
+         처음부터 훑는 길이 아니라 완성 화면 한 곳에서 고치고 돌아가는
+         길이라, 열두 칸이 늘어서 있으면 무엇을 하는 화면인지 흐려집니다. */
+    var stepsBar = (params.from !== 'folio' && (level === 1 || (level !== 1 && draft.activityId)))
       ? html`<${C.Steps} steps=${steps} current=${step} />` : null;
 
     return html`<div class="app" data-corner="diary">
+      <!-- ★ 포트폴리오에서 고치러 왔으면 **화살표 자리에 글자 단추**를 둡니다.
+             화살표만으로는 어디로 가는지 몰라 학생이 누르지 못했습니다.
+           ▸ 흰 칸 안(왼쪽 기둥)에 두었더니 기둥이 커져서 한 쪽에 맞추는
+             장치가 화면을 줄였고, 그림일기가 작아졌습니다. 맨 위 줄은
+             흰 칸 높이를 한 픽셀도 먹지 않습니다. -->
       <${C.TopBar} title="여가 일기"
         onBack=${diaryBack}
         backLabel=${backLabel}
+        backText=${params.from === 'folio' ? '나의 일기장으로 돌아가기' : null}
         onTitle=${function () { p.nav("home"); }}
         below=${stepsBar}>
         <div class="wrap" style=${{ gap: '.25rem' }}>
@@ -1458,7 +1535,7 @@
              한 장으로 보여 주어야 하는 화면인데, 다단은 조금만 넘쳐도
              통째로 밀어내어 1쪽이 텅 빕니다. 나누지 않고 줄여서 맞춥니다
              (useFitOnePage). ⛔ 지우지 마세요 — 세 번 되풀이된 고장입니다. -->
-      <${C.Stage} top=${backBtn} action=${action} onePage=${isConfirm}>${body}<//>
+      <${C.Stage} top=${backBtn} action=${action} onePage=${isConfirm} tall=${isConfirm}>${body}<//>
 
       ${helpS[0] && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
         actions=${html`<${C.Btn} onClick=${function () { helpS[1](false); }}>닫기<//>`}>

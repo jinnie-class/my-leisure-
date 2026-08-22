@@ -47,17 +47,27 @@ html,body{
 .print-area .btn,.print-area .speak{ display:none !important; }
 
 /* --------------------- 그림일기 : A4 한 장 ---------------------
-   화면에서는 종이를 축소(transform:scale)해서 보여 주지만,
-   인쇄할 때에는 @page 여백(12mm) 안쪽을 그대로 채웁니다.
-   그래서 여기서는 축소를 풀고 종이 크기를 mm 로 다시 잡습니다. */
+   화면에서는 종이를 축소해서 보여 줍니다. 인쇄할 때에는 @page 여백(12mm)
+   안쪽을 채우되, **종이 자체는 794x1123 px 그대로** 두고 통째로 줄입니다.
+
+   ⛔ 종이 크기를 mm 로 바꿔 잡지 마세요.
+      예전에는 `width:186mm; height:273mm` 로 종이만 줄였습니다. 그런데
+      종이 **안쪽은 모두 px 고정**입니다(794 캔버스 — app.css 1532줄 참고).
+      바깥만 794px -> 703px 로 줄이니 속이 91px 넘쳐서, 힌트 원고지가
+      좌우로 한 칸씩 잘려 나왔습니다 (2026-08-22).
+
+   ▸ `zoom` 을 씁니다. `transform:scale` 과 달리 **차지하는 자리까지** 줄어
+     들어서, 종이 뒤에 빈 쪽이 생기지 않습니다.
+   ▸ 794px = 210mm(96dpi) 이므로 186mm 는 186/210 = 0.8857 배입니다.
+     높이는 1123 x 0.8857 = 995px = 263mm 로 273mm 안에 들어갑니다. */
 .print-area .pd-fit{ display:block !important; overflow:visible !important; }
 .print-area .pd-scale{
   transform:none !important;
   width:auto !important; height:auto !important;
 }
 .print-area .pd-sheet{
-  width:186mm !important;      /* 210mm - 좌우 여백 12mm */
-  height:273mm !important;     /* 297mm - 위아래 여백 12mm */
+  zoom:0.8857;
+  width:794px !important; height:1123px !important;
   padding:0 !important;
   border-radius:0 !important;
   page-break-inside:avoid; break-inside:avoid;

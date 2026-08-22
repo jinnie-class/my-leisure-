@@ -104,7 +104,7 @@
      ⛔ 1·2단계의 칸을 줄로 바꾸거나, 3단계를 칸으로 바꾸지 마세요.
         자세한 조항은 `인수인계.md` 의 `2-2. 그림일기 3단계 구성 원칙` 에 있습니다. */
   var LEVEL_INFO = {
-    1: { name: '보고 써요',                sub: '완성된 글을 보며 그림일기를 경험해요' },
+    1: { name: '보고 따라 써요',           sub: '완성된 글을 보며 그림일기를 경험해요' },
     2: { name: '따라 쓰거나 보고 써요',   sub: '보고 따라 쓰거나, 힌트를 보고 빈 칸에 써요' },
     3: { name: '나의 일기를 써요',          sub: '내 경험을 문장으로 자유롭게 써요' }
   };
@@ -532,8 +532,16 @@
                같은 말이 그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
                읽어주기와 화면 낭독(`aria-label`)으로는 그대로 전해집니다. */
           : html`<div class=${'pd-art' + (placeBg ? ' has-bg' : '') + (p.arrange ? ' arranging' : '')}
-                 ref=${artRef}
-                 style=${placeBg ? { backgroundImage: 'url(' + placeBg + ')' } : null}>
+                 ref=${artRef}>
+              <!-- ★ 장소 배경은 **진짜 그림(img)** 으로 넣습니다 (2026-08-22).
+                     예전에는 css 의 background-image 였습니다. 화면에서는 잘
+                     보였지만 **인쇄하면 장소가 통째로 빠졌습니다.**
+                     브라우저 인쇄에서 「배경 그래픽」 은 기본이 꺼짐이라
+                     css 배경은 안 나오고, img 만 나옵니다.
+                     (print.css 의 print-color-adjust 로도 막지 못했습니다)
+                   ⛔ 다시 css 배경으로 되돌리지 마세요. 그림일기는 **인쇄해서
+                     쓰는 종이**라, 화면에만 보이는 것은 없는 것과 같습니다. -->
+              ${placeBg && html`<img class="pd-art-bg" src=${placeBg} alt="" />`}
               <!-- ★ 짜임새 : 장소는 배경, 그 위에 누구와 · 활동 · 기분을 놓습니다.
                      처음 자리는 아래쪽에 나란히 (배경 그림을 가리지 않게).
                      일기 고치기에서 그림 재배열하기를 켜면 마우스로 끌어 옮깁니다.
@@ -774,12 +782,19 @@
           if (c !== col) used += c.getBoundingClientRect().height;
         });
         var availH = track.clientHeight - used - 18;      // 18 = 칸 사이 여백
-        var availW = track.clientWidth - 380;             // 왼쪽 문장 칸
-        return Math.max(0.16, Math.min(0.62,
+        /* ★ 왼쪽(문장 칸 · 고치는 길)에 380px 을 늘 떼어 주고 있었습니다.
+             그런데 1024x768 에서 왼쪽이 **720px**, 오른쪽 그림일기가 251px 로
+             단추가 폭의 70% 를 먹고 있었습니다. 여기는 편집 화면이라
+             **고치는 대상(그림일기)이 커야지 단추가 클 까닭이 없습니다.**
+           ▸ 왼쪽에는 넉넉히 절반까지만 주고, 나머지는 그림일기가 씁니다. */
+        var availW = Math.max(track.clientWidth - 330, track.clientWidth * 0.56);
+        return Math.max(0.16, Math.min(0.95,
           (availH - 52) / A4_H,                           // 52 = 위 단추 줄(눌러서 크게 보기)
           availW / A4_W));
       }
-      return Math.max(0.16, Math.min(0.62,
+      /* ⚠ 상한을 0.62 로 두었더니, 자리가 넉넉한 큰 화면에서도 **더 못 컸습니다.**
+           높이가 병목이라 상한이 없어도 자리를 넘지 않습니다. */
+      return Math.max(0.16, Math.min(0.95,
         (window.innerHeight - 400) / A4_H,
         (window.innerWidth - 560) / A4_W));
     }
@@ -794,9 +809,22 @@
          (그러지 않으면 첫 화면만 어림값으로 그려져 쪽이 갈라진 채 남습니다) */
       var r1 = requestAnimationFrame(onResize);
       var t1 = setTimeout(onResize, 220);
+      var t2 = setTimeout(onResize, 700);
       window.addEventListener('resize', onResize);
+      /* ⚠ **흰 칸 자체를 지켜봅니다.**
+           창 크기가 그대로여도 흰 칸은 커질 수 있습니다. 완성 화면에서 무대가
+           남는 높이를 다 쓰도록 켜지는 순간(.stage.tall)이 그렇습니다.
+           창 resize 만 듣고 있으면 그 변화를 놓쳐, **처음 잰 작은 값 그대로**
+           남습니다 (0.78 이어야 할 배율이 0.63 에 멈춰 종이가 120px 작았습니다). */
+      var ro = null;
+      if (window.ResizeObserver) {
+        ro = new window.ResizeObserver(onResize);
+        var tr = document.querySelector('.stage-track');
+        if (tr) ro.observe(tr);
+      }
       return function () {
-        cancelAnimationFrame(r1); clearTimeout(t1);
+        cancelAnimationFrame(r1); clearTimeout(t1); clearTimeout(t2);
+        if (ro) ro.disconnect();
         window.removeEventListener('resize', onResize);
       };
     }, []);
@@ -804,8 +832,9 @@
     var d = p.draft;
     if (!d || !d.activityId) return null;
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text" />`;
-    /* 그림 자리 바꾸기를 켜면(arrange) 종이 위의 그림을 끌어 옮기고 크기도 바꿉니다.
-       일기 고치기 화면과 **똑같은 것**을 씁니다 — 고치는 길이 둘이면 헷갈립니다. */
+    /* 그림 자리 바꾸기를 켜면(arrange) 종이 위의 그림을 눌러 고르고 끌어 옮깁니다.
+       일기 고치기 화면과 **똑같은 것**을 씁니다 — 고치는 길이 둘이면 헷갈립니다.
+       ▸ 평소에는 **보기만** 합니다. 고치고 싶을 때 왼쪽에서 골라 켭니다. */
     var live = p.arrange
       ? html`<${C.PicDiarySheet} diary=${d} student=${p.student} trace="text"
           arrange=${true} onMoveArt=${p.onMoveArt}
@@ -828,15 +857,11 @@
       <!-- 크기는 위 fitDv 가 화면에 맞게 재어 넣어 줍니다 (CSS 의 --dv 를 덮어씀) -->
       <!-- 자리 바꾸는 동안에는 **누르면 커지는 것**을 끕니다.
            그림을 잡으려고 눌렀는데 큰 창이 떠 버리면 옮길 수가 없습니다. -->
-      ${p.arrange
-        ? html`<div class="dv dv-arrange" style=${{ '--dv': dvS[0] }}>
-            <span class="dv-paper">${live}</span>
-          </div>`
-        : html`<button type="button" class="dv" aria-label="완성된 그림일기 — 눌러서 크게 보기"
-            style=${{ '--dv': dvS[0] }}
-            onClick=${function () { bigS[1](true); }}>
-            <span class="dv-paper">${sheet}</span>
-          </button>`}
+      <!-- ⚠ 종이 전체를 단추로 두지 않습니다. 그러면 그림을 누를 때마다
+             큰 창이 떠서 **그림 하나하나를 고를 수가 없습니다.** -->
+      <div class="dv dv-arrange" style=${{ '--dv': dvS[0] }}>
+        <span class="dv-paper">${live}</span>
+      </div>
       ${bigS[0] && html`<${C.Modal} title="완성된 그림일기" wide=${true}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
@@ -936,14 +961,22 @@
     function goBack() {
       var from = params.from;
       if (from === 'journal') { p.nav('journal', { studentId: student.id }); return; }
-      if (from === 'folio') { p.nav('portfolio', { studentId: student.id }); return; }
+      /* ★ `tab:'diary'` 까지 넘겨야 **떠났던 칸(나의 일기장)** 으로 돌아옵니다.
+           그러지 않으면 포트폴리오의 첫 칸(내가 세운 계획)이 열려서,
+           바로 앞 화면이 아니라 다른 곳에 온 것처럼 보입니다. */
+      if (from === 'folio') { p.nav('portfolio', { studentId: student.id, tab: 'diary' }); return; }
       if (d) { p.nav('diary', { diaryId: d.id, step: 'last' }); return; }
       p.nav('home');
     }
 
     return html`<div class="app pd-app" data-corner="diary">
+      <!-- ★ 포트폴리오에서 왔으면 **화살표 자리에 글자 단추**를 둡니다.
+             화살표만으로는 어디로 가는지 몰라 학생이 누르지 못했습니다.
+             아래에 두었더니 A4 인쇄와 나란히 서서 무엇이 나가는 길인지
+             흐렸고, 그만큼 그림일기가 작아졌습니다. -->
       <${C.TopBar} title="그림일기"
         onBack=${goBack}
+        backText=${params.from === 'folio' ? '나의 일기장으로 돌아가기' : null}
         onTitle=${function () { p.nav("home"); }}
         below=${modeBar}>
         <${C.Speak} text=${d ? App.sentences.diaryBody(d) : '일기를 찾을 수 없어요.'} />
@@ -963,13 +996,18 @@
                  위아래로 쌓으면 두 줄(약 150px)을 먹어서 그림일기가 그만큼
                  작아집니다. 한 줄이면 절반만 씁니다.
                  1·2·3단계가 같은 화면을 쓰므로 세 단계에 함께 적용됩니다. -->
+          <!-- ⚠ 나가는 길을 여기에 두지 마세요. A4 인쇄와 나란히 서면
+                 무엇이 나가는 길인지 흐리고, 그만큼 그림일기가 작아집니다.
+                 지금은 **맨 위 줄 화살표 자리**에 글자 단추로 있습니다.
+               ▸ 포트폴리오에서 왔을 때에는 「나의 일기 모음」 도 빼 둡니다 —
+                 돌아갈 곳이 둘이면 어디가 앞 화면인지 흐려집니다. -->
           <div class="panel-action pd-acts">
             <${C.Btn} kind="primary" icon="print"
               onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
               A4 인쇄하기<//>
-            <${C.Btn} icon="book" className="pastel-yellow"
+            ${params.from !== 'folio' && html`<${C.Btn} icon="book" className="pastel-yellow"
               onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
-              나의 일기 모음 보기<//>
+              나의 일기 모음 보기<//>`}
           </div>
         </div>
       </div>

@@ -368,8 +368,16 @@
         </div>`);
     return html`<header class=${'topbar pagepad' + (p.below ? ' two' : '')}>
       <div class="topbar-row">
-        ${p.onBack && html`<${C.IconBtn} uiKey="back" icon="back" className="topbar-back"
-          label=${p.backLabel || '앞 화면으로'} onClick=${p.onBack} />`}
+        <!-- ★ backText 를 주면 화살표 **자리에 글자 단추**가 들어갑니다.
+               화살표만으로는 어디로 가는지 몰라서 학생이 누르지 못한다는
+               이야기가 있었습니다. 갈 곳이 정해진 화면에서는 글로 적어 둡니다.
+             ▸ 자리는 그대로라 다른 화면과 어긋나지 않고, 흰 칸 높이도
+               한 픽셀도 먹지 않습니다 (아래에 두면 그림일기가 작아집니다). -->
+        ${p.onBack && (p.backText
+          ? html`<${C.Btn} size="small" icon="back" className="topbar-backbtn pastel-pink"
+              onClick=${p.onBack}>${p.backText}<//>`
+          : html`<${C.IconBtn} uiKey="back" icon="back" className="topbar-back"
+              label=${p.backLabel || '앞 화면으로'} onClick=${p.onBack} />`)}
         ${p.left}
         ${title}
         <div class="spacer"></div>
@@ -602,7 +610,14 @@
       if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) go(dx < 0 ? 1 : -1);
     }
 
-    return html`<div class="stage">
+    /* ★ tall : 남는 높이를 **흰 칸이 다 쓰게** 합니다.
+         평소에는 무대가 내용만큼만 커지고 남는 높이는 여백으로 둡니다.
+         그런데 완성 화면처럼 **종이를 크게 보는 것이 목적**인 화면에서는
+         그 여백이 그대로 손해입니다. 1247x1130 에서 창은 1130 인데
+         무대가 691 만 써서, 1024x768 과 종이 크기가 똑같았습니다.
+       ▸ 이 화면에서만 켭니다. 다른 화면의 여백은 그대로 둡니다.
+       ⛔ 여기는 **JS 자리**입니다. HTML 주석(<!-- -->)을 쓰면 문법 오류가 납니다. */
+    return html`<div class=${'stage' + (p.tall ? ' tall' : '')}>
       <div class="panel">
       ${p.top && html`<div class="panel-top">${p.top}</div>`}
       <!-- ★ onePage : 쪽 나누기를 **아예 끕니다.**
@@ -678,11 +693,33 @@
     var ta = useRef(null);
 
     /* 글이 길어지면 칸이 저절로 늘어납니다 (안쪽 스크롤이 생기지 않게).
-       학생 화면에서는 스크롤을 만들지 않는 것이 규칙이라서요. */
+       학생 화면에서는 스크롤을 만들지 않는 것이 규칙이라서요.
+       ★ **글이 바뀔 때만 재면 안 됩니다.** 칸의 **폭**이 바뀌면 줄 수가
+         달라지는데, 그때 다시 재지 않으면 앞 두 줄만 보이고 뒷글이
+         잘려 나갑니다. 완성 화면은 한 쪽에 맞추느라 통째로 줄였다 늘였다
+         하므로(useFitOnePage 의 zoom), 폭이 실제로 여러 번 바뀝니다.
+       ▸ 그래서 ResizeObserver 로 **칸 자체를 지켜보다가** 다시 잽니다.
+       ⛔ 지우지 마세요 — 지우면 긴 일기의 뒷부분이 안 보입니다. */
     useLayoutEffect(function () {
       var el = ta.current; if (!el) return;
-      el.style.height = 'auto';
-      el.style.height = el.scrollHeight + 'px';
+      /* ⚠ `height = scrollHeight` 만으로는 **테두리 두께만큼 잘립니다.**
+           이 앱은 box-sizing 이 border-box 라, 준 높이 안에 테두리(3px x 2)가
+           들어갑니다. scrollHeight 에는 테두리가 없으므로 6px 이 모자라
+           마지막 줄이 잘렸습니다 (재어서 확인).
+         → 테두리 두께를 더해 줍니다. */
+      function fit() {
+        el.style.height = 'auto';
+        var cs = window.getComputedStyle(el);
+        var extra = (cs.boxSizing === 'border-box')
+          ? (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0)
+          : 0;
+        el.style.height = (el.scrollHeight + extra) + 'px';
+      }
+      fit();
+      var ro = window.ResizeObserver ? new window.ResizeObserver(fit) : null;
+      if (ro) ro.observe(el);
+      window.addEventListener('resize', fit);
+      return function () { if (ro) ro.disconnect(); window.removeEventListener('resize', fit); };
     }, [text]);
 
     return html`<div class="sentence-box">

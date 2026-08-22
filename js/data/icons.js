@@ -30,8 +30,15 @@
          학생이 어느 쪽인지 알 수 없습니다. */
     bookmark: '<path d="M14 8h20a2 2 0 0 1 2 2v30l-12-8-12 8V10a2 2 0 0 1 2-2z" fill="#f7c8a0"/>',
     home: '<path d="M8 23L24 9l16 14" fill="none"/><path d="M12 21v18h24V21" fill="#ffe1a8"/><path d="M20 39V28h8v11" fill="#fff"/>',
-    back: '<circle cx="24" cy="24" r="17" fill="#fff"/><path d="M27 15l-9 9 9 9"/>',
-    next: '<circle cx="24" cy="24" r="17" fill="#fff"/><path d="M21 15l9 9-9 9"/>',
+    /* ★ 되돌아가는 화살표는 **안이 채워진 왼쪽 삼각형** 하나로 통일합니다
+         (2026-08-22). 예전에는 흰 동그라미 안에 꺾쇠(‹)였습니다.
+         맨 위 줄의 큰 파란 화살표(images/화살표.png)는 **채워진 화살표**인데,
+         단추 안의 것만 속이 빈 꺾쇠라 서로 다른 것으로 보였습니다.
+         「고른 낱말로 되돌리기」 · 「나의 일기장으로 돌아가기」 처럼
+         되돌아가는 단추가 여럿이라, 한 모양이라야 뜻이 한눈에 옵니다.
+       ▸ `next` 도 짝이 맞게 **채워진 오른쪽 삼각형**으로 둡니다. */
+    back: '<path d="M30 11L13 24l17 13z" fill="' + L + '" stroke-width="2"/>',
+    next: '<path d="M18 11l17 13-17 13z" fill="' + L + '" stroke-width="2"/>',
     print: '<path d="M14 18V8h20v10" fill="#fff"/><rect x="8" y="18" width="32" height="14" rx="3" fill="#dfe7f3"/><rect x="14" y="28" width="20" height="12" rx="2" fill="#fff"/>',
     camera: '<rect x="6" y="15" width="36" height="24" rx="5" fill="#dfe7f3"/><path d="M18 15l3-5h6l3 5" fill="#fff"/><circle cx="24" cy="27" r="7" fill="#fff"/>',
     trash: '<path d="M10 14h28" /><path d="M14 14l2 25h16l2-25" fill="#f6c6b6"/><path d="M19 14v-4h10v4"/>',
