@@ -472,6 +472,7 @@
     var boardPageS = useState(0);      // 아직 안 붙인 활동 서랍의 쪽
     var showS = useState(false);    // 교실 TV 전시 모드
     var planOpenS = useState(null);    // 눌러서 열어 본 계획 (계획표 창)
+    var planPageS = useState(0);       // 계획 칸이 지금 몇 쪽을 보고 있는지
     /* 나의 한마디 — 일기와 **같은 세 단계**. 처음에는 그 학생의 일기 단계로 엽니다. */
     var meLvS = useState(function () { return (student && student.diaryLevel) || 1; });
     var meRowS = useState('r1');       // 돌아보기에서 지금 채우고 있는 줄
@@ -830,6 +831,140 @@
       el.addEventListener('pointercancel', up);
     }
 
+    /* 완성한 지도를 **A3 가로**로 냅니다.
+       ★ 지도는 가로로 넓고(1671:941) 카드가 여럿 올라가므로, A4 로는 카드
+         글씨가 너무 작아집니다. A3 가로면 교실 벽에 붙일 만한 크기가 됩니다.
+       ▸ 쪽 크기는 print.css 의 **이름 붙인 쪽**(`@page mapA3`)이 정합니다.
+       ▸ 자리는 화면과 같은 % 라서, 학생이 놓은 그대로 나옵니다. */
+    function printMapBoard() {
+      var layout = boardLayout();
+      var mine = boardCards().filter(function (c) { return layout[c.id]; });
+      return html`<div class="map-print">
+        <div class="map-print-head">
+          <b class="map-print-title">나만의 여가 지도</b>
+          <span class="map-print-who">${student.name} · ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</span>
+        </div>
+        <div class="map-print-board">
+          ${App.IMAGE_BASE.mapBoard && html`<img class="mb-bg"
+            src=${App.imgUrl(App.IMAGE_BASE.mapBoard)} alt="" />`}
+          <span class="mb-isle in">실내 여가 섬</span>
+          <span class="mb-isle out">실외 여가 섬</span>
+          ${mine.map(function (c) {
+            var pos = layout[c.id];
+            var mk = mainMark(c.id);
+            return html`<span key=${c.id} class=${'mb-card mk-' + (mk || 'none')}
+                style=${{ left: pos.x + '%', top: pos.y + '%', '--mbs': pos.s || 1 }}>
+              <span class="mb-art"><${C.ActivityArt} activity=${c} /></span>
+              <span class="mb-nm">${App.shortName(c) || c.name}</span>
+              <span class="mb-marks">
+                ${allMarks(c.id).map(function (m) {
+                  return html`<span key=${m.id} class="mb-mark"><${C.StateArt} state=${m} /></span>`;
+                })}
+              </span>
+            </span>`;
+          })}
+        </div>
+        <!-- 테두리 색이 무슨 뜻인지 — 종이만 보고도 알 수 있게 -->
+        <div class="map-print-legend">
+          ${App.DATA.mapStates.map(function (m) {
+            return html`<span key=${m.id} class=${'mpl mk-' + m.id}>
+              <span class="mpl-art"><${C.StateArt} state=${m} /></span>${m.name}</span>`;
+          })}
+        </div>
+      </div>`;
+    }
+
+    /* ══════════ 종이로 하기 — 빈 지도(A3) + 활동 라벨(A4) ══════════
+       ★ 화면에서 끌어 붙이는 것과 **같은 일을 종이로** 합니다.
+         빈 지도를 A3 로 뽑아 벽에 붙이고, 활동 라벨을 떼어 손으로 붙입니다.
+         손으로 붙이는 일은 화면보다 오래 남고, 여럿이 함께 볼 수 있습니다.
+
+       ▸ 라벨 규격 : **A4 · 5열 x 8줄 · 한 칸 37 x 32mm** (한 장에 40칸)
+         · 활동은 30가지(실내 15 · 실외 15)라 **한 장에 다 들어갑니다.**
+         · 3열 x 5줄(111 x 160mm)이면 A3 지도의 **섬 하나(약 129 x 173mm)**
+           안에 15개가 들어갑니다 — 그래서 이 크기를 골랐습니다.
+         · 여백은 좌우 12.5mm · 위아래 20.5mm (210-5x37)/2, (297-8x32)/2.
+       ⚠ 라벨지를 사기 전에 **가지고 계신 것의 칸 크기를 꼭 맞춰** 보세요.
+         칸 수만 같고 크기가 다른 제품이 많습니다.
+
+       ⛔ 40칸은 **LS-3102**(47 x 26.9mm · 4열 x 10줄) 입니다.
+          LS-3104 는 판매처마다 `27칸 · 62.7 x 30.1mm
+          (바코드용)` 으로 적혀 있습니다. 그 크기로는 가로 3장이 188mm 라
+          섬 하나(약 129mm)에 15개가 들어가지 않습니다.
+       ▸ 그래서 **규격을 고를 수 있게** 해 두었습니다. 가지고 계신 라벨지에
+         맞는 것을 고르면 그 칸에 맞춰 인쇄됩니다. */
+    var LABEL_KINDS = [
+      { id: 'ls3102', nm: '폼텍 LS-3102 · 40칸 · 47×26.9mm',
+        note: '한 장에 30개가 다 들어갑니다. 섬에는 3열×5줄로 붙이면 됩니다. (권장)',
+        cols: 4, rows: 10, w: 47, h: 26.9, mx: 11, my: 14 },
+      { id: 'w48', nm: '48칸 · 33×33mm',
+        note: '한 장에 30개가 들어갑니다. 칸이 작은 대신 섬 안에 넉넉히 들어갑니다.',
+        cols: 6, rows: 8, w: 33, h: 33, mx: 6, my: 16.5 },
+      { id: 'ls3104', nm: '폼텍 LS-3104 · 27칸 · 62.7×30.1mm',
+        note: '두 장에 나누어 나옵니다. 칸이 넓어 섬에는 2열까지만 붙습니다.',
+        cols: 3, rows: 9, w: 62.7, h: 30.1, mx: 10.95, my: 13.05 },
+      { id: 'ls3106', nm: '폼텍 LS-3106 · 24칸 · 64×34mm',
+        note: '두 장에 나누어 나옵니다. 칸이 넓어 섬에는 2열까지만 붙습니다.',
+        cols: 3, rows: 8, w: 64, h: 34, mx: 9, my: 12.5 }
+    ];
+    function labelKind() {
+      var want = (student && student.labelKind) || 'ls3102';
+      return LABEL_KINDS.filter(function (k) { return k.id === want; })[0] || LABEL_KINDS[0];
+    }
+
+    /* 빈 지도 — 섬 이름표만 있고 활동은 없습니다 (손으로 붙일 종이) */
+    function printEmptyMap() {
+      return html`<div class="map-print">
+        <div class="map-print-head">
+          <b class="map-print-title">나만의 여가 지도</b>
+          <span class="map-print-who">이름 ______________</span>
+        </div>
+        <div class="map-print-board">
+          ${App.IMAGE_BASE.mapBoard && html`<img class="mb-bg"
+            src=${App.imgUrl(App.IMAGE_BASE.mapBoard)} alt="" />`}
+          <span class="mb-isle in">실내 여가 섬</span>
+          <span class="mb-isle out">실외 여가 섬</span>
+        </div>
+        <div class="map-print-legend">
+          ${App.DATA.mapStates.map(function (m) {
+            return html`<span key=${m.id} class=${'mpl mk-' + m.id}>
+              <span class="mpl-art"><${C.StateArt} state=${m} /></span>${m.name}</span>`;
+          })}
+        </div>
+      </div>`;
+    }
+
+    /* 활동 라벨 한 장 — 실내 15 + 실외 15, 남는 칸은 빈 칸으로 둡니다 */
+    function printLabels() {
+      var K = labelKind();
+      var list = App.topCards('indoor').slice(0, 15)
+                 .concat(App.topCards('outdoor').slice(0, 15));
+      var per = K.cols * K.rows;
+      var sheets = Math.max(1, Math.ceil(list.length / per));
+      var pages = [];
+      for (var s = 0; s < sheets; s++) {
+        var cells = [];
+        for (var i = 0; i < per; i++) cells.push(list[s * per + i] || null);
+        pages.push(cells);
+      }
+      return html`<${React.Fragment}>
+        ${pages.map(function (cells, s) {
+          return html`<div key=${'s' + s} class="lb-sheet" style=${{
+              paddingTop: K.my + 'mm', paddingLeft: K.mx + 'mm',
+              gridTemplateColumns: 'repeat(' + K.cols + ', ' + K.w + 'mm)',
+              gridAutoRows: K.h + 'mm' }}>
+            ${cells.map(function (c, i) {
+              if (!c) return html`<span key=${'e' + i} class="lb-cell empty"></span>`;
+              return html`<span key=${c.id} class=${'lb-cell ' + (c.area === 'indoor' ? 'in' : 'out')}>
+                <span class="lb-art"><${C.ActivityArt} activity=${c} /></span>
+                <span class="lb-nm">${c.name}</span>
+              </span>`;
+            })}
+          </div>`;
+        })}
+      <//>`;
+    }
+
     /* 지도에 붙이기 화면 한 벌 */
     function mapBoardBody() {
       var layout = boardLayout();
@@ -876,9 +1011,6 @@
           </div>
         </div>
 
-        <!-- 안내는 지도 **아래**에 둡니다. 지도 한가운데에 두면 섬과 다리를
-             가려서, 정작 붙일 자리가 안 보였습니다. -->
-        <p class="mb-say">아래 활동을 선택하여 지도에 붙여 보아요.</p>
 
         <!-- 고른 카드가 있을 때만 크기 바꾸기 · 떼어내기가 나옵니다 -->
         <div class=${'mb-tools' + (picked ? '' : ' off')} aria-hidden=${picked ? 'false' : 'true'}>
@@ -898,7 +1030,12 @@
 
         <!-- 아직 안 붙인 활동 서랍 — 셋씩, 넘치면 양쪽 화살표 -->
         <div class="mb-tray">
-          <span class="mb-tray-cap">붙일 활동</span>
+          <!-- 안내는 **서랍 안**에 둡니다. 지도 아래에 따로 한 줄을 두면
+               그만큼 지도가 작아지고, 안내가 가리키는 곳과도 멀어집니다. -->
+          <div class="mb-tray-head">
+            <span class="mb-tray-cap">붙일 활동</span>
+            <span class="mb-say">아래 활동을 선택하여 지도에 붙여 보아요.</span>
+          </div>
           ${left.length
             ? flowBox(info, function (n) { boardPageS[1](n); }, 'mb-tray-grid',
                 info.items.map(function (c) {
@@ -1007,7 +1144,12 @@
           </div>`;
         })}
 
-        ${mapSheet && html`<div class="book-page">${mapSheet}</div>`}
+        <!-- ★ 학생이 **직접 붙인 지도**가 있으면 그것을 책에 넣습니다.
+               제 손으로 놓은 지도가 목록보다 훨씬 제 것 같습니다.
+             ▸ 아직 안 붙였으면 목록 쪽(bookMapSheet)을 그대로 냅니다. -->
+        ${Object.keys(boardLayout()).length
+          ? html`<div class="book-page">${printMapBoard()}</div>`
+          : (mapSheet && html`<div class="book-page">${mapSheet}</div>`)}
 
         ${data.diaries.map(function (d) {
           return html`<div key=${'d' + d.id} class="pd-page">
@@ -1233,6 +1375,41 @@
           교실 TV 전시는 저절로 넘어가요. ← → 로도 넘길 수 있어요.</div>
       <//>
 
+      <!-- ★ 종이로 하기 — 화면에서 끌어 붙이는 것과 **같은 일을 종이로**.
+             빈 지도를 A3 로 뽑아 벽에 붙이고, 활동 라벨을 떼어 손으로 붙입니다.
+           ▸ 인쇄 준비는 **선생님 일**이라 학생 화면이 아니라 여기에 둡니다. -->
+      <${C.Sec} title="종이로 하기 — 빈 지도 · 활동 라벨">
+        <p class="muted small">
+          <b>빈 여가 지도</b>는 A3 가로 한 장으로, <b>활동 라벨</b>은 A4 한 장에 30가지가 나옵니다.
+        </p>
+        <div class="wrap" style=${{ marginTop: '.4rem' }}>
+          <${C.Btn} icon="print" onClick=${function () {
+            toolsS[1](false); App.printNode(printEmptyMap());
+          }}>빈 여가 지도 (A3 가로)<//>
+          <${C.Btn} icon="print" onClick=${function () {
+            toolsS[1](false); App.printNode(printLabels());
+          }}>활동 라벨 30개 (A4)<//>
+        </div>
+        <!-- 가지고 계신 라벨지에 맞춰 고릅니다. 고른 것은 학생별로 저장됩니다. -->
+        <div class="wrap" style=${{ marginTop: '.55rem', alignItems: 'center' }}>
+          <span class="small" style=${{ fontWeight: 900 }}>라벨지 규격</span>
+          ${LABEL_KINDS.map(function (k) {
+            var on = labelKind().id === k.id;
+            return html`<button key=${k.id} type="button" class=${'tab' + (on ? ' on' : '')}
+              style=${{ minHeight: '38px', padding: '.1rem .7rem', fontSize: '.85rem' }}
+              aria-pressed=${on ? 'true' : 'false'} title=${k.note}
+              onClick=${function () { App.store.updateStudent(student.id, { labelKind: k.id }); }}>
+              ${k.nm}<//>`;
+          })}
+        </div>
+        <div class="small muted" style=${{ marginTop: '.45rem', lineHeight: 1.45 }}>
+          지금 고른 규격 : <b>${labelKind().nm}</b> — ${labelKind().note}<br />
+          ⚠ 40칸은 <b>LS-3102(47 × 26.9mm)</b> 이고, LS-3104 는 <b>27칸(62.7 × 30.1mm)</b> 입니다.
+          라벨지를 사시기 전에 <b>칸 크기</b>를 꼭 맞춰 보세요 — 칸 수만 같고 크기가 다른 제품이 많습니다.
+          라벨지가 없으면 <b>일반 종이에 뽑아 오려 붙여도</b> 됩니다.
+        </div>
+      <//>
+
       <!-- 나의 한마디 · 돌아보기는 학생이 **화면 안에서** 쓰고, 인쇄는 여기에서.
            학생 화면에 인쇄 단추를 두면 고르고 쓰는 일에서 눈이 흩어집니다. -->
       <${C.Sec} title="나의 한마디 인쇄">
@@ -1274,9 +1451,34 @@
              첫 화면에는 나갈 길이 파란 화살표 하나뿐이라야 헷갈리지 않습니다. -->
         ${folioTools && tab[0] !== 'pick' && html`<${C.Btn} size="small" icon="back"
           onClick=${function () { tab[1]('pick'); }}>포트폴리오로 돌아가기<//>`}
-        ${folioTools && tab[0] === 'pick' && folioTab[0] && html`<${C.Btn} size="small" icon="back"
-          className="pastel-pink" onClick=${function () { folioTab[1](null); }}>
-          여가 포트폴리오<//>`}
+        <!-- 「지도에 붙이기」 는 **맨 위 줄**에 이름표와 돌아가는 알약을 둡니다.
+             흰 칸 안에 두면 그만큼 지도가 작아집니다 — 이 화면에서 가장 커야
+             하는 것은 지도입니다. -->
+        ${folioTools && tab[0] === 'pick' && folioTab[0] === 'map' && mapViewS[0] === 'board'
+          && html`<${React.Fragment}>
+            <!-- ★ 인쇄 알약 셋을 **맨 위 줄 제목 오른쪽**에 둡니다.
+                   흰 칸 안에 두면 그만큼 지도가 작아집니다 — 이 화면에서
+                   가장 커야 하는 것은 지도입니다. 맨 위 줄은 높이를 안 먹습니다.
+                 ▸ 「내 지도」 는 학생이 붙인 그대로, 「빈 지도」 와 「활동 라벨」 은
+                   손으로 붙이는 종이입니다. -->
+            <${C.Btn} size="small" icon="print" className="pastel-yellow"
+              onClick=${function () { App.printNode(printMapBoard()); }}>내 지도 · A3<//>
+            <${C.Btn} size="small" icon="print" className="pastel-blue"
+              onClick=${function () { App.printNode(printEmptyMap()); }}>빈 지도 · A3<//>
+            <${C.Btn} size="small" icon="print" className="pastel-blue"
+              onClick=${function () { App.printNode(printLabels()); }}>활동 라벨 · A4<//>
+            <${C.Btn} size="small" icon="back" className="pastel-pink"
+              onClick=${function () { mapViewS[1]('list'); }}>모아 보기로<//>
+          <//>`}
+        <!-- ⚠ 지도에 붙이기 화면에서는 이 단추를 빼 둡니다.
+               인쇄 알약 셋 + 「모아 보기로」 와 함께 놓이면 맨 위 줄이 두 줄로
+               접혀서 지도가 그만큼 작아집니다. 나가는 길은 「모아 보기로」 하나로
+               충분합니다 (거기에 이 단추가 다시 있습니다). -->
+        ${folioTools && tab[0] === 'pick' && folioTab[0]
+          && !(folioTab[0] === 'map' && mapViewS[0] === 'board')
+          && html`<${C.Btn} size="small" icon="back"
+            className="pastel-pink" onClick=${function () { folioTab[1](null); }}>
+            여가 포트폴리오<//>`}
         ${folioTools && tab[0] === 'pick' && !folioTab[0] && html`<${C.Btn} size="small" icon="gear"
           className="pastel-blue" onClick=${function () { toolsS[1](true); }}>선생님 도구<//>`}
         <!-- ★ **누구의 것인지가 화면 안에 크게 있는 창**에서는 여기에 두지
@@ -1395,20 +1597,27 @@
           ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 계획 · ' + data.plans.length + '장'}
             speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요. 누르면 계획표를 볼 수 있어요.'}>
             ${data.plans.length ? html`<${React.Fragment}>
-              <div class="folio-grid four">
-                ${data.plans.map(function (pl) {
-                  var a = App.act(pl.activityId);
-                  var done = !!pl.doneDiaryId;
-                  return html`<button key=${pl.id} type="button" class="folio-card"
-                      onClick=${function () { planOpenS[1](pl.id); }}
-                      aria-label=${App.fmtDateLong(pl.date) + ' ' + (a ? a.name : '') + (done ? ', 일기까지 마쳤어요' : '') + '. 누르면 계획표를 봐요.'}>
-                    <span class="folio-art"><${C.ActivityArt} activity=${a} /></span>
-                    <span class="folio-name">${a ? a.name : '여가 계획'}</span>
-                    <span class="folio-date">${App.fmtDateShort(pl.date)}</span>
-                    ${done && html`<span class="star-badge">✓ 해봤어요</span>`}
-                  </button>`;
-                })}
-              </div>
+              <!-- ★ 한 줄에 셋 · 두 줄까지(여섯 장)만 놓고, 넘치면 **양쪽 화살표**로
+                     넘깁니다. 계획이 몇 장이든 화면 높이가 늘 같아서 스크롤도,
+                     좌우 갈라짐도 없습니다 (여가지도 · 일기장과 같은 방식).
+                   ▸ 칸은 **정사각형**이라 그림이 큽니다 — 가로로 긴 칸에
+                     작은 그림이 떠 있으면 눈에 안 들어옵니다. -->
+              ${(function () {
+                var info = pageOf(data.plans, planPageS[0], 6);
+                return flowBox(info, function (n) { planPageS[1](n); }, 'folio-grid wide folio-plans',
+                  info.items.map(function (pl) {
+                    var a = App.act(pl.activityId);
+                    var done = !!pl.doneDiaryId;
+                    return html`<button key=${pl.id} type="button" class="folio-card"
+                        onClick=${function () { planOpenS[1](pl.id); }}
+                        aria-label=${App.fmtDateLong(pl.date) + ' ' + (a ? a.name : '') + (done ? ', 일기까지 마쳤어요' : '') + '. 누르면 계획표를 봐요.'}>
+                      <span class="folio-art"><${C.ActivityArt} activity=${a} /></span>
+                      <span class="folio-name">${a ? a.name : '여가 계획'}</span>
+                      <span class="folio-date">${App.fmtDateShort(pl.date)}</span>
+                      ${done && html`<span class="star-badge">✓ 해봤어요</span>`}
+                    </button>`;
+                  }), '계획');
+              })()}
               <div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
                 <${C.Btn} kind="primary" icon="print" onClick=${printPlans}>
                   계획 모음 인쇄하기 (${data.plans.length}장)<//>
@@ -1447,25 +1656,30 @@
               challenge: data.challenges, unsure: data.unsure
             };
             var shown = lists[pick] || [];
-            /* 작은 탭 둘 — 「모아 보기」 는 몇 가지 했는지 **세는** 곳,
-               「지도에 붙이기」 는 그것이 내 지도 어디에 있는지 **놓아 보는** 곳.
-               하는 일이 달라 칸을 나눕니다 (나의 한마디의 작은 탭과 같은 방식). */
-            var mapTabs = html`<div class="wrap me-lv" style=${{ gap: '.25rem' }}>
-              <span class="me-parts" style=${{ marginLeft: 0, paddingLeft: 0, borderLeft: 0 }}>
-                ${[{ id: 'list', nm: '모아 보기' }, { id: 'board', nm: '지도에 붙이기' }].map(function (x) {
-                  var on = mapViewS[0] === x.id;
-                  return html`<button key=${x.id} type="button" class=${'tab' + (on ? ' on' : '')}
-                    style=${{ minHeight: '38px', padding: '.1rem .9rem', fontSize: '.92rem' }}
-                    aria-pressed=${on ? 'true' : 'false'}
-                    onClick=${function () { mapViewS[1](x.id); }}>${x.nm}<//>`;
-                })}
-              </span>
-            </div>`;
+            /* ★ 「지도에 붙이기」 는 **이 코너에서 가장 재미있는 활동**입니다.
+                 작은 탭으로 「모아 보기」 옆에 두었더니 찾기 어려웠습니다.
+               → 들어오자마자 보이는 **큰 알약**으로 올리고, 눌러 보라는 뜻으로
+                 잔잔한 테두리 물결을 줍니다.
+               ▸ 되돌아올 때는 작은 알약이면 됩니다 — 그때는 이미 어디에
+                 있는지 알고, 화면 높이도 지도에 내주어야 하기 때문입니다. */
+            /* ★ 돌아가는 알약과 이름표는 **맨 위 줄**에 있습니다 (아래 TopBar).
+                 흰 칸 안에 두었더니 그만큼 지도가 작아졌습니다 —
+                 이 화면에서 가장 커야 하는 것은 **지도**입니다. */
+            if (mapViewS[0] === 'board') return mapBoardBody();
 
-            if (mapViewS[0] === 'board') return html`<${React.Fragment}>
-              ${mapTabs}
-              ${mapBoardBody()}
-            <//>`;
+            var mapTabs = html`<button type="button" class="map-go"
+                onClick=${function () { mapViewS[1]('board'); }}>
+              <!-- 코너 그림 그대로 — 이 창의 창 카드와 같은 그림이라
+                   무엇을 하러 가는지 그림만 봐도 이어집니다. -->
+              <span class="map-go-art" aria-hidden="true">
+                <${C.PickArt} kind="corner" word="여가 지도" iconKey="cornerMap" /></span>
+              <span class="map-go-txt">
+                <span class="map-go-nm">나만의 여가 지도 직접 완성하기</span>
+                <span class="map-go-sub">활동을 골라 섬에 직접 붙여 보아요</span>
+              </span>
+              <span class="map-go-arrow" aria-hidden="true"
+                dangerouslySetInnerHTML=${{ __html: App.icon('next') }} />
+            </button>`;
 
             /* ⚠ 여기에 제목(h3)을 두지 마세요. 읽어주기까지 붙어 60px 을 먹고,
                  그만큼 그림이 작아집니다. 창 이름은 **맨 위 줄**에 있습니다.

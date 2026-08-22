@@ -80,3 +80,17 @@ html,body{
 
 /* 잉크 절약 : 배경은 옅게 */
 *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+/* --------------- 나만의 여가 지도 : A3 가로 한 장 ---------------
+   ★ 지도는 가로로 넓고(1671:941) 카드가 여럿 올라가므로, A4 로는 카드 글씨가
+     너무 작아집니다. A3 가로면 교실 벽에 붙일 만한 크기가 됩니다.
+   ▸ `@page` 는 class 로 좁힐 수 없으므로 **이름 붙인 쪽**을 씁니다.
+     그 이름을 쓰는 것만 A3 가 되고, 나머지는 위의 A4 그대로입니다. */
+@page mapA3{ size:A3 landscape; margin:10mm; }
+.print-area .map-print{ page:mapA3; }
+
+/* --------------- 활동 라벨 : A4 세로 한 장 ---------------
+   라벨지 칸에 그대로 맞으려면 **쪽 여백이 0** 이어야 합니다.
+   칸 시작 자리는 .lb-sheet 의 padding(12.5mm · 20.5mm)이 잡습니다. */
+@page labelA4{ size:A4 portrait; margin:0; }
+.print-area .lb-sheet{ page:labelA4; }
