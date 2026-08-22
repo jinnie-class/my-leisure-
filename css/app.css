@@ -1449,6 +1449,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    두 단을 차지**해서, 넘길 쪽이 늘고 빈 쪽이 생깁니다.
    실제로 1920x1080 에서 이 칸이 2062px 이 되어(단 폭 1013px) 3쪽이 됐습니다.
    ⛔ 무대 안에 놓는 flex/grid 칸에는 반드시 max-width:100% 를 주세요. */
+/* 확인 화면을 흰 칸에 맞춰 통째로 줄이는 껍데기.
+   ⛔ 지우지 마세요 — 1쪽이 텅 비는 고장이 세 번 되풀이됐습니다.
+   ★ 안쪽(.confirm-2col)이 흰 칸보다 단 34px만 커도 break-inside:avoid 때문에
+     통째로 다음 쪽으로 밀려 1쪽에 질문 줄만 남습니다.
+     그래서 넘치면 js(useFitOnePage)가 이 껍데기에 zoom 을 걸어 줄입니다.
+   ▸ zoom 은 transform 과 달리 레이아웃 크기가 실제로 줄어 단이 넘치지 않습니다. */
+.confirm-fit{ break-inside:avoid; max-width:100%; }
+
 .confirm-2col{ display:flex; flex-direction:column; gap:.5rem; break-inside:avoid; max-width:100%; }
 /* ★ 넓은 화면에서는 **좌우로** 나눕니다.
      문장 칸과 완성된 그림일기를 위아래로 쌓으면 828px 가 되어 흰 칸을 넘고,

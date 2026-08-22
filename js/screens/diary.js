@@ -5,6 +5,88 @@
 (function () {
   var App = window.App, React = window.React, html = App.html, C = App.C;
   var useState = React.useState, useEffect = React.useEffect;
+  var useRef = React.useRef, useLayoutEffect = React.useLayoutEffect;
+
+  /* ══════════ 확인 화면은 **어떤 경우에도 한 쪽** ══════════
+     ⛔ 이 장치를 지우지 마세요. 같은 고장이 세 번 되풀이됐습니다.
+
+     무대(.stage-track)는 CSS 다단으로 쪽을 나눕니다. 확인 화면 본문
+     (.confirm-2col)은 `break-inside:avoid` 라, 흰 칸보다 **단 34px만 커도**
+     통째로 다음 쪽으로 밀려 **1쪽에 질문 줄만 남습니다.**
+
+     예전 대책은 `내용이 들어가도록 크기를 맞추기`(fitDv)였는데,
+     fitDv 는 **오른쪽 그림일기만** 줄입니다. 실제 높이를 정하는 것은
+     **왼쪽 칸(문장 칸 + 고치는 길 세 줄)** 일 때가 많아 소용이 없었습니다.
+     화면 크기 · 글 길이 · 단추 줄바꿈 어느 하나만 달라져도 다시 넘칩니다.
+
+     ★ 그래서 **무엇이 높이를 만들든** 넘치면 본문을 통째로 줄입니다.
+       zoom 은 transform 과 달리 **레이아웃 크기가 실제로 줄어들어**
+       단이 넘치지 않습니다 (크롬·엣지 기준. 이 앱이 쓰는 브라우저입니다).
+
+     ▸ 잴 때는 zoom 을 1 로 되돌린 뒤 재야 합니다 (줄인 크기를 또 줄이면 계속 작아집니다).
+     ▸ 글꼴·그림이 늦게 와서 높이가 바뀌므로 rAF · 250ms · 700ms 에 다시 잽니다. */
+  var FIT_MIN = 0.5;                  // 이보다 더 줄이지 않습니다 (글자가 못 읽게 됩니다)
+  function useFitOnePage(deps) {
+    var boxRef = useRef(null);        // 줄이는 껍데기 (zoom 이 걸립니다)
+    var innerRef = useRef(null);      // 재는 알맹이 (zoom 이 안 걸립니다)
+    useLayoutEffect(function () {
+      var timers = [], ro = null;
+      /* ⚠ **zoom 이 걸린 요소를 재면 안 됩니다.**
+           줄인 것을 또 재어 값이 겉돌다가 0.94 에서 멈춰 버렸습니다
+           (실제로 필요한 값은 0.52 였습니다).
+         ★ 그래서 **껍데기에 zoom 을 걸고, 알맹이를 잽니다.**
+           알맹이의 offsetHeight 는 부모 zoom 과 상관없이 늘 원래 높이라
+           한 번에 정확히 셈해집니다. */
+      function 재기() {
+        var box = boxRef.current, inner = innerRef.current;
+        if (!box || !inner) return;
+        var track = box.closest('.stage-track'); if (!track) return;
+        var 남는 = track.clientHeight;
+        [].forEach.call(track.children, function (c) {
+          if (c !== box) 남는 -= c.offsetHeight;
+        });
+        /* ⚠ 여유를 넉넉히 두세요. 딱 맞게 셈하면 **몇 px 차이로 또 밀립니다.**
+             재고 나서 그림·글꼴이 마저 오면 높이가 조금 더 늘기 때문입니다
+             (실제로 4px 넘쳐서 2쪽이 됐습니다). */
+        남는 -= 24;
+        var 필요 = inner.offsetHeight;
+        if (!(남는 > 40) || !(필요 > 0)) return;
+        var k = 1;
+        if (필요 > 남는) k = Math.max(FIT_MIN, (남는 / 필요) * 0.97);    // 0.97 = 안전 몫
+        /* ⚠ 상태(useState)로 넘기지 않고 **DOM 에 바로 씁니다.**
+             상태를 거치면 다시 그리는 차례와 엇갈려, 줄여야 하는데도
+             zoom 이 1 인 채로 남는 일이 생겼습니다 (1366x640 에서 20px 잘림).
+             style 의 zoom 은 React 가 건드리지 않으므로 그대로 남습니다. */
+        var 새값 = (k === 1) ? '' : String(k);
+        if (box.style.zoom !== 새값) box.style.zoom = 새값;
+        /* 자가 검사 — 가장 작게 줄여도 넘치면 알려 줍니다 (조용히 1쪽이 비지 않게) */
+        if (k <= FIT_MIN + 0.001 && 필요 * k > 남는 + 2 && window.console) {
+          console.warn('[확인 화면] 가장 작게 줄여도 흰 칸을 넘습니다 — 필요 '
+            + Math.round(필요) + 'px / 자리 ' + Math.round(남는) + 'px');
+        }
+      }
+      재기();
+      var raf = requestAnimationFrame(재기);
+      timers.push(setTimeout(재기, 250), setTimeout(재기, 700));
+      /* 창 크기가 바뀔 때 resize 이벤트가 안 오는 경우가 있어(전자칠판·미리보기)
+         흰 칸 자체를 지켜봅니다. 이게 가장 확실합니다. */
+      if (window.ResizeObserver) {
+        ro = new window.ResizeObserver(재기);
+        var tr = boxRef.current && boxRef.current.closest('.stage-track');
+        if (tr) ro.observe(tr);
+        if (innerRef.current) ro.observe(innerRef.current);
+      }
+      window.addEventListener('resize', 재기);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(재기).catch(function () {});
+      return function () {
+        cancelAnimationFrame(raf);
+        timers.forEach(clearTimeout);
+        if (ro) ro.disconnect();
+        window.removeEventListener('resize', 재기);
+      };
+    }, deps);
+    return [boxRef, innerRef];
+  }
   var PAGE_SIZE = 6;
 
   /* 3단계가 일기를 쓰는 세 가지 방법.
@@ -176,6 +258,13 @@
     }
 
     var level = draft.level;
+    /* 확인 화면이 **한 쪽을 넘지 않게** 통째로 줄여 주는 장치 (위 useFitOnePage).
+       ⛔ 지우지 마세요 — 같은 고장이 세 번 되풀이됐습니다.
+       ▸ 글·단계·그림이 바뀌면 높이가 달라지므로 그때마다 다시 잽니다. */
+    var fit = useFitOnePage([stepS[0], level, draft.bodyEdit, draft.text,
+                             draft.picKind, draft.photoIds && draft.photoIds.length,
+                             draft.title, draft.activityId, moveS[0]]);
+    var fitBox = fit[0], fitInner = fit[1];
     /* 지금 고른 일기 단계가 **무엇을 하는 것인지** 한 줄 설명.
        질문 줄 오른쪽에 늘 같은 자리로 나갑니다 (options.js 의 note). */
     var lvNote = (function () {
@@ -746,8 +835,12 @@
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} note=${lvNote} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
-             위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다. -->
-        <div class="confirm-2col">
+             위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다.
+             ★ 바깥 껍데기(.confirm-fit)에 zoom 을 걸어 흰 칸을 넘으면 통째로 줄입니다.
+               **재는 것은 안쪽(.confirm-2col)** 입니다 — zoom 이 걸린 것을 재면
+               값이 겉돌아 제대로 줄지 않습니다 (위 useFitOnePage 주석). 지우지 마세요. -->
+        <div class="confirm-fit" ref=${fitBox}>
+        <div class="confirm-2col" ref=${fitInner}>
           <div class="confirm-left">
             <${C.SentenceEdit}
               made=${madeText === undefined ? App.sentences.diaryMade(draft) : madeText}
@@ -813,6 +906,7 @@
             : html`<${C.DiaryPreview} draft=${draft} student=${student}
                 arrange=${moveS[0]} onMoveArt=${moveArt}
                 picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`}
+        </div>
         </div>
       <//>`;
     }
@@ -1265,6 +1359,8 @@
     /* `step:'last'` 로 넣어 둔 99 를 여기서 실제 마지막 번호로 깎습니다 */
     if (stepS[0] > steps.length - 1) stepS[1](steps.length - 1);
     var lastStep = steps.length - 1;
+    /* 확인(완성) 화면인가 — 이 화면만 쪽을 나누지 않고 줄여서 맞춥니다 */
+    var isConfirm = (step === lastStep);
     var body, action = null, backBtn = null;
 
     /* ── 흰 칸 맨 위 띠 : 지금까지 만든 것 ──────────────────────────
@@ -1355,7 +1451,11 @@
         <${C.WhoChip} student=${student} />
       <//>
 
-      <${C.Stage} top=${backBtn} action=${action}>${body}<//>
+      <!-- ★ 확인(완성) 화면은 **쪽을 나누지 않습니다.**
+             한 장으로 보여 주어야 하는 화면인데, 다단은 조금만 넘쳐도
+             통째로 밀어내어 1쪽이 텅 빕니다. 나누지 않고 줄여서 맞춥니다
+             (useFitOnePage). ⛔ 지우지 마세요 — 세 번 되풀이된 고장입니다. -->
+      <${C.Stage} top=${backBtn} action=${action} onePage=${isConfirm}>${body}<//>
 
       ${helpS[0] && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
         actions=${html`<${C.Btn} onClick=${function () { helpS[1](false); }}>닫기<//>`}>

@@ -605,7 +605,15 @@
     return html`<div class="stage">
       <div class="panel">
       ${p.top && html`<div class="panel-top">${p.top}</div>`}
-      <div class="stage-track" ref=${trackRef} onTouchStart=${onTouchStart} onTouchEnd=${onTouchEnd}>
+      <!-- ★ onePage : 쪽 나누기를 **아예 끕니다.**
+             다단(column)은 내용이 흰 칸보다 조금만 커도 통째로 다음 쪽으로
+             밀어내어 **1쪽이 텅 비어** 보입니다. 확인 화면처럼 한 장으로
+             보여 주어야 하는 화면은 나누지 말고, 넘치면 줄여서 맞춥니다.
+           ⚠ zoom 으로 줄여도 소용없습니다 — 다단은 **줄이기 전 높이**로
+             쪽을 나눕니다. 나누기 자체를 꺼야 합니다.
+           ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 끊깁니다 (인수인계 2-3 · 14-30). -->
+      <div class=${'stage-track' + (p.onePage ? ' no-page' : '')} ref=${trackRef}
+           onTouchStart=${onTouchStart} onTouchEnd=${onTouchEnd}>
         ${p.children}
       </div>
       ${s.pages > 1 && html`<div class="pager">
