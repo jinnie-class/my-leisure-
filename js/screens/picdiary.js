@@ -1229,9 +1229,17 @@
         <${C.WhoChip} student=${student} />
       <//>
 
+      <!-- ★ 맨 아래 줄 : 왼쪽 인쇄 · 오른쪽 나가기.
+             노란 단추는 **되짚는 길이 아니라 나가는 길**입니다. 여기까지 왔으면
+             이 코너에서 할 일이 끝난 자리라, 한 걸음씩 되짚지 않고 바로 갑니다.
+             계획하GO! 의 마지막 화면 · 나의 여가 모아보기와 **같은 모양**입니다. -->
       <${C.Stage}
-        action=${html`<${C.Btn} kind="primary" icon="print" disabled=${!list.length}
-          onClick=${printBook}>일기 모음을 책으로 인쇄하기<//>`}>
+        action=${html`<div class="fix-acts">
+          <${C.Btn} kind="primary" icon="print" disabled=${!list.length}
+            onClick=${printBook}>일기 모음을 책으로 인쇄하기<//>
+          <${C.Btn} icon="home" className="pastel-yellow"
+            onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>
+        </div>`}>
         <${C.Question} bar=${true}
           speakText=${'나의 일기 모음. 모두 ' + list.length + '장이에요.'}>
           나의 일기 모음 · ${list.length}장<//>
