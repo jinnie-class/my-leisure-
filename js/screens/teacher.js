@@ -221,7 +221,7 @@
 
         <div class="tsec">
           <label>6. 학생 화면에 도구 보이기
-            <span class="muted" style=${{ fontWeight: 400, fontSize: '.85em' }}>기본은 숨김이에요</span></label>
+            <span class="muted" style=${{ fontWeight: 400, fontSize: '.85em' }}>둘 다 기본은 켜짐이에요</span></label>
           <!-- ⚠ 「지도 찾아보기·확대」 스위치를 뺐습니다.
                  찾아보기와 지도 도움말은 이제 **섬 안에서 늘 보입니다**.
                  아무 일도 하지 않는 스위치를 남겨 두면 켜고 꺼도 화면이 그대로라
@@ -229,13 +229,15 @@
                ▸ 담아 두는 값(mapTools)은 지우지 않았습니다 — 예전 기록에 남아 있어도
                  해가 없고, 지우면 되돌리기 어려워집니다. -->
           <div class="wrap">
-            <${C.Switch} label="포트폴리오 기간·인쇄" on=${!!current.folioTools}
+            <${C.Switch} label="포트폴리오 기간·인쇄" on=${current.folioTools !== false}
               onChange=${function (v) { upd(current.id, { folioTools: v }); }} />
             <${C.Switch} label="활동 고르는 화면의 ＋ 활동 더하기" on=${current.addTools !== false}
               onChange=${function (v) { upd(current.id, { addTools: v }); }} />
           </div>
-          <p class="muted small">＋ 활동 더하기는 <b>기본이 켜짐</b>이에요.
-            여가 계획하기 · 여가 일기 의 활동 고르는 화면에서 바로 우리 반 활동을 더할 수 있어요.</p>
+          <p class="muted small"><b>포트폴리오 기간·인쇄</b>는 기간을 바꾸고 전시판형·책자형으로
+            인쇄하는 길이에요. 포트폴리오는 인쇄해서 붙이는 것이 목적이라 <b>켜 두는 것이 좋습니다.</b><br/>
+            <b>＋ 활동 더하기</b>는 여가 계획하기 · 여가 일기 의 활동 고르는 화면에서
+            바로 우리 반 활동을 더할 수 있어요.</p>
         </div>
 
         <div class="tsec">

@@ -2466,6 +2466,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .mymap-island:active{ transform:translateY(0); }
 .mymap-island.in { background:#ffe9cc; border-color:#c96a1e; color:#8a4a12; }
 .mymap-island.out{ background:#d6ebf9; border-color:#1f6e9e; color:#14526f; }
+/* 표시 하나를 열어 본 화면에서 **네 가지 표시로 돌아가는** 알약.
+   ★ 옆에 있는 질문 알약(.q-pill)과 **같은 분홍**이되, 질문보다 작게 둡니다.
+     같은 크기면 무엇이 질문인지 흐려집니다 — 질문이 주인공입니다. */
+.mymap-island.back{
+  background:#ffeef4; border-color:#f3c3d6; color:#8a4a5e;
+  font-size:.9rem; padding:.32rem .8rem; border-width:2px;
+}
 @media (max-width:700px){ .mymap-island{ font-size:.9rem; padding:.35rem .8rem; } }
 
 .mymap-grid{

@@ -874,11 +874,21 @@
       body = html`<${React.Fragment}>
         <!-- 표시 그림을 말 앞에 붙입니다 (해봤어요 앞에 발자국처럼).
              네 칸 화면에서는 그림을 보고 골랐는데 들어오면 글자만 남아서,
-             방금 무엇을 눌렀는지 이어지지 않았습니다. -->
-        <${C.Question} bar=${true} speakText=${open.name + '. ' + open.help}>
-          <span class="q-art" aria-hidden="true"><${C.StateArt} state=${open} /></span>
-          ${open.name}
-        <//>
+             방금 무엇을 눌렀는지 이어지지 않았습니다.
+             ★ 왼쪽 알약은 **네 가지 표시로 돌아가는 지름길**입니다.
+               맨 위 파란 화살표도 같은 곳으로 가지만 화면 끝이라 멀고,
+               여기가 어디에서 들어온 자리인지도 알려 줍니다.
+               섬 알약(mymap-island)과 **같은 자리 · 같은 결**로 두었습니다. -->
+        <div class="mymap-head">
+          <button type="button" class="mymap-island back"
+            title="내가 표시한 활동으로 돌아가기"
+            aria-label="내가 표시한 활동으로 돌아가기"
+            onClick=${function () { openS[1](null); }}>◀ 내가 표시한 활동<//>
+          <${C.Question} bar=${true} speakText=${open.name + '. ' + open.help}>
+            <span class="q-art" aria-hidden="true"><${C.StateArt} state=${open} /></span>
+            ${open.name}
+          <//>
+        </div>
         ${list.length
           ? html`<${React.Fragment}>
               <!-- ★ 긴 가로 바를 죽 늘어놓던 것을 **네모 카드 4장씩**으로

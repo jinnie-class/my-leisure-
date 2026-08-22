@@ -171,20 +171,26 @@
      ⚠ `나의 한마디`(한마디 + 돌아보기)도 넷째 칸으로 넣었습니다.
        예전에는 모음 아래에 **늘 붙어 있어서**, 일기장을 고르면 4쪽까지 갈라졌습니다. */
   var FOLIO_TABS = [
+    /* 네 탭이 **같은 꼴**로 셉니다. 아무것도 없을 때는 `0장` 대신 `아직 없어요`.
+       숫자 0 은 못했다는 표시처럼 보입니다 — 앱이 모아보기에서 쓰는 말과 맞췄습니다. */
     { id: 'plan',  name: '내가 세운 계획', icon: 'cornerPlan',
-      count: function (d) { return d.plans.length + '장'; } },
+      count: function (d) { return d.plans.length ? (d.plans.length + '장') : '아직 없어요'; } },
     { id: 'map',   name: '나의 여가지도',  icon: 'cornerMap',
-      count: function (d) { return d.tried.length + '가지'; } },
+      count: function (d) { return d.tried.length ? (d.tried.length + '가지') : '아직 없어요'; } },
     { id: 'diary', name: '나의 일기장',    icon: 'cornerDiary',
-      count: function (d) { return d.diaries.length + '장'; } },
+      count: function (d) { return d.diaries.length ? (d.diaries.length + '장') : '아직 없어요'; } },
+    /* ⚠ 여기만 `0 / 5` 처럼 **분수로** 세고 있었습니다.
+         · 다른 세 탭은 `1장` · `3가지` · `3장` 인데 혼자 꼴이 달라 어수선했습니다.
+         · 무엇보다 `0 / 5` 는 학생에게 **5개 중 0개 = 0점**처럼 읽힙니다.
+           아직 안 쓴 것이 잘못한 것처럼 보이면 안 됩니다.
+       ★ 다른 탭과 **같은 꼴**로 쓴 만큼만 셉니다. 못 채운 칸은 세지 않습니다. */
     { id: 'me',    name: '나의 한마디',    icon: 'pencil',
       count: function (d, st) {
         if (!st) return '';
         var n = (st.word ? 1 : 0);
         var rv = st.review || {};
         (App.DATA.reviewFrames || []).forEach(function (f) { if (rv[f.id]) n++; });
-        var all = 1 + (App.DATA.reviewFrames || []).length;
-        return n + ' / ' + all;
+        return n ? (n + '줄') : '아직 없어요';
       } }
   ];
 
@@ -438,9 +444,13 @@
       App.store.updateStudent(student.id, { portfolio: pf });
     }
 
-    /* 기간·인쇄·전시판형은 선생님 일이라 학생 화면에서는 감춥니다.
-       (선생님 설정 → 포트폴리오 에서 켜면 여기에도 나옵니다) */
-    var folioTools = !!(student && student.folioTools);
+    /* 기간·인쇄·전시판형 — **기본이 켬**입니다.
+       ★ 예전에는 기본이 숨김이라, 켜는 곳을 모르면 기간을 바꾸거나 인쇄할 길이
+         아예 없었습니다. 포트폴리오는 인쇄해서 붙이는 것이 목적인데
+         그 길이 막혀 있으면 화면이 무엇을 하는 곳인지 알 수 없습니다.
+       ⚠ `!== false` 로 봅니다. 예전에 만든 학생 자료에는 이 값이 아예 없어서
+         `!!` 로 보면 **여전히 꺼진 것으로** 읽힙니다. */
+    var folioTools = !(student && student.folioTools === false);
     var view = folioTools ? tab[0] : 'pick';
 
     var printable = view === 'book'

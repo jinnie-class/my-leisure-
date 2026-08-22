@@ -37,8 +37,11 @@
       moodIds: allIds(D.moods),
       voice: true,
       photo: true,
-      mapTools: false,          // 지도의 찾아보기·확대 도구를 학생 화면에 보일지
-      folioTools: false,        // 포트폴리오의 기간·인쇄를 학생 화면에 보일지
+      mapTools: false,          // (안 씀) 찾아보기·도움말은 섬 안에서 늘 보입니다 — 14-34
+      /* ★ 기본이 **켬**입니다. 숨겨 두면 기간을 바꾸거나 인쇄할 길이 아예 없어서,
+           켜는 곳을 모르는 선생님은 포트폴리오를 못 씁니다.
+           끄고 싶을 때만 선생님 설정 6번에서 끕니다. */
+      folioTools: true,         // 포트폴리오의 기간·인쇄를 학생 화면에 보일지
       addTools: true,           // 활동 고르는 화면의 '＋ 활동 더하기' 를 보일지
       portfolio: { rangeId: 'm1', start: '', end: '' },
       review: { r1: '', r2: '', r3: '', r4: '' },
