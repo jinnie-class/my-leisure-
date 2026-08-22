@@ -467,6 +467,9 @@
     var mapPick = useState('tried');   // tried | like | challenge | unsure
     var mapPageS = useState({});       // 실내·실외 창이 지금 몇 쪽을 보고 있는지
     var diaryPageS = useState(0);      // 일기장이 지금 몇 쪽을 보고 있는지
+    var mapViewS = useState('list');   // 여가지도 칸 : list(모아 보기) | board(지도에 붙이기)
+    var boardPickS = useState(null);   // 지도에서 지금 고른 카드 (크기 바꾸기·빼기)
+    var boardPageS = useState(0);      // 아직 안 붙인 활동 서랍의 쪽
     var showS = useState(false);    // 교실 TV 전시 모드
     var planOpenS = useState(null);    // 눌러서 열어 본 계획 (계획표 창)
     /* 나의 한마디 — 일기와 **같은 세 단계**. 처음에는 그 학생의 일기 단계로 엽니다. */
@@ -736,7 +739,7 @@
        둘은 하나의 마무리 글이라, 따로 내면 종이가 둘로 갈라집니다. */
     function printMe() {
       var rv = student.review || {};
-      return html`<div class="sheet">
+      return html`<div class="sheet me-sheet">
         <div class="sheet-title">나의 한마디</div>
         <div class="sheet-meta">${student.name} · ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</div>
         <div class="sentence me-print-say">${student.word || '　'}</div>
@@ -751,6 +754,171 @@
           })}
         </div>
       </div>`;
+    }
+
+    /* ══════════ 지도에 붙이기 — 학생이 **직접 놓는** 여가 탐험 지도 ══════════
+       ★ 「모아 보기」 는 몇 가지 했는지 **세는** 곳이고, 여기는 그것이 내 지도
+         어디에 있는지 **놓아 보는** 곳입니다. 하는 일이 달라 칸을 나눕니다.
+       ▸ 끌어 옮기기 · 크기 바꾸기는 그림일기의 것과 **같은 장치**입니다
+         (자리는 % 로 담습니다 — 지도를 줄여 보여 줘도 손끝과 그림이 함께 갑니다).
+       ▸ 담는 곳 : student.mapLayout = { 활동id: {x, y, s} }
+       ▸ 테두리 색은 **대표 표시 하나**로 정하고, 표시가 여럿이면 카드 귀퉁이에
+         작은 그림을 함께 붙입니다. 테두리를 여러 색으로 나누면 무슨 뜻인지
+         알아보기 어렵습니다. */
+    var MARK_ORDER = ['tried', 'like', 'challenge', 'unsure'];
+    function boardLayout() { return (student && student.mapLayout) || {}; }
+    function saveBoard(next) { App.store.updateStudent(student.id, { mapLayout: next }); }
+    function placeCard(id, pos) {
+      var cur = boardLayout();
+      var next = {};
+      Object.keys(cur).forEach(function (k) { next[k] = cur[k]; });
+      next[id] = Object.assign({}, next[id] || {}, pos);
+      saveBoard(next);
+    }
+    function removeCard(id) {
+      var cur = boardLayout();
+      var next = {};
+      Object.keys(cur).forEach(function (k) { if (k !== id) next[k] = cur[k]; });
+      saveBoard(next);
+      if (boardPickS[0] === id) boardPickS[1](null);
+    }
+    /* 표시한 활동만 붙일 수 있습니다 — 지도는 **내가 표시한 것**을 담는 곳입니다 */
+    function boardCards() {
+      var st = App.store.mapOf(student.id);
+      return App.visibleCards(student).filter(function (c) {
+        var s = st[c.id];
+        return s && (s.tried || s.like || s.challenge || s.unsure);
+      });
+    }
+    /* 대표 표시 하나 (해봤어요 → 좋아해요 → 도전 → 모르겠어요 차례) */
+    function mainMark(cardId) {
+      var s = App.store.mapOf(student.id)[cardId] || {};
+      for (var i = 0; i < MARK_ORDER.length; i++) if (s[MARK_ORDER[i]]) return MARK_ORDER[i];
+      return null;
+    }
+    function allMarks(cardId) {
+      var s = App.store.mapOf(student.id)[cardId] || {};
+      return App.DATA.mapStates.filter(function (m) { return s[m.id]; });
+    }
+
+    var boardRef = useRef(null);
+    /* 마우스(또는 손가락)로 끌어 옮기기.
+       ⚠ 자리를 px 로 재면 지도를 줄여 보여 줄 때 어긋납니다. 잰 **칸 크기**에
+         대고 퍼센트로 셈해야 어디서 보든 손끝과 그림이 같이 움직입니다.
+         (그림일기의 startDrag 와 같은 방법입니다 — picdiary.js) */
+    function startBoardDrag(e, id) {
+      var box = boardRef.current; if (!box) return;
+      e.preventDefault();
+      var el = e.currentTarget, last = null;
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      function move(ev) {
+        var r = box.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        var x = Math.max(6, Math.min(94, (ev.clientX - r.left) / r.width * 100));
+        var y = Math.max(8, Math.min(92, (ev.clientY - r.top) / r.height * 100));
+        el.style.left = x + '%'; el.style.top = y + '%';
+        last = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+      }
+      function up() {
+        el.removeEventListener('pointermove', move);
+        el.removeEventListener('pointerup', up);
+        el.removeEventListener('pointercancel', up);
+        if (last) placeCard(id, last);
+      }
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', up);
+    }
+
+    /* 지도에 붙이기 화면 한 벌 */
+    function mapBoardBody() {
+      var layout = boardLayout();
+      var all = boardCards();
+      var placed = all.filter(function (c) { return layout[c.id]; });
+      var left = all.filter(function (c) { return !layout[c.id]; });
+      var info = pageOf(left, boardPageS[0], 3);
+      var picked = boardPickS[0];
+
+      function card(c, pos) {
+        var mk = mainMark(c.id);
+        var marks = allMarks(c.id);
+        var s = (pos && pos.s) || 1;
+        return html`<span key=${c.id}
+            class=${'mb-card mk-' + (mk || 'none') + (picked === c.id ? ' picked' : '')}
+            style=${{ left: pos.x + '%', top: pos.y + '%', '--mbs': s }}
+            onPointerDown=${function (e) { startBoardDrag(e, c.id); }}
+            onClick=${function () { boardPickS[1](picked === c.id ? null : c.id); }}
+            role="img" aria-label=${c.name + '. ' + marks.map(function (m) { return m.name; }).join(', ')}>
+          <span class="mb-art"><${C.ActivityArt} activity=${c} /></span>
+          <span class="mb-nm">${App.shortName(c) || c.name}</span>
+          <span class="mb-marks">
+            ${marks.map(function (m) {
+              return html`<span key=${m.id} class="mb-mark" title=${m.name}
+                ><${C.StateArt} state=${m} /></span>`;
+            })}
+          </span>
+        </span>`;
+      }
+
+      return html`<${React.Fragment}>
+        <!-- ★ 지도 — 학생이 활동을 **직접 끌어다 놓는** 곳.
+               자리는 % 로 담으므로 화면 크기가 달라져도 그대로 있습니다. -->
+        <div class="mb-wrap">
+          <div class="mb-board" ref=${boardRef}>
+            ${App.IMAGE_BASE.mapBoard && html`<img class="mb-bg"
+              src=${App.imgUrl(App.IMAGE_BASE.mapBoard)} alt="" />`}
+            <!-- 섬 이름표 — **하늘 자리**에 둡니다. 섬 그림을 가리지 않으면서
+                 어느 쪽이 실내이고 실외인지 한눈에 알려 줍니다.
+                 색은 앱이 이미 쓰는 실내=주황 · 실외=파랑 그대로입니다. -->
+            <span class="mb-isle in">실내 여가 섬</span>
+            <span class="mb-isle out">실외 여가 섬</span>
+            ${placed.map(function (c) { return card(c, layout[c.id]); })}
+          </div>
+        </div>
+
+        <!-- 안내는 지도 **아래**에 둡니다. 지도 한가운데에 두면 섬과 다리를
+             가려서, 정작 붙일 자리가 안 보였습니다. -->
+        <p class="mb-say">아래 활동을 선택하여 지도에 붙여 보아요.</p>
+
+        <!-- 고른 카드가 있을 때만 크기 바꾸기 · 떼어내기가 나옵니다 -->
+        <div class=${'mb-tools' + (picked ? '' : ' off')} aria-hidden=${picked ? 'false' : 'true'}>
+          <${C.Btn} size="small" className="pastel-blue" icon="shrink"
+            onClick=${function () {
+              var cur = (boardLayout()[picked] || {}).s || 1;
+              placeCard(picked, { s: Math.max(0.6, Math.round((cur - 0.2) * 10) / 10) });
+            }}>작게<//>
+          <${C.Btn} size="small" className="pastel-blue" icon="expand"
+            onClick=${function () {
+              var cur = (boardLayout()[picked] || {}).s || 1;
+              placeCard(picked, { s: Math.min(2, Math.round((cur + 0.2) * 10) / 10) });
+            }}>크게<//>
+          <${C.Btn} size="small" className="pastel-red" icon="back"
+            onClick=${function () { removeCard(picked); }}>지도에서 빼기<//>
+        </div>
+
+        <!-- 아직 안 붙인 활동 서랍 — 셋씩, 넘치면 양쪽 화살표 -->
+        <div class="mb-tray">
+          <span class="mb-tray-cap">붙일 활동</span>
+          ${left.length
+            ? flowBox(info, function (n) { boardPageS[1](n); }, 'mb-tray-grid',
+                info.items.map(function (c) {
+                  var mk = mainMark(c.id);
+                  return html`<button key=${c.id} type="button" class=${'mb-pick mk-' + (mk || 'none')}
+                      onClick=${function () {
+                        /* 지도 가운데쯤에 놓습니다 — 붙인 뒤 끌어서 옮기면 됩니다 */
+                        placeCard(c.id, { x: 30 + (placed.length % 5) * 10,
+                                          y: 32 + (Math.floor(placed.length / 5) % 3) * 18, s: 1 });
+                        boardPickS[1](c.id);
+                        App.speakFor(student, c.name);
+                      }}>
+                    <span class="mb-art"><${C.ActivityArt} activity=${c} /></span>
+                    <span class="mb-nm">${App.shortName(c) || c.name}</span>
+                  </button>`;
+                }), '붙일 활동')
+            : html`<p class="muted small" style=${{ margin: '.3rem 0' }}>
+                표시한 활동을 모두 붙였어요.</p>`}
+        </div>
+      <//>`;
     }
 
     /* ══════════ 나의 여가 포트폴리오 책자 — **네 코너를 한 권으로** ══════════
@@ -804,6 +972,22 @@
       return html`<div>
         <!-- 표지 — 누구의 책인지, 어느 기간인지, 무엇이 담겼는지 -->
         <div class="book-page bk-cover">
+          <!-- ★ 바탕은 앱의 **민트 벽지**입니다 — 표지를 넘기면 나오는 화면과
+                 같은 결이라, 이 책이 이 앱의 것임이 한눈에 보입니다.
+               ⛔ css 배경(background-image)으로 두지 마세요. 인쇄에서 통째로
+                 빠집니다 (인수인계 15-24). **진짜 그림**을 깔아야 합니다.
+               ▸ 벽지는 640x640 짜리 **무늬 한 장**이라, 3칸 x 5줄로 이어 붙여
+                 표지를 채웁니다. 그 위에 흰 막을 덮어 글자가 묻히지 않게 합니다. -->
+          <!-- ⚠ App.uiImage 는 IMAGE_BASE.ui 안만 봅니다. 벽지는 **맨 바깥**에
+                 있으므로 App.imgUrl 로 주소를 만들어야 합니다. -->
+          ${App.IMAGE_BASE.wallpaper && html`<${React.Fragment}>
+            <span class="bk-cover-bg" aria-hidden="true">
+              ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(function (i) {
+                return html`<img key=${i} src=${App.imgUrl(App.IMAGE_BASE.wallpaper)} alt="" />`;
+              })}
+            </span>
+            <span class="bk-cover-veil" aria-hidden="true"></span>
+          <//>`}
           <div class="bk-cover-face"><${C.AvatarArt} student=${student} /></div>
           <div class="bk-cover-title">나의 여가 포트폴리오</div>
           <div class="bk-cover-name">${student.name}</div>
@@ -1263,10 +1447,31 @@
               challenge: data.challenges, unsure: data.unsure
             };
             var shown = lists[pick] || [];
+            /* 작은 탭 둘 — 「모아 보기」 는 몇 가지 했는지 **세는** 곳,
+               「지도에 붙이기」 는 그것이 내 지도 어디에 있는지 **놓아 보는** 곳.
+               하는 일이 달라 칸을 나눕니다 (나의 한마디의 작은 탭과 같은 방식). */
+            var mapTabs = html`<div class="wrap me-lv" style=${{ gap: '.25rem' }}>
+              <span class="me-parts" style=${{ marginLeft: 0, paddingLeft: 0, borderLeft: 0 }}>
+                ${[{ id: 'list', nm: '모아 보기' }, { id: 'board', nm: '지도에 붙이기' }].map(function (x) {
+                  var on = mapViewS[0] === x.id;
+                  return html`<button key=${x.id} type="button" class=${'tab' + (on ? ' on' : '')}
+                    style=${{ minHeight: '38px', padding: '.1rem .9rem', fontSize: '.92rem' }}
+                    aria-pressed=${on ? 'true' : 'false'}
+                    onClick=${function () { mapViewS[1](x.id); }}>${x.nm}<//>`;
+                })}
+              </span>
+            </div>`;
+
+            if (mapViewS[0] === 'board') return html`<${React.Fragment}>
+              ${mapTabs}
+              ${mapBoardBody()}
+            <//>`;
+
             /* ⚠ 여기에 제목(h3)을 두지 마세요. 읽어주기까지 붙어 60px 을 먹고,
                  그만큼 그림이 작아집니다. 창 이름은 **맨 위 줄**에 있습니다.
                  읽어주기도 맨 위 줄에 하나 있습니다 (규칙 4 — 화면마다 하나). */
             return html`<${C.Sec}>
+              ${mapTabs}
               <!-- 네 가지 표시 — 눌러서 고릅니다 -->
               <div class="folio-marks">
                 ${App.DATA.mapStates.map(function (m) {

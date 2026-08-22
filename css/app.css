@@ -3468,9 +3468,10 @@ textarea.sentence-edit,
    아래 바 : 나 캐릭터(왼쪽) + 만들어지는 말(오른쪽 · 가운데 정렬)
    ★ 고르는 일과 만들어진 말을 눈으로 갈라 두면, 지금 무엇을 하는
      중인지가 분명해집니다. */
+/* 왼쪽 「나」 칸을 넉넉히 — **나의 것 · 내가 했다**는 것이 이 화면의 뜻입니다 */
 .me-bar{
   display:grid; gap:clamp(.5rem,1.4vw,1.2rem);
-  grid-template-columns:minmax(0,14rem) minmax(0,1fr);
+  grid-template-columns:minmax(0,19rem) minmax(0,1fr);
   align-items:center;
   padding:clamp(.45rem,1.2vh,.9rem) clamp(.6rem,1.4vw,1.1rem);
   border:3px solid var(--line); border-radius:22px;
@@ -3505,22 +3506,30 @@ textarea.sentence-edit,
 .me-pickarea{ min-width:0; }
 
 /* 아래 바 왼쪽 — 누구의 것인지. 표지처럼 얼굴과 이름 */
+/* ★ 나 칸에도 **포트폴리오 바탕 그림**을 깝니다 — 첫 화면의 나 칸과 같은 결.
+     이 화면이 「나의 것」 임을 그림으로도 알려 줍니다.
+   ▸ 얼굴과 이름이 묻히지 않게 흰 막을 한 겹 덮습니다. */
 .me-who{
-  justify-self:center;
-  display:flex; flex-direction:column; align-items:center; gap:.2rem;
-  padding:.5rem .8rem; background:#fff;
-  border:3px solid var(--sel-line); border-radius:18px; box-shadow:var(--shadow);
+  justify-self:center; position:relative; isolation:isolate;
+  display:flex; flex-direction:column; align-items:center; gap:.25rem;
+  padding:.7rem 1rem; background:#fff;
+  background-image:var(--folio-bg); background-size:cover; background-position:center;
+  border:3px solid var(--sel-line); border-radius:20px; box-shadow:var(--shadow);
   max-width:100%;
+}
+.me-who::before{
+  content:""; position:absolute; inset:0; z-index:-1;
+  border-radius:inherit; background:rgba(255,255,255,.8);
 }
 /* 나 캐릭터는 크게 — 여기가 **누구의 것인지**를 알려 주는 자리입니다 */
 .me-who-face{
-  width:clamp(72px,13vh,160px); height:clamp(72px,13vh,160px);
+  width:clamp(96px,18vh,220px); height:clamp(96px,18vh,220px);
   display:block; border-radius:999px; overflow:hidden;
   border:2px solid var(--line); background:var(--paper-2);
 }
 .me-who-face > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .me-who-nm{
-  font-size:clamp(.95rem,.55rem + .85vh,1.35rem); font-weight:900; white-space:nowrap;
+  font-size:clamp(1.1rem,.6rem + 1.05vh,1.6rem); font-weight:900; white-space:nowrap;
 }
 
 /* 아래 바 오른쪽 — 만들어지는 말. **가운데 정렬** */
@@ -3538,7 +3547,7 @@ textarea.sentence-edit,
 }
 /* ⚠ 문장 바를 칸 끝까지 늘이지 마세요. 글줄보다 훨씬 긴 노란 띠가 되면
      글자가 왼쪽에 조그맣게 붙어 보여 눈에 안 들어옵니다. */
-.me-saycol > .me-saybar{ align-self:stretch; width:min(100%, 38rem); margin:0 auto; }
+.me-saycol > .me-saybar{ align-self:stretch; width:min(100%, 31rem); margin:0 auto; }
 .me-saycol > .me-rows{ align-self:stretch; }
 /* 직접 쓰기 칸 — 문장 너비에 맞춰 가운데 */
 .me-write{ width:min(100%, 34rem); }
@@ -3554,11 +3563,14 @@ textarea.sentence-edit,
 .me-picks .pick .thumb{ width:clamp(44px,7.5vh,110px); height:clamp(44px,7.5vh,110px); }
 .me-picks .pick .label{ font-size:clamp(.78rem,.46rem + .6vh,1rem); }
 /* 낱말 알약 (2·3단계) — 그림 카드와 같은 자리에 놓입니다 */
+/* 글자 크기는 **아래 노란 문장 바(.me-say)와 같게**.
+   고를 낱말이 문장에 그대로 들어가는 말이라, 작게 두면 무엇을 고르는지
+   눈에 안 들어옵니다. */
 .me-word{
   display:flex; align-items:center; justify-content:center; text-align:center;
-  min-height:clamp(44px,6.4vh,66px); padding:.3rem .6rem; cursor:pointer;
+  min-height:clamp(48px,7vh,74px); padding:.3rem .7rem; cursor:pointer;
   background:#fff; border:2px solid var(--line); border-radius:999px;
-  font-size:clamp(.82rem,.48rem + .62vh,1.05rem); font-weight:800; line-height:1.15;
+  font-size:clamp(1rem,.62rem + .9vh,1.4rem); font-weight:800; line-height:1.15;
 }
 .me-word:hover{ border-color:var(--sel-line); }
 /* 고른 낱말 — 이 앱에서 **고른 것은 늘 파랑**입니다 (.pick.sel · .tab.on 과 같음).
@@ -3586,7 +3598,7 @@ textarea.sentence-edit,
      글줄 길이에 맞춰 좁게 두고 가운데에 놓습니다. */
 .me-rows{
   display:flex; flex-direction:column; gap:.35rem; min-width:0;
-  width:min(100%, 40rem); margin:0 auto;
+  width:min(100%, 35rem); margin:0 auto;
 }
 .me-row{
   display:flex; align-items:center; gap:.3rem;
@@ -3610,8 +3622,12 @@ textarea.sentence-edit,
 }
 .me-row > .iconbtn{ flex:0 0 auto; width:clamp(30px,3.8vh,40px); height:clamp(30px,3.8vh,40px); padding:0; }
 
-/* 인쇄한 종이의 한마디 줄 — 돌아보기 네 줄과 같은 칸이되 조금 크게 */
-.me-print-say{ font-size:1.2em; font-weight:900; min-height:2.2em; }
+/* 인쇄한 종이의 한마디 줄.
+   ⚠ 「나의 한마디」 와 「돌아보기」 는 **글자 크기가 같아야** 합니다.
+     한마디만 키워 두었더니 책자에서 돌아보기 네 줄이 유난히 커 보였습니다
+     (`.sheet .sentence` 가 이미 크기 때문입니다). 둘 다 한 값으로 맞춥니다. */
+.me-print-say{ font-weight:900; min-height:2.2em; }
+.me-sheet .sentence{ font-size:19px; line-height:1.5; }
 
 /* ★ 나의 일기장 — 일기 카드를 **두 칸으로**.
      한 줄에 하나씩 두었더니 카드가 흰 칸 폭(1060px)을 다 써서 글줄이
@@ -3771,3 +3787,112 @@ textarea.sentence-edit,
 .bk-marks{ display:flex; gap:3px; }
 .bk-mark{ width:20px; height:20px; display:block; }
 .bk-mark > *{ width:100%; height:100%; object-fit:contain; display:block; }
+
+/* 책 표지 바탕 — 앱의 **민트 벽지**를 이어 붙입니다.
+   ⛔ css 배경으로 두지 마세요. 인쇄에서 통째로 빠집니다 (인수인계 15-24).
+      벽지는 640x640 무늬 한 장이라, 3칸 x 5줄로 깔아 표지를 채웁니다. */
+.bk-cover{ position:relative; overflow:hidden; background:#f6f8fc; }
+.bk-cover-bg{
+  position:absolute; inset:0; z-index:0;
+  display:grid; grid-template-columns:repeat(3, 1fr); grid-auto-rows:1fr;
+}
+.bk-cover-bg img{ width:100%; height:100%; object-fit:cover; display:block; }
+/* 흰 막 — 무늬 위에 글자가 묻히지 않게. 진하게 보려면 값을 내리세요. */
+.bk-cover-veil{ position:absolute; inset:0; z-index:1; background:rgba(255,255,255,.72); }
+.bk-cover > *:not(.bk-cover-bg):not(.bk-cover-veil){ position:relative; z-index:2; }
+
+/* ══════════ 지도에 붙이기 ══════════
+   ★ 「모아 보기」 는 몇 가지 했는지 **세는** 곳이고, 여기는 그것이 내 지도
+     어디에 있는지 **놓아 보는** 곳입니다.
+   ▸ 카드 자리는 % 로 담으므로 화면 크기가 달라져도 그대로 있습니다.
+   ▸ 테두리 색 = **대표 표시 하나**. 표시가 여럿이면 카드 아래에 작은 그림을
+     함께 붙입니다 — 테두리를 여러 색으로 나누면 무슨 뜻인지 알아보기 어렵습니다. */
+.mb-wrap{ display:flex; justify-content:center; margin-top:.4rem; }
+/* ⚠ 폭 기준(`width:...; aspect-ratio`)으로 잡지 마세요. 지도가 가로로 넓어서
+     흰 칸 폭을 다 쓰면 **높이가 577px** 이 되고, 아래 서랍까지 더해져
+     좌우 3쪽으로 갈라집니다 (재어서 확인).
+   → **높이 기준**으로 잡고 폭은 비율이 따라오게 합니다. */
+.mb-board{
+  position:relative; height:clamp(180px, 38vh, 520px);
+  aspect-ratio:1671 / 941; max-width:100%;
+  border:3px solid var(--line); border-radius:18px; overflow:hidden;
+  background:#dff0fb; touch-action:none;
+}
+/* ⛔ css 배경으로 두지 마세요 — 인쇄에서 빠집니다 (인수인계 15-24) */
+.mb-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+
+/* 지도에 붙인 카드 — 끌어서 옮기고, 눌러서 고르면 크기를 바꿉니다 */
+.mb-card{
+  position:absolute; transform:translate(-50%,-50%);
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  width:calc(clamp(58px, 8vw, 104px) * var(--mbs,1));
+  padding:4px 3px 3px; cursor:grab; touch-action:none;
+  background:rgba(255,255,255,.92); border:3px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow);
+}
+.mb-card:active{ cursor:grabbing; }
+.mb-card.picked{ box-shadow:0 0 0 4px rgba(94,200,242,.45), var(--shadow); }
+.mb-art{ width:100%; aspect-ratio:1; display:block; }
+.mb-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.mb-nm{
+  font-size:calc(.72rem * var(--mbs,1)); font-weight:900; text-align:center;
+  line-height:1.1; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.mb-marks{ display:flex; gap:2px; }
+.mb-mark{ width:calc(14px * var(--mbs,1)); height:calc(14px * var(--mbs,1)); display:block; }
+.mb-mark > *{ width:100%; height:100%; object-fit:contain; display:block; }
+
+/* ── 네 표시의 테두리 색 ──────────────────────────────
+   앱이 이미 쓰는 그림의 뜻과 맞춥니다 (색만으로 가르지 않게 표시 그림도 함께).
+     해봤어요 = 발바닥 → 갈색     좋아해요 = 하트 → 분홍
+     도전     = 별     → 노랑     잘 모르겠어요 = 물음표 → 회색 */
+.mk-tried    { border-color:#a9784e; }
+.mk-like     { border-color:#e58aa8; }
+.mk-challenge{ border-color:#e3b93c; }
+.mk-unsure   { border-color:#9aa0b4; }
+.mk-none     { border-color:var(--line); }
+
+/* 고른 카드에만 나오는 단추 줄 — 자리는 늘 잡아 두어 화면이 흔들리지 않게 */
+.mb-tools{ display:flex; justify-content:center; gap:.4rem; margin:.5rem 0 .2rem; }
+.mb-tools.off{ visibility:hidden; }
+.mb-tools.off *{ pointer-events:none; }
+
+/* 아직 안 붙인 활동 서랍 */
+.mb-tray{
+  margin-top:.2rem; padding:.45rem .6rem .55rem;
+  border:3px solid var(--line); border-radius:18px; background:rgba(255,255,255,.6);
+}
+.mb-tray-cap{
+  display:inline-block; margin-bottom:.3rem;
+  padding:.15rem .8rem; border-radius:999px;
+  background:#ffeef4; border:2px solid #f3c3d6;
+  font-size:.92rem; font-weight:900;
+}
+.mb-tray-grid{
+  display:grid; grid-template-columns:repeat(3, auto);
+  justify-content:center; gap:.6rem;
+}
+.mb-pick{
+  display:flex; flex-direction:column; align-items:center; gap:.1rem;
+  width:clamp(84px,13vh,140px); padding:.35rem .3rem; cursor:pointer;
+  background:#fff; border:3px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
+}
+.mb-pick:hover{ transform:translateY(-2px); }
+.mb-pick .mb-nm{ font-size:.85rem; }
+
+/* 지도 아래 안내 — 지도 한가운데에 두면 섬과 다리를 가려서
+   정작 붙일 자리가 안 보였습니다. */
+.mb-say{
+  margin:.4rem 0 .1rem; text-align:center;
+  font-size:clamp(.92rem,.55rem + .8vh,1.15rem); font-weight:800; color:var(--ink-soft);
+}
+/* 섬 이름표 — **하늘 자리**에 둡니다 (섬 그림을 가리지 않게).
+   색은 앱이 이미 쓰는 실내=주황 · 실외=파랑 그대로. */
+.mb-isle{
+  position:absolute; top:5%; transform:translateX(-50%);
+  padding:.15rem .9rem; border-radius:999px; border:2px solid;
+  font-size:clamp(.78rem,.45rem + .7vh,1.05rem); font-weight:900; white-space:nowrap;
+  box-shadow:0 1px 0 rgba(0,0,0,.06);
+}
+.mb-isle.in { left:23%; background:#ffe9cc; border-color:#c96a1e; color:#8a4a12; }
+.mb-isle.out{ left:77%; background:#d6ebf9; border-color:#1f6e9e; color:#14526f; }
