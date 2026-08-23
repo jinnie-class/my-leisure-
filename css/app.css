@@ -4078,12 +4078,28 @@ textarea.sentence-edit,
    ⚠ 알약으로 만들지 마세요. 맨 위 줄의 알약은 **누르는 것**이라 배웠는데
      못 누르는 알약이 섞이면 규칙이 흐려집니다. 글자만 둡니다.
    ▸ 좁은 화면에서는 줄이 밀리므로 숨깁니다 (읽어주기에는 그대로 남습니다). */
+/* 「실내 여가 섬과 실외 여가 섬을 눌러…」 — **지도 칸 안 맨 위 가운데**.
+   ⛔ 맨 위 줄에 두고 좁은 화면에서 숨기지 마세요. 세로로 세운 태블릿에서는
+      그 한 줄이 통째로 사라져, 처음 온 학생이 무엇을 눌러야 할지 몰랐습니다.
+   ▸ 글자를 줄바꿈합니다 — 좁은 화면에서 한 줄로 두면 옆으로 삐져나갑니다. */
 .map-say{
-  font-size:clamp(.9rem,.5rem + .8vh,1.12rem); font-weight:800;
-  color:var(--ink-soft); white-space:nowrap;
-  margin-left:clamp(.4rem,1.6vw,1.4rem);
+  position:absolute; left:50%; top:.5rem; transform:translateX(-50%); z-index:4;
+  max-width:min(92%, 40rem); text-align:center;
+  padding:.35rem 1rem; border-radius:999px;
+  background:rgba(255,255,255,.92); border:2px solid var(--line);
+  font-size:clamp(.86rem,.5rem + .75vh,1.08rem); font-weight:800;
+  color:var(--ink-soft); box-shadow:0 2px 0 rgba(0,0,0,.06);
+  pointer-events:none;
 }
-@media (max-width: 900px){ .map-say{ display:none; } }
+/* 섬 안에서 섬 고르기로 — 오른쪽 위 「모아보기 ▶」 와 **짝**입니다 */
+.map-islands{
+  position:absolute; left:.6rem; top:.6rem; z-index:4;
+  padding:.4rem 1rem; border-radius:999px; cursor:pointer;
+  background:#ffd873; border:3px solid #e0ab2e; color:#6b4b00;
+  font-size:clamp(.9rem,.55rem + .8vh,1.15rem); font-weight:900;
+  box-shadow:0 3px 0 rgba(0,0,0,.12);
+}
+.map-islands:hover{ transform:translateY(-2px); }
 
 /* 「일기장 모두 인쇄」 옆의 장수 — 단추가 아니라 알림이라 작게 둡니다 */
 .folio-print-n{ align-self:center; font-weight:800; }
