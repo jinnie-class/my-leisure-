@@ -489,8 +489,17 @@
 
     var data = useMemo(function () {
       var diaries = App.store.diariesInRange(student.id, range.from, range.to);
+      /* ⛔ **앞으로 할 계획도 넣어야 합니다** (2026-08-23).
+           계획의 `date` 는 **활동을 할 날**입니다. 기간은 「한 달 전 ~ 오늘」 이라,
+           내일 이후로 잡은 계획은 `date > to` 가 되어 통째로 빠졌습니다.
+           그래서 방금 계획을 세우고 왔는데도 포트폴리오에 「아직 없어요」 라고
+           나왔습니다. (계획은 앞날을 잡는 것이니 미래 날짜가 오히려 정상입니다)
+         ▸ 그래서 **세운 날**(createdAt)로도 한 번 더 봅니다.
+           이 기간에 세운 계획이면 활동일이 언제든 내 기록입니다. */
       var plans = App.store.plans(student.id).filter(function (x) {
-        return x.date >= range.from && x.date <= range.to;
+        if (x.date >= range.from && x.date <= range.to) return true;
+        var made = x.createdAt ? App.dateKey(new Date(x.createdAt)) : null;
+        return !!(made && made >= range.from && made <= range.to);
       });
       var statusMap = App.store.mapOf(student.id);
       var cards = App.visibleCards(student);

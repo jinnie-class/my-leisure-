@@ -1216,14 +1216,21 @@
                 ? html`<${C.MoodArt} mood=${w.mood} />`
                 : html`<${C.Art} src=${App.pickImage('title', w.img)} iconKey=${w.icon} />`} />`;
           })}
-          <div class="pick" style=${{ cursor: 'default' }}>
-            <span class="thumb">
-              <${C.Art} src=${App.pickImage('title', '직접 쓰기')} iconKey="pencil" /></span>
-            <span class="label">직접 쓰기</span>
-            <input class="field" value=${draft.title || ''} placeholder="제목을 써 보아요"
-              onChange=${function (e) { patch({ title: e.target.value }); }} />
-          </div>
         <//>
+        <!-- ★ 「직접 쓰기」는 **고르는 카드 밖 한 줄**입니다 (2026-08-23).
+               예전에는 다섯 번째 카드로 격자 안에 있었는데 :
+               ① 카드 하나가 더 늘어 화면을 넘겨서, 세로로 세운 태블릿에서는
+                  **2쪽으로 밀려나 아예 안 보였습니다** (나왔다 안 나왔다 함)
+               ② 카드 안의 작은 입력칸이라 손가락으로 누르기 어려웠습니다
+             ▸ 한 줄로 빼니 자리도 덜 먹고 입력칸도 큼직합니다. -->
+        <div class="title-own">
+          <span class="own-lab" aria-hidden="true"
+            dangerouslySetInnerHTML=${{ __html: App.icon('pencil') }}></span>
+          <label class="own-cap" for="title-own-input">직접 쓰기</label>
+          <input id="title-own-input" class="field" value=${draft.title || ''}
+            placeholder="제목을 써 보아요"
+            onChange=${function (e) { patch({ title: e.target.value }); }} />
+        </div>
       <//>`;
     }
 

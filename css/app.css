@@ -235,6 +235,17 @@ ul{ margin:0; padding:0; list-style:none; }
 .stage-track.flowing .stu-grid,
 .stage-track.flowing .jr-grid,
 .stage-track.flowing .mymap-grid{ break-inside:auto; }
+/* ⛔⛔ **낱장은 못 자르게 못박아 둡니다.** 위에서 묶음을 풀면 그 안의 카드는
+      기본값(auto)이라 **쪽 경계에서 반으로 잘립니다.** 일기 제목 화면에서
+      「직접 쓰기」 카드가 테두리만 남은 빈 상자로 보였습니다 (2026-08-23) —
+      연필도 글자도 입력칸도 다음 쪽에 있었던 것입니다.
+   ▸ 카드에 break-inside:avoid 를 준 곳이 CSS 에 따로 없어서 생긴 일입니다. */
+.stage-track.flowing .pick,
+.stage-track.flowing .corner,
+.stage-track.flowing .card,
+.stage-track.flowing .cs-item,
+.stage-track.flowing .tile,
+.stage-track.flowing .folio-box{ break-inside:avoid; }
 .stage-fit{ flex:1 1 auto; overflow:hidden; }
 
 /* 좌우 페이지 이동 — 흰 칸 안쪽 맨 아래 */
@@ -1746,10 +1757,18 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      시작선과 오른쪽 종이의 초록선이 어긋났습니다.
    ▸ 자리에서 띄웠으므로 종이는 왼쪽 첫 묶음과 **같은 높이에서** 시작합니다.
    ▸ 가로로는 종이 한가운데입니다. */
+/* ⛔ **띄우는 것은 좌우로 나뉠 때(넓은 화면)뿐입니다.**
+      위아래로 쌓이는 좁은 화면에서는 종이 위가 **왼쪽 칸의 단추 줄**이라,
+      띄워 두면 「일기 저장하기」 위에 올라앉아 저장을 누를 수 없었습니다
+      (2026-08-23 · 세로로 세운 갤럭시탭에서 재어 확인). */
 .dv-bar{
-  position:absolute; left:0; right:0; top:-3.2rem; z-index:2;
   display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
-  gap:.6rem; max-width:100%;
+  gap:.6rem; max-width:100%; margin-bottom:.4rem;
+}
+@media (min-width: 900px){
+  .dv-bar{
+    position:absolute; left:0; right:0; top:-3.2rem; z-index:2; margin-bottom:0;
+  }
 }
 .dv-bar .btn{ white-space:normal; line-height:1.25; }
 .dv{
@@ -1851,16 +1870,24 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      기둥 폭을 다 쓰면 위의 그림·글 칸보다 커 보여서, 고치는 일보다 이 둘이
      더 중요한 것처럼 읽힙니다. 여기서 할 일은 고치는 것이고 저장은 마무리입니다.
    ▸ 여가 일기의 완성 화면과 포트폴리오에서 연 고치기 화면이 **같은 모습**입니다. */
-.fix-here{ display:flex; flex-direction:column; align-items:center; gap:.45rem; margin-top:.15rem; }
+/* ★ 「날짜 · 사람 · 장소 바꾸기」와 「일기 저장하기」를 **나란히** 놓습니다
+     (2026-08-23 · 선생님 제안). 위아래로 쌓아 두었더니 세로로 세운 태블릿에서
+     아래 「눌러서 크게 보기」와 겹쳐서 저장을 누를 수 없었습니다.
+   ▸ 좁으면 저절로 아래로 내려갑니다(wrap). */
+.fix-here{
+  display:flex; flex-direction:row; flex-wrap:wrap;
+  align-items:stretch; justify-content:center; gap:.45rem; margin-top:.15rem;
+}
 /* ⚠ `align-self` 로 가운데를 잡지 마세요. 아래쪽 `.btn.fix-go{align-self:stretch}`
      가 나중에 나와서 이깁니다 (같은 힘이면 뒤엣것이 이깁니다).
      **좌우 margin:auto** 는 align-self 와 상관없이 가운데로 모읍니다. */
-.fix-here .btn{ width:min(100%, 22rem); margin-left:auto; margin-right:auto; }
+.fix-here .btn{ flex:1 1 14rem; max-width:22rem; margin-left:0; margin-right:0; }
 /* ⚠ 「나의 일기장으로 돌아가기」 를 이 기둥에 두던 규칙(.fix-goback)은
      지웠습니다. 눈에 안 띄었고, 기둥이 커진 만큼 그림일기가 작아졌습니다.
      지금은 **맨 위 줄 화살표 자리**에 있습니다 (.topbar-backbtn). */
-/* 저장은 이 기둥의 마지막 일이라 조금 띄우고 도드라지게 둡니다 */
-.btn.fix-save{ margin-top:.25rem; min-height:3.2rem; font-size:1.15rem; }
+/* 저장은 이 기둥의 마지막 일이라 도드라지게 둡니다.
+   ⛔ `margin-top` 을 주지 마세요 — 옆에 나란히 선 단추와 높이가 어긋납니다. */
+.btn.fix-save{ min-height:3.2rem; font-size:1.15rem; }
 
 /* ★ 자리 옮기기 안내가 들어올 자리를 **미리 잡아 둡니다.**
      켤 때마다 아래 칸이 밀려 내려가면 화면이 출렁이고, 왼쪽 묶음이
@@ -4119,3 +4146,18 @@ textarea.sentence-edit,
 
 /* 「일기장 모두 인쇄」 옆의 장수 — 단추가 아니라 알림이라 작게 둡니다 */
 .folio-print-n{ align-self:center; font-weight:800; }
+
+/* 일기 제목 「직접 쓰기」 — 고르는 카드 **밖** 한 줄.
+   ⛔ 다시 카드 안에 넣지 마세요. 카드가 하나 늘면 화면을 넘겨서 세로로 세운
+      태블릿에서는 2쪽으로 밀려나 아예 안 보였고, 카드 안 작은 입력칸이라
+      손가락으로 누르기도 어려웠습니다 (2026-08-23). */
+.title-own{
+  display:flex; align-items:center; gap:.5rem;
+  margin-top:.5rem; padding:.5rem .8rem;
+  background:#fff; border:2px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.title-own .own-lab{ width:1.6rem; height:1.6rem; flex:0 0 auto; }
+.title-own .own-lab svg{ width:100%; height:100%; display:block; }
+.title-own .own-cap{ font-weight:900; flex:0 0 auto; white-space:nowrap; }
+.title-own .field{ flex:1 1 auto; min-width:0; min-height:2.6rem; font-size:1.05rem; }
