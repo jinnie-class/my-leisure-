@@ -2489,6 +2489,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   background-image:var(--island-bg, var(--mapbg));
   background-color:var(--island-sea, #dbf0fe);
 }
+/* ★ 세로로 긴 화면에서 섬 안에 들어갔을 때 — 칸을 통째로 쓰므로 배경도 채웁니다.
+     (그러지 않으면 그림은 가운데 띠로 남고 활동 그림만 위아래로 퍼져 어긋납니다)
+   ⛔ 섬 **고르기** 화면에는 붙지 않습니다 (map.js 의 fillBg 를 보세요). */
+.map-wrap.fill-bg{ background-size:cover; }
 
 /* ===========================================================
    여가 지도 : 나의 여가 도장판

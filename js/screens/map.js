@@ -97,6 +97,21 @@
     /* 그림이 실제로 그려진 자리 안에서만 자리를 잡습니다 */
     var art = fitBox(W0, H0,
       bgRatio || (focus ? BG_FALLBACK.island : BG_FALLBACK.map));
+    /* ★ **섬 안에서는 세로로 긴 화면이면 칸을 통째로 씁니다** (2026-08-23).
+         섬 그림은 가로로 깁니다(1.85 : 1). 세로로 세운 태블릿에서 그 비율을
+         그대로 지키면, 564×846 칸에 그림판이 564×**306** 밖에 안 잡혀서
+         위 454px · 아래 297px 이 통째로 놀았습니다. 활동 그림은 60×60 으로
+         쪼그라들어 한가운데 모여 있었습니다 (재어 확인).
+       ▸ 칸을 다 쓰면 활동 그림이 두 배 넘게 커집니다. 대신 섬 그림은 좌우가
+         조금 잘리므로, 그때는 배경도 **채우기(cover)** 로 바꿉니다
+         (아래 `fillBg` → `.map-wrap.fill-bg`).
+       ⚠ 섬 **고르기** 화면(focus 없음)에는 넣지 않습니다. 거기는 섬 두 개가
+         좌우로 놓인 그림 자체를 보는 곳이라, 잘리면 섬이 안 보입니다. */
+    var fillBg = false;
+    if (focus && art.h < H0 * 0.8) {
+      art = { x: 0, y: 0, w: W0, h: H0 };
+      fillBg = true;
+    }
     var w = art.w, h = art.h;
     /* '나' 는 맨 위 가운데, 그 아래 왼쪽에 실내 섬 · 오른쪽에 실외 섬 */
     var cs = Math.max(110, Math.min(170, Math.min(w * 0.17, h * 0.26)));
@@ -122,7 +137,7 @@
         ? Math.min.apply(null, fPlaced.map(function (q) { return q.y; }))
         : top + LABEL_H;
       return {
-        W: w, H: h, side: side, placed: fPlaced, center: center,
+        W: w, H: h, side: side, placed: fPlaced, center: center, fillBg: fillBg,
         labelTop: fTop - 11, focus: focus,
         pagesIn: focus === 'in' ? fPages : 1, pagesOut: focus === 'out' ? fPages : 1,
         pageIn: focus === 'in' ? fp : 0, pageOut: focus === 'out' ? fp : 0,
@@ -508,7 +523,7 @@
 
           <!-- 섬 안에서는 그 섬만의 배경 그림을 씁니다
                (images/지도/실내섬.png · 실외섬.png — 없으면 지도 배경 그대로) -->
-          <div class=${'map-wrap grow' + (L.focus ? ' in-island' : '')} ref=${wrapRef}
+          <div class=${'map-wrap grow' + (L.focus ? ' in-island' : '') + (L.fillBg ? ' fill-bg' : '')} ref=${wrapRef}
               style=${(islandBg || islandSea) ? {
                 '--island-bg': islandBg ? 'url("' + islandBg + '")' : null,
                 '--island-sea': islandSea || null
