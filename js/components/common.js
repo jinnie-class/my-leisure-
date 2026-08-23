@@ -673,8 +673,37 @@
   };
 
   /* 지도처럼 스스로 크기를 맞추는 화면용 (페이지 나눔 없음) */
+  /* 좌우 쪽 나누기가 **없는** 흰 칸입니다 (캐릭터 고르기처럼 한 화면에 다 담는 곳).
+     ⛔ 쪽이 없으니 넘치면 갈 곳이 없어 **밖으로 삐져나오거나 잘립니다.**
+        갤럭시탭에서 캐릭터 그림이 이름 글자를 덮고, 「1 / 3 쪽」과 「다음」이
+        카드 위에 겹쳐 있었습니다 (2026-08-23).
+     ▸ 그래서 여기에도 Stage 와 **같은 줄이기**를 넣습니다.
+       다만 이어 채우기(.flowing)는 없습니다 — 넘겨 볼 쪽이 없으니까요. */
+  C.useFitBox = function (ref) {
+    useLayoutEffect(function () {
+      function fit() {
+        var el = ref.current; if (!el || !el.clientHeight) return;
+        el.style.setProperty('--fit', '1');
+        el.classList.remove('fitting');
+        var FITS = [1, 0.94, 0.88, 0.82, 0.76];
+        var avail = el.clientHeight;
+        for (var i = 1; i < FITS.length && el.scrollHeight > avail + 2; i++) {
+          el.classList.add('fitting');
+          el.style.setProperty('--fit', String(FITS[i]));
+        }
+      }
+      fit();
+      /* 그림이 늦게 실리면 높이가 달라지므로 한 번 더 봅니다 */
+      var t = setTimeout(fit, 280);
+      window.addEventListener('resize', fit);
+      return function () { clearTimeout(t); window.removeEventListener('resize', fit); };
+    });
+  };
   C.StageFit = function (p) {
-    return html`<div class="stage"><div class="panel"><div class="stage-fit">${p.children}</div></div></div>`;
+    var ref = useRef(null);
+    C.useFitBox(ref);
+    return html`<div class="stage"><div class="panel">
+      <div class="stage-fit" ref=${ref}>${p.children}</div></div></div>`;
   };
 
   /* ======================= 질문 머리말 ======================= */

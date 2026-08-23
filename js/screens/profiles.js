@@ -15,8 +15,15 @@
 
     var cur = App.avatarFor(student);
     var back = (p.params && p.params.from) || 'profiles';
-    var PER = 12;
+    /* 한 쪽에 보여 줄 캐릭터 수.
+       ★ 세로로 세운 태블릿(폭 820px 아래)에서는 미리보기가 격자 **위로** 내려와
+         자리를 나눠 씁니다. 그때 12개를 다 놓으면 카드가 손톱만 해지고,
+         화면을 넘겨서 이름 글자와 아래 단추까지 덮었습니다 (2026-08-23).
+       ▸ 여섯이면 3칸 × 2줄이라 그림이 큼직하고, 넘기는 화살표로 다 볼 수 있습니다. */
+    var PER = (typeof window !== 'undefined' && window.innerWidth <= 820) ? 6 : 12;
     var pg = useState(0);
+    var fitRef = useRef(null);
+    C.useFitBox(fitRef);
     var all = App.DATA.avatars;
     var pages = Math.max(1, Math.ceil(all.length / PER));
     var page = Math.min(pg[0], pages - 1);
@@ -65,7 +72,11 @@
 
       <div class="stage">
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
-          <div class="stage-fit" style=${{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+          <!-- ⛔ ref 를 지우지 마세요 — 넘칠 때 통째로 조금 줄여 주는 장치입니다
+                 (C.useFitBox). 없으면 낮은 화면에서 캐릭터 그림이 이름 글자를
+                 덮고, 「1 / 3 쪽」과 「다음」이 카드 위에 겹칩니다. -->
+          <div class="stage-fit" ref=${fitRef}
+              style=${{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
 
             <div class="q" style=${{ marginBottom: 0 }}>
               <h2 class="grow">나의 여가 탐험 캐릭터를 골라요</h2>
