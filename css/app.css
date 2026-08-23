@@ -209,6 +209,31 @@ ul{ margin:0; padding:0; list-style:none; }
   scroll-behavior:auto;      /* 페이지는 바로 바뀌게 (부드러운 스크롤은 쓰지 않습니다) */
 }
 .stage-track.no-page{ column-width:auto !important; overflow:hidden; }
+/* ★ 한 쪽에 담으려고 **통째로 살짝 줄일 때** 쓰는 값입니다 (common.js 의 Stage).
+     낮은 화면에서 고를 것이 통째로 다음 쪽으로 밀려나 1쪽이 비던 것을 막습니다.
+   ⛔ 흰 칸(.stage-track) 자체에 걸면 안 됩니다 — 담을 높이까지 같이 줄어들어
+      아무 소용이 없습니다 (재어 보았습니다 : 293px → 291px).
+      **안쪽 칸들에** 걸어야 내용만 작아지고 담을 높이는 그대로입니다.
+   ▸ 폭은 줄어든 만큼 되돌려 줍니다. 그러지 않으면 오른쪽이 허옇게 빕니다. */
+   ▸ **줄일 때에만** 걸립니다(.fitting). 늘 걸어 두면 줄이지 않는 화면까지
+     폭이 100% 로 못박혀, 내용만큼만 넓던 칸이 꽉 차 버립니다. */
+.stage-track.fitting > *{
+  zoom:var(--fit, 1);
+  width:calc(100% / var(--fit, 1));
+}
+/* ★ **이어 채우기** — 줄여도 한 쪽에 못 담을 때에만 켜집니다.
+     칸 **묶음**만 풀어서 1쪽 남은 자리부터 채워지게 합니다.
+   ⛔ 낱장 카드(.pick · .corner · .card)는 풀지 마세요 —
+      카드가 쪽 경계에서 반으로 잘려 보입니다. 묶음만 풀면
+      카드 한 장 단위로 곱게 나뉩니다. */
+.stage-track.flowing > *,
+.stage-track.flowing .sec,
+.stage-track.flowing .stack,
+.stage-track.flowing .corner-grid,
+.stage-track.flowing .pick-grid,
+.stage-track.flowing .stu-grid,
+.stage-track.flowing .jr-grid,
+.stage-track.flowing .mymap-grid{ break-inside:auto; }
 .stage-fit{ flex:1 1 auto; overflow:hidden; }
 
 /* 좌우 페이지 이동 — 흰 칸 안쪽 맨 아래 */

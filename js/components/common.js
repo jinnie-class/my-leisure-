@@ -505,6 +505,11 @@
             지금 높이를 픽셀로 직접 지정해 줍니다. */
       el.style.columnWidth = 'auto';
       el.style.height = '';
+      /* 지난번에 줄여 두었거나 쪼개 두었던 것을 **먼저 되돌립니다.**
+         그러지 않으면 화면을 옮길 때마다 조금씩 더 작아집니다. */
+      el.style.setProperty('--fit', '1');
+      el.classList.remove('fitting');
+      el.classList.remove('flowing');
 
       /* ---------- 남는 자리(`--slack`) 를 알려 줍니다 ----------
          내용을 다 담고도 **얼마가 남는지**를 재어 CSS 에 넘깁니다.
@@ -534,6 +539,30 @@
       }
 
       var avail = el.clientHeight;
+
+      /* ===== ⛔ **1쪽이 비면 안 됩니다** — 두 겹으로 막습니다 (2026-08-23) =====
+         고장난 모습 : 「무엇을 할까요?」 화면에 고를 것이 하나도 없고
+         「1 / 3」 만 있었습니다. 흰 칸이 314px 인데 내용이 397px 이라,
+         질문 줄만 1쪽에 남고 **활동 카드가 통째로 2쪽으로** 갔던 것입니다.
+         (카드 묶음은 중간에 잘리지 않게 되어 있어 조금만 넘쳐도 통째로 넘어갑니다)
+         계획·일기·첫 화면에서 두루 났고, **세로 화면에서도** 났습니다.
+
+         ① 먼저 **통째로 살짝 줄여** 한 쪽에 담아 봅니다.
+            글자와 그림이 조금 작아질 뿐 내용이 사라지지 않으니 이쪽이 먼저입니다.
+            0.76 아래로는 안 줄입니다 — 더 줄이면 학생이 못 읽습니다.
+         ② 그래도 모자라면 칸이 **이어서 채워지게** 풉니다.
+            카드 묶음이 두 쪽에 걸쳐 나뉘지만, 1쪽이 비는 것보다 낫습니다.
+         ⛔ 둘 중 하나만 두지 마세요. ① 만으로는 아주 낮은 화면을 못 담고,
+            ② 만 두면 멀쩡히 한 쪽에 들어갈 화면까지 굳이 쪼갭니다. */
+      var FITS = [1, 0.94, 0.88, 0.82, 0.76];
+      var fi = 0;
+      while (fi < FITS.length - 1 && avail > 0 && el.scrollHeight > avail + 2) {
+        fi++;
+        el.classList.add('fitting');
+        el.style.setProperty('--fit', String(FITS[fi]));
+      }
+      if (avail > 0 && el.scrollHeight > avail + 2) el.classList.add('flowing');
+
       var natural = el.scrollHeight;
 
       var n = 1;
