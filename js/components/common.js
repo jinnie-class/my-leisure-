@@ -684,6 +684,33 @@
         카드 위에 겹쳐 있었습니다 (2026-08-23).
      ▸ 그래서 여기에도 Stage 와 **같은 줄이기**를 넣습니다.
        다만 이어 채우기(.flowing)는 없습니다 — 넘겨 볼 쪽이 없으니까요. */
+  /* ======================= 세로로 돌려 주세요 =======================
+     ★ 이 앱은 **세로 화면**을 기준으로 만듭니다 (2026-08-23에 정했습니다).
+       가로로 눕힌 태블릿은 위아래가 절반밖에 안 돼서, 그림이 최소 크기까지
+       쪼그라들고도 모자라 화면이 좌우로 갈라집니다.
+         갤럭시탭 세로  … 흰 칸에 쓸 수 있는 높이 838px · 그림 250~300px
+         갤럭시탭 가로  … 337~559px · 그림 140~150px (더 못 줄임)
+     ▸ **태블릿·휴대폰만** 대상입니다. 손가락으로 쓰는 기기(pointer:coarse)이면서
+       가로이고 높이가 780px 아래일 때만 나옵니다.
+       ⛔ 전자칠판과 PC 는 가로여도 높이가 넉넉하므로 뜨지 않습니다.
+          (전자칠판도 손가락으로 쓰지만 화면이 커서 높이 조건에 안 걸립니다)
+     ▸ 막지는 않습니다. 「그냥 가로로 볼래요」 를 누르면 그대로 쓸 수 있습니다 —
+       기기 사정으로 세로가 안 되는 분을 가두면 안 됩니다. */
+  C.TurnHint = function () {
+    var offS = useState(false);
+    if (offS[0]) return null;
+    return html`<div class="turn-hint" role="note">
+      <div class="turn-card">
+        <div class="turn-emoji" aria-hidden="true">📱</div>
+        <b>태블릿을 세로로 돌려 주세요</b>
+        <div class="turn-say">세로로 세우면 그림이 두 배 크고,
+          고를 것이 한 화면에 다 보여요.</div>
+        <${C.Btn} size="small" onClick=${function () { offS[1](true); }}>
+          그냥 가로로 볼래요<//>
+      </div>
+    </div>`;
+  };
+
   C.useFitBox = function (ref) {
     useLayoutEffect(function () {
       function fit() {

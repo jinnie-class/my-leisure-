@@ -111,6 +111,7 @@
     return html`<${React.Fragment}>
       ${React.cloneElement(screen, { key: route.name + JSON.stringify(route.params) })}
       <div id="print-root" class="print-area">${printS[0]}</div>
+      <${C.TurnHint} />
       <${C.UiHost} />
     <//>`;
   }
