@@ -1455,27 +1455,35 @@
         <!-- 「지도에 붙이기」 는 **맨 위 줄**에 이름표와 돌아가는 알약을 둡니다.
              흰 칸 안에 두면 그만큼 지도가 작아집니다 — 이 화면에서 가장 커야
              하는 것은 지도입니다. -->
-        ${folioTools && tab[0] === 'pick' && folioTab[0] === 'map' && mapViewS[0] === 'board'
+        <!-- ★ 인쇄 알약 셋은 **늘 보입니다** (2026-08-23).
+               예전에는 「학생 화면에 도구 보이기」 를 끄면 함께 숨었습니다.
+               그런데 그 스위치가 꺼진 줄 모르는 선생님은 **종이 지도를 아예
+               찾지 못했습니다.** 눌러도 인쇄 창이 열릴 뿐 지워지는 것이 없으니,
+               찾기 쉬운 쪽이 낫습니다.
+             ▸ 「내 지도」 는 학생이 붙인 그대로, 「빈 지도」 와 「활동 라벨」 은
+               손으로 붙이는 종이입니다. -->
+        ${tab[0] === 'pick' && folioTab[0] === 'map' && mapViewS[0] === 'board'
           && html`<${React.Fragment}>
-            <!-- ★ 인쇄 알약 셋을 **맨 위 줄 제목 오른쪽**에 둡니다.
-                   흰 칸 안에 두면 그만큼 지도가 작아집니다 — 이 화면에서
-                   가장 커야 하는 것은 지도입니다. 맨 위 줄은 높이를 안 먹습니다.
-                 ▸ 「내 지도」 는 학생이 붙인 그대로, 「빈 지도」 와 「활동 라벨」 은
-                   손으로 붙이는 종이입니다. -->
             <${C.Btn} size="small" icon="print" className="pastel-yellow"
               onClick=${function () { App.printNode(printMapBoard()); }}>내 지도 · A3<//>
             <${C.Btn} size="small" icon="print" className="pastel-blue"
               onClick=${function () { App.printNode(printEmptyMap()); }}>빈 지도 · A3<//>
             <${C.Btn} size="small" icon="print" className="pastel-blue"
               onClick=${function () { App.printNode(printLabels()); }}>활동 라벨 · A4<//>
-            <${C.Btn} size="small" icon="back" className="pastel-pink"
-              onClick=${function () { mapViewS[1]('list'); }}>모아 보기로<//>
           <//>`}
+        <!-- ⛔ **나가는 알약은 folioTools 로 가리지 마세요.**
+               「학생 화면에 도구 보이기」 는 **선생님 도구**를 숨기는 스위치입니다.
+               나가는 길까지 함께 숨겼더니, 그 스위치를 끈 학생은 지도에 붙이기
+               화면에서 나갈 알약이 하나도 없었습니다 (파란 화살표만 남았습니다).
+               인쇄는 선생님 것이지만 **나가는 길은 학생 것**입니다. -->
+        ${tab[0] === 'pick' && folioTab[0] === 'map' && mapViewS[0] === 'board'
+          && html`<${C.Btn} size="small" icon="back" className="pastel-pink"
+            onClick=${function () { mapViewS[1]('list'); }}>모아 보기로<//>`}
         <!-- ⚠ 지도에 붙이기 화면에서는 이 단추를 빼 둡니다.
                인쇄 알약 셋 + 「모아 보기로」 와 함께 놓이면 맨 위 줄이 두 줄로
                접혀서 지도가 그만큼 작아집니다. 나가는 길은 「모아 보기로」 하나로
                충분합니다 (거기에 이 단추가 다시 있습니다). -->
-        ${folioTools && tab[0] === 'pick' && folioTab[0]
+        ${tab[0] === 'pick' && folioTab[0]
           && !(folioTab[0] === 'map' && mapViewS[0] === 'board')
           && html`<${C.Btn} size="small" icon="back"
             className="pastel-pink" onClick=${function () { folioTab[1](null); }}>
