@@ -378,12 +378,25 @@
   App.topCards = function (area) {
     return ALL.filter(function (a) { return !area || a.area === area; });
   };
-  /* 학생 설정에서 숨긴 활동을 제외한 대표 카드 */
+  /* 학생 설정에서 숨긴 활동을 제외한 대표 카드.
+     ⛔ **하나도 안 남는 일은 없어야 합니다.**
+        활동이 0가지가 되면 계획·지도·일기가 모두 고를 것이 없어져,
+        홈 화면이 네 코너만 남고 아래가 통째로 빈 채로 보입니다.
+        선생님은 무엇이 잘못됐는지 알 길이 없습니다 (실제로 겪었습니다).
+      ▸ 지금은 선생님 설정에서 마지막 하나를 숨기지 못하게 막았지만,
+        **예전에 만든 자료나 백업**에는 이미 전부 숨겨진 것이 있을 수 있습니다.
+        그런 자료는 숨김 목록을 **통째로 무시하고** 다 보여 줍니다 —
+        빈 화면보다 다 보이는 편이 낫고, 선생님이 다시 숨기면 됩니다.
+      ▸ 섬(area)별로는 비어도 그대로 둡니다. 실내만 쓰는 학급도 있습니다. */
   App.visibleCards = function (student, area) {
     var hidden = (student && student.hiddenActivityIds) || [];
-    return App.topCards(area).filter(function (a) {
-      return !a.hidden && hidden.indexOf(a.id) === -1;
-    });
+    function keep(list) {
+      return list.filter(function (a) {
+        return !a.hidden && hidden.indexOf(a.id) === -1;
+      });
+    }
+    if (hidden.length && !keep(App.topCards()).length) hidden = [];   // 되살리기
+    return keep(App.topCards(area));
   };
   App.visibleChildren = function (student, card) {
     var hidden = (student && student.hiddenActivityIds) || [];

@@ -172,9 +172,21 @@
         return html`<p class="muted small">학생을 먼저 추가해 주세요.</p>`;
       }
       var hidden = current.hiddenActivityIds || [];
+      /* ⛔ **활동을 전부 숨길 수는 없습니다.**
+           예전에는 막는 것이 없어서, 하나씩 숨기다 보면 마지막 하나까지
+           숨겨졌습니다. 그러면 계획·지도·일기가 모두 고를 것이 없어져
+           홈 화면이 네 코너만 남고 **아래가 통째로 비어** 보였습니다.
+           선생님은 무엇이 잘못됐는지 알 길이 없었습니다.
+         ▸ 사람·기분(toggleIn)이 이미 쓰던 것과 **같은 막음**입니다. */
       function toggleAct(id) {
-        upd(current.id, { hiddenActivityIds: hidden.indexOf(id) >= 0
-          ? hidden.filter(function (x) { return x !== id; }) : hidden.concat([id]) });
+        var isHiding = hidden.indexOf(id) < 0;
+        var next = isHiding ? hidden.concat([id])
+                            : hidden.filter(function (x) { return x !== id; });
+        if (isHiding && App.topCards().every(function (c) { return next.indexOf(c.id) >= 0; })) {
+          App.ui.toast('적어도 하나는 남겨 두세요.');
+          return;
+        }
+        upd(current.id, { hiddenActivityIds: next });
       }
       function toggleIn(key, all, id) {
         var cur = current[key] || all.map(function (x) { return x.id; });

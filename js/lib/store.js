@@ -194,7 +194,35 @@
 
   /* ------------------------- 공개 API ------------------------- */
   var Store = {
-    init: function () { if (!state) { state = load(); syncCustom(); } return state; },
+    /* ⛔ 켤 때 **자료를 한 번 바로잡습니다.**
+         「활동이 하나도 안 보이는 학생」 때문에 홈 화면이 네 코너만 남고
+         아래가 통째로 비어 보이는 일이 되풀이됐습니다. 선생님은 무엇이
+         잘못됐는지 알 길이 없었습니다.
+       ▸ 예전 자료나 백업에 이미 그런 학생이 있을 수 있으므로,
+         **켤 때 고쳐서 저장**합니다. 화면에서 되살리는 것(App.visibleCards)만으로는
+         저장된 자료가 그대로 남아 다음에 또 나옵니다.
+       ▸ 숨김 목록이 잘못된 꼴(배열이 아님)이어도 여기서 빈 배열로 돌립니다. */
+    init: function () {
+      if (!state) {
+        state = load();
+        syncCustom();
+        var all = App.topCards ? App.topCards().map(function (c) { return c.id; }) : [];
+        var fixed = 0;
+        (state.students || []).forEach(function (s) {
+          var h = s.hiddenActivityIds;
+          if (!Array.isArray(h)) { if (h != null) { s.hiddenActivityIds = []; fixed++; } return; }
+          if (all.length && all.every(function (id) { return h.indexOf(id) >= 0; })) {
+            s.hiddenActivityIds = []; fixed++;
+          }
+        });
+        if (fixed) {
+          saveNow();
+          if (window.console) console.warn('[나의 여가] 활동이 하나도 안 보이던 학생 '
+            + fixed + '명의 숨김 설정을 되돌렸습니다.');
+        }
+      }
+      return state;
+    },
     get: function () { if (!state) state = load(); return state; },
     subscribe: function (fn) {
       listeners.push(fn);

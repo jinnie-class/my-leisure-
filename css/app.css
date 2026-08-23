@@ -4059,3 +4059,6 @@ textarea.sentence-edit,
   margin-left:clamp(.4rem,1.6vw,1.4rem);
 }
 @media (max-width: 900px){ .map-say{ display:none; } }
+
+/* 「일기장 모두 인쇄」 옆의 장수 — 단추가 아니라 알림이라 작게 둡니다 */
+.folio-print-n{ align-self:center; font-weight:800; }

@@ -1526,12 +1526,28 @@
              예전에는 선생님 도구 창 안에만 있어서, 일기장을 보고 있어도
              모아 인쇄하는 길이 화면에 없었습니다. 지금 보고 있는 것이
              일기 모음이므로, 모아 내는 단추도 여기 있어야 합니다.
-           ▸ `따라쓰기 판` · `빈칸 판` 은 선생님이 쓰는 학습지라
-             선생님 도구 창에 그대로 둡니다. */
+           ★ **인쇄 모양을 고를 수 있습니다** (2026-08-23).
+             예전에는 `글자 그대로` 하나뿐이라, 따라쓰기 판이 필요하면
+             선생님 도구 창까지 찾아 들어가야 했습니다.
+           ▸ 고를 수 있는 모양은 **학생의 일기 단계마다 다릅니다.**
+             목록은 picdiary.js 한 곳에서 정합니다 (App.diaryPrintModes) —
+             여기에 따로 적으면 언젠가 둘이 어긋납니다.
+               1단계  글자 · 따라 쓰기
+               2단계  따라 쓰기 · 힌트 보고 쓰기
+               3단계  내가 쓴 글 · 빈 줄 */
         : (view === 'pick' && folioTab[0] === 'diary' && data.diaries.length)
-        ? html`<${C.Btn} kind="primary" icon="print"
-            onClick=${function () { printJournal('text'); }}>
-            일기장 모두 인쇄하기 (${data.diaries.length}장)<//>`
+        ? html`<${React.Fragment}>
+            ${(App.diaryPrintModes
+                ? App.diaryPrintModes((student && student.diaryLevel) || 1)
+                : [{ id: 'text', name: '글자' }]
+              ).map(function (m, i) {
+                return html`<${C.Btn} key=${m.id} kind=${i === 0 ? 'primary' : null}
+                  className=${i === 0 ? null : 'pastel-blue'} icon="print" title=${m.desc}
+                  onClick=${function () { printJournal(m.id); }}>
+                  일기장 모두 인쇄 · ${m.name}<//>`;
+              })}
+            <span class="small muted folio-print-n">${data.diaries.length}장</span>
+          <//>`
         : null}>
         ${view === 'pick' ? html`<${React.Fragment}>
           <!-- 창 안에서만 **지금 어느 기간을 보고 있는지**를 한 줄로 알려 줍니다.

@@ -149,6 +149,11 @@
   }
   function modesFor(lv) { return MODES_BY_LEVEL[lv] || MODES_BY_LEVEL[1]; }
   function defaultModeFor(lv) { return modesFor(lv)[0].id; }
+  /* 다른 화면(포트폴리오의 일기장 모아 인쇄)도 **같은 목록**을 씁니다.
+     ⛔ 인쇄 모양을 그쪽에 따로 적지 마세요 — 단계마다 고를 수 있는 것이
+        다른데 둘로 나뉘면 언젠가 어긋납니다. 여기 한 곳에서만 정합니다. */
+  App.diaryPrintModes = modesFor;
+  App.diaryLevelOf = levelOf;
 
   /* ==================== 「나의 여가 일기 — 원고지 작성 규칙」 ====================
      ★ 이 규칙은 앱의 고정 규칙입니다. 원고지 화면을 고칠 때 반드시 지켜 주세요.
