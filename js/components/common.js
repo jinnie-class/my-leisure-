@@ -1043,10 +1043,13 @@
     }
 
     /* ★ 자리 잡기 — **스크롤이 생기지 않게** 합니다.
-         예전에는 [도구] → [그림판] → [안내글 + 다 그렸어요] 로 위아래로 쌓여서
-         팝업에 스크롤이 생겼습니다.
-         이제 `다 그렸어요` · `그만두기` 를 **맨 위 도구 줄 오른쪽**에 두고,
-         안내글은 **도구 바로 아랫줄**에 둡니다. 그림판이 남는 자리를 다 씁니다. */
+         [도구 줄] → [안내글] → [그림판] → [마치는 줄] 차례입니다.
+       ★ `그림 다 그렸어요` · `그만두기` 는 **그림판 아래**에 둡니다 (2026-08-23).
+         맨 위 도구 줄에 함께 두었더니 색·굵기 단추와 섞여서, 다 그린 뒤에
+         어디를 눌러야 하는지 한눈에 보이지 않았습니다.
+         그리는 일이 끝나는 자리(그림판 아래)에 있어야 차례가 이어집니다.
+       ⚠ 마치는 줄은 **늘 자리를 차지**합니다(그만두기가 없어도). 그래야
+         그림을 그리는 동안 그림판 크기가 흔들리지 않습니다. */
     return html`<div class="dp">
       <div class="dp-tools">
         ${DRAW_COLORS.map(swatch)}
@@ -1062,10 +1065,6 @@
         })}
         <span class="dp-gap"></span>
         <${C.Btn} size="small" icon="trash" onClick=${clearAll}>다 지우기<//>
-        <span class="grow"></span>
-        ${p.onCancel && html`<${C.Btn} size="small" onClick=${p.onCancel}>그만두기<//>`}
-        <${C.Btn} size="small" kind="ok" icon="check" disabled=${!dirtyS[0]}
-          onClick=${done}>${p.doneText || '그림 다 그렸어요'}<//>
       </div>
 
       <p class="small muted dp-hint">
@@ -1075,6 +1074,13 @@
         aria-label="그림 그리는 곳"
         onPointerDown=${begin} onPointerMove=${move}
         onPointerUp=${end} onPointerCancel=${end} onPointerLeave=${end} />
+
+      <!-- 마치는 줄 — 그리는 일이 끝나는 자리에 둡니다 -->
+      <div class="dp-done">
+        ${p.onCancel && html`<${C.Btn} onClick=${p.onCancel}>그만두기<//>`}
+        <${C.Btn} kind="ok" icon="check" className="dp-ok" disabled=${!dirtyS[0]}
+          onClick=${done}>${p.doneText || '그림 다 그렸어요'}<//>
+      </div>
     </div>`;
   };
 

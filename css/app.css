@@ -1640,11 +1640,21 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-art-thumb svg,.pd-art-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
 
 /* 4. 제 목 */
-/* 제목 글자 크기는 picdiary.js 가 **본문 글자와 같은 값**으로 넣어 줍니다
-   (인라인 style). 여기에 font-size 를 적으면 그 값이 덮여 버립니다. */
-.pd-titlebar{ height:60px; gap:12px; padding:0 14px; font-weight:900; }
-/* 「제 목:」 딱지는 조금 작게 — 제목 글자가 커져서 딱지까지 크면 줄이 넘칩니다 */
-.pd-lab{ flex:0 0 auto; font-size:.62em; color:#4a4a55; }
+/* ★ 제목도 **원고지 한 줄**입니다 (2026-08-23).
+   같은 격자에 넣으면 칸 크기도 글자 크기도 본문과 저절로 같아집니다.
+   칸 수와 글자 크기는 picdiary.js 가 인라인으로 넣어 줍니다.
+   ⛔ 여기에 font-size 를 적지 마세요 — 인라인 값이 덮입니다. */
+.pd-titlegrid{ font-weight:900; }
+/* 「제목」 딱지는 앞 **두 칸**을 씁니다.
+   ⚠ aspect-ratio 를 풀어야 합니다. 그대로 두면 두 칸 너비만큼 **키가 두 배**가
+     되어 제목 줄만 정사각형 두 개 높이로 커집니다. */
+/* ⚠ `.pd-box` 규칙이 **뒤에** 나오므로 힘을 같게 두면 집니다.
+     `.pd-box.pd-titlelab` 로 한 단계 올려야 aspect-ratio 가 풀립니다.
+     안 풀면 두 칸 너비만큼 키가 두 배(159px)가 됩니다 — 재어서 확인. */
+.pd-box.pd-titlelab{
+  grid-column:span 2; aspect-ratio:auto;
+  font-size:.6em; color:#4a4a55; letter-spacing:.1em;
+}
 
 /* 5. 원고지 — 한 칸에 한 글자.
    글자 크기는 칸 수에 따라 picdiary.js 가 인라인으로 정해 줍니다. */
@@ -1674,8 +1684,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .pd-sheet.t-trace .pd-ch{ color:#c9c9d2; }
 .pd-sheet.t-empty .pd-grid .pd-ch,
 .pd-sheet.t-empty .pd-lines .pd-ch{ visibility:hidden; }
-.pd-sheet.t-trace .pd-titlebar .pd-ch{ color:#c9c9d2; }
-.pd-sheet.t-empty .pd-titlebar .pd-ch{ visibility:hidden; }
+.pd-sheet.t-trace .pd-titlegrid .pd-ch{ color:#c9c9d2; }
+.pd-sheet.t-empty .pd-titlegrid .pd-ch{ visibility:hidden; }
 
 /* ======================= 완성 미리보기 (기록하GO! 마지막) =======================
    저장하기 전에 완성된 그림일기를 작게 그대로 보여 줍니다.
@@ -4017,3 +4027,24 @@ textarea.sentence-edit,
 /* 고른 카드 단추 줄도 조금 낮게 */
 .mb-tools{ margin:.35rem 0 .15rem; }
 .mb-tools .btn{ min-height:38px; }
+
+/* 그림판 아래 「마치는 줄」 — 그리는 일이 끝나는 자리.
+   ★ 맨 위 도구 줄에 두었더니 색·굵기 단추와 섞여서, 다 그린 뒤에 어디를
+     눌러야 하는지 한눈에 보이지 않았습니다.
+   ⚠ 그림판 높이(44vh)는 그대로 두고 이 줄만 더합니다 — 팝업에 스크롤이
+     생기면 `.dp-canvas` 의 vh 값을 줄이세요. */
+.dp-done{ display:flex; justify-content:center; gap:.6rem; margin-top:.15rem; }
+.dp-done .btn{ min-height:52px; font-size:1.05rem; padding-left:1.4rem; padding-right:1.4rem; }
+.dp-done .btn.dp-ok{ min-width:14rem; }
+
+/* 채우는 자리 두 알약(무엇을 할 때 · 어떤 기분인가요)은 **좁게 가운데**로.
+   19rem 은 아래 바의 「나」 칸에 맞춘 폭이라, 알약만 있는 위 바에는 넓습니다.
+   왼쪽을 줄인 만큼 오른쪽 고르는 칸이 넓어져 낱말이 잘 보입니다. */
+.me-bar.slots{ grid-template-columns:minmax(0,12.5rem) minmax(0,1fr); }
+.me-bar.slots .me-slots{ align-items:center; }
+.me-bar.slots .me-slot{ width:100%; text-align:center; align-items:center; }
+@media (max-width: 860px){ .me-bar.slots{ grid-template-columns:1fr; } }
+
+/* 줄 그림과 문장 사이를 띄웁니다 — 붙어 있으면 그림이 첫 글자에 닿아 보입니다 */
+.me-row{ gap:.55rem; }
+.me-row-art{ margin-right:.35rem; }

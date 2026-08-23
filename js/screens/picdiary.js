@@ -59,12 +59,22 @@
        처음에 테두리를 따로 더했다가 실제와 어긋났습니다. 브라우저에서
        재어 맞춘 값입니다 — 고칠 때도 재서 맞추세요. */
   var DATE_H = 64;                     //   64  날짜·날씨 줄
-  var TITLE_H = 60;                    //   60  제목 줄 (칸 글자와 같은 크기라 조금 높였습니다)
   var FOOT_H = 54;                     //   54  맨 아래 알약 줄 (.pd-foot, 잰 값 51.6)
   var ART_INNER_W = A4_W - 4 - 20;     //  770  그림칸 속 너비 (테두리 4 · 여백 20 뺌)
   var ART_RATIO = 1.501;               //       장소 그림 512x341 과 **똑같은** 비율
-  var ART_H = Math.round(ART_INNER_W / ART_RATIO) + 20 + 2;   // 513 + 여백 20 + 밑줄 2 = 535
-  var GRID_BUDGET = SHEET_INNER - DATE_H - ART_H - TITLE_H - FOOT_H;   // 414
+  /* ★ 그림칸을 조금 줄여 그 자리를 **원고지에 돌려줍니다** (2026-08-23).
+       칸이 커지면 칸 안 글자도 그만큼 커집니다 — 인쇄해서 손으로 쓰는 종이라
+       글자 칸이 넉넉한 편이 낫습니다.
+     ⚠ 더 줄이지 마세요. 장소 배경은 `object-fit:cover` 라, 줄인 만큼
+       위아래가 잘립니다. 0.86 이면 눈에 띄지 않습니다. */
+  var ART_SHRINK = 0.86;
+  var ART_H = Math.round(ART_INNER_W / ART_RATIO * ART_SHRINK) + 20 + 2;   // 441 + 22 = 463
+  /* ★ **제목 줄도 원고지 한 줄**입니다 (2026-08-23).
+       예전에는 제목이 따로 놀아서 글자 크기를 손으로 맞춰야 했습니다.
+       같은 격자에 넣으면 칸 크기도 글자 크기도 저절로 같아집니다.
+     ▸ 그래서 여기서 TITLE_H 를 따로 빼지 않습니다. 아래 fitGrid 가
+       **줄 수에 1(제목 줄)을 더해** 셈합니다. */
+  var GRID_BUDGET = SHEET_INNER - DATE_H - ART_H - FOOT_H;   // 538
   App.PD_ART_H = ART_H;                // css 와 값을 맞추려고 내어 둡니다
 
   /* 힌트 보기(그림칸에 뜨는 원고지)가 쓸 수 있는 속 크기.
@@ -86,7 +96,7 @@
      ★ 0.58 → **0.70** 으로 올렸습니다. 칸 크기(79px)는 그대로인데 글자만
        46px → 55px 로 커집니다. **그림칸을 한 픽셀도 줄이지 않고** 시원해 보입니다.
        0.75 를 넘으면 받침 있는 글자(`쌓`)가 칸 선에 닿습니다. */
-  var GLYPH_FILL = 0.55;
+  var GLYPH_FILL = 0.70;
 
   /* 날씨 그림은 `js/data/options.js` 의 `App.DATA.weathers` 한 곳에 모았습니다.
      기록하GO! 에서 고르는 그림과 이 종이에 찍히는 그림이 같아야 하기 때문입니다. */
@@ -247,7 +257,11 @@
   /* 3단계(밑줄)도 원고지와 **같은 높이**를 씁니다.
      그래야 1·2단계와 3단계의 그림칸이 같아집니다 — 단계가 달라도 같은 서식입니다.
      ⚠ 640(옛 8줄 x 79px) 그대로 두면 3단계만 그림칸이 176px 작아집니다. */
-  var LINE_BUDGET = GRID_BUDGET;
+  /* 3단계도 제목이 **원고지 한 줄**을 씁니다 (1·2단계와 같은 모습).
+     제목 칸은 10칸으로 두므로 그 높이(790/10 = 79px)를 미리 빼 둡니다. */
+  var TITLE_COLS_LINE = 10;
+  var TITLE_ROW_H = Math.round((A4_W - 4) / TITLE_COLS_LINE);   // 79
+  var LINE_BUDGET = GRID_BUDGET - TITLE_ROW_H;
 
   function fitLines(lines) {
     for (var i = 0; i < LINE_SIZES.length; i++) {
@@ -277,7 +291,8 @@
     for (var i = 0; i < COL_OPTIONS.length; i++) {
       var cols = COL_OPTIONS[i];
       var rows = gridRows(lines, cols);
-      var need = Math.max(rows.length, MIN_ROWS) * cellSize(cols);
+      /* +1 은 **제목 줄** 입니다 — 제목도 원고지 한 줄을 씁니다 */
+      var need = (Math.max(rows.length, MIN_ROWS) + 1) * cellSize(cols);
       if (need <= GRID_BUDGET || i === COL_OPTIONS.length - 1) {
         verifyGrid(lines, rows);                         // 규칙 13 : 스스로 검사
         while (rows.length < MIN_ROWS) {
@@ -348,7 +363,10 @@
     var lineFit = useLines ? fitLines(lines) : null;
     /* 제목 글자 크기 — **본문 글자와 같은 크기**로 맞춥니다.
        1·2단계는 원고지 칸 글자, 3단계는 밑줄 글자를 따라갑니다. */
-    var titleFs = useLines ? lineFit.fs : Math.round(790 / g.cols * GLYPH_FILL);
+    /* 제목도 **원고지 한 줄**이라, 칸 수와 글자 크기가 본문과 같습니다.
+       3단계(밑줄)에는 본문 칸이 없으므로 10칸을 씁니다. */
+    var titleCols = useLines ? TITLE_COLS_LINE : g.cols;
+    var titleFs = Math.round((A4_W - 4) / titleCols * GLYPH_FILL);
     /* 힌트 보기에 쓸 문장 — 학생이 아래 빈 칸에 보고 쓸 내용입니다 */
     var hintLines = lines;
 
@@ -577,9 +595,19 @@
            ⛔ 이 주석은 html 안입니다. 여는 것과 닫는 것을 **짝 맞춰** 쓰세요.
              js 주석 닫기(별표+빗금)로 닫으면 주석이 안 닫혀서 뒤 마크업이
              통째로 먹히고 화면이 아예 안 뜹니다. 백틱도 쓰지 마세요. -->
-      <div class="pd-line pd-titlebar" style=${{ fontSize: titleFs + 'px' }}>
-        <span class="pd-lab">제 목:</span>
-        <span class="pd-ch">${d.title || (a ? a.name : '')}</span>
+      <div class="pd-grid pd-titlegrid"
+           style=${{ gridTemplateColumns: 'repeat(' + titleCols + ', 1fr)',
+                     fontSize: titleFs + 'px' }}>
+        <span class="pd-box pd-titlelab">제목</span>
+        ${(function () {
+          var t = String(d.title || (a ? a.name : '') || '');
+          var cells = [];
+          /* 앞 두 칸은 「제목」 딱지가 씁니다 */
+          for (var i = 0; i < titleCols - 2; i++) cells.push(t.charAt(i) || '');
+          return cells.map(function (ch, i) {
+            return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
+          });
+        })()}
       </div>
 
       ${hint}

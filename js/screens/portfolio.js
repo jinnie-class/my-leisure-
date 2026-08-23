@@ -1261,7 +1261,8 @@
            중인지가 분명해집니다. */
         return html`<${React.Fragment}>
           ${lvTabs}
-          <div class="me-bar">
+          <!-- 채우는 자리 두 알약은 좁게 — 고르는 칸이 넓을수록 낱말이 잘 보입니다 -->
+          <div class="me-bar slots">
             <div class="me-slots">${pills}</div>
             <div class="me-pickarea">${picks}</div>
           </div>
