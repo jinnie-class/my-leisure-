@@ -54,6 +54,7 @@
     App.useStore();
     var student = App.store.current();
     var viewPlan = useState(null);
+    var planPage = useState(0);
 
     var todays = App.store.todayPlans(student && student.id);
     /* ★ `오늘의 도전` 은 **오늘 세운 계획이 없을 때에만** 보여 줍니다.
@@ -123,15 +124,36 @@
 
         <!-- 오늘 세운 계획이 있을 때에만 나옵니다.
              계획 → 실행 → 일기로 이어지는 이음매라서 남겨 두었습니다.
-             (‘활동을 했어요’ 를 눌러야 일기에 내용이 자동으로 채워져요) -->
+             (‘활동을 했어요’ 를 눌러야 일기에 내용이 자동으로 채워져요)
+
+             ⛔ **한 번에 두 장까지만** 보여 주고 나머지는 화살표로 넘깁니다.
+                까닭 (2026-08-23 · 이은우 학생 화면) :
+                계획을 여러 개 세운 날에는 이 칸이 남은 자리보다 커지는데,
+                칸은 중간에 잘리지 않게 되어 있어 **통째로 2쪽으로 밀려납니다.**
+                그러면 1쪽에는 코너 넷만 남고 아래가 텅 비어, 학생도 선생님도
+                왜 비었는지 알 수 없었습니다. (계획이 있는 날에는 「오늘의 도전」도
+                일부러 숨기므로 정말 아무것도 안 남습니다)
+              ▸ 몇 장을 보일지는 **화면 높이로** 정합니다. 낮은 화면에서는
+                코너 넷이 자리를 거의 다 써서 계획 칸에 남는 자리가 적습니다.
+                재어 본 값 (계획 카드 한 장 = 약 122px) :
+                  화면 1103px … 남는 자리 456px → 두 장(244px) 넉넉
+                  화면  900px … 남는 자리 318px → 두 장, 여유 74px
+                  화면  720px … 남는 자리 198px → **한 장만** (두 장이면 밀려남)
+                그래서 900px 을 가릅니다. 넉넉한 쪽으로 잡은 값이니
+                카드 모양을 키울 일이 있으면 여기도 함께 보세요.
+              ▸ 화살표는 포트폴리오와 **같은 것**입니다 (App.flowBox). -->
         ${todays.length ? html`<${C.Sec} title="오늘의 여가 계획">
-          <div class="stack">
-            ${todays.map(function (pl) {
+          ${(function () {
+            var per = (window.innerHeight >= 900) ? 2 : 1;
+            var info = App.pageOf(todays, planPage[0], per);
+            var cards = info.items.map(function (pl) {
               return html`<${C.TodayPlanCard} key=${pl.id} plan=${pl}
                 onView=${function () { viewPlan[1](pl); }}
                 onDid=${function () { goDiaryFromPlan(pl); }} />`;
-            })}
-          </div>
+            });
+            return App.flowBox(info, function (n) { planPage[1](n); },
+              'stack', cards, '오늘의 여가 계획');
+          })()}
         <//>` : null}
 
         <!-- 오늘의 도전 : 아직 안 해본 활동 하나를 권합니다.
