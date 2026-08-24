@@ -4387,3 +4387,23 @@ textarea.sentence-edit,
   padding:2px;
 }
 .me-inart > *{ max-width:100%; max-height:100%; }
+
+/* ★ 설정 3·4번 — **알약이 한 줄로 늘어설 만큼** 폭을 넓힙니다
+     (2026-08-24 · 선생님 말씀). 34rem 에서 끊었더니 「1단계 · 2단계」가
+     한 줄, 「3단계」가 다음 줄로 접혀 셋을 견주기 어려웠습니다.
+   ⛔ 다른 칸(7·8·9번 같은 목록)까지 넓히지 마세요. 거기는 고를 것이 많아
+      넓히면 눈이 멀리 갑니다. 이 둘만 넓힙니다. */
+.tsec .tlevels,
+.tsec .tplans{ max-width:none; }
+/* ⛔ 폭 제한을 푸는 것만으로는 모자랍니다 — 좁은 화면에서는 셋을 한 줄에
+      늘어놓을 자리가 아예 없습니다 (600px 화면 : 필요 691px · 자리 528px).
+   ▸ 그래서 **셋이 폭을 고르게 나눠 갖게** 합니다. 글자가 길면 알약 안에서
+     두 줄로 접히지만 **셋은 늘 나란히** 놓입니다 (2026-08-24 · 선생님 말씀). */
+.tsec .tlevels{ flex-wrap:nowrap; align-items:stretch; }
+.tsec .tlevels .tchoice{
+  flex:1 1 0; min-width:0; white-space:normal; line-height:1.3;
+  display:flex; align-items:center; justify-content:center; text-align:center;
+}
+/* 「그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요」 — 아래 알약 줄과
+   같은 자리에서 시작하도록 **가운데**로 (2026-08-24 · 선생님 말씀). */
+.tsec .tsub.center{ text-align:center; }

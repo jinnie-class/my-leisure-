@@ -596,11 +596,58 @@
       });
     }, []);
 
+    /* ⛔⛔ **그림이 다 실린 뒤에 반드시 다시 재야 합니다** (2026-08-24).
+         PNG 는 늦게 실립니다. 그림이 붙으면 카드가 커지는데, 그때 다시 재지
+         않으면 **줄이기가 아예 안 걸린 채로** 화면이 굳습니다.
+         재어 본 고장 : 「무엇을 했나요?」 흰 칸 666px · 내용 827px 인데
+         `--fit` 은 1 이라 카드 두 장이 아래로 93px 잘려 있었습니다.
+       ▸ 흰 칸 자체(ResizeObserver)로는 못 잡습니다. 높이가 flex 로 정해져
+         있어 **안쪽이 커져도 흰 칸 크기는 그대로**입니다.
+       ▸ 그래서 세 겹으로 봅니다.
+         ① 그림마다 `load` 를 듣고 그 자리에서 다시 재기 (가장 확실)
+         ② 280ms · 900ms 두 번 더 재기 (load 를 놓친 그림이 있어도)
+         ⛔ 900ms 를 지우지 마세요. 태블릿은 그림 읽는 속도가 느려
+            280ms 안에 다 못 싣는 일이 잦습니다. */
     useLayoutEffect(function () {
       measure();
-      var raf = window.requestAnimationFrame(function () { pass.current = { n: 0, t: 0 }; measure(); });
-      var t = setTimeout(function () { pass.current = { n: 0, t: 0 }; measure(); }, 280);
-      return function () { window.cancelAnimationFrame(raf); clearTimeout(t); };
+      var again = function () { pass.current = { n: 0, t: 0 }; measure(); };
+      var raf = window.requestAnimationFrame(again);
+      var t1 = setTimeout(again, 280);
+      var t2 = setTimeout(again, 900);
+      var el = trackRef.current;
+      var imgs = el ? Array.prototype.slice.call(el.querySelectorAll('img')) : [];
+      var waiting = imgs.filter(function (im) { return !im.complete; });
+      waiting.forEach(function (im) {
+        im.addEventListener('load', again);
+        im.addEventListener('error', again);
+      });
+      /* ③ ⛔ **안쪽 칸이 커지는 순간 바로 다시 잽니다** — 가장 단단한 그물.
+             흰 칸 자체를 보는 것으로는 못 잡습니다(높이가 flex 로 고정).
+             **자식 하나하나**를 지켜봐야 그림·글이 늘어난 것을 압니다.
+           ▸ 렌더마다 새로 붙으므로 자식이 바뀌어도 따라갑니다.
+           ▸ 되돌이(줄이면 → 자식이 작아짐 → 또 잼)는 `pass` 가 다섯 번으로
+             막아 줍니다. */
+      /* ⛔⛔ **커졌을 때만** 다시 재세요. 그냥 `again` 을 물리면 화면이
+             **떨립니다** : 줄이기 → 자식이 작아짐 → 감시가 울림 → 또 재기 …
+             `pass` 는 150ms 마다 풀리므로 되돌이를 못 막습니다.
+             (2026-08-24 · 「일기가 완성되었어요」 화면이 계속 떨렸습니다)
+           ▸ 그림이 실려 **커지는** 것만 잡으면 되돌이가 생기지 않습니다.
+             줄이면 높이가 작아지므로 감시가 울려도 아무 일도 안 합니다. */
+      var lastH = el ? el.scrollHeight : 0;
+      var ro = window.ResizeObserver ? new window.ResizeObserver(function () {
+        var box = trackRef.current; if (!box) return;
+        var h = box.scrollHeight;
+        if (h > lastH + 2) { lastH = h; again(); }
+      }) : null;
+      if (ro && el) Array.prototype.forEach.call(el.children, function (c) { ro.observe(c); });
+      return function () {
+        window.cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2);
+        if (ro) ro.disconnect();
+        waiting.forEach(function (im) {
+          im.removeEventListener('load', again);
+          im.removeEventListener('error', again);
+        });
+      };
     });
 
     useEffect(function () {
@@ -731,10 +778,24 @@
         }
       }
       fit();
-      /* 그림이 늦게 실리면 높이가 달라지므로 한 번 더 봅니다 */
-      var t = setTimeout(fit, 280);
+      /* ⛔ **그림이 다 실린 뒤 다시 재야 합니다** — Stage 와 같은 까닭입니다.
+           PNG 는 늦게 실리고, 그때 카드가 커집니다. 태블릿은 더 느립니다. */
+      var t1 = setTimeout(fit, 280);
+      var t2 = setTimeout(fit, 900);
+      var el = ref.current;
+      var imgs = el ? Array.prototype.slice.call(el.querySelectorAll('img')) : [];
+      var waiting = imgs.filter(function (im) { return !im.complete; });
+      waiting.forEach(function (im) {
+        im.addEventListener('load', fit); im.addEventListener('error', fit);
+      });
       window.addEventListener('resize', fit);
-      return function () { clearTimeout(t); window.removeEventListener('resize', fit); };
+      return function () {
+        clearTimeout(t1); clearTimeout(t2);
+        waiting.forEach(function (im) {
+          im.removeEventListener('load', fit); im.removeEventListener('error', fit);
+        });
+        window.removeEventListener('resize', fit);
+      };
     });
   };
   C.StageFit = function (p) {

@@ -54,8 +54,10 @@
   };
 
   /* ------------------------- 한 줄짜리 고르기 ------------------------- */
+  /* wide : 알약이 **한 줄로 늘어설 만큼** 넓게 (3. 일기 쓰기 수준 · 4. 계획 방식).
+     셋을 나란히 놓고 견주어야 고르기 쉽습니다. */
   function Choices(p) {
-    return html`<div class="wrap">
+    return html`<div class=${'wrap' + (p.wide ? ' tlevels' : '')}>
       ${p.items.map(function (it) {
         var on = p.value === it.id;
         return html`<button key=${it.id} type="button" class=${'tchoice' + (on ? ' on' : '')}
@@ -210,6 +212,7 @@
           <label>3. 일기 쓰기 수준</label>
           <${Choices} value=${current.diaryLevel}
             items=${App.DATA.diaryLevels.map(function (l) { return { id: l.id, name: l.name + ' · ' + l.desc }; })}
+            wide=${true}
             onPick=${function (v) { upd(current.id, { diaryLevel: v }); }} />
           <p class="muted small">${(App.DATA.diaryLevels.filter(function (l) { return l.id === current.diaryLevel; })[0] || {}).guide || ''}</p>
         </div>
@@ -218,6 +221,7 @@
           <label>4. 계획 방식</label>
           <${Choices} value=${current.planLevel}
             items=${App.DATA.planLevels.map(function (l) { return { id: l.id, name: l.name + ' · ' + l.desc }; })}
+            wide=${true}
             onPick=${function (v) { upd(current.id, { planLevel: v }); }} />
         </div>
 
@@ -288,7 +292,7 @@
                  같은 함수를 씁니다. 여기서 또 만들면 둘이 어긋날 수 있습니다.
                ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
           ${App.partnersFor(current).filter(function (x) { return x.variants; }).length ? html`
-            <p class="tsub">그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요</p>
+            <p class="tsub center">그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요</p>
             <div class="wrap sexrow">
               ${App.partnersFor(current).filter(function (x) { return x.variants; }).map(function (x) {
                 var cur = App.partnerVariant(x, current);
