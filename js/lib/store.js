@@ -214,17 +214,29 @@
              할머니 · 할아버지를 더했더니, 예전에 저장된 학생은 새 이름이
              목록에 없어서 **하나도 나오지 않았습니다.** 선생님은 끌 기회조차
              없었던 것들이라 켜 주는 것이 맞습니다.
-           ▸ `partnersV2` 표시를 남겨 **한 번만** 손봅니다. 그러지 않으면
-             선생님이 일부러 끈 것을 켤 때마다 되살려 버립니다. */
-        var NEW_PARTNERS = ['grandma', 'grandpa', 'sisEl', 'nuna', 'hyeong', 'oppa', 'younger'];
+           ▸ **판 번호**로 다스립니다. 사람을 더할 때마다 아래 표에 한 줄을
+             더하고 `v` 를 올리면, 그 판을 아직 안 받은 학생에게만 켜 줍니다.
+             ⛔ 표를 고치지 않고 사람만 더하면 **예전 학생에게는 안 보입니다.**
+             ⛔ 판 번호 없이 매번 켜면 선생님이 일부러 끈 것을 되살려 버립니다.
+           ▸ `partnersV2` 는 판 번호를 쓰기 전의 표시입니다. 그것만 있는 학생은
+             2판까지 받은 것으로 봅니다. */
+        var PARTNER_ADDS = [
+          { v: 2, ids: ['grandma', 'grandpa', 'sisEl', 'nuna', 'hyeong', 'oppa', 'younger'] },
+          { v: 3, ids: ['uncle', 'gomo', 'imo'] }
+        ];
         (state.students || []).forEach(function (s) {
-          if (!s.partnersV2) {
+          var ver = s.partnerVer || (s.partnersV2 ? 2 : 0);
+          var last = PARTNER_ADDS[PARTNER_ADDS.length - 1].v;
+          if (ver < last) {
             if (Array.isArray(s.partnerIds) && s.partnerIds.length) {
-              NEW_PARTNERS.forEach(function (id) {
-                if (s.partnerIds.indexOf(id) < 0) s.partnerIds.push(id);
+              PARTNER_ADDS.forEach(function (step) {
+                if (step.v <= ver) return;
+                step.ids.forEach(function (id) {
+                  if (s.partnerIds.indexOf(id) < 0) s.partnerIds.push(id);
+                });
               });
             }
-            s.partnersV2 = true; fixed++;
+            s.partnerVer = last; fixed++;
           }
           var h = s.hiddenActivityIds;
           if (!Array.isArray(h)) { if (h != null) { s.hiddenActivityIds = []; fixed++; } return; }

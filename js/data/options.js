@@ -23,6 +23,9 @@
     { id: 'dad',     name: '아빠',   phrase: '아빠와',   icon: 'pDad',     imageKey: '아빠' },
     { id: 'grandma', name: '할머니',   phrase: '할머니와',   icon: 'pMom',     imageKey: '할머니' },
     { id: 'grandpa', name: '할아버지', phrase: '할아버지와', icon: 'pDad',     imageKey: '할아버지' },
+    { id: 'uncle',   name: '삼촌',     phrase: '삼촌과',     icon: 'pDad',     imageKey: '삼촌' },
+    { id: 'gomo',    name: '고모',     phrase: '고모와',     icon: 'pMom',     imageKey: '고모' },
+    { id: 'imo',     name: '이모',     phrase: '이모와',     icon: 'pMom',     imageKey: '이모' },
     /* ★ 손위 형제는 **부르는 이름이 넷**입니다 (2026-08-24 · 선생님 말씀).
          남학생은 누나 · 형, 여학생은 언니 · 오빠라 부릅니다. 하나로 묶으면
          어느 쪽 학생에게든 어색해서, 넷을 따로 두고 선생님이 그 학생에게
