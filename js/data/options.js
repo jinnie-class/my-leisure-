@@ -36,9 +36,12 @@
     { id: 'nuna',    name: '누나',     phrase: '누나와',     icon: 'pSibling', imageKey: '누나' },
     { id: 'hyeong',  name: '형',       phrase: '형과',       icon: 'pSibling', imageKey: '형' },
     { id: 'oppa',    name: '오빠',     phrase: '오빠와',     icon: 'pSibling', imageKey: '오빠' },
+    /* ⚠ imageKey 는 **그림 파일 이름 그대로**여야 합니다.
+         `images/avatars/<imageKey>.png` 를 찾습니다. 파일은 「남동생 · 여동생」
+         이라 그렇게 적습니다 (「동생 남」 으로 적으면 그림이 안 나옵니다). */
     { id: 'younger', name: '동생',     phrase: '동생과',     icon: 'pSibling',
-      variants: [{ id: 'm', name: '남', imageKey: '동생 남' },
-                 { id: 'f', name: '여', imageKey: '동생 여' }] },
+      variants: [{ id: 'm', name: '남', imageKey: '남동생' },
+                 { id: 'f', name: '여', imageKey: '여동생' }] },
     /* ⛔ 「형제자매」는 **지우지 않고 감춥니다.** 예전 일기·계획이 이 이름을
          가리키고 있어서, 목록에서 없애면 그 기록의 사람이 통째로 사라집니다.
          감춰 두면 새로 고를 수는 없고 예전 기록은 그대로 읽힙니다. */
