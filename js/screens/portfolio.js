@@ -695,7 +695,25 @@
     /* 만들어지는 한마디 — 고를 때마다 여기서 문장이 자랍니다 */
     function meSayBar() {
       var say = student.word || '나는 　　　 할 때 　　　.';
+      /* ★ **고른 그림을 문장 위에 함께** 보여 줍니다 (2026-08-24 · 선생님 말씀 —
+             「돌아보기처럼 문장과 그림이 같이 나왔으면」).
+           1단계 학생은 글을 못 읽습니다. 글자만 있으면 자기가 무엇을 골라
+           어떤 한마디를 만들었는지 알 길이 없었습니다. 돌아보기 네 줄에는
+           이미 그림이 붙어 있는데 한마디에만 없었습니다.
+         ▸ 고른 것이 있을 때만 나옵니다. 3단계처럼 직접 써 넣으면 짝이 되는
+           그림이 없으므로 문장만 나옵니다 (자리도 차지하지 않습니다). */
+      var wp = student.wordPick || {};
+      var act = wp.actId ? App.act(wp.actId) : null;
+      var mood = wp.moodId ? App.mood(wp.moodId) : null;
       return html`<div class="me-saybar">
+        ${(act || mood) && html`<div class="me-sayart">
+          ${act && html`<span class="me-sayart-one">
+            <span class="me-sayart-pic"><${C.ActivityArt} activity=${act} /></span>
+            <b>${App.shortName(act) || act.name}</b></span>`}
+          ${mood && html`<span class="me-sayart-one">
+            <span class="me-sayart-pic"><${C.MoodArt} mood=${mood} /></span>
+            <b>${mood.name}</b></span>`}
+        </div>`}
         <p class="me-say" aria-live="polite">${say}</p>
         <${C.Speak} text=${say} />
       </div>`;

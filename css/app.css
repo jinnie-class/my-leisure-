@@ -4279,3 +4279,22 @@ textarea.sentence-edit,
   padding:.2rem .5rem; border-radius:12px; background:var(--paper-2);
 }
 .sexname{ font-weight:900; font-size:.95rem; margin-right:.15rem; }
+
+/* ★ 나의 한마디 — **고른 그림을 문장 위에** (2026-08-24 · 선생님 말씀).
+     1단계 학생은 글을 못 읽습니다. 글자만 있으면 자기가 무엇을 골라
+     어떤 한마디를 만들었는지 알 길이 없었습니다.
+   ⛔ 문장 옆에 두지 마세요. 문장 폭이 좁아져 앞말과 뒷말이 갈라집니다.
+      `flex-basis:100%` 로 **한 줄을 통째로** 쓰고 문장을 그 아래에 둡니다. */
+.me-saybar{ flex-wrap:wrap; justify-content:center; }
+.me-sayart{
+  flex:0 0 100%;
+  display:flex; justify-content:center; align-items:flex-end;
+  gap:clamp(.8rem,3vw,2.2rem); margin-bottom:.2rem;
+}
+.me-sayart-one{ display:flex; flex-direction:column; align-items:center; gap:.15rem; }
+.me-sayart-pic{
+  width:clamp(56px,9vh,110px); height:clamp(56px,9vh,110px);
+  display:grid; place-items:center;
+}
+.me-sayart-pic > *{ max-width:100%; max-height:100%; }
+.me-sayart-one b{ font-size:clamp(.8rem,.5rem + .6vh,1rem); font-weight:900; }
