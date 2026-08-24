@@ -4196,3 +4196,30 @@ textarea.sentence-edit,
   .turn-emoji{ font-size:2.6rem; line-height:1; transform:rotate(90deg); }
   .turn-say{ color:var(--ink-soft); font-weight:700; line-height:1.5; }
 }
+
+/* 손으로 따라 쓴 원고지 — 칸 대신 들어갑니다 (picdiary 의 paperwriting) */
+.pd-paperimg{ display:flex; align-items:flex-start; }
+.pd-paperimg img{ width:100%; height:auto; display:block; }
+/* 확인 화면 「원고지에 손으로 쓰기」 줄 */
+.fix-hand{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.45rem; }
+
+/* ============ 일기 확인 화면 — 글자 크기를 **한 가지로** ============
+   ★ 선생님 말씀 : 「다양한 글자 크기가 있는 것도 주의 집중을 흐트린다」
+     (2026-08-24). 그래서 이 화면 **모든 단추 글자를 한 크기**(1.05rem)로
+     맞춥니다. 크기로 중요도를 나타내지 않고, 색과 자리로 나타냅니다.
+   ⛔ 여기 단추에 font-size 를 새로 적지 마세요. 하나만 달라도 화면이
+      들쭉날쭉해 보입니다.
+   ▸ 갤럭시탭에서 「그림 자리 · 크기 바꾸기」와 「그림 다시 그리기」가 너무
+     작게 나왔습니다. 0.95rem → 1.05rem 으로 키우고, 그만큼 맨 위
+     「일기가 완성되었어요」를 줄여 자리를 내주었습니다. */
+.confirm-left .btn,
+.fix-part .btn.fix-go,
+.btn.fix-save{ font-size:1.05rem; }
+.fix-part .btn.fix-go{ padding:.5rem .7rem; min-height:2.9rem; }
+/* 맨 아래 두 알약 — **한 줄**로. 폭은 글자만큼이라 서로 달라도 됩니다.
+   ⛔ flex:1 1 로 균등하게 늘리지 마세요. 「날짜 · 사람 · 장소 바꾸기」가
+      두 줄로 접혀 알약이 뚱뚱해집니다. */
+.fix-here .btn{ flex:0 1 auto; white-space:nowrap; max-width:100%; }
+/* 이 화면의 머리말은 조금 작게 — 단추에 자리를 내줍니다 */
+.q-confirm .q-pill{ padding:.4rem 1.2rem; }
+.q-confirm .q-pill h2{ font-size:1.05rem; }

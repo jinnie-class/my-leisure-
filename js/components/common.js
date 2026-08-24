@@ -748,7 +748,8 @@
       /* 차례 : 질문 → 읽어주기 → (오른쪽 끝) 딸린 단추.
          읽어주기는 **질문 바로 옆**에 있어야 '이 질문을 읽어 준다' 로 읽힙니다.
          오른쪽 끝에 두면 옆에 놓인 단추의 읽어주기처럼 보였습니다. */
-      return html`<div class=${'q q-bar' + (p.right ? ' has-right' : '')}>
+      return html`<div class=${'q q-bar' + (p.right ? ' has-right' : '')
+          + (p.cls ? ' ' + p.cls : '')}>
         <span class="q-pill"><h2>${p.children}</h2></span>
         ${p.hint && html`<span class="hint">${p.hint}</span>`}
         ${p.speak !== false && html`<${C.Speak} text=${p.speakText || (typeof p.children === 'string' ? p.children : '')} />`}
@@ -1039,9 +1040,43 @@
        투명하게 두면 인쇄할 때 검게 나오는 프린터가 있어서 흰색을 칠합니다.
        ※ 줄은 **바탕에 함께 그려** 둡니다. 그러면 저장한 그림에도 줄이 남아
          인쇄했을 때 학생 글씨가 줄 위에 앉은 것처럼 보입니다. */
+    /* ★ **원고지 바탕** — `paper` 를 주면 칸을 긋고 흐린 글자를 깔아 줍니다.
+         그러면 그 위에 덮어 쓰는 것이 곧 「따라 쓰기」가 됩니다.
+           paper.rows  : 원고지 줄 (App.manuscriptRows 가 낸 것)
+           paper.cols  : 한 줄 칸 수
+           paper.trace : 흐린 글자를 깔지 (없으면 빈 원고지)
+       ⛔ 칸과 글자는 **바탕에 함께 그립니다.** 그래야 저장한 그림에도 남아,
+          인쇄했을 때 학생 글씨가 원고지 위에 앉은 것처럼 보입니다.
+       ⛔ 줄 나누기를 여기서 새로 셈하지 마세요 — 그림일기와 어긋납니다.
+          `App.manuscriptRows` 한 곳에서만 나눕니다 (picdiary.js). */
+    function paintPaper(g) {
+      var pp = p.paper, cols = pp.cols || 10, rows = pp.rows || [];
+      var pad = 20;
+      var cell = Math.floor((W - pad * 2) / cols);
+      var used = Math.min(rows.length, Math.floor((H - pad * 2) / cell));
+      var top = Math.max(pad, Math.floor((H - used * cell) / 2));
+      var left = Math.floor((W - cols * cell) / 2);
+      g.save();
+      for (var r = 0; r < used; r++) {
+        for (var c = 0; c < cols; c++) {
+          var x = left + c * cell, y = top + r * cell;
+          g.strokeStyle = '#c9c4ba'; g.lineWidth = 2;
+          g.strokeRect(x + .5, y + .5, cell, cell);
+          var ch = (rows[r] || [])[c] || '';
+          if (pp.trace !== false && ch && ch !== ' ') {
+            g.fillStyle = 'rgba(60,52,44,.20)';
+            g.font = '700 ' + Math.floor(cell * 0.62) + 'px "Noto Sans KR",sans-serif';
+            g.textAlign = 'center'; g.textBaseline = 'middle';
+            g.fillText(ch, x + cell / 2, y + cell / 2 + 1);
+          }
+        }
+      }
+      g.restore();
+    }
     function paintBase(g) {
       g.fillStyle = '#ffffff';
       g.fillRect(0, 0, W, H);
+      if (p.paper) { paintPaper(g); return; }
       if (!p.ruled) return;
       g.save();
       g.strokeStyle = '#dcdce4'; g.lineWidth = 2;

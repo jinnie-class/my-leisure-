@@ -441,6 +441,13 @@
     /* 단계에 없는 모양이 넘어오면 그 단계의 기본 모양으로 되돌립니다 */
     var mode = p.trace || defaultModeFor(lv);
     if (!modesFor(lv).some(function (m) { return m.id === mode; })) mode = defaultModeFor(lv);
+    /* ★ 원고지에 **손으로 따라 쓴 것** (1·2단계). 있으면 칸 대신 이것을 넣습니다.
+       ⛔ `글자` 로 낼 때에만 씁니다. 따라 쓰기 · 힌트 · 빈 칸으로 인쇄할 때는
+          학생이 **새로 쓸 자리**를 내주어야 하므로 원래 칸을 그립니다.
+       ⛔ `mode` 가 정해진 **뒤에** 셈해야 합니다. 위쪽에 두었더니 mode 가 아직
+          undefined 라, 따라쓰기 판으로 인쇄해도 손글씨가 나왔습니다. */
+    var paperwriting = (!useLines && d.paperPhotoId && mode === 'text')
+      ? App.photos.url(d.paperPhotoId) : null;
 
     /* ── 생각 도움말 (빈 칸·빈 줄로 인쇄할 때만) ────────────────────
        빈 칸만 주면 학생이 막막해집니다. 그래서 **스스로 쓰는 모양일 때만**
@@ -634,7 +641,10 @@
                   return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
                 })}
               </div>`)
-        /* 1·2단계는 원고지 칸에 한 글자씩 */
+        /* 1·2단계는 원고지 칸에 한 글자씩.
+           ★ 손으로 따라 쓴 원고지가 있으면 **그것을 그대로** 넣습니다. */
+        : paperwriting
+        ? html`<div class="pd-paperimg"><img src=${paperwriting} alt="손으로 쓴 원고지" /></div>`
         : html`<div class="pd-grid" style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
             fontSize: Math.round(790 / g.cols * GLYPH_FILL) + 'px' }}>
           ${g.rows.map(function (row, r) {

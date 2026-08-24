@@ -200,6 +200,8 @@
         moodIds: [], againId: null, title: '', text: '', weather: '', frames: {}, photoIds: [], exhibit: false,
         six: {},            /* 3단계 육하원칙 뼈대 */
         writeWay: 'key', writePhotoId: null,   /* 3단계 : 키보드 | 손글씨 | 종이 */
+        /* 원고지에 손으로 따라 쓴 것 — 그림일기의 원고지 칸을 대신합니다 */
+        paperPhotoId: null,
         picKind: 'app',     // 그림칸 : 'app' 내가 고른 그림 | 'photo' 사진 | 'draw' 직접 그리기
         mainPhotoId: null,  // 사진을 여러 장 넣었을 때 그림일기에 쓸 한 장
         drawPhotoId: null,  // 직접 그린 그림
@@ -239,6 +241,7 @@
     var madeS = useState(null);        // 방금 그린 그림 (완성 확인 창에서 보여 줍니다)
     var reDrawS = useState(null);      // '다시 그릴래요' 로 돌아갈 때 이어서 그릴 그림
     var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
+    var paperS = useState(false);      // 원고지 따라쓰기 판이 열려 있는지 (모든 단계)
 
     /* 고르면 0.45초 뒤 다음 질문으로 넘어갑니다 (규칙 2).
        시간이 지나 저절로 넘어가는 것이 아니라, 학생이 고른 결과로 넘어갑니다. */
@@ -308,6 +311,8 @@
         mainPhotoId: draft.mainPhotoId || null,
         drawPhotoId: draft.drawPhotoId || null, exhibit: draft.exhibit,
         writeWay: draft.writeWay || 'key', writePhotoId: draft.writePhotoId || null,
+        /* ⛔ 빠뜨리면 저장하는 순간 학생이 손으로 쓴 원고지가 사라집니다 */
+        paperPhotoId: draft.paperPhotoId || null,
         partnerIds: draft.partnerIds || [],
         six: draft.six || {},
         /* 완성 화면에서 옮기고 키운 그림 자리. 이것을 빠뜨리면 저장하는 순간
@@ -858,12 +863,30 @@
       patch({ artLayout: next });
     }
 
+    /* 원고지에 깔아 줄 **흐린 글자** — 지금 완성된 일기 문장입니다.
+       ⛔ 단계마다 문장을 만드는 길이 달라서 여기 한 곳에 모아 둡니다.
+          confirmStep 안에서만 알 수 있는 값을 화면 바깥의 원고지 판이
+          써야 하므로, 판이 부를 수 있는 자리에 두어야 합니다. */
+    function paperText() {
+      if (draft.bodyEdit) return draft.bodyEdit;
+      if (draft.level === 3) return draft.text || '';
+      if (draft.level === 2) {
+        return App.sentences.diaryFramesLines(
+          Object.assign({}, draft, { frames: frames() })).join(' ');
+      }
+      return App.sentences.diaryMade(draft) || '';
+    }
+
     function confirmStep(madeText) {
       return html`<${React.Fragment}>
         <!-- ⚠ 여기에는 단계 설명(note)을 두지 않습니다.
                단계 설명은 **무엇을 하는 중인지** 알려 주는 말인데, 완성 화면은
                이미 다 만든 뒤라 알려 줄 일이 없습니다. 오른쪽 자리도 좁습니다. -->
-        <${C.Question} bar=${true} speakText="일기가 완성되었어요">일기가 완성되었어요<//>
+        <!-- cls : 이 화면의 머리말만 조금 작게 하려고 붙인 표시입니다.
+             (머리말은 흰 칸 바로 아래라 confirm-fit 밖에 있어서, CSS 로는
+              여기가 확인 화면인지 알 길이 없습니다) -->
+        <${C.Question} bar=${true} cls="q-confirm"
+          speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
              위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다.
              ★ 바깥 껍데기(.confirm-fit)에 zoom 을 걸어 흰 칸을 넘으면 통째로 줄입니다.
@@ -939,6 +962,24 @@
                   onChange=${function (v) { patch({ bodyEdit: v }); }}
                   onReset=${function () { patch({ bodyEdit: null }); }} />
                 ${emptyBoneNote()}
+                <!-- ★ **원고지에 손으로 따라 쓰기** (2026-08-24).
+                       전자칠판·태블릿에 손가락이나 펜으로 원고지 칸을 덮어 씁니다.
+                       흐린 글자가 깔려 있어 그대로 따라 쓰면 됩니다.
+                     ▸ 다 쓰면 그림일기의 **원고지 자리를 대신**합니다.
+                       인쇄와 포트폴리오에도 학생 글씨 그대로 나옵니다.
+                     ⚠ 손글씨는 **그림으로** 남습니다. 글자로 알아보지는 못하므로
+                       문장이 저절로 만들어지는 곳에는 들어가지 않습니다. -->
+                <div class="fix-hand">
+                  <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+                    onClick=${function () { paperS[1](true); }}>
+                    ${draft.paperPhotoId ? '원고지 이어 쓰기' : '원고지에 손으로 쓰기'}<//>
+                  ${draft.paperPhotoId && html`<${C.Btn} size="small" icon="back"
+                    onClick=${function () {
+                      var old = draft.paperPhotoId;
+                      patch({ paperPhotoId: null });
+                      if (old) App.photos.remove(old);
+                    }}>글자 원고지로 되돌리기<//>`}
+                </div>
               </div>
             </div>
 
@@ -1582,6 +1623,29 @@
           })}
         </div>
         <div class="meta-page">${boneBody(META_TABS[metaPage()].bone)}</div>
+      <//>`}
+
+      <!-- ★ 원고지 따라쓰기 판 — 칸과 흐린 글자를 바탕에 깔고 그 위에 씁니다.
+             ⛔ 줄 나누기를 여기서 새로 셈하지 마세요. 「App.manuscriptRows」 로
+                그림일기와 **같은 규칙**을 씁니다. 따로 셈하면 화면과 인쇄가
+                어긋나서, 따라 쓴 글씨가 칸에서 밀려납니다.
+             ▸ 칸 수(10)는 그림일기 제목 줄과 같습니다 (원고지 규칙). -->
+      ${paperS[0] && html`<${C.Modal} title="원고지에 따라 써요" wide=${true}
+        onClose=${function () { paperS[1](false); }}
+        actions=${html`<${C.Btn} onClick=${function () { paperS[1](false); }}>그만두기<//>`}>
+        <${C.DrawPad} w=${1000} h=${760}
+          paper=${{ cols: 10, rows: App.manuscriptRows([paperText()], 10), trace: true }}
+          startFrom=${draft.paperPhotoId ? App.photos.url(draft.paperPhotoId) : null}
+          doneText="다 썼어요"
+          hintText="흐린 글자를 따라 칸 안에 써 보아요. 색과 굵기를 고를 수 있어요."
+          onDone=${function (url) {
+            App.photos.addDataUrl(url, student.id, 'paper').then(function (id) {
+              var old = draft.paperPhotoId;
+              patch({ paperPhotoId: id });
+              if (old) App.photos.remove(old);
+              paperS[1](false);
+            });
+          }} />
       <//>`}
 
       <!-- 손글씨 일기 판 (3단계) — 줄공책처럼 줄이 그려진 넓은 판입니다 -->
