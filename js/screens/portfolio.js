@@ -204,7 +204,7 @@
         if (!st) return '';
         var n = (st.word ? 1 : 0);
         var rv = st.review || {};
-        (App.DATA.reviewFrames || []).forEach(function (f) { if (rv[f.id]) n++; });
+        App.reviewFramesFor(st.diaryLevel, rv).forEach(function (f) { if (rv[f.id]) n++; });
         return n ? (n + '줄') : '아직 없어요';
       } }
   ];
@@ -445,7 +445,7 @@
         <div class="stack" style=${{ marginTop: '.7rem' }}>
           <!-- 조사(을/를 · 이에요/예요)는 넣은 말에 맞춰 App.reviewLine 이 고릅니다.
                아직 안 쓴 줄은 밑줄만 남기고 조사도 붙이지 않습니다. -->
-          ${App.DATA.reviewFrames.map(function (f) {
+          ${App.reviewFramesFor(s.diaryLevel, rv).map(function (f) {
             var v = rv[f.id];
             return html`<div key=${f.id} class="sentence">
               ${v ? App.reviewLine(f, v)
@@ -808,7 +808,7 @@
          (`나는 만들기을 좋아해요` 처럼 되지 않게).
        ▸ writeIn 이면 줄 안에서 **바로 씁니다** (3단계). */
     function reviewRows(writeIn) {
-      var frames = App.DATA.reviewFrames || [];
+      var frames = App.reviewFramesFor(meLvS[0], student.review || {});
       var cur = meRowS[0];
       var rv = student.review || {};
       return html`<div class="me-rows">
@@ -881,7 +881,7 @@
         </div>
         <div class="sheet-title" style=${{ marginTop: '20px' }}>돌아보기</div>
         <div class="stack">
-          ${(App.DATA.reviewFrames || []).map(function (f) {
+          ${App.reviewFramesFor(student.diaryLevel, rv).map(function (f) {
             var txt = App.reviewLine(f, rv[f.id]);
             return html`<div key=${f.id} class="sentence">
               ${txt || html`<${React.Fragment}>${f.before}
