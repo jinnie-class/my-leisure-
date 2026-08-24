@@ -229,7 +229,8 @@
     var stepS = useState(function () {
       return (params.step === 'last') ? 99 : 0;
     });
-    var placePageS = useState(0);      // 장소 19곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
+    var placePageS = useState(0);      // 장소 20곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
+    var whoPageS = useState(0);        // 사람 16명을 6명씩 넘겨 볼 때 쓰는 쪽 번호
     var afterS = useState(null);       // 저장 후 물어보는 순서
     var savedIdS = useState(null);
     var helpS = useState(false);
@@ -502,12 +503,21 @@
         <//>`;
       }
 
+      /* ★ 사람도 **한 쪽에 3칸 × 2줄(여섯 명)** 입니다 (2026-08-24).
+           사람이 열여섯으로 늘면서 한 화면에 다 놓으니 카드가 손톱만 해지고
+           오른쪽이 잘렸습니다. 아래 장소 · 활동과 **같은 개수**라 학생이
+           규칙 하나만 익히면 됩니다. */
       if (step === 1) {
+        var WHO_PER = 6;
+        var whPages = Math.max(1, Math.ceil(partners.length / WHO_PER));
+        var whPage = Math.min(whoPageS[0], whPages - 1);
+        var whShown = partners.slice(whPage * WHO_PER, whPage * WHO_PER + WHO_PER);
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} hint=${'모두 ' + partners.length + '명'}
+            speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
           ${boneWrite(1)}
-          <${C.PickGrid} cols=${7}>
-            ${partners.map(function (pt) {
+          <${C.PickGrid} cols=${3}>
+            ${whShown.map(function (pt) {
               var on = whoIds().indexOf(pt.id) >= 0;
               return html`<${C.Pick} key=${pt.id} selected=${on}
                 label=${pt.name} speakText=${App.partnerSpeechPast(pt)} portrait=${true}
@@ -515,6 +525,13 @@
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
           <//>
+          ${whPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
+            <${C.Btn} icon="back" disabled=${whPage === 0}
+              onClick=${function () { whoPageS[1](whPage - 1); }}>앞 사람 보기<//>
+            <span class="chip">${whPage + 1} / ${whPages}</span>
+            <${C.Btn} icon="next" disabled=${whPage >= whPages - 1}
+              onClick=${function () { whoPageS[1](whPage + 1); }}>사람 더 보기<//>
+          </div>`}
         <//>`;
       }
 

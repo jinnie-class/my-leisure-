@@ -702,7 +702,11 @@
            이미 그림이 붙어 있는데 한마디에만 없었습니다.
          ▸ 고른 것이 있을 때만 나옵니다. 3단계처럼 직접 써 넣으면 짝이 되는
            그림이 없으므로 문장만 나옵니다 (자리도 차지하지 않습니다). */
-      var wp = student.wordPick || {};
+      /* ⛔ **3단계에는 그림을 넣지 않습니다** (2026-08-24 · 선생님 말씀).
+           3단계는 낱말을 고르는 것이 아니라 **제 말로 직접 쓰는** 단계입니다.
+           고른 낱말 그림이 위에 남아 있으면 「이대로 쓰라」는 것처럼 보여
+           오히려 방해가 됩니다. 1·2단계에서만 그림이 나옵니다. */
+      var wp = (meLvS[0] === 3) ? {} : (student.wordPick || {});
       var act = wp.actId ? App.act(wp.actId) : null;
       var mood = wp.moodId ? App.mood(wp.moodId) : null;
       return html`<div class="me-saybar">

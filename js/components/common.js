@@ -187,7 +187,13 @@
   C.Art = function (p) {
     var fail = useState(false);
     useEffect(function () { fail[1](false); }, [p.src]);
-    var style = { width: p.size ? p.size + 'px' : '100%', height: p.size ? p.size + 'px' : '100%', display: 'block', objectFit: 'contain' };
+    /* ⛔ `objectFit` 을 **여기 인라인으로 박지 마세요.** 인라인은 CSS 보다 세서,
+         `.pick .thumb.portrait img{ object-fit:cover }` 같은 규칙을 아무리
+         구체적으로 써도 이깁니다. 사람 카드를 상반신으로 크게 보이려다
+         한참 헤맸습니다 (2026-08-24 — CSSOM 에는 cover 가 있는데 화면은
+         늘 contain 이었습니다).
+       ▸ 기본값은 CSS(`.pick .thumb …`)가 정합니다. 여기서는 크기만 잡습니다. */
+    var style = { width: p.size ? p.size + 'px' : '100%', height: p.size ? p.size + 'px' : '100%', display: 'block' };
     if (p.src && !fail[0]) {
       return html`<img src=${p.src} alt="" style=${style} onError=${function () { fail[1](true); }} />`;
     }

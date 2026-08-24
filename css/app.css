@@ -214,9 +214,11 @@ ul{ margin:0; padding:0; list-style:none; }
    ⛔ 흰 칸(.stage-track) 자체에 걸면 안 됩니다 — 담을 높이까지 같이 줄어들어
       아무 소용이 없습니다 (재어 보았습니다 : 293px → 291px).
       **안쪽 칸들에** 걸어야 내용만 작아지고 담을 높이는 그대로입니다.
-   ▸ 폭은 줄어든 만큼 되돌려 줍니다. 그러지 않으면 오른쪽이 허옇게 빕니다.
-   ▸ **줄일 때에만** 걸립니다(.fitting). 늘 걸어 두면 줄이지 않는 화면까지
-     폭이 100% 로 못박혀, 내용만큼만 넓던 칸이 꽉 차 버립니다.
+   ⛔ **폭은 건드리지 마세요.** `width:calc(100% / var(--fit))` 을 주었더니
+      오른쪽이 잘렸습니다 (2026-08-24 · 흰 칸 1058px 인데 격자가 2084px).
+      zoom 이 걸린 요소에서는 `100%` 가 **이미 보정된 값**(부모폭 ÷ zoom)이라,
+      거기에 또 나누면 **두 번 커집니다.** 그냥 두면 저절로 꽉 찹니다.
+   ▸ **줄일 때에만** 걸립니다(.fitting).
    ⛔ 이 주석은 **한 번만** 닫아야 합니다. 가운데서 한 번 닫고 글을 더 쓰는 바람에
       뒷줄이 CSS 로 읽혀 **아래 규칙이 통째로 무시됐습니다** (2026-08-23).
       줄이기가 처음부터 한 번도 듣지 않았고, 그때까지 화면이 그럭저럭 나온 것은
@@ -224,7 +226,6 @@ ul{ margin:0; padding:0; list-style:none; }
 .stage-track.fitting > *,
 .stage-fit.fitting > *{
   zoom:var(--fit, 1);
-  width:calc(100% / var(--fit, 1));
 }
 /* ★ **이어 채우기** — 줄여도 한 쪽에 못 담을 때에만 켜집니다.
      칸 **묶음**만 풀어서 1쪽 남은 자리부터 채워지게 합니다.
@@ -499,14 +500,26 @@ ul{ margin:0; padding:0; list-style:none; }
      거기서는 크기를 조절할 수 있어서 전신이 더 낫습니다.
    ※ 높이는 건드리지 마세요. 높이를 키우면 사람 카드 7장이 흰 칸에 안 들어가
      통째로 다음 쪽으로 밀리고 1쪽이 텅 빕니다. */
+/* ★ 사람 카드 — **상반신을 크게** 보여 줍니다 (2026-08-24 · 선생님 말씀).
+     사람 그림은 342×512 로 세로가 깁니다. 정사각 칸에 통째로 넣으면
+     발끝까지 다 들어가느라 **얼굴이 손톱만 해졌습니다.**
+   ▸ 칸을 가로로 넓히고(4:3) 그림을 꽉 채운 뒤(cover) 위쪽을 보이게 하면
+     얼굴과 몸통이 크게 나옵니다. `center 12%` 는 머리 위 여백을 조금만
+     남기는 자리입니다 — 0% 면 머리카락이 칸에 딱 붙어 답답합니다. */
 .pick .thumb.portrait{
-  width:auto; height:clamp(84px,15.5vh,200px); aspect-ratio:1;
+  width:auto; height:clamp(96px,19vh,240px); aspect-ratio:4/3;
   overflow:hidden; border-radius:14px;
 }
-.pick .thumb.portrait img{
-  object-fit:cover; object-position:center top;
+/* ⛔ 사람 카드(.portrait)는 **여기서 빼 둡니다.** 뒤에 `cover` 규칙을 더 구체적으로
+     써 두어도 이 규칙이 이겨서 `contain` 으로 되돌아갔습니다 (재어서 확인 —
+     2026-08-24). 아예 겹치지 않게 `:not(.portrait)` 로 갈라 둡니다. */
+.pick .thumb:not(.portrait) svg,
+.pick .thumb:not(.portrait) img{ width:100%; height:100%; display:block; object-fit:contain; }
+.pick .thumb.portrait img,
+.pick .thumb.portrait svg{
+  width:100%; height:100%; display:block;
+  object-fit:cover; object-position:center 12%;
 }
-.pick .thumb svg,.pick .thumb img{ width:100%; height:100%; display:block; object-fit:contain; }
 .pick .label{ font-size:clamp(.95rem,.55rem + 1vh,1.35rem); font-weight:800; line-height:1.25; }
 .pick .note{ font-size:.82rem; color:var(--ink-soft); }
 .pick .more{
@@ -4298,3 +4311,32 @@ textarea.sentence-edit,
 }
 .me-sayart-pic > *{ max-width:100%; max-height:100%; }
 .me-sayart-one b{ font-size:clamp(.8rem,.5rem + .6vh,1rem); font-weight:900; }
+
+/* ============ 일기 확인 화면 · 그림일기 — 글자 크기 고르게 ============
+   (2026-08-24 · 선생님 말씀)
+   ① 날짜 줄이 유난히 작아 본문과 어긋났습니다 → 26px → **32px**
+      (본문 34px · 제목 34px 과 거의 같아집니다) */
+.pd-datebar{ font-size:32px; }
+.pd-wi{ width:44px; height:44px; }
+
+/* ② 맨 아래 두 알약이 **뚱뚱했습니다.** 글자는 그대로 두고 위아래만 얇게.
+      거기서 던 높이는 위쪽 「그림」 칸이 가져갑니다. */
+.fix-here .btn{ min-height:2.6rem; padding-top:.35rem; padding-bottom:.35rem; }
+.btn.fix-save{ min-height:2.6rem; }
+
+/* ③ 「그림 자리 · 크기 바꾸기」 · 「그림 다시 그리기」 — **글자를 키웁니다.**
+      학생이 가장 자주 누르는 단추인데 가장 작았습니다.
+   ⛔ 확인 화면은 글자 크기를 **한 가지로** 두는 것이 규칙입니다(15-63).
+      그래서 이 둘만 키우지 않고 **아래 두 알약도 같은 1.15rem** 으로 맞춥니다. */
+.confirm-left .btn,
+.fix-part .btn.fix-go,
+.btn.fix-save{ font-size:1.15rem; }
+.fix-part .btn.fix-go{ min-height:3.2rem; }
+
+/* ④ 「일기가 완성되었어요」 · 「눌러서 크게 보기」 — **스피커 동그라미만큼** 키웁니다.
+      옆에 선 읽어주기 단추(약 46px)보다 작아서 눌러도 될 것처럼 안 보였습니다.
+   ⛔ 15-63 의 「한 크기」 규칙은 **왼쪽 기둥 단추들**에 대한 것입니다.
+      머리말과 그림일기 위 단추는 자리가 달라 조금 커도 어지럽지 않습니다. */
+.q-confirm .q-pill{ padding:.55rem 1.5rem; }
+.q-confirm .q-pill h2{ font-size:1.25rem; }
+.dv-bar .btn{ min-height:2.9rem; font-size:1.15rem; padding-left:1.1rem; padding-right:1.1rem; }

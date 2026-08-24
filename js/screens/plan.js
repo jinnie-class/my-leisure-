@@ -130,6 +130,7 @@
     var stepS = useState(fromChallenge ? 2 : 0);
     var step = stepS[0], setStep = stepS[1];
     var pageS = useState(0);
+    var whoPageS = useState(0);        // 「누구와 할까요?」 가 보고 있는 쪽
     var placePageS = useState(0);      // 장소는 19곳이라 쪽을 나눕니다
     var savedS = useState(null);
 
@@ -441,11 +442,21 @@
       }
 
       if (key === 'who') {
+        /* ★ **한 쪽에 3칸 × 2줄(여섯 명)** 입니다 (2026-08-24 · 선생님 말씀).
+             사람이 열여섯으로 늘면서 한 화면에 다 놓으니 카드가 손톱만 해지고
+             오른쪽이 잘렸습니다. 여섯이면 그림이 큼직하고 한눈에 담깁니다.
+           ▸ 넘기는 단추 말은 활동 고르기와 **같은 규칙**입니다 —
+             아래 「다음」과 헷갈리지 않게 '사람' 이라고 붙입니다. */
         var partners = App.partnersFor(student);
+        var WHO_SIZE = 6;
+        var whoPages = Math.max(1, Math.ceil(partners.length / WHO_SIZE));
+        var wp = Math.min(whoPageS[0], whoPages - 1);
+        var whoShow = partners.slice(wp * WHO_SIZE, wp * WHO_SIZE + WHO_SIZE);
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} speakText="누구와 할까요? 여러 명을 골라도 돼요.">누구와 할까요?<//>
-          <${C.PickGrid} cols=${7} label="함께하는 사람">
-            ${partners.map(function (pt) {
+          <${C.Question} bar=${true} hint=${'모두 ' + partners.length + '명'}
+            speakText="누구와 할까요? 여러 명을 골라도 돼요.">누구와 할까요?<//>
+          <${C.PickGrid} cols=${3} label="함께하는 사람">
+            ${whoShow.map(function (pt) {
               var on = who().indexOf(pt.id) >= 0;
               return html`<${C.Pick} key=${pt.id} selected=${on}
                 label=${pt.name} speakText=${App.partnerSpeech(pt)} portrait=${true}
@@ -453,6 +464,13 @@
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
           <//>
+          ${whoPages > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
+            <${C.Btn} icon="back" disabled=${wp === 0}
+              onClick=${function () { whoPageS[1](wp - 1); }}>앞 사람 보기<//>
+            <span class="chip">${wp + 1} / ${whoPages}</span>
+            <${C.Btn} icon="next" disabled=${wp >= whoPages - 1}
+              onClick=${function () { whoPageS[1](wp + 1); }}>사람 더 보기<//>
+          </div>`}
         <//>`;
       }
 
