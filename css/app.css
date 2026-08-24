@@ -4340,3 +4340,50 @@ textarea.sentence-edit,
 .q-confirm .q-pill{ padding:.55rem 1.5rem; }
 .q-confirm .q-pill h2{ font-size:1.25rem; }
 .dv-bar .btn{ min-height:2.9rem; font-size:1.15rem; padding-left:1.1rem; padding-right:1.1rem; }
+
+/* ★ 2단계 나의 한마디 — **빈칸을 채우는 노란 바**.
+     문장을 대신 완성해 주지 않고, 위 그림을 보고 학생이 칸에 씁니다.
+   ▸ 바를 두껍게 하고 칸을 큼직하게 둡니다 — 손가락으로 눌러야 하니까요. */
+.me-say.me-fill{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:.45rem; padding:.9rem 1rem; line-height:1.6;
+}
+.me-say.me-fill .me-blank{
+  flex:0 1 11rem; min-width:7rem; min-height:2.9rem;
+  font-size:inherit; font-weight:900; text-align:center;
+  background:#fff; border:2px solid var(--sel-line, #7fc9ea); border-radius:12px;
+}
+
+/* ★ 3단계 나의 한마디 — 고른 것은 **글자 알약 둘**로만, 그 아래 흰 긴 바.
+     노란 문장 바가 없으므로 알약 줄만 남습니다. */
+.me-saybar.me-free{ justify-content:center; }
+.me-hintpills{
+  flex:0 0 100%;
+  display:flex; justify-content:center; flex-wrap:wrap; gap:.6rem;
+  margin-bottom:.2rem;
+}
+.me-hintpill{
+  padding:.45rem 1.2rem; border-radius:999px;
+  background:var(--sel-bg,#eaf6fd); border:2px solid var(--sel-line,#7fc9ea);
+  font-weight:900; font-size:clamp(.95rem,.6rem + .8vh,1.2rem);
+}
+/* 흰 긴 바 — 화면 폭을 넉넉히 쓰고 이름표는 가운데 */
+.me-write.wide{ width:min(100%, 46rem); }
+.me-write.wide .lab{ text-align:center; display:block; font-weight:900; }
+.me-write.wide .field{ min-height:3.2rem; font-size:1.1rem; }
+
+/* ★ 1단계 나의 한마디 — **노란 바 안에도 그림**.
+     글을 못 읽는 학생은 위 그림과 아래 문장이 따로 놀면 둘을 잇지 못합니다.
+     문장 속 낱말 자리에 그림을 놓으면 그림책처럼 한 줄에서 만납니다.
+   ⛔ 2·3단계에는 넣지 마세요 — 글자를 읽고 쓰는 단계입니다. */
+.me-say.me-say-art{
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:.4rem; padding:.7rem 1rem; line-height:1.5;
+}
+.me-inart{
+  width:clamp(38px,5.2vh,62px); height:clamp(38px,5.2vh,62px);
+  display:inline-grid; place-items:center; flex:0 0 auto;
+  background:#fff; border:2px solid var(--note-line,#efdb92); border-radius:12px;
+  padding:2px;
+}
+.me-inart > *{ max-width:100%; max-height:100%; }

@@ -655,6 +655,16 @@
       return null;
     }
 
+    /* ★ **3단계는 고른 것을 칸에 써 주지 않습니다** (2026-08-24 · 선생님 말씀).
+         3단계는 제 말로 쓰는 단계라, 위에서 고르면 **줄 왼쪽에 그림만** 띄우고
+         칸은 비워 둡니다. 학생이 그 그림을 보고 직접 씁니다.
+       ▸ 그래서 고른 활동을 `student.reviewPick` 에 **따로** 담습니다.
+         `student.review` 는 학생이 쓴 글자만 담는 자리로 그대로 둡니다. */
+    function saveReviewPick(id, actId) {
+      var rp = Object.assign({}, student.reviewPick || {});
+      rp[id] = actId;
+      App.store.updateStudent(student.id, { reviewPick: rp });
+    }
     function saveReview(id, v) {
       var rv = Object.assign({}, student.review || {});
       rv[id] = v;
@@ -706,18 +716,86 @@
            3단계는 낱말을 고르는 것이 아니라 **제 말로 직접 쓰는** 단계입니다.
            고른 낱말 그림이 위에 남아 있으면 「이대로 쓰라」는 것처럼 보여
            오히려 방해가 됩니다. 1·2단계에서만 그림이 나옵니다. */
-      var wp = (meLvS[0] === 3) ? {} : (student.wordPick || {});
+      var lv = meLvS[0];
+      var wp = student.wordPick || {};
       var act = wp.actId ? App.act(wp.actId) : null;
       var mood = wp.moodId ? App.mood(wp.moodId) : null;
+
+      /* ★ **3단계는 「틀 없이 내 말로 써요」** 입니다 (2026-08-24 · 선생님 말씀).
+           그래서 문장을 만들어 주지 않습니다. 고른 것은 **글자 알약 둘**로만
+           나란히 두어 도움말 삼고, 그 아래 흰 바에 학생이 제 말로 씁니다.
+         ⛔ 3단계에 노란 문장 바(만들어진 한마디)를 두지 마세요. 완성된 문장이
+            눈앞에 있으면 학생이 그대로 베껴 쓰게 되어, 「내 말로」가 아닙니다.
+         ⛔ 그림도 두지 않습니다 — 알약 글자만으로 충분하고, 그림까지 있으면
+            「이대로 쓰라」는 것처럼 보입니다. */
+      if (lv === 3) {
+        return html`<div class="me-saybar me-free">
+          ${(act || mood) && html`<div class="me-hintpills">
+            ${act && html`<span class="me-hintpill">${act.name}</span>`}
+            ${mood && html`<span class="me-hintpill">${mood.name}</span>`}
+          </div>`}
+        </div>`;
+      }
+      var artRow = (act || mood) && html`<div class="me-sayart">
+        ${act && html`<span class="me-sayart-one">
+          <span class="me-sayart-pic"><${C.ActivityArt} activity=${act} /></span>
+          <b>${App.shortName(act) || act.name}</b></span>`}
+        ${mood && html`<span class="me-sayart-one">
+          <span class="me-sayart-pic"><${C.MoodArt} mood=${mood} /></span>
+          <b>${mood.name}</b></span>`}
+      </div>`;
+
+      /* ★ **2단계는 「빈칸을 채워 문장을 완성해요」** 입니다 (2026-08-24).
+           그래서 문장을 대신 완성해 주지 않습니다. 위 그림을 보고 학생이
+           **칸에 직접 써 넣습니다.** 아래에 따로 있던 「직접 쓰기」 칸은
+           같은 일을 두 번 하게 만들어 지웠습니다.
+         ▸ 쓴 것은 그때그때 이어 붙여 `student.word` 로 담깁니다 —
+           인쇄와 모음 화면은 그 문장을 그대로 씁니다.
+         ⛔ 1단계는 골라서 저절로 만들어지는 단계라 그대로 둡니다. */
+      if (lv === 2) {
+        var fill = student.wordFill || {};
+        function saveFill(k, v) {
+          var next = Object.assign({}, fill); next[k] = v;
+          var made = (next.act || next.mood)
+            ? ('나는 ' + (next.act || '　　　') + '을 할 때 ' + (next.mood || '　　　') + '.')
+            : '';
+          App.store.updateStudent(student.id, { wordFill: next, word: made });
+        }
+        return html`<div class="me-saybar">
+          ${artRow}
+          <p class="me-say me-fill">
+            <span>나는</span>
+            <input class="field me-blank" value=${fill.act || ''} aria-label="무엇을 할 때"
+              onChange=${function (e) { saveFill('act', e.target.value); }} />
+            <span>을 할 때</span>
+            <input class="field me-blank" value=${fill.mood || ''} aria-label="어떤 기분인가요"
+              onChange=${function (e) { saveFill('mood', e.target.value); }} />
+            <span>.</span>
+          </p>
+          <${C.Speak} text=${student.word || '나는 무엇을 할 때 어떤 기분이에요.'} />
+        </div>`;
+      }
+      /* ★ **1단계는 노란 바 안에도 그림을 넣습니다** (2026-08-24 · 선생님 말씀).
+           1단계는 글을 못 읽는 학생이 많습니다. 위쪽 그림과 아래 문장이
+           따로 놀면 「이 글이 저 그림 이야기」라는 것을 잇지 못합니다.
+           문장 속 낱말 자리에 그림을 함께 놓으면 글자와 그림이 한 줄에서
+           만나 그림책처럼 읽힙니다.
+         ⛔ 2·3단계에는 넣지 마세요 — 글자를 읽고 쓰는 단계입니다. */
+      if (lv === 1 && act && mood) {
+        return html`<div class="me-saybar">
+          ${artRow}
+          <p class="me-say me-say-art" aria-live="polite">
+            <span>나는</span>
+            <span class="me-inart"><${C.ActivityArt} activity=${act} /></span>
+            <span>${App.eulReul(act.name)} 할 때</span>
+            <span class="me-inart"><${C.MoodArt} mood=${mood} /></span>
+            <span>${mood.name}.</span>
+          </p>
+          <${C.Speak} text=${say} />
+        </div>`;
+      }
       return html`<div class="me-saybar">
-        ${(act || mood) && html`<div class="me-sayart">
-          ${act && html`<span class="me-sayart-one">
-            <span class="me-sayart-pic"><${C.ActivityArt} activity=${act} /></span>
-            <b>${App.shortName(act) || act.name}</b></span>`}
-          ${mood && html`<span class="me-sayart-one">
-            <span class="me-sayart-pic"><${C.MoodArt} mood=${mood} /></span>
-            <b>${mood.name}</b></span>`}
-        </div>`}
+        ${artRow}
         <p class="me-say" aria-live="polite">${say}</p>
         <${C.Speak} text=${say} />
       </div>`;
@@ -741,7 +819,9 @@
           var tail = (val && f.josa)
             ? (f.josa.indexOf('/') >= 0 ? App.josa(val, f.josa).slice(val.length) : f.josa)
             : '';
-          var got = actByName(val);
+          /* 3단계는 칸이 비어 있으므로 **따로 담아 둔 것**으로 그림을 찾습니다 */
+          var got = actByName(val)
+            || ((meLvS[0] === 3) ? App.act((student.reviewPick || {})[f.id]) : null);
           return html`<div key=${f.id} class=${'me-row' + (on ? ' on' : '')}>
             <!-- ★ 채워 넣은 활동의 **그림을 줄 맨 왼쪽에 크게**.
                    1단계 학생은 글을 못 읽습니다. 그림이 없으면 어느 줄에
@@ -780,7 +860,25 @@
       return html`<div class="sheet me-sheet">
         <div class="sheet-title">나의 한마디</div>
         <div class="sheet-meta">${student.name} · ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</div>
-        <div class="sentence me-print-say">${student.word || '　'}</div>
+        <!-- ★ **1단계는 노란 바 안에 그림도 함께** (2026-08-24 · 선생님 말씀).
+               글을 못 읽는 학생에게 글자만 있는 종이는 제 것으로 보이지 않습니다.
+               고른 활동 · 기분 그림을 문장 옆에 나란히 두면, 집에 가져가서도
+               제 한마디를 그림으로 알아봅니다.
+             ▸ 2·3단계는 글자만 냅니다 — 그 단계는 스스로 읽고 쓰는 단계입니다. -->
+        <div class="sentence me-print-say">
+          ${(function () {
+            if (((student && student.diaryLevel) || 1) !== 1) return null;
+            var wp = student.wordPick || {};
+            var a = wp.actId ? App.act(wp.actId) : null;
+            var mo = wp.moodId ? App.mood(wp.moodId) : null;
+            if (!a && !mo) return null;
+            return html`<span class="me-print-art">
+              ${a && html`<span class="me-print-pic"><${C.ActivityArt} activity=${a} /></span>`}
+              ${mo && html`<span class="me-print-pic"><${C.MoodArt} mood=${mo} /></span>`}
+            </span>`;
+          })()}
+          <span class="me-print-txt">${student.word || '　'}</span>
+        </div>
         <div class="sheet-title" style=${{ marginTop: '20px' }}>돌아보기</div>
         <div class="stack">
           ${(App.DATA.reviewFrames || []).map(function (f) {
@@ -1311,8 +1409,11 @@
             <div class="me-saycol">
               <span class="me-cap">나의 한마디</span>
               ${meSayBar()}
-              ${meLv !== 1 && html`<div class="me-write"><${C.Field}
-                label=${meLv === 3 ? '내 말로 써요 — 위 낱말은 도움이에요' : '직접 쓰기 — 내 말로 고쳐도 좋아요'}
+              <!-- ⛔ 2단계에는 이 칸을 두지 마세요. 위 노란 바가 이미
+                     **빈칸을 채우는 자리**라, 같은 일을 두 번 하게 됩니다
+                     (2026-08-24 · 선생님 말씀). 3단계만 씁니다. -->
+              ${meLv === 3 && html`<div class="me-write wide"><${C.Field}
+                label="내 말로 스스로 적어요"
                 value=${student.word || ''}
                 placeholder="예) 친구와 함께하는 여가가 제일 즐거워요."
                 onChange=${saveWord} /></div>`}
@@ -1332,9 +1433,16 @@
               art=${html`<${C.ActivityArt} activity=${a} />`} />`;
           }, '활동', 4, 'me-picks four')
         : mePicks('rv', acts, function (a) {
+            /* ⛔ 3단계는 이름을 칸에 넣지 않습니다 — 그림만 띄웁니다 */
+            var picked = (meLv === 3)
+              ? ((student.reviewPick || {})[cur] === a.id)
+              : ((rv[cur] || '') === a.name);
             return html`<button key=${a.id} type="button"
-              class=${'me-word' + ((rv[cur] || '') === a.name ? ' on' : '')}
-              onClick=${function () { saveReview(cur, a.name); }}>${a.name}<//>`;
+              class=${'me-word' + (picked ? ' on' : '')}
+              onClick=${function () {
+                if (meLv === 3) saveReviewPick(cur, a.id);
+                else saveReview(cur, a.name);
+              }}>${a.name}<//>`;
           }, '활동');
 
       return html`<${React.Fragment}>
