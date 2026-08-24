@@ -221,7 +221,9 @@
             onPick=${function (v) { upd(current.id, { planLevel: v }); }} />
         </div>
 
-        <div class="tsec">
+        <div class="tsec inline">
+          <!-- inline : 고를 것이 둘뿐이라 **이름표 옆**에 나란히 놓습니다.
+                 아래로 내리면 짧은 항목이 두 줄을 차지해 목록이 길어집니다. -->
           <label>5. 음성 안내 · 사진 첨부</label>
           <div class="wrap">
             <${C.Switch} label="음성 안내" on=${current.voice !== false}
@@ -286,13 +288,12 @@
                  같은 함수를 씁니다. 여기서 또 만들면 둘이 어긋날 수 있습니다.
                ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
           ${App.partnersFor(current).filter(function (x) { return x.variants; }).length ? html`
-            <p class="muted small" style=${{ marginTop: '.4rem' }}>
-              그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요</p>
-            <div class="wrap">
+            <p class="tsub">그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요</p>
+            <div class="wrap sexrow">
               ${App.partnersFor(current).filter(function (x) { return x.variants; }).map(function (x) {
                 var cur = App.partnerVariant(x, current);
-                return html`<span key=${x.id} class="wrap" style=${{ gap: '.2rem', alignItems: 'center' }}>
-                  <b class="small">${x.name}</b>
+                return html`<span key=${x.id} class="sexone">
+                  <b class="sexname">${x.name}</b>
                   ${x.variants.map(function (v) {
                     return html`<button key=${v.id} type="button"
                       class=${'tchoice sm' + (cur.id === v.id ? ' on' : '')}
@@ -336,7 +337,9 @@
           <label>9. 학생에게 보여줄 활동</label>
           ${['indoor', 'outdoor'].map(function (area) {
             return html`<div key=${area} style=${{ marginTop: '.4rem' }}>
-              <p class="muted small">${area === 'indoor' ? '실내' : '실외'}</p>
+              <!-- 크고 진하게 — 흐린 작은 글씨로 두었더니 실내와 실외가
+                   갈리는 자리가 눈에 안 띄어 한 덩어리로 보였습니다. -->
+              <p class="tsub">${area === 'indoor' ? '실내' : '실외'}</p>
               <div class="wrap">
                 ${App.topCards(area).map(function (c) {
                   var off = hidden.indexOf(c.id) >= 0;

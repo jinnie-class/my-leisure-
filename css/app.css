@@ -4243,3 +4243,39 @@ textarea.sentence-edit,
   flex:1 1 auto; min-width:0; font-weight:800; line-height:1.2;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
+
+/* ============ 선생님 설정 — 한눈에 들어오게 ============
+   (2026-08-24 · 선생님 말씀)
+   ① **번호가 눈에 띄게** — 이름표는 왼쪽 끝에 두고, 고를 것들은 번호 다음
+      점 자리부터 **들여 씁니다.** 그러면 1. 2. 3. 이 한 줄로 죽 보입니다.
+   ② **폭을 줄입니다** — 「자세한 계획 · 시간 · 준비물 · 메모까지」 같은 긴 바가
+      화면 끝까지 늘어나 눈이 멀리 가야 했습니다. 34rem 에서 끊습니다.
+   ③ 고를 것이 **둘뿐인 짧은 칸**은 이름표 옆에 나란히 (.tsec.inline).
+   ⛔ 이름표(label)에는 들여쓰기를 주지 마세요 — 번호가 밀려 나 도로 묻힙니다. */
+.tsec > *:not(label){ margin-left:1.7rem; }
+.tsec > label{ margin-left:0; }
+.tsec .wrap,
+.tsec .row,
+.tsec .stack,
+.tsec .tchoice{ max-width:34rem; }
+/* 짧은 칸 — 이름표 옆에 나란히 */
+.tsec.inline{ display:flex; align-items:center; flex-wrap:wrap; gap:.6rem 1.2rem; }
+.tsec.inline > label{ flex:0 0 auto; margin:0; }
+.tsec.inline > *:not(label){ margin-left:0; }
+
+/* 설정 안 **작은 머리말** — 「실내 / 실외」, 「그림 고르기 (남 / 여)」 처럼
+   한 칸 안에서 다시 갈리는 자리입니다.
+   ⛔ `muted small` 로 두지 마세요. 흐린 작은 글씨라 눈에 안 띄어
+      위아래가 한 덩어리로 보였습니다 (2026-08-24 · 선생님 말씀). */
+.tsub{
+  margin:.85rem 0 .45rem;
+  font-weight:900; font-size:1rem; color:var(--ink);
+}
+.tsec > .tsub:first-of-type{ margin-top:.6rem; }
+/* 「그림 고르기 (남 / 여)」 줄 — 사람 묶음끼리 **넉넉히 띄웁니다** */
+.sexrow{ justify-content:center; gap:.45rem 1.6rem; }
+.sexone{
+  display:inline-flex; align-items:center; gap:.35rem;
+  padding:.2rem .5rem; border-radius:12px; background:var(--paper-2);
+}
+.sexname{ font-weight:900; font-size:.95rem; margin-right:.15rem; }
