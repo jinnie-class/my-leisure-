@@ -4223,3 +4223,23 @@ textarea.sentence-edit,
 /* 이 화면의 머리말은 조금 작게 — 단추에 자리를 내줍니다 */
 .q-confirm .q-pill{ padding:.4rem 1.2rem; }
 .q-confirm .q-pill h2{ font-size:1.05rem; }
+
+/* ★ 3단계 제목 — **줄글 한 줄** (원고지 칸이 아닙니다).
+     본문이 밑줄인데 제목만 칸이면 한 장 안에서 두 가지 모양이 섞여
+     어수선합니다 (2026-08-24 · 선생님 말씀).
+   ⛔ 높이는 원고지 제목 줄(TITLE_ROW_H = 79px)과 **같게** 둡니다.
+      다르면 아래 밑줄 칸 계산이 어긋나 종이가 한 장을 넘습니다. */
+.pd-titleline{
+  display:flex; align-items:center; gap:.6em;
+  height:79px; box-sizing:border-box;
+  padding:0 .5em;
+  border:2px solid #2f2f38; border-radius:6px;
+  background:#fff;
+}
+.pd-titlelab-line{
+  flex:0 0 auto; font-size:.6em; color:#4a4a55; letter-spacing:.1em; font-weight:800;
+}
+.pd-titletext{
+  flex:1 1 auto; min-width:0; font-weight:800; line-height:1.2;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}

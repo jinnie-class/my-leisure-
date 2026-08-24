@@ -304,7 +304,11 @@
         studentId: student.id, planId: draft.planId, level: draft.level, date: draft.date,
         activityId: draft.activityId, cardId: App.cardIdOf(draft.activityId),
         partnerId: draft.partnerId, place: draft.place, moodIds: draft.moodIds,
-        againId: draft.againId, title: draft.title, text: draft.text, weather: draft.weather,
+        /* ⛔ 3단계 본문은 bodyText3 로 꺼냅니다. draft.text 를 그대로 넣으면
+             「글쓰기 칸에 넣기」를 안 누른 학생의 뼈대 여섯 줄이 통째로
+             사라집니다 (2026-08-24). */
+        againId: draft.againId, title: draft.title, weather: draft.weather,
+        text: (draft.level === 3) ? bodyText3() : draft.text,
         bodyEdit: draft.bodyEdit || null,
         frames: draft.frames, photoIds: draft.photoIds,
         picKind: draft.picKind || 'app',
@@ -869,7 +873,7 @@
           써야 하므로, 판이 부를 수 있는 자리에 두어야 합니다. */
     function paperText() {
       if (draft.bodyEdit) return draft.bodyEdit;
-      if (draft.level === 3) return draft.text || '';
+      if (draft.level === 3) return bodyText3();
       if (draft.level === 2) {
         return App.sentences.diaryFramesLines(
           Object.assign({}, draft, { frames: frames() })).join(' ');
@@ -1362,6 +1366,17 @@
       return SIX.map(function (x) { return (s[x.k] || '').trim(); })
                 .filter(function (t) { return t; });
     }
+    /* ⛔ **3단계 본문은 반드시 이 함수로 꺼내세요** (2026-08-24).
+         3단계는 뼈대 여섯 줄을 한 줄씩 쓴 다음, 「일기 쓰기」 칸에서 살을 붙입니다.
+         그런데 뼈대를 그리로 옮기는 것이 「글쓰기 칸에 넣기」 **단추를 눌러야**
+         되는 일이라, 안 누르고 넘어간 학생은 완성 화면에서
+         「아직 고른 내용이 없어요」 를 보았습니다. 애써 쓴 여섯 줄이 있는데도요.
+       ▸ 그래서 글쓰기 칸이 비었으면 **뼈대를 그대로** 본문으로 씁니다.
+         뼈대만으로도 훌륭한 일기이고, 학생이 쓴 것을 버리지 않습니다. */
+    function bodyText3() {
+      if (draft.text && draft.text.trim()) return draft.text;
+      return sixLines().join(' ');
+    }
 
     function level3Body(step) {
       /* 앞 여섯은 세 단계 공통 뼈대. 3단계는 그 각 단계에서 그림도 고르고
@@ -1385,7 +1400,7 @@
       }
       if (key === '또 하고 싶나') return againBody();
       if (key === '그림') return picStep();
-      if (key === '완성') return confirmStep(draft.text || '');
+      if (key === '완성') return confirmStep(bodyText3());
 
       /* 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
       var bones = sixLines();

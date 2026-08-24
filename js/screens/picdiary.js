@@ -254,11 +254,20 @@
        한 단계씩 작게 내려가며 한 장에 맞춥니다.
      ▸ 글자는 줄 사이 **가운데**에 놓입니다 (줄무늬를 올리지 않습니다).
      cpl = 한 줄에 들어가는 글자 수 (종이 안쪽 762px ÷ 글자 크기) */
+  /* ★ 큰 쪽으로 두 단계 넓혔습니다 (2026-08-24 · 선생님 말씀 —
+       「줄글 글자를 제목 글자만큼 조금 크게」).
+       짧은 일기는 46px 로 큼직하게 나오고, 글이 길면 예전처럼 한 단계씩
+       작아지며 한 장에 맞춥니다. 제목은 55px 이라 눈에 비슷해 보입니다. */
   var LINE_SIZES = [
-    { fs: 34, lh: 92 }, { fs: 30, lh: 80 }, { fs: 26, lh: 70 },
-    { fs: 22, lh: 60 }, { fs: 19, lh: 52 }
+    { fs: 46, lh: 106 }, { fs: 40, lh: 94 },
+    { fs: 34, lh: 82 }, { fs: 30, lh: 74 }, { fs: 26, lh: 66 },
+    { fs: 22, lh: 58 }, { fs: 19, lh: 52 }
   ];
-  var LINE_MIN_ROWS = 5;          // 짧게 써도 이만큼은 줄이 보입니다
+  /* 짧게 써도 이만큼은 줄이 보입니다.
+     ⛔ 5로 두면 **큰 글자가 아예 못 뽑힙니다.** 짧은 글에도 5줄을 강제하니
+        46px(5×106=530) · 40px(470) 이 모두 자리(459px)를 넘어 탈락했습니다.
+        4로 낮추니 46px 이 424px 로 들어옵니다 — 재어서 정한 값입니다. */
+  var LINE_MIN_ROWS = 4;
   /* 3단계(밑줄)도 원고지와 **같은 높이**를 씁니다.
      그래야 1·2단계와 3단계의 그림칸이 같아집니다 — 단계가 달라도 같은 서식입니다.
      ⚠ 640(옛 8줄 x 79px) 그대로 두면 3단계만 그림칸이 176px 작아집니다. */
@@ -607,20 +616,30 @@
            ⛔ 이 주석은 html 안입니다. 여는 것과 닫는 것을 **짝 맞춰** 쓰세요.
              js 주석 닫기(별표+빗금)로 닫으면 주석이 안 닫혀서 뒤 마크업이
              통째로 먹히고 화면이 아예 안 뜹니다. 백틱도 쓰지 마세요. -->
-      <div class="pd-grid pd-titlegrid"
-           style=${{ gridTemplateColumns: 'repeat(' + titleCols + ', 1fr)',
-                     fontSize: titleFs + 'px' }}>
-        <span class="pd-box pd-titlelab">제목</span>
-        ${(function () {
-          var t = String(d.title || (a ? a.name : '') || '');
-          var cells = [];
-          /* 앞 두 칸은 「제목」 딱지가 씁니다 */
-          for (var i = 0; i < titleCols - 2; i++) cells.push(t.charAt(i) || '');
-          return cells.map(function (ch, i) {
-            return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
-          });
-        })()}
-      </div>
+      <!-- ★ **3단계는 제목도 줄글**입니다 (2026-08-24 · 선생님 말씀).
+             본문이 밑줄인데 제목만 칸이면 한 장 안에서 두 가지 모양이 섞여
+             어수선합니다. 3단계는 「제목」 딱지 옆에 한 줄로 씁니다.
+           ⛔ 1·2단계는 그대로 원고지 칸입니다 — 그쪽은 본문도 칸이라
+             제목이 칸이어야 짝이 맞습니다. -->
+      ${useLines
+        ? html`<div class="pd-titleline" style=${{ fontSize: titleFs + 'px' }}>
+            <span class="pd-titlelab-line">제목</span>
+            <span class="pd-titletext">${String(d.title || (a ? a.name : '') || '')}</span>
+          </div>`
+        : html`<div class="pd-grid pd-titlegrid"
+             style=${{ gridTemplateColumns: 'repeat(' + titleCols + ', 1fr)',
+                       fontSize: titleFs + 'px' }}>
+          <span class="pd-box pd-titlelab">제목</span>
+          ${(function () {
+            var t = String(d.title || (a ? a.name : '') || '');
+            var cells = [];
+            /* 앞 두 칸은 「제목」 딱지가 씁니다 */
+            for (var i = 0; i < titleCols - 2; i++) cells.push(t.charAt(i) || '');
+            return cells.map(function (ch, i) {
+              return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
+            });
+          })()}
+        </div>`}
 
       ${hint}
 
