@@ -267,9 +267,21 @@
     return d.place + '에서 했어요.';
   };
 
-  /* 1단계 일기 전체 문장 */
+  /* 1단계 일기 전체 문장
+     ★ 「가장 기억에 남는 것」과 「다음에는」도 1단계에 넣었습니다
+       (2026-08-24 · 선생님 말씀 — 돌아보기 네 줄에는 세 단계 모두 그 물음이
+       있는데 일기에만 1단계가 빠져 있어 앞뒤가 맞지 않았습니다).
+     ▸ 담기는 자리는 2단계와 **같은 곳**(frames.f3 · f4)입니다. 그래야
+       단계를 올려도 쓴 것이 그대로 이어집니다.
+     ⚠ `다음에는 …` 을 골랐으면 `또 하고 싶어요`(diaryAgain)는 넣지 않습니다.
+       둘 다 넣으면 같은 말이 잇달아 두 번 나옵니다. 2단계도 그렇게 합니다. */
   S.diaryAutoLines = function (d) {
-    return [S.diaryLead(d), S.diaryMood(d), S.diaryAgain(d)].filter(Boolean);
+    var v = (d && d.frames) || {};
+    var out = [S.diaryLead(d), S.diaryMood(d)];
+    if (v.f3) out.push('가장 기억에 남는 것은 ' + App.iEyo(v.f3) + '.');
+    if (v.f4) out.push('다음에는 ' + v.f4 + ' 하고 싶어요.');
+    else out.push(S.diaryAgain(d));
+    return out.filter(Boolean);
   };
   S.diaryAuto = function (d) { return S.diaryAutoLines(d).join(' '); };
 

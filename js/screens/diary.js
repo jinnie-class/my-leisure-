@@ -361,7 +361,17 @@
          2단계 : 기억 · 다음에 · 제목 (낱말로 문장 만들기)
          3단계 : 일기 쓰기 · 제목     (자유롭게 쓰기)
        ⛔ 앞 여섯의 차례를 바꾸지 마세요 (boneBody 주석 참고). */
-    var L1 = ['언제', '누구와', '어디에서', '무엇을', '기분', '또 하고 싶나', '그림', '확인'];
+    /* ★ **세 단계가 같은 것을 묻습니다** (2026-08-24). 다른 것은 학생이
+         스스로 하는 정도뿐입니다. 1단계에 없던 「기억 · 다음에 · 제목」을
+         넣어 2단계와 나란히 맞추었습니다.
+       ▸ 돌아보기 네 줄에는 세 단계 모두 그 물음이 있는데 일기에만 1단계가
+         빠져 있어 앞뒤가 맞지 않았습니다.
+       ▸ 제목도 그림으로 고릅니다(titleStep) — 제 일기에 이름을 붙이는 일은
+         1단계 학생에게도 값집니다.
+       ⛔ 순서를 2단계(L2)와 다르게 두지 마세요. 단계를 올리면 학생이 같은
+          차례를 다시 만나야 익숙합니다. */
+    var L1 = ['언제', '누구와', '어디에서', '무엇을', '기분',
+              '기억', '다음에', '제목', '또 하고 싶나', '그림', '확인'];
 
     /* ── 1단계 : 지금까지 고른 것을 **그림으로** 한 줄에 ────────────────
        2·3단계는 흰 칸 위 노란 띠에 지금까지 만든 **문장**이 자랍니다.
@@ -805,9 +815,36 @@
          예전에는 `step === 6` 처럼 번호로 갈랐습니다. 그래서 차례를 한 칸만
          바꿔도 엉뚱한 화면이 나와, 주석에 `차례를 바꾸지 마세요` 를 달아야 했습니다.
        ▸ 이름으로 가르면 차례를 바꿔도 그대로 맞습니다. */
+    /* ★ 「가장 기억에 남는 것」 · 「다음에는」 — **1·2단계가 함께 씁니다**
+         (2026-08-24 · 선생님 말씀). 돌아보기 네 줄에는 세 단계 모두 이 물음이
+         있는데 일기에는 2단계에만 있어 앞뒤가 맞지 않았습니다.
+       ⛔ 두 단계가 **한 벌**을 써야 합니다. 따로 만들면 낱말이 어긋나고
+          한쪽만 고치는 일이 생깁니다. 담기는 자리도 같습니다(frames.f3 · f4).
+       ▸ 카드에는 이미 그림이 붙어 있어(wordCards) 1단계 학생도 고를 수 있습니다. */
+    function memoryBody() {
+      var f = frames();
+      return html`<${React.Fragment}>
+        <!-- 만들어지는 문장은 흰 칸 맨 위 두 줄(frameBar)에 있습니다.
+             여기에 또 두면 같은 말이 두 번 나옵니다. -->
+        <${C.Question} bar=${true} note=${lvNote} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
+        ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
+      <//>`;
+    }
+    function nextBody() {
+      var f = frames();
+      return html`<${React.Fragment}>
+        <!-- 위와 같은 까닭으로 낱개 문장 줄을 뺐습니다 -->
+        <${C.Question} bar=${true} note=${lvNote} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
+        ${wordCards(F4_WORDS, 'f4', f.f4, 4)}
+      <//>`;
+    }
+
     function level1Body(step) {
       if (step < BONE.length) return boneBody(step);
       var key = L1[step];
+      if (key === '기억') return memoryBody();
+      if (key === '다음에') return nextBody();
+      if (key === '제목') return titleStep();
       if (key === '또 하고 싶나') return againBody();
       if (key === '그림') return picStep();
       return confirmStep();
@@ -1303,21 +1340,8 @@
       if (step < BONE.length) return boneBody(step);
       /* ★ 뒤 단계도 **이름으로** 가릅니다 (예전에는 `step -= 4` 로 번호를 옮겨 썼습니다). */
       var key = L2[step];
-      if (key === '기억') {
-        return html`<${React.Fragment}>
-          <!-- 만들어지는 문장은 흰 칸 맨 위 두 줄(frameBar)에 있습니다.
-               여기에 또 두면 같은 말이 두 번 나옵니다. -->
-          <${C.Question} bar=${true} note=${lvNote} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
-          ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
-        <//>`;
-      }
-      if (key === '다음에') {
-        return html`<${React.Fragment}>
-          <!-- 위와 같은 까닭으로 낱개 문장 줄을 뺐습니다 -->
-          <${C.Question} bar=${true} note=${lvNote} speakText="다음에는 어떻게 하고 싶나요?">다음에는 어떻게 하고 싶나요?<//>
-          ${wordCards(F4_WORDS, 'f4', f.f4, 4)}
-        <//>`;
-      }
+      if (key === '기억') return memoryBody();
+      if (key === '다음에') return nextBody();
       if (key === '제목') return titleStep();
       if (key === '또 하고 싶나') return againBody();
       if (key === '그림') return picStep();
