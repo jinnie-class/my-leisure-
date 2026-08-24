@@ -21,7 +21,25 @@
                  { id: 'f', name: '여', imageKey: '가족 여자아이' }] },
     { id: 'mom',     name: '엄마',   phrase: '엄마와',   icon: 'pMom',     imageKey: '엄마' },
     { id: 'dad',     name: '아빠',   phrase: '아빠와',   icon: 'pDad',     imageKey: '아빠' },
-    { id: 'sibling', name: '형제자매', phrase: '형제자매와', icon: 'pSibling',
+    { id: 'grandma', name: '할머니',   phrase: '할머니와',   icon: 'pMom',     imageKey: '할머니' },
+    { id: 'grandpa', name: '할아버지', phrase: '할아버지와', icon: 'pDad',     imageKey: '할아버지' },
+    /* ★ 손위 형제는 **부르는 이름이 넷**입니다 (2026-08-24 · 선생님 말씀).
+         남학생은 누나 · 형, 여학생은 언니 · 오빠라 부릅니다. 하나로 묶으면
+         어느 쪽 학생에게든 어색해서, 넷을 따로 두고 선생님이 그 학생에게
+         맞는 것만 켜 주도록 했습니다 (설정 7. 함께하는 사람 선택지).
+       ⛔ 「누나(언니)」 처럼 묶어 적지 마세요. 그대로 문장에 들어가면
+          「나는 누나(언니)와 함께…」 가 됩니다. */
+    { id: 'sisEl',   name: '언니',     phrase: '언니와',     icon: 'pSibling', imageKey: '언니' },
+    { id: 'nuna',    name: '누나',     phrase: '누나와',     icon: 'pSibling', imageKey: '누나' },
+    { id: 'hyeong',  name: '형',       phrase: '형과',       icon: 'pSibling', imageKey: '형' },
+    { id: 'oppa',    name: '오빠',     phrase: '오빠와',     icon: 'pSibling', imageKey: '오빠' },
+    { id: 'younger', name: '동생',     phrase: '동생과',     icon: 'pSibling',
+      variants: [{ id: 'm', name: '남', imageKey: '동생 남' },
+                 { id: 'f', name: '여', imageKey: '동생 여' }] },
+    /* ⛔ 「형제자매」는 **지우지 않고 감춥니다.** 예전 일기·계획이 이 이름을
+         가리키고 있어서, 목록에서 없애면 그 기록의 사람이 통째로 사라집니다.
+         감춰 두면 새로 고를 수는 없고 예전 기록은 그대로 읽힙니다. */
+    { id: 'sibling', name: '형제자매', phrase: '형제자매와', icon: 'pSibling', hidden: true,
       variants: [{ id: 'm', name: '남', imageKey: '형제자매 남' },
                  { id: 'f', name: '여', imageKey: '형제자매 여' }] },
     { id: 'friend',  name: '친구',   phrase: '친구와',   icon: 'pFriend',
@@ -307,9 +325,15 @@
   App.weather = finder(D.weathers);    // 맑음 · 흐림 · 비 · 눈
 
   /* 학생 설정에 맞춰 걸러낸 선택지 */
+  /* ⛔ `hidden` 인 사람은 **고를 수 없습니다** (예 : 형제자매 — 언니 · 누나 ·
+       형 · 오빠 · 동생으로 나뉘었습니다). 목록에는 남아 있어서 예전 일기와
+       계획은 그대로 읽히지만, 새로 고르는 자리에는 나오지 않습니다.
+     ▸ 선생님이 예전에 켜 두었던 목록(partnerIds)에 들어 있어도 감춥니다. */
   App.partnersFor = function (s) {
     var on = s && s.partnerIds;
-    return D.partners.filter(function (p) { return !on || on.indexOf(p.id) >= 0; });
+    return D.partners.filter(function (p) {
+      return !p.hidden && (!on || on.indexOf(p.id) >= 0);
+    });
   };
   App.moodsFor = function (s) {
     var on = s && s.moodIds;

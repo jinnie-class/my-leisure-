@@ -208,7 +208,24 @@
         syncCustom();
         var all = App.topCards ? App.topCards().map(function (c) { return c.id; }) : [];
         var fixed = 0;
+        /* ⛔ **새로 생긴 사람은 켜 주어야 합니다** (2026-08-24).
+             `partnerIds` 는 「켠 것 목록」이라, 목록에 없는 사람은 안 나옵니다.
+             그런데 「형제자매」를 언니 · 누나 · 형 · 오빠 · 동생으로 나누고
+             할머니 · 할아버지를 더했더니, 예전에 저장된 학생은 새 이름이
+             목록에 없어서 **하나도 나오지 않았습니다.** 선생님은 끌 기회조차
+             없었던 것들이라 켜 주는 것이 맞습니다.
+           ▸ `partnersV2` 표시를 남겨 **한 번만** 손봅니다. 그러지 않으면
+             선생님이 일부러 끈 것을 켤 때마다 되살려 버립니다. */
+        var NEW_PARTNERS = ['grandma', 'grandpa', 'sisEl', 'nuna', 'hyeong', 'oppa', 'younger'];
         (state.students || []).forEach(function (s) {
+          if (!s.partnersV2) {
+            if (Array.isArray(s.partnerIds) && s.partnerIds.length) {
+              NEW_PARTNERS.forEach(function (id) {
+                if (s.partnerIds.indexOf(id) < 0) s.partnerIds.push(id);
+              });
+            }
+            s.partnersV2 = true; fixed++;
+          }
           var h = s.hiddenActivityIds;
           if (!Array.isArray(h)) { if (h != null) { s.hiddenActivityIds = []; fixed++; } return; }
           if (all.length && all.every(function (id) { return h.indexOf(id) >= 0; })) {
