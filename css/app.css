@@ -4407,3 +4407,15 @@ textarea.sentence-edit,
 /* 「그림 고르기 (남 / 여) — 위에서 고른 사람만 나와요」 — 아래 알약 줄과
    같은 자리에서 시작하도록 **가운데**로 (2026-08-24 · 선생님 말씀). */
 .tsec .tsub.center{ text-align:center; }
+
+/* ★ 「나의 한마디 모음」 종이 — **1단계는 노란 바 안에 그림도** 함께.
+     글을 못 읽는 학생이 집에 가져가서도 제 한마디를 알아보게 합니다.
+   ⛔ 그림은 인쇄에도 나와야 하므로 background 가 아니라 진짜 그림입니다. */
+.me-print-say{
+  font-weight:900; min-height:2.2em;
+  display:flex; align-items:center; gap:14px;
+}
+.me-print-art{ display:inline-flex; align-items:center; gap:10px; flex:0 0 auto; }
+.me-print-pic{ width:64px; height:64px; display:grid; place-items:center; }
+.me-print-pic > *{ max-width:100%; max-height:100%; }
+.me-print-txt{ flex:1 1 auto; min-width:0; }

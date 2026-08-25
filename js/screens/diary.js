@@ -231,6 +231,7 @@
     });
     var placePageS = useState(0);      // 장소 20곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
     var whoPageS = useState(0);        // 사람 16명을 6명씩 넘겨 볼 때 쓰는 쪽 번호
+    var moodPageS = useState(0);       // 기분 10가지를 6가지씩 넘겨 볼 때 쓰는 쪽 번호
     var afterS = useState(null);       // 저장 후 물어보는 순서
     var savedIdS = useState(null);
     var helpS = useState(false);
@@ -627,11 +628,22 @@
       }
 
       if (step === 4) {
+        /* ★ 기분도 **한 쪽에 3칸 × 2줄(여섯)** 입니다 (2026-08-24).
+             열 가지를 한 화면에 다 놓으면, 3단계는 글 칸 두 줄까지 있어
+             0.58 로 줄여도 자리가 모자라 카드가 잘렸습니다 (재어 확인).
+           ▸ 사람 · 장소 · 활동과 **같은 개수 · 같은 말**이라 학생이 규칙
+             하나만 익히면 됩니다.
+           ▸ 여러 개 골라도 됩니다 — 쪽을 넘겨도 고른 것은 그대로 남습니다. */
+        var MOOD_PER = 6;
+        var mdPages = Math.max(1, Math.ceil(moods.length / MOOD_PER));
+        var mdPage = Math.min(moodPageS[0], mdPages - 1);
+        var mdShown = moods.slice(mdPage * MOOD_PER, mdPage * MOOD_PER + MOOD_PER);
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
+          <${C.Question} bar=${true} note=${lvNote} hint=${'모두 ' + moods.length + '가지'}
+            speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
           ${boneWrite(4)}
-          <${C.PickGrid} cols=${moods.length > 4 ? 4 : moods.length}>
-            ${moods.map(function (m) {
+          <${C.PickGrid} cols=${3}>
+            ${mdShown.map(function (m) {
               var on = draft.moodIds.indexOf(m.id) >= 0;
               return html`<${C.Pick} key=${m.id} selected=${on} label=${m.name} speakText=${m.name}
                 onClick=${function () {
@@ -642,6 +654,13 @@
                 art=${html`<${C.MoodArt} mood=${m} />`} />`;
             })}
           <//>
+          ${mdPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
+            <${C.Btn} icon="back" disabled=${mdPage === 0}
+              onClick=${function () { moodPageS[1](mdPage - 1); }}>앞 기분 보기<//>
+            <span class="chip">${mdPage + 1} / ${mdPages}</span>
+            <${C.Btn} icon="next" disabled=${mdPage >= mdPages - 1}
+              onClick=${function () { moodPageS[1](mdPage + 1); }}>기분 더 보기<//>
+          </div>`}
         <//>`;
       }
 

@@ -512,10 +512,17 @@
       el.style.columnWidth = 'auto';
       el.style.height = '';
       /* 지난번에 줄여 두었거나 쪼개 두었던 것을 **먼저 되돌립니다.**
-         그러지 않으면 화면을 옮길 때마다 조금씩 더 작아집니다. */
+         그러지 않으면 화면을 옮길 때마다 조금씩 더 작아집니다.
+       ⛔⛔ 되돌린 **바로 뒤에 높이를 읽으면 옛 값이 잡힙니다.**
+          `zoom` 은 곧바로 반영되지 않아서, 0.76 으로 작아져 있던 높이를 그대로
+          읽고 「안 넘친다」고 잘못 판단합니다. 그러면 줄이기가 풀린 채 굳어
+          카드가 아래로 잘립니다 (2026-08-24 · 「무엇을 했나요?」 에서 93px).
+        ▸ `offsetHeight` 를 한 번 읽어 **그 자리에서 다시 그리게** 합니다.
+          한 줄이지만 지우면 그 고장이 그대로 돌아옵니다. */
       el.style.setProperty('--fit', '1');
       el.classList.remove('fitting');
       el.classList.remove('flowing');
+      void el.offsetHeight;
 
       /* ---------- 남는 자리(`--slack`) 를 알려 줍니다 ----------
          내용을 다 담고도 **얼마가 남는지**를 재어 CSS 에 넘깁니다.
@@ -537,14 +544,48 @@
          넘치면 여백을 절반 → 4분의 1 → 0 으로 줄여 가며 맞춥니다.
          한 번에 0 으로 떨어뜨리지 않는 까닭 : 조금이라도 숨 쉴 자리를 남기려는 것입니다. */
       el.style.setProperty('--slack', '0px');
+      void el.offsetHeight;
+      /* ⛔⛔ **쓸 수 있는 높이는 여백을 주기 「전」에 재야 합니다** (2026-08-24).
+           `--slack` 을 주면 내용이 밀리면서 흰 칸도 함께 늘어납니다. 그 늘어난
+           높이를 「쓸 수 있는 높이」로 읽으면 **아무리 넘쳐도 안 넘친다고**
+           판단해, 줄이기가 걸리지 않은 채 카드가 잘립니다.
+           재어 본 고장 : 「무엇을 했나요?」 흰 칸을 827 로 읽어 넘침 0 →
+           `--fit` 1 로 굳음. 창 크기를 건드리면(resize) 그때야 666 이 잡혀
+           0.76 으로 줄어들었습니다 — 그래서 「가끔 되고 가끔 안 되는」
+           고장으로 보였습니다.
+         ▸ 아래에서는 이 `avail` 만 씁니다. 여백을 준 뒤의 높이는 믿지 않습니다. */
+      /* ⛔⛔⛔ **쓸 수 있는 높이는 「부모가 허락한 높이」로 잽니다** (2026-08-24).
+           `el.clientHeight` 만 믿으면 안 됩니다. 재는 그 순간에는 흰 칸 높이가
+           아직 확정되지 않아 **내용 높이와 똑같이** 나옵니다. 그러면
+           「내용 = 칸」 이므로 **아무리 넘쳐도 안 넘친다**고 판단합니다.
+           그 뒤 브라우저가 flex 를 적용해 칸을 줄이는데, 그때는 아무도 다시
+           재지 않아 **줄이기가 안 걸린 채 굳습니다.**
+           재어 본 고장 : 「무엇을 했나요?」 — 잰 순간 client 827 · scroll 827
+           (넘침 0 으로 봄) → 잠시 뒤 client 666 · scroll 827 → 카드 93px 잘림.
+           창 크기를 건드리면 그때야 제대로 잡혀, 「가끔 되고 가끔 안 되는」
+           고장으로 보였습니다.
+         ▸ 부모(.panel)가 준 높이에서 **형제들이 쓴 높이를 빼면** 흰 칸이 쓸 수
+           있는 높이가 나옵니다. 이 값은 흰 칸보다 **먼저 확정**되므로 흔들리지
+           않습니다. 둘 중 **작은 쪽**을 씁니다.
+         ⛔ 이 셈을 지우고 `el.clientHeight` 로 되돌리지 마세요. */
+      var avail = el.clientHeight;
+      var host = el.parentElement;
+      if (host && host.clientHeight) {
+        var hs = window.getComputedStyle(host);
+        var room = host.clientHeight
+          - (parseFloat(hs.paddingTop) || 0) - (parseFloat(hs.paddingBottom) || 0);
+        Array.prototype.forEach.call(host.children, function (c) {
+          if (c !== el) room -= c.getBoundingClientRect().height;
+        });
+        if (room > 40) avail = Math.min(avail || room, room);
+      }
+
       var want = measureSlack(el);
       var tries = [want, Math.floor(want / 2), Math.floor(want / 4), 0];
       for (var ti = 0; ti < tries.length; ti++) {
         el.style.setProperty('--slack', tries[ti] + 'px');
-        if (el.scrollHeight <= el.clientHeight + 2) break;    // 넘치지 않으면 그대로
+        if (el.scrollHeight <= avail + 2) break;    // 넘치지 않으면 그대로
       }
-
-      var avail = el.clientHeight;
 
       /* ===== ⛔ **1쪽이 비면 안 됩니다** — 두 겹으로 막습니다 (2026-08-23) =====
          고장난 모습 : 「무엇을 할까요?」 화면에 고를 것이 하나도 없고
@@ -571,6 +612,8 @@
         fi++;
         el.classList.add('fitting');
         el.style.setProperty('--fit', String(FITS[fi]));
+        /* 위와 같은 까닭 — 줄인 뒤에도 **다시 그리게 하고** 재야 합니다 */
+        void el.offsetHeight;
       }
       if (avail > 0 && el.scrollHeight > avail + 2) el.classList.add('flowing');
 
@@ -613,7 +656,14 @@
       var again = function () { pass.current = { n: 0, t: 0 }; measure(); };
       var raf = window.requestAnimationFrame(again);
       var t1 = setTimeout(again, 280);
-      var t2 = setTimeout(again, 900);
+      /* ⛔⛔ **늦게 재는 타이머는 지우지 않습니다.** 이 자리는 **렌더마다**
+             다시 도는데, 앞 타이머를 그때마다 지우면 그림이 많은 화면에서는
+             900ms 가 **영영 오지 않습니다.** 그래서 카드가 잘린 채 굳었습니다
+             (2026-08-24 · 「무엇을 했나요?」 화면에서 93px 잘림).
+           ⛔ 「한 번만 걸기」로 아끼려 하지 마세요. 앞 화면의 타이머가 아직
+              안 울렸으면 **새 화면에서는 아예 안 걸려** 구멍이 납니다.
+              화면마다 걸리는 편이 맞습니다 — 재는 일은 가볍습니다. */
+      setTimeout(again, 900);
       var el = trackRef.current;
       var imgs = el ? Array.prototype.slice.call(el.querySelectorAll('img')) : [];
       var waiting = imgs.filter(function (im) { return !im.complete; });
@@ -641,7 +691,7 @@
       }) : null;
       if (ro && el) Array.prototype.forEach.call(el.children, function (c) { ro.observe(c); });
       return function () {
-        window.cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2);
+        window.cancelAnimationFrame(raf); clearTimeout(t1);
         if (ro) ro.disconnect();
         waiting.forEach(function (im) {
           im.removeEventListener('load', again);
@@ -764,24 +814,65 @@
     </div>`;
   };
 
+  /* ═══════ ⛔⛔⛔ **마지막 그물 — 밖에서 지켜보기** (2026-08-24) ═══════
+     `C.Stage` 안에서 아무리 촘촘히 재도, **어떤 화면에서는 재는 일 자체가
+     한 번도 일어나지 않았습니다.** 「무엇을 했나요?」 가 그랬습니다 —
+     화면이 바뀌었는데 잰 값은 **앞 화면 것(401×401)** 그대로였고, 3.5초를
+     기다려도 그대로였습니다. 그 사이 카드는 93px 잘려 있었습니다.
+     창 크기를 건드리면 그때야 제대로 잡혀, 「가끔 되고 가끔 안 되는」
+     고장으로 보였습니다.
+
+     그래서 **컴포넌트 밖에서** 0.4초마다 훑습니다. 넘치는 흰 칸이 있으면
+     한 단계씩 줄입니다. Stage 가 무슨 까닭으로 못 재든 이것이 잡습니다.
+
+     ⛔ 지우지 마세요. 안쪽 장치가 못 잡는 자리를 메우는 마지막 그물입니다.
+     ⛔ **한 번에 한 단계씩만** 줄입니다. 한꺼번에 맞추려 하면 지나치게 줄었다
+        돌아오기를 되풀이해 화면이 떨립니다.
+     ▸ 넘치지 않으면 **아무 일도 하지 않습니다.** 그래서 늘 돌아도 가볍습니다.
+     ▸ 되돌리는 일은 하지 않습니다. 줄이는 것만 이곳의 몫이고, 되돌리는 것은
+       화면이 바뀔 때 Stage 가 합니다. */
+  var GUARD_FITS = [1, 0.94, 0.88, 0.82, 0.76, 0.70, 0.64, 0.58];
+  App.guardFit = function () {
+    var boxes = document.querySelectorAll('.stage-track, .stage-fit');
+    Array.prototype.forEach.call(boxes, function (el) {
+      if (!el.clientHeight || !el.clientWidth) return;
+      if (el.scrollHeight <= el.clientHeight + 2) return;      // 안 넘치면 그대로
+      var cur = parseFloat(el.style.getPropertyValue('--fit')) || 1;
+      var i = GUARD_FITS.indexOf(cur);
+      if (i < 0) i = 0;
+      if (i >= GUARD_FITS.length - 1) {                        // 더 못 줄이면
+        if (el.classList.contains('stage-track')) el.classList.add('flowing');
+        return;
+      }
+      el.classList.add('fitting');
+      el.style.setProperty('--fit', String(GUARD_FITS[i + 1]));
+    });
+  };
+  if (!App.__guardTimer) App.__guardTimer = setInterval(App.guardFit, 400);
+
   C.useFitBox = function (ref) {
     useLayoutEffect(function () {
       function fit() {
         var el = ref.current; if (!el || !el.clientHeight) return;
         el.style.setProperty('--fit', '1');
         el.classList.remove('fitting');
+        /* ⛔ `zoom` 은 곧바로 반영되지 않습니다. 되돌린 뒤 **다시 그리게 하고**
+             재야 옛 높이를 읽지 않습니다 (Stage 와 같은 까닭 — 2026-08-24). */
+        void el.offsetHeight;
         var FITS = [1, 0.94, 0.88, 0.82, 0.76, 0.70, 0.64, 0.58];
         var avail = el.clientHeight;
         for (var i = 1; i < FITS.length && el.scrollHeight > avail + 2; i++) {
           el.classList.add('fitting');
           el.style.setProperty('--fit', String(FITS[i]));
+          void el.offsetHeight;
         }
       }
       fit();
       /* ⛔ **그림이 다 실린 뒤 다시 재야 합니다** — Stage 와 같은 까닭입니다.
            PNG 는 늦게 실리고, 그때 카드가 커집니다. 태블릿은 더 느립니다. */
       var t1 = setTimeout(fit, 280);
-      var t2 = setTimeout(fit, 900);
+      /* ⛔ 늦게 재는 타이머는 렌더마다 지우면 영영 안 옵니다 (Stage 와 같은 까닭) */
+      setTimeout(fit, 900);
       var el = ref.current;
       var imgs = el ? Array.prototype.slice.call(el.querySelectorAll('img')) : [];
       var waiting = imgs.filter(function (im) { return !im.complete; });
@@ -790,7 +881,7 @@
       });
       window.addEventListener('resize', fit);
       return function () {
-        clearTimeout(t1); clearTimeout(t2);
+        clearTimeout(t1);
         waiting.forEach(function (im) {
           im.removeEventListener('load', fit); im.removeEventListener('error', fit);
         });
