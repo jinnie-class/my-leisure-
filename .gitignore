@@ -38,3 +38,6 @@ images/여가지.png
 images/지도/*.png
 images/실내여가섬 배경.png
 images/실외여가섬 배경.png
+
+# 옮길 때 만든 꾸러미 — 저장소에는 올리지 않습니다
+*.zip
