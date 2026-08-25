@@ -816,16 +816,27 @@
           ${blank(w3)}${에서 && html`<b>${에서}</b>`}
           ${blank(w4, true)}${했어요 && html`<b>${했어요}</b>`}
         </div>
+        <!-- ⛔ **문장 하나에 줄 하나**입니다 (2026-08-24 · 선생님 말씀).
+               예전에는 「기분이 …」 「기억에 남는 것은 …」 「다음에는 …」 을
+               **한 줄에 몰아** 넣었습니다. 그러면 줄이 길어져 가운데에서
+               접히는 바람에 「하고 싶어요.」 만 다음 줄에 덩그러니 남아,
+               어디까지가 한 문장인지 알아보기 어려웠습니다.
+             ▸ 줄이 늘어 자리를 더 먹지만, 넘치면 화면이 저절로 줄어듭니다
+               (App.guardFit · Stage 의 줄이기). -->
         <div class="frame-line">
           ${headWord(howWord, '기분이') && html`<b>기분이</b>`} ${blank(howWord)}<b>${dotOf(howWord)}</b>
-          ${level === 2 && html`<${React.Fragment}>
-            <b>기억에 남는 것은</b> ${blank(f.f3)}<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
-            <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
-          <//>`}
-          ${level === 3 && html`<${React.Fragment}>
-            <b>왜냐하면</b> ${blank(say('why', ''), true)}<b>${dotOf(say('why', ''))}</b>
-          <//>`}
         </div>
+        ${level === 2 && html`<${React.Fragment}>
+          <div class="frame-line">
+            <b>기억에 남는 것은</b> ${blank(f.f3)}<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
+          </div>
+          <div class="frame-line">
+            <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
+          </div>
+        <//>`}
+        ${level === 3 && html`<div class="frame-line">
+          <b>왜냐하면</b> ${blank(say('why', ''), true)}<b>${dotOf(say('why', ''))}</b>
+        </div>`}
       <//>`;
     }
 
@@ -1339,7 +1350,24 @@
                    partner: whoP, img: '함께한', icon: 'pFriend' });
       }
       if (mood) out.push({ name: (mood.pre || mood.name) + ' ' + short, mood: mood, icon: mood.icon });
-      out.push({ name: '처음 해 본 ' + short, img: '처음 해 본', icon: 'avSprout' });
+      /* ⛔ 「처음 해 본 ○○」은 **정말 처음일 때만** 내놓습니다 (2026-08-24).
+           예전에는 아무 조건 없이 늘 붙어서, 여러 번 해 본 활동에도
+           「처음 해 본 요리하기」가 후보로 떴습니다. 1단계 학생은 글을 못 읽어
+           그대로 고르기 쉬운데, 그러면 **사실과 다른 제목**이 남습니다.
+         ▸ 「처음」인지는 두 가지로 봅니다.
+             ① 여가지도에 **「해봤어요」 표시가 아직 없고**
+             ② 그 활동으로 쓴 **일기가 이 일기 말고는 없을 때**
+           둘 중 하나라도 어긋나면 이미 해 본 것이므로 내놓지 않습니다.
+         ⛔ 조건을 지우고 늘 붙이지 마세요. */
+      if (act) {
+        var mapSt = App.store.mapOf(student.id)[act.id] || {};
+        var beforeDiaries = App.store.diaries(student.id).filter(function (d) {
+          return d.activityId === act.id && (!editing || d.id !== editing.id);
+        });
+        if (!mapSt.tried && !beforeDiaries.length) {
+          out.push({ name: '처음 해 본 ' + short, img: '처음 해 본', icon: 'avSprout' });
+        }
+      }
       var seen = {}, uniq = [];
       out.forEach(function (o) { if (!seen[o.name]) { seen[o.name] = 1; uniq.push(o); } });
       return uniq.slice(0, 4);

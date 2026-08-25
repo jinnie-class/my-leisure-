@@ -964,6 +964,8 @@
     /* 다른 학생(다른 단계)의 일기로 넘어가면 그 단계의 기본 모양으로 돌립니다 */
     var lvRef = useRef(lv);
     if (lvRef.current !== lv) { lvRef.current = lv; traceS[1](defaultModeFor(lv)); }
+    var paperS = useState(false);      // 원고지 따라쓰기 판이 열려 있는지
+    var useLines = (lv === 3);         // 3단계는 칸이 아니라 밑줄이라 원고지 판을 안 씁니다
 
     useLayoutEffect(function () {
       function measure() {
@@ -1085,10 +1087,45 @@
             <${C.Btn} kind="primary" icon="print"
               onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
               A4 인쇄하기<//>
+            <!-- ★ **여기에서 바로 손으로 따라 씁니다** (2026-08-24 · 선생님 말씀).
+                   종이로 뽑지 않아도 전자칠판 · 태블릿에서 그 자리에서 씁니다.
+                 ▸ 일기 확인 화면의 것과 **같은 판**입니다 (C.DrawPad · paper).
+                 ⛔ 1·2단계만 내놓습니다. 3단계는 칸이 아니라 밑줄이라
+                    원고지 판이 맞지 않고, 그쪽에는 「손글씨로 쓰기」가 따로 있습니다. -->
+            ${!useLines && html`<${C.Btn} icon="pencil" className="pastel-blue"
+              onClick=${function () { paperS[1](true); }}>
+              ${d && d.paperPhotoId ? '원고지 이어 쓰기' : '원고지에 손으로 쓰기'}<//>`}
+            ${d && d.paperPhotoId && html`<${C.Btn} size="small" icon="back"
+              onClick=${function () {
+                var old = d.paperPhotoId;
+                App.store.updateDiary(d.id, { paperPhotoId: null });
+                if (old) App.photos.remove(old);
+              }}>글자 원고지로<//>`}
             ${params.from !== 'folio' && html`<${C.Btn} icon="book" className="pastel-yellow"
               onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
               나의 일기 모음 보기<//>`}
           </div>
+
+          <!-- 원고지 따라쓰기 판 — 확인 화면의 것과 같은 규칙입니다.
+               ⛔ 줄 나누기를 새로 셈하지 마세요. 「App.manuscriptRows」 로
+                  그림일기와 같은 규칙을 씁니다. -->
+          ${paperS[0] && d && html`<${C.Modal} title="원고지에 따라 써요" wide=${true}
+            onClose=${function () { paperS[1](false); }}
+            actions=${html`<${C.Btn} onClick=${function () { paperS[1](false); }}>그만두기<//>`}>
+            <${C.DrawPad} w=${1000} h=${760}
+              paper=${{ cols: 10, rows: App.manuscriptRows([App.sentences.diaryBody(d)], 10), trace: true }}
+              startFrom=${d.paperPhotoId ? App.photos.url(d.paperPhotoId) : null}
+              doneText="다 썼어요"
+              hintText="흐린 글자를 따라 칸 안에 써 보아요. 색과 굵기를 고를 수 있어요."
+              onDone=${function (url) {
+                App.photos.addDataUrl(url, student.id, 'paper').then(function (id) {
+                  var old = d.paperPhotoId;
+                  App.store.updateDiary(d.id, { paperPhotoId: id });
+                  if (old) App.photos.remove(old);
+                  paperS[1](false);
+                });
+              }} />
+          <//>`}
         </div>
       </div>
     </div>`;

@@ -4419,3 +4419,10 @@ textarea.sentence-edit,
 .me-print-pic{ width:64px; height:64px; display:grid; place-items:center; }
 .me-print-pic > *{ max-width:100%; max-height:100%; }
 .me-print-txt{ flex:1 1 auto; min-width:0; }
+
+/* ★ 문장 틀 — **한 줄에 한 문장**, 왼쪽부터 나란히 (2026-08-24 · 선생님 말씀).
+     가운데 정렬이면 줄이 접혔을 때 뒷말만 한가운데 덩그러니 남아
+     어디까지가 한 문장인지 알아보기 어려웠습니다.
+   ▸ 줄이 짧으면 가운데처럼 보이도록 칸 자체를 글줄 길이에 맞춥니다. */
+.frame-line{ justify-content:flex-start; margin-left:auto; margin-right:auto; }
+.frame-line + .frame-line{ margin-top:-.15rem; }
