@@ -286,6 +286,12 @@ ul{ margin:0; padding:0; list-style:none; }
   padding:.2rem 0 .7rem;
 }
 .pager .dots{ font-size:.95rem; font-weight:900; color:var(--ink-soft); min-width:3.5em; text-align:center; }
+/* 쪽 넘김이 **아래 단추와 한 줄**에 있을 때 (2026-08-26).
+   ⛔ `.panel-action .btn{width:100%}` 때문에 그냥 두면 단추가 한 줄을 통째로
+      차지해 쪽 넘김이 아래로 밀립니다 — 합친 뜻이 없어집니다. */
+.panel-action.with-pager{ display:flex; align-items:center; gap:.7rem; }
+.panel-action.with-pager .pager{ padding:0; }
+.panel-action.with-pager .btn{ width:auto; flex:1 1 auto; }
 .pager-btn{
   width:46px; height:46px; border-radius:999px;
   border:2px solid var(--line); background:#fff; box-shadow:var(--shadow);
@@ -1423,6 +1429,9 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 }
 /* 1. 우리 반 학생 — 줄이 카드 폭을 다 먹지 않게 (2026-08-26 · 선생님 말씀) */
 .stu-edit{ max-width:36rem; }
+/* 이름 칸은 **「이름 또는 별명」이 보일 만큼**은 지킵니다 (2026-08-26).
+   ⛔ min-width:0 으로 두지 마세요 — 옆 단추들에 밀려 글자 한 자도 안 보입니다. */
+.stu-name-in{ flex:1 1 11rem; min-width:11rem; }
 .tchoice.ghost{ color:var(--warn); border-color:#eec3b6; }
 .tchoice.add{ background:#dff1fb; border-color:#a9dcf5; color:#125b7d; }
 .tchoice[disabled]{ opacity:.4; cursor:default; box-shadow:none; }

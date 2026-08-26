@@ -874,14 +874,21 @@
            onTouchStart=${onTouchStart} onTouchEnd=${onTouchEnd}>
         ${p.children}
       </div>
-      ${s.pages > 1 && html`<div class="pager">
-        <button type="button" class="pager-btn" aria-label="앞 페이지" disabled=${s.page === 0}
-          onClick=${function () { go(-1); }}>‹</button>
-        <span class="dots" role="status" aria-live="polite">${s.page + 1} / ${s.pages}</span>
-        <button type="button" class="pager-btn" aria-label="다음 페이지" disabled=${s.page >= s.pages - 1}
-          onClick=${function () { go(1); }}>›</button>
+      <!-- ★ 쪽 넘김을 **아래 단추와 한 줄로** 합쳤습니다 (2026-08-26 · 선생님 결정).
+             예전에는 「‹ 1/2 ›」가 제 줄을 따로 써서 61px 를 먹었습니다.
+             그만큼 카드 자리가 줄어, 2·3단계에서는 한 쪽에 여섯이 아니라
+             **셋만** 보였습니다 (노트북 1366x768 에서 카드 자리 249px).
+           ⛔ 다시 두 줄로 가르지 마세요 — 「한 쪽에 여섯」 규칙이 깨집니다. -->
+      ${(s.pages > 1 || p.action) && html`<div class=${'panel-action' + (s.pages > 1 ? ' with-pager' : '')}>
+        ${s.pages > 1 && html`<div class="pager">
+          <button type="button" class="pager-btn" aria-label="앞 페이지" disabled=${s.page === 0}
+            onClick=${function () { go(-1); }}>‹</button>
+          <span class="dots" role="status" aria-live="polite">${s.page + 1} / ${s.pages}</span>
+          <button type="button" class="pager-btn" aria-label="다음 페이지" disabled=${s.page >= s.pages - 1}
+            onClick=${function () { go(1); }}>›</button>
+        </div>`}
+        ${p.action}
       </div>`}
-      ${p.action && html`<div class="panel-action">${p.action}</div>`}
       </div>
     </div>`;
   };

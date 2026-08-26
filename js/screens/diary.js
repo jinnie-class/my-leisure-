@@ -1800,7 +1800,12 @@
              한 장으로 보여 주어야 하는 화면인데, 다단은 조금만 넘쳐도
              통째로 밀어내어 1쪽이 텅 빕니다. 나누지 않고 줄여서 맞춥니다
              (useFitOnePage). ⛔ 지우지 마세요 — 세 번 되풀이된 고장입니다. -->
-      <${C.Stage} top=${backBtn} action=${action} onePage=${isConfirm} tall=${isConfirm}>${body}<//>
+      <!-- ★ tall 을 **늘** 켭니다 (2026-08-26 · 선생님 결정).
+             흰 칸이 85% 만 쓰면 그 15% 가 그대로 카드에서 빠집니다.
+             2단계에서는 문장 틀이 213px 를 쓰는 터라, 남은 자리로는 카드가
+             한 쪽에 셋밖에 안 들어갔습니다 (한 쪽에 여섯 규칙이 깨짐).
+           ⛔ isConfirm 일 때만으로 되돌리지 마세요. -->
+      <${C.Stage} top=${backBtn} action=${action} onePage=${isConfirm} tall=${true}>${body}<//>
 
       ${helpS[0] && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
         actions=${html`<${C.Btn} onClick=${function () { helpS[1](false); }}>닫기<//>`}>

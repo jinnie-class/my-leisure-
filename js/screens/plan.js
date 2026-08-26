@@ -801,7 +801,9 @@
         ${!saved && html`<${C.Dots} total=${KEYS.length} current=${step} />`}
       <//>
 
-      <${C.Stage} top=${backBtn} action=${action}>${body()}<//>
+      <!-- ★ tall — 흰 칸을 가득 씁니다 (2026-08-26 · 일기 화면과 같은 까닭).
+             85% 만 쓰면 그 15% 가 그대로 고르는 카드에서 빠집니다. -->
+      <${C.Stage} top=${backBtn} action=${action} tall=${true}>${body()}<//>
     </div>`;
   };
 })();

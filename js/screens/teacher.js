@@ -126,12 +126,19 @@
     /* --------------- 1. 우리 반 학생 --------------- */
     function studentRow(s) {
       return html`<div key=${s.id} class="stu-edit">
-        <div class="row" style=${{ gap: '.5rem', flexWrap: 'nowrap' }}>
+        <!-- ⛔ nowrap 으로 두지 마세요 (2026-08-26 · 선생님 말씀 — 「이름칸이 좀더
+               폭이 있으면 좋겠어. 이름 쓰기전에 뭐라고 쓰여있는지도 안보여」).
+               설정이 두 칸 배열로 바뀌면서 이 줄이 절반 폭에 들어갔는데,
+               nowrap 이라 여섯 가지가 서로 밀어 **이름 칸만 끝까지 눌렸습니다.**
+               「이름 또는 별명」이 한 글자도 안 보였습니다.
+             ▸ 이제 자리가 모자라면 줄을 바꿉니다. 이름 칸은 아래 min-width 로
+               placeholder 가 보일 만큼은 지킵니다. -->
+        <div class="row" style=${{ gap: '.5rem', flexWrap: 'wrap' }}>
           <button type="button" class="stu-mark" title="이름 앞 그림 바꾸기"
             aria-label=${s.name + ' 이름 앞 그림 바꾸기'}
             onClick=${function () { markOpen[1](markOpen[0] === s.id ? null : s.id); }}>${s.mark || '🌸'}</button>
 
-          <input class="field" style=${{ flex: '1 1 auto', minWidth: 0 }} value=${s.name}
+          <input class="field stu-name-in" value=${s.name}
             placeholder="이름 또는 별명"
             onChange=${function (e) { upd(s.id, { name: e.target.value }); }} />
 
