@@ -155,6 +155,14 @@
      색은 CSS 의 color 값을 따라갑니다(currentColor).
      ----------------------------------------------------------------- */
   var UI = {
+    /* 소리 켬/끔 단추용 음표 (2026-08-26) — 읽어주기(스피커)와 다른 그림.
+       ⚠ IconBtn 의 선 아이콘은 이 UI 목록에서만 찾습니다 — ICONS 에만 넣으면
+         물음표로 나옵니다 (실제로 그랬습니다). */
+    music: '<path d="M14 34V11l16-3.4v21" stroke-width="3.3"/>' +
+           '<circle cx="9.8" cy="34" r="4.8" fill="currentColor" stroke="none"/>' +
+           '<circle cx="25.8" cy="28.6" r="4.8" fill="currentColor" stroke="none"/>' +
+           '<path d="M33.5 17c3.2 2.8 3.2 7.6 0 10.4" stroke="#2bb3ab" stroke-width="3.2"/>' +
+           '<path d="M38.6 12.6c5.4 5 5.4 13 0 17.8" stroke="#2bb3ab" stroke-width="3.2"/>',
     /* 스피커 몸통은 꽉 찬 모양, 소리 물결은 청록색 — 한눈에 '소리'로 읽히게.
        그림 전체가 동그라미 한가운데 오도록 좌우 균형을 맞춰 두었습니다. */
     speaker: '<g transform="translate(-2.5,0)">' +

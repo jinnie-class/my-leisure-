@@ -56,13 +56,17 @@
   /* ------------------------- 한 줄짜리 고르기 ------------------------- */
   /* wide : 알약이 **한 줄로 늘어설 만큼** 넓게 (3. 일기 쓰기 수준 · 4. 계획 방식).
      셋을 나란히 놓고 견주어야 고르기 쉽습니다. */
+  /* it.sub 를 주면 **두 줄**(이름 / 설명)로 나옵니다 — 3. 일기 수준 · 4. 계획 방식.
+     고른 표시는 ✓ 없이 색(파란 테두리)으로만 합니다 (2026-08-26 · 선생님 말씀). */
   function Choices(p) {
     return html`<div class=${'wrap' + (p.wide ? ' tlevels' : '')}>
       ${p.items.map(function (it) {
         var on = p.value === it.id;
         return html`<button key=${it.id} type="button" class=${'tchoice' + (on ? ' on' : '')}
           aria-pressed=${on ? 'true' : 'false'}
-          onClick=${function () { p.onPick(it.id); }}>${on ? '✓ ' : ''}${it.name}</button>`;
+          onClick=${function () { p.onPick(it.id); }}>${it.sub
+            ? html`<span class="t-name">${it.name}</span><span class="t-sub">${it.sub}</span>`
+            : it.name}</button>`;
       })}
     </div>`;
   }
@@ -76,6 +80,7 @@
     var newActS = useState(null);          // '우리 반 활동 더하기' 창
     var newPartnerS = useState(false);     // '함께하는 사람 더하기' 창
     var newMoodS = useState(false);        // '기분 더하기' 창
+    var recListS = useState(false);        // 11번 '기록 모두 보기' 창
     var current = App.store.current();
     var students = store.students;
     var customs = store.customActivities || [];
@@ -134,8 +139,9 @@
             style=${{ flex: '0 0 auto' }}
             aria-label=${(s.name || '이 학생') + ' 캐릭터 고르기'}
             onClick=${function () { p.nav('avatar', { studentId: s.id, from: 'teacher' }); }}>
+            <!-- 「캐릭터」 글자는 뺐습니다 (2026-08-26) — 그림이 곧 뜻이고,
+                 aria-label 이 화면 낭독기에 뜻을 전합니다. -->
             <span class="stu-av"><${C.AvatarArt} student=${s} /></span>
-            <span>캐릭터</span>
           </button>
 
           <div class="wrap" style=${{ flex: '0 0 auto', gap: '.3rem' }}>
@@ -210,8 +216,12 @@
 
         <div class="tsec">
           <label>3. 일기 쓰기 수준</label>
+          <!-- 설명 줄바꿈은 선생님이 정해 주신 자리 그대로입니다 (2026-08-26) -->
           <${Choices} value=${current.diaryLevel}
-            items=${App.DATA.diaryLevels.map(function (l) { return { id: l.id, name: l.name + ' · ' + l.desc }; })}
+            items=${App.DATA.diaryLevels.map(function (l) {
+              var subs = { 1: '그림으로\n골라 쓰기', 2: '문장 틀\n완성하기', 3: '자유롭게\n쓰기' };
+              return { id: l.id, name: l.name, sub: subs[l.id] || l.desc };
+            })}
             wide=${true}
             onPick=${function (v) { upd(current.id, { diaryLevel: v }); }} />
           <p class="muted small">${(App.DATA.diaryLevels.filter(function (l) { return l.id === current.diaryLevel; })[0] || {}).guide || ''}</p>
@@ -220,14 +230,18 @@
         <div class="tsec">
           <label>4. 계획 방식</label>
           <${Choices} value=${current.planLevel}
-            items=${App.DATA.planLevels.map(function (l) { return { id: l.id, name: l.name + ' · ' + l.desc }; })}
+            items=${App.DATA.planLevels.map(function (l) {
+              var subs = { easy: '활동 · 함께하는 사람\n날짜 · 장소',
+                           detail: '시간 · 준비물\n메모까지' };
+              return { id: l.id, name: l.name, sub: subs[l.id] || l.desc };
+            })}
             wide=${true}
             onPick=${function (v) { upd(current.id, { planLevel: v }); }} />
         </div>
 
-        <div class="tsec inline">
-          <!-- inline : 고를 것이 둘뿐이라 **이름표 옆**에 나란히 놓습니다.
-                 아래로 내리면 짧은 항목이 두 줄을 차지해 목록이 길어집니다. -->
+        <div class="tsec">
+          <!-- inline(이름표 옆 나란히)을 풀었습니다 (2026-08-26) — 두 칸 배열이
+               되면서 6번과 짝인데, 5번만 제목이 줄 가운데 있으면 어긋나 보입니다. -->
           <label>5. 음성 안내 · 사진 첨부</label>
           <div class="wrap">
             <${C.Switch} label="음성 안내" on=${current.voice !== false}
@@ -261,16 +275,21 @@
         <div class="tsec">
           <label>7. 함께하는 사람 선택지</label>
           <div class="wrap">
+            <!-- ★ 「모두」 = 한 번에 전부 켜기 (2026-08-26 · 선생님 말씀) -->
+            <button type="button" class="tchoice sm" aria-label="사람 모두 켜기"
+              onClick=${function () {
+                upd(current.id, { partnerIds: App.DATA.partners.map(function (x) { return x.id; }) });
+              }}>모두</button>
             ${App.DATA.partners.map(function (x) {
               var on = (current.partnerIds || []).indexOf(x.id) >= 0;
               return html`<button key=${x.id} type="button"
                 class=${'tchoice' + (on ? ' on' : '') + (x.custom ? ' mine' : '')}
                 aria-pressed=${on} onClick=${function () { toggleIn('partnerIds', App.DATA.partners, x.id); }}>
-                ${on ? '✓ ' : ''}${x.name}</button>`;
+                ${x.name}</button>`;
             })}
-            <!-- 학급마다 함께하는 사람이 다릅니다 (사촌 · 이웃 · 활동보조 선생님 …) -->
-            <button type="button" class="tchoice add"
-              onClick=${function () { newPartnerS[1](true); }}>＋ 사람 더하기</button>
+            <!-- 학급마다 함께하는 사람이 다릅니다. 글자는 ＋ 하나만 (aria 로 뜻 전달) -->
+            <button type="button" class="tchoice add" aria-label="사람 더하기" title="사람 더하기"
+              onClick=${function () { newPartnerS[1](true); }}>＋</button>
           </div>
           <!-- 더한 사람은 지울 수도 있어야 합니다. 기본 일곱은 끄기만 됩니다. -->
           ${App.DATA.partners.filter(function (x) { return x.custom; }).length ? html`
@@ -314,15 +333,19 @@
         <div class="tsec">
           <label>8. 기분 선택지</label>
           <div class="wrap">
+            <button type="button" class="tchoice sm" aria-label="기분 모두 켜기"
+              onClick=${function () {
+                upd(current.id, { moodIds: App.DATA.moods.map(function (x) { return x.id; }) });
+              }}>모두</button>
             ${App.DATA.moods.map(function (x) {
               var on = (current.moodIds || []).indexOf(x.id) >= 0;
               return html`<button key=${x.id} type="button"
                 class=${'tchoice' + (on ? ' on' : '') + (x.custom ? ' mine' : '')}
                 aria-pressed=${on} onClick=${function () { toggleIn('moodIds', App.DATA.moods, x.id); }}>
-                ${on ? '✓ ' : ''}${x.name}</button>`;
+                ${x.name}</button>`;
             })}
-            <button type="button" class="tchoice add"
-              onClick=${function () { newMoodS[1](true); }}>＋ 기분 더하기</button>
+            <button type="button" class="tchoice add" aria-label="기분 더하기" title="기분 더하기"
+              onClick=${function () { newMoodS[1](true); }}>＋</button>
           </div>
           ${App.DATA.moods.filter(function (x) { return x.custom; }).length ? html`
             <p class="muted small" style=${{ marginTop: '.35rem' }}>
@@ -337,50 +360,55 @@
             </p>` : null}
         </div>
 
-        <div class="tsec">
-          <label>9. 학생에게 보여줄 활동</label>
-          ${['indoor', 'outdoor'].map(function (area) {
-            return html`<div key=${area} style=${{ marginTop: '.4rem' }}>
-              <!-- 크고 진하게 — 흐린 작은 글씨로 두었더니 실내와 실외가
-                   갈리는 자리가 눈에 안 띄어 한 덩어리로 보였습니다. -->
-              <p class="tsub">${area === 'indoor' ? '실내' : '실외'}</p>
-              <div class="wrap">
-                ${App.topCards(area).map(function (c) {
-                  var off = hidden.indexOf(c.id) >= 0;
-                  return html`<button key=${c.id} type="button"
-                    class=${'tchoice' + (off ? '' : ' on') + (c.custom ? ' mine' : '')}
-                    aria-pressed=${!off} onClick=${function () { toggleAct(c.id); }}>
-                    ${off ? '' : '✓ '}${c.name}</button>`;
-                })}
-                <!-- 학급 특성에 맞게 활동을 더합니다 -->
-                <button type="button" class="tchoice add"
-                  onClick=${function () { newActS[1]({ area: area, name: '', place: '', icon: 'star' }); }}>
-                  ＋ ${area === 'indoor' ? '실내' : '실외'} 활동 더하기</button>
-              </div>
-            </div>`;
-          })}
-          <p class="muted small" style=${{ marginTop: '.3rem' }}>체크된 활동만 학생 화면에 나옵니다.</p>
-
-          ${customs.length ? html`<div style=${{ marginTop: '.5rem' }}>
-            <p class="muted small">우리 반 활동 (선생님이 더한 활동)</p>
-            <div class="stack" style=${{ gap: '.3rem' }}>
-              ${customs.map(function (a) {
-                return html`<div key=${a.id} class="row" style=${{ gap: '.4rem' }}>
-                  <span class="chip">${a.area === 'indoor' ? '실내' : '실외'}</span>
-                  <b class="grow small">${a.name}</b>
-                  ${a.defaultPlace && html`<span class="chip">${a.defaultPlace}</span>`}
-                  <button type="button" class="tchoice sm danger"
-                    onClick=${function () {
-                      App.ui.confirm({ title: '「' + a.name + '」 활동을 지울까요?',
-                        body: '이미 쓴 계획·일기는 그대로 남습니다.',
-                        okText: '지울래요', cancelText: '그만두기', tone: 'danger' })
-                        .then(function (ok) { if (ok) App.store.removeActivity(a.id); });
-                    }}>지우기</button>
-                </div>`;
+        <!-- ★ 9번을 **실내 / 실외 두 칸**으로 갈랐습니다 (2026-08-26 · 선생님 말씀).
+               한 칸에 45개가 다 있으면 실내·실외 경계가 눈에 안 띄었고,
+               두 칸 배열(카드 격자)과도 짝이 맞습니다. -->
+        ${['indoor', 'outdoor'].map(function (area) {
+          var isIn = area === 'indoor';
+          var mine = customs.filter(function (a) { return a.area === area; });
+          return html`<div key=${area} class="tsec">
+            <label>${isIn ? '9-1. 학생 활동(실내)' : '9-2. 학생 활동(실외)'}</label>
+            <div class="wrap">
+              <button type="button" class="tchoice sm" aria-label="활동 모두 켜기"
+                onClick=${function () {
+                  var ids = App.topCards(area).map(function (c) { return c.id; });
+                  upd(current.id, { hiddenActivityIds:
+                    hidden.filter(function (h) { return ids.indexOf(h) < 0; }) });
+                }}>모두</button>
+              ${App.topCards(area).map(function (c) {
+                var off = hidden.indexOf(c.id) >= 0;
+                return html`<button key=${c.id} type="button"
+                  class=${'tchoice' + (off ? '' : ' on') + (c.custom ? ' mine' : '')}
+                  aria-pressed=${!off} onClick=${function () { toggleAct(c.id); }}>
+                  ${c.name}</button>`;
               })}
+              <!-- 학급 특성에 맞게 활동을 더합니다. 글자는 ＋ 하나만 -->
+              <button type="button" class="tchoice add" aria-label="활동 더하기" title="활동 더하기"
+                onClick=${function () { newActS[1]({ area: area, name: '', place: '', icon: 'star' }); }}>
+                ＋</button>
             </div>
-          </div>` : null}
-        </div>
+            ${isIn && html`<p class="muted small" style=${{ marginTop: '.3rem' }}>
+              색이 켜진 활동만 학생 화면에 나옵니다.</p>`}
+            ${mine.length ? html`<div style=${{ marginTop: '.5rem' }}>
+              <p class="muted small">우리 반 활동 (선생님이 더한 활동)</p>
+              <div class="stack" style=${{ gap: '.3rem' }}>
+                ${mine.map(function (a) {
+                  return html`<div key=${a.id} class="row" style=${{ gap: '.4rem' }}>
+                    <b class="grow small">${a.name}</b>
+                    ${a.defaultPlace && html`<span class="chip">${a.defaultPlace}</span>`}
+                    <button type="button" class="tchoice sm danger"
+                      onClick=${function () {
+                        App.ui.confirm({ title: '「' + a.name + '」 활동을 지울까요?',
+                          body: '이미 쓴 계획·일기는 그대로 남습니다.',
+                          okText: '지울래요', cancelText: '그만두기', tone: 'danger' })
+                          .then(function (ok) { if (ok) App.store.removeActivity(a.id); });
+                      }}>지우기</button>
+                  </div>`;
+                })}
+              </div>
+            </div>` : null}
+          </div>`;
+        })}
 
         <div class="tsec">
           <label>10. 포트폴리오 기간</label>
@@ -404,8 +432,13 @@
 
         <div class="tsec">
           <label>11. ${current.name} 학생의 기록</label>
-          <div class="stack" style=${{ gap: '.35rem' }}>
-            ${App.store.diaries(current.id).map(function (d) {
+          <!-- ★ **최근 3개만** 보여 줍니다 (2026-08-26 · 선생님 말씀).
+                 기록이 쌓이면 이 칸이 옆 칸보다 한없이 길어졌습니다.
+                 나머지는 「더 보기」 팝업에서 봅니다. -->
+          ${(function () {
+            var all = App.store.diaries(current.id);
+            var recent = all.slice(-3).reverse();     /* 최근 것이 위로 */
+            function diaryRow(d) {
               return html`<div key=${d.id} class="row" style=${{ gap: '.4rem' }}>
                 <span class="chip">${App.fmtDateShort(d.date)}</span>
                 <b class="grow small">${(App.act(d.activityId) || {}).name || ''}</b>
@@ -418,9 +451,26 @@
                   ).then(function (ok) { if (ok) App.store.removeDiary(d.id); });
                 }}>지우기</button>
               </div>`;
-            })}
-            ${!App.store.diaries(current.id).length && html`<p class="muted small">아직 일기가 없어요.</p>`}
-          </div>
+            }
+            return html`<${React.Fragment}>
+              <div class="stack" style=${{ gap: '.35rem' }}>
+                ${recent.map(diaryRow)}
+                ${!all.length && html`<p class="muted small">아직 일기가 없어요.</p>`}
+              </div>
+              ${all.length > 3 && html`<div class="wrap" style=${{ marginTop: '.45rem' }}>
+                <button type="button" class="tchoice sm"
+                  onClick=${function () { recListS[1](true); }}>
+                  더 보기 (모두 ${all.length}개)</button>
+              </div>`}
+              ${recListS[0] && html`<${C.Modal} title=${current.name + ' 학생의 기록 모두 보기'}
+                speak=${false} onClose=${function () { recListS[1](false); }}
+                actions=${html`<${C.Btn} onClick=${function () { recListS[1](false); }}>닫기<//>`}>
+                <div class="stack" style=${{ gap: '.35rem', maxHeight: '60vh', overflowY: 'auto' }}>
+                  ${all.slice().reverse().map(diaryRow)}
+                </div>
+              <//>`}
+            <//>`;
+          })()}
         </div>
       <//>`;
     }

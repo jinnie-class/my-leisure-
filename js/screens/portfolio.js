@@ -219,45 +219,12 @@
      ★ 한 줄에 **셋**입니다. 넷씩 놓았더니 그림이 작아 보기 힘들고, 한 번에
        여덟 개가 쏟아져 학생이 무엇을 볼지 헤맸습니다. 셋이면 칸이 넓어
        그림이 크고, 한 쪽에 여섯이라 한눈에 담깁니다. */
-  var PER_PAGE = 6;
-  /* per 를 주면 그만큼씩 끊습니다 (일기 카드는 키가 커서 **넉 장**씩) */
-  function pageOf(list, pg, per) {
-    var n = per || PER_PAGE;
-    var pages = Math.max(1, Math.ceil((list || []).length / n));
-    var p = Math.min(Math.max(0, pg || 0), pages - 1);
-    return { pages: pages, page: p, items: (list || []).slice(p * n, p * n + n) };
-  }
-  /* info : pageOf 가 낸 것 · onGo(새 쪽번호) · gridCls : 안쪽 격자의 class
-     hideCount : `1 / 2` 를 여기 말고 **다른 데**(칸 머리줄) 에 둘 때 씁니다.
-       한 줄이 18px 인데, 창이 둘이면 36px 입니다. 그만큼 그림이 작아집니다. */
-  function flowBox(info, onGo, gridCls, kids, label, hideCount) {
-    var multi = info.pages > 1;
-    function arrow(dir) {
-      var off = dir < 0;
-      return html`<button type="button" class="flow-arrow"
-          aria-label=${(label || '') + (off ? ' 앞으로' : ' 다음')}
-          disabled=${off ? info.page === 0 : info.page >= info.pages - 1}
-          onClick=${function () { onGo(info.page + dir); }}>
-        <span class="ico" aria-hidden="true"
-          dangerouslySetInnerHTML=${{ __html: App.icon(off ? 'back' : 'next') }} />
-      </button>`;
-    }
-    return html`<div class="flow">
-      ${multi ? arrow(-1) : null}
-      <div class="flow-mid">
-        <div class=${gridCls}>${kids}</div>
-        ${(multi && !hideCount) ? html`<span class="flow-n" role="status" aria-live="polite">
-          ${info.page + 1} / ${info.pages}</span>` : null}
-      </div>
-      ${multi ? arrow(1) : null}
-    </div>`;
-  }
-  /* ★ 첫 화면(home.js)의 「오늘의 여가 계획」도 **이 화살표**를 씁니다.
-       학생이 포트폴리오에서 이미 본 모습이라 따로 배울 것이 없습니다.
-     ⛔ 저쪽에 화살표를 따로 만들지 마세요 — 모양이 언젠가 어긋납니다.
-        여기 한 곳에서만 만들고 가져다 씁니다. */
-  App.pageOf = pageOf;
-  App.flowBox = flowBox;
+  /* ★ pageOf · flowBox 는 **common.js 로 옮겼습니다** (2026-08-26 · 인수인계 19-3).
+       화면 파일(여기)에 공용 헬퍼를 두면, 그것을 쓰는 home.js 가
+       **불러오는 차례** 덕분에 우연히 돌아가는 층위 역전이었습니다.
+     ⛔ 여기 도로 만들지 마세요 — App.pageOf · App.flowBox 를 그대로 쓰면 됩니다.
+     ▸ 이 파일 안의 옛 호출(pageOf(...))이 그대로 돌도록 별칭만 둡니다. */
+  var pageOf = App.pageOf, flowBox = App.flowBox;
 
   /* ------------------------- 기간 계산 ------------------------- */
   function rangeOf(student) {
@@ -982,8 +949,8 @@
         <div class="map-print-board">
           ${App.IMAGE_BASE.mapBoard && html`<img class="mb-bg"
             src=${App.imgUrl(App.IMAGE_BASE.mapBoard)} alt="" />`}
-          <span class="mb-isle in">실내 여가 섬</span>
-          <span class="mb-isle out">실외 여가 섬</span>
+          <span class="mb-isle in">여가 섬(실내)</span>
+          <span class="mb-isle out">여가 섬(실외)</span>
           ${mine.map(function (c) {
             var pos = layout[c.id];
             var mk = mainMark(c.id);
@@ -1057,8 +1024,8 @@
         <div class="map-print-board">
           ${App.IMAGE_BASE.mapBoard && html`<img class="mb-bg"
             src=${App.imgUrl(App.IMAGE_BASE.mapBoard)} alt="" />`}
-          <span class="mb-isle in">실내 여가 섬</span>
-          <span class="mb-isle out">실외 여가 섬</span>
+          <span class="mb-isle in">여가 섬(실내)</span>
+          <span class="mb-isle out">여가 섬(실외)</span>
         </div>
         <div class="map-print-legend">
           ${App.DATA.mapStates.map(function (m) {
@@ -1140,8 +1107,8 @@
             <!-- 섬 이름표 — **하늘 자리**에 둡니다. 섬 그림을 가리지 않으면서
                  어느 쪽이 실내이고 실외인지 한눈에 알려 줍니다.
                  색은 앱이 이미 쓰는 실내=주황 · 실외=파랑 그대로입니다. -->
-            <span class="mb-isle in">실내 여가 섬</span>
-            <span class="mb-isle out">실외 여가 섬</span>
+            <span class="mb-isle in">여가 섬(실내)</span>
+            <span class="mb-isle out">여가 섬(실외)</span>
             ${placed.map(function (c) { return card(c, layout[c.id]); })}
           </div>
         </div>
@@ -1635,14 +1602,6 @@
             여가 포트폴리오<//>`}
         ${folioTools && tab[0] === 'pick' && !folioTab[0] && html`<${C.Btn} size="small" icon="gear"
           className="pastel-blue" onClick=${function () { toolsS[1](true); }}>선생님 도구<//>`}
-        <!-- ★ **누구의 것인지가 화면 안에 크게 있는 창**에서는 여기에 두지
-               않습니다. 같은 말이 두 번 보입니다.
-                 첫 화면      → 왼쪽 「나」 칸
-                 나의 한마디  → 아래 바의 나 캐릭터
-             ▸ 나머지 창은 화면이 기록으로 채워지므로, 다른 화면과 똑같이
-               맨 위 줄 오른쪽 끝에 알약으로 둡니다. -->
-        ${(tab[0] !== 'pick' || (folioTab[0] && folioTab[0] !== 'me'))
-          && html`<${C.WhoChip} student=${student} />`}
       <//>
 
       <!-- 흰 칸 맨 아래 단추

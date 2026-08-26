@@ -1062,7 +1062,6 @@
         onTitle=${function () { p.nav("home"); }}
         below=${modeBar}>
         <${C.Speak} text=${d ? App.sentences.diaryBody(d) : '일기를 찾을 수 없어요.'} />
-        <${C.WhoChip} student=${student} />
       <//>
 
       <div class="stage">
@@ -1222,7 +1221,6 @@
              하므로, 같은 뜻의 단추가 둘이면 어느 것을 눌러야 할지 헷갈립니다.
              ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
         <${C.Speak} text=${'일기를 고쳐요. 그림을 고칠까요, 글을 고칠까요?'} />
-        <${C.WhoChip} student=${student} />
       <//>
 
       <!-- 맨 아래 : 인쇄와 담기를 **따로** 둡니다.
@@ -1385,7 +1383,6 @@
         <${C.Speak} text=${list.length
           ? '지금까지 쓴 일기가 ' + list.length + '장 모였어요.'
           : '아직 모인 일기가 없어요. 여가 일기를 써 보아요.'} />
-        <${C.WhoChip} student=${student} />
       <//>
 
       <!-- ★ 맨 아래 줄 : 왼쪽 인쇄 · 오른쪽 나가기.
@@ -1396,8 +1393,6 @@
         action=${html`<div class="fix-acts">
           <${C.Btn} kind="primary" icon="print" disabled=${!list.length}
             onClick=${printBook}>일기 모음을 책으로 인쇄하기<//>
-          <${C.Btn} icon="home" className="pastel-yellow"
-            onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>
         </div>`}>
         <${C.Question} bar=${true}
           speakText=${'나의 일기 모음. 모두 ' + list.length + '장이에요.'}>

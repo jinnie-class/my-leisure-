@@ -236,9 +236,12 @@
         speechName: '자석놀이',
         planText: '자석놀이를 할 거예요', diaryText: '자석놀이를 했어요',
         defaultPlace: '교실', defaultSupplies: ['자석', '클립'] }),
-    A({ id: 'pet-in', area: 'indoor', name: '반려동물과 실내에서 놀기', icon: 'pet', imageKey: '반려동물과 실내에서 놀기',
-        speechName: '반려동물과 실내에서 놀기',
-        planText: '반려동물과 실내에서 놀 거예요', diaryText: '반려동물과 실내에서 놀았어요',
+    /* ★ 이름에서 「실내에서」를 뺐습니다 (2026-08-26 · 선생님 말씀 —
+         활동 이름에 장소를 넣지 않는 규칙 8-18(17)과도 맞습니다).
+       ⛔ imageKey 는 그림 **파일 이름 그대로**라 바꾸지 않습니다. */
+    A({ id: 'pet-in', area: 'indoor', name: '반려동물과 놀기', icon: 'pet', imageKey: '반려동물과 실내에서 놀기',
+        speechName: '반려동물과 놀기',
+        planText: '반려동물과 놀 거예요', diaryText: '반려동물과 놀았어요',
         defaultPlace: '집', defaultSupplies: ['사료', '장난감', '간식'] }),
     A({ id: 'tv', area: 'indoor', name: 'TV 보기', icon: 'tv', imageKey: 'TV 보기', speechName: '티브이 보기',
         planText: 'TV를 볼 거예요', diaryText: 'TV를 봤어요',

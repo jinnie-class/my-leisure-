@@ -24,8 +24,9 @@
             ${App.sentences.plan(plan)}</b>
           ${done && html`<span class="star-badge" style=${{ marginTop: '.2rem' }}>✓ 일기까지 마쳤어요</span>`}
         </div>
+        <!-- 두 단추 크기 통일 (2026-08-26 · 선생님 말씀 — small 을 뺐습니다) -->
         <div class="wrap" style=${{ flex: '0 0 auto', justifyContent: 'flex-end' }}>
-          <${C.Btn} size="small" icon="eye" onClick=${p.onView}>계획 보기<//>
+          <${C.Btn} icon="eye" onClick=${p.onView}>계획 보기<//>
           <${C.Btn} kind="primary" icon="check" onClick=${p.onDid}>
             ${done ? '일기 다시 쓰기' : '활동을 했어요'}<//>
         </div>
@@ -71,34 +72,26 @@
     var doneAll = student && !todays.length && !challengeOf(student)
                   && App.visibleCards(student).length > 0;
 
-    /* 표지로 가는 단추에 쓰는 `나의 여가` 글자 그림 (없으면 글자로 나옵니다) */
-    var coverWord = App.uiImage("coverWord");
-
     function goDiaryFromPlan(plan) {
       p.nav('diary', { planId: plan.id });
     }
 
+    /* 왼쪽 로고·오른쪽 홈·전체화면·설정·학생 이름표는 맨 위 줄(C.TopBar)이
+       모든 화면에 똑같이 그립니다 (2026-08-26 · 인수인계 20-1). */
     return html`<div class="app" data-corner="home">
-      <${C.TopBar}
-        left=${html`<button type="button" class="cover-word"
-            onClick=${function () { p.nav('cover'); }}
-            aria-label="표지로 가기" title="표지로 가기">
-          ${coverWord
-            ? html`<img src=${coverWord} alt="" />`
-            : html`<span class="cover-word-text">나의 여가</span>`}
-        </button>`}>
+      <${C.TopBar}>
         <${C.Speak} text=${'나의 여가. 내가 좋아하는 여가를 찾아보아요. ' +
           App.DATA.corners.map(function (c) { return c.name + ' ' + c.guide; }).join(' ')} />
-        <${C.WhoChip} student=${student} onClick=${function () { p.nav('profiles'); }}
-          extra=${html`<span class="small muted">바꾸기</span>`} />
       <//>
 
-      <${C.Stage}>
+      <!-- tall : 흰 칸이 화면 높이를 다 씁니다 (2026-08-26 — 아래가 비어 보여서).
+           남는 자리는 아래 CSS 가 제목·코너·계획 사이에 나눕니다 (--slack). -->
+      <${C.Stage} tall=${true}>
         <!-- 제목 밑 설명 한 줄을 없앴습니다.
              네 코너 그림만으로 무엇을 하는 곳인지 이미 알 수 있고,
              그만큼 코너 카드가 크게 보입니다. (읽어주기에는 그대로 남깁니다) -->
         <div class="sec home-title">
-          <h1>나의 여가</h1>
+          <h1>나의 여가를 만들어볼까요?</h1>
         </div>
 
         <div class="sec">

@@ -32,7 +32,10 @@
   App.ui = {
     subscribe: function (fn) { uiSubs.push(fn); return function () { uiSubs = uiSubs.filter(function (f) { return f !== fn; }); }; },
     peek: function () { return uiQueue; },
-    /* 확인창 : Promise<boolean> */
+    /* 확인창 : Promise<boolean>
+       ▸ opts.altText 를 주면 **가운데 단추**가 하나 더 생기고 'alt' 로 풀립니다
+         (예 : 여기까지 저장 / 저장 안 해요 / 계속 할래요).
+         Esc·바깥 누르기는 언제나 false(그대로 있기) — 실수로 닫아도 잃는 것이 없습니다. */
     confirm: function (opts) {
       return new Promise(function (resolve) {
         uiQueue.confirm = Object.assign({
@@ -88,6 +91,7 @@
         </div>
         <div class="acts">
           <button ref=${okRef} class=${'btn ' + (p.tone === 'danger' ? 'danger' : 'ok')} onClick=${function () { p._done(true); }}>${p.okText}</button>
+          ${p.altText && html`<button class="btn" onClick=${function () { p._done('alt'); }}>${p.altText}</button>`}
           <button class="btn" onClick=${function () { p._done(false); }}>${p.cancelText}</button>
         </div>
       </div>
@@ -360,36 +364,105 @@
      ▸ 화살표는 제목 앞 파란 세로줄보다 **더 앞**에 옵니다.
        그래야 '뒤로 → 제목' 순서로 눈이 자연스럽게 흐릅니다.
      ▸ 제목이 단추가 되면서 위에 비어 있던 자리가 쓰임새를 갖습니다. */
+  /* ── 화면을 떠나기 전 확인 (계획·일기의 「여기까지 저장할까요?」) ──
+     ★ 그 확인은 화면 안(leave 함수)에 사는데, 맨 위 줄의 홈·설정·학생 바꾸기는
+       **공용**이라 화면 사정을 모릅니다. 그래서 화면이 자기 확인 함수를
+       여기(App.leaveGuard)에 걸어 두면, 공용 단추가 그것을 거쳐서 갑니다.
+     ▸ 걸어 둔 화면이 없으면 그냥 갑니다. plan.js · diary.js 가 겁니다. */
+  App.leaveGuard = null;
+  App.goGuarded = function (name, params) {
+    var g = App.leaveGuard;
+    if (g) g(function () { App.nav(name, params); });
+    else App.nav(name, params);
+  };
+  App.goHome = function () { App.goGuarded('home'); };
+
+  /* ══════════ 맨 위 줄 (2026-08-26 대개편 · 인수인계 20-1) ══════════
+     ★ 자리 규칙 — 어느 화면에서나 같습니다 :
+       왼쪽  : [파란 화살표 = 앞 단계로] [나의 여가 = 홈으로] [화면 제목(글자만)]
+       오른쪽: [홈] [전체화면] [선생님 설정] [학생 이름표 = 바꾸기]
+     ▸ 예전에는 제목을 눌러도 홈, 화살표도 (첫 단계에선) 홈, 흰 칸 안
+       「나의 여가로 돌아가기」도 홈 — **셋이 같은 곳**이었습니다.
+       이제 홈 가는 길은 「나의 여가」 글자와 오른쪽 홈 단추 둘로 정리하고,
+       화살표는 **앞 단계로만** 갑니다. 제목은 그냥 이름표입니다.
+     ▸ 학생 이름표를 누르면 **어느 화면에서든** 다른 학생으로 바꿉니다.
+       계획·일기를 쓰는 중이면 「여기까지 저장할까요?」 를 먼저 묻습니다
+       (App.leaveGuard). */
   C.TopBar = function (p) {
-    var title = p.title && (p.onTitle
-      ? html`<button type="button" class="topbar-title as-btn" onClick=${p.onTitle}
-            aria-label=${p.titleLabel || (p.title + ' — 누르면 나의 여가로 가요')}
-            title=${p.titleLabel || '나의 여가로'}>
-          ${p.sub && html`<div class="sub">${p.sub}</div>`}
-          <div class="title">${p.title}</div>
-        </button>`
-      : html`<div class="topbar-title">
-          ${p.sub && html`<div class="sub">${p.sub}</div>`}
-          <div class="title">${p.title}</div>
-        </div>`);
+    App.useStore();
+    var me = App.store.current();
+    var switchS = useState(false);
+    var students = App.store.get().students;
+
+    function pickStudent(s) {
+      switchS[1](false);
+      /* 계획·일기를 쓰는 중이면 leaveGuard 가 「여기까지 저장할까요?」를 먼저
+         묻고, 「계속 할래요」가 아니면 아래 go 를 불러 줍니다. */
+      var go = function () {
+        App.store.setCurrent(s.id);
+        App.nav('home');
+        App.speakFor(s, s.name + ', 반가워요!');
+      };
+      var g = App.leaveGuard;
+      if (g) g(go); else go();
+    }
+
+    var title = p.title && html`<div class="topbar-title">
+        ${p.sub && html`<div class="sub">${p.sub}</div>`}
+        <div class="title">${p.title}</div>
+      </div>`;
+    var coverWord = App.uiImage('coverWord');
     return html`<header class=${'topbar pagepad' + (p.below ? ' two' : '')}>
       <div class="topbar-row">
         <!-- ★ backText 를 주면 화살표 **자리에 글자 단추**가 들어갑니다.
                화살표만으로는 어디로 가는지 몰라서 학생이 누르지 못한다는
-               이야기가 있었습니다. 갈 곳이 정해진 화면에서는 글로 적어 둡니다.
-             ▸ 자리는 그대로라 다른 화면과 어긋나지 않고, 흰 칸 높이도
-               한 픽셀도 먹지 않습니다 (아래에 두면 그림일기가 작아집니다). -->
+               이야기가 있었습니다. 갈 곳이 정해진 화면에서는 글로 적어 둡니다. -->
         ${p.onBack && (p.backText
-          ? html`<${C.Btn} size="small" icon="back" className="topbar-backbtn pastel-pink"
+          ? html`<${C.Btn} size="small" icon="back" className="topbar-backbtn pastel-blue"
               onClick=${p.onBack}>${p.backText}<//>`
           : html`<${C.IconBtn} uiKey="back" icon="back" className="topbar-back"
               label=${p.backLabel || '앞 화면으로'} onClick=${p.onBack} />`)}
         ${p.left}
+        <!-- ★ 로고 = 처음 화면(표지)으로 · 오른쪽 집 = 나의 여가(코너 넷)로
+               (2026-08-26 · 선생님 말씀 — 두 길을 가릅니다) -->
+        <button type="button" class="cover-word"
+            onClick=${function () { App.goGuarded('cover'); }}
+            aria-label="나의 여가 — 누르면 처음 화면(표지)으로 가요" title="처음 화면으로">
+          ${coverWord ? html`<img src=${coverWord} alt="" />`
+                      : html`<span class="cover-word-text">나의 여가</span>`}
+        </button>
         ${title}
         <div class="spacer"></div>
         ${p.children}
+        <${C.IconBtn} uiKey="home" icon="home" label="나의 여가로"
+          onClick=${App.goHome} />
+        <${C.FullscreenBtn} />
+        <${C.IconBtn} uiKey="gear" icon="gear" label="선생님 설정"
+          onClick=${function () { App.goGuarded('teacher'); }} />
+        <${C.WhoChip} student=${me} onClick=${function () { switchS[1](true); }} />
       </div>
       ${p.below && html`<div class="topbar-row below">${p.below}</div>`}
+
+      ${switchS[0] && html`<${C.Modal} title="누가 할까요?" onClose=${function () { switchS[1](false); }}
+        speakText="누가 할까요? 자기 이름을 눌러 주세요."
+        actions=${html`<${React.Fragment}>
+          <${C.Btn} onClick=${function () { switchS[1](false); App.goGuarded('profiles'); }}>학생 화면으로 가기<//>
+          <${C.Btn} onClick=${function () { switchS[1](false); }}>닫기<//>
+        <//>`}>
+        <div class="pick-grid cols-3 big">
+          ${students.map(function (s) {
+            var cur = me && s.id === me.id;
+            return html`<button key=${s.id} type="button" class=${'pick' + (cur ? ' sel' : '')}
+                aria-pressed=${cur ? 'true' : 'false'}
+                aria-label=${s.name + (cur ? ' (지금 학생)' : '')}
+                onClick=${function () { pickStudent(s); }}>
+              <span class="thumb"><${C.AvatarArt} student=${s} /></span>
+              <span class="label">${s.name}</span>
+              <span class="check" aria-hidden="true">✓</span>
+            </button>`;
+          })}
+        </div>
+      <//>`}
     </header>`;
   };
 
@@ -406,6 +479,50 @@
     </footer>`;
   };
 
+  /* ══════════ 쪽 나누기 공용 (2026-08-26 · 인수인계 19-3) ══════════
+     ★ 「고를 것이 많은 화면은 한 쪽에 여섯(3×2)」 이 이 앱의 규칙입니다.
+       숫자 6이 화면마다 PAGE_SIZE·WHO_PER·PLACE_PER … 다섯 이름으로
+       흩어져 있던 것을 **여기 하나**로 모았습니다.
+     ⛔ 화면 파일에 6을 다시 적지 마세요 — App.PAGE_SIZE 를 쓰세요.
+       (지도의 4·5개는 섬 배치에 맞춘 **다른 규칙**이라 그대로 둡니다) */
+  App.PAGE_SIZE = 6;
+
+  /* pageOf · flowBox — 예전에는 portfolio.js 에 있었습니다.
+     화면 파일에 공용 헬퍼가 살면 불러오는 차례에 기대는 층위 역전이라 옮겼습니다.
+     per 를 주면 그만큼씩 끊습니다 (일기 카드는 키가 커서 **넉 장**씩) */
+  App.pageOf = function (list, pg, per) {
+    var n = per || App.PAGE_SIZE;
+    var pages = Math.max(1, Math.ceil((list || []).length / n));
+    var p = Math.min(Math.max(0, pg || 0), pages - 1);
+    return { pages: pages, page: p, items: (list || []).slice(p * n, p * n + n) };
+  };
+  /* info : pageOf 가 낸 것 · onGo(새 쪽번호) · gridCls : 안쪽 격자의 class
+     hideCount : `1 / 2` 를 여기 말고 **다른 데**(칸 머리줄) 에 둘 때 씁니다.
+       한 줄이 18px 인데, 창이 둘이면 36px 입니다. 그만큼 그림이 작아집니다.
+     ★ 홈·포트폴리오가 **같은 화살표**를 씁니다 — 따로 만들지 마세요. */
+  App.flowBox = function (info, onGo, gridCls, kids, label, hideCount) {
+    var multi = info.pages > 1;
+    function arrow(dir) {
+      var off = dir < 0;
+      return html`<button type="button" class="flow-arrow"
+          aria-label=${(label || '') + (off ? ' 앞으로' : ' 다음')}
+          disabled=${off ? info.page === 0 : info.page >= info.pages - 1}
+          onClick=${function () { onGo(info.page + dir); }}>
+        <span class="ico" aria-hidden="true"
+          dangerouslySetInnerHTML=${{ __html: App.icon(off ? 'back' : 'next') }} />
+      </button>`;
+    }
+    return html`<div class="flow">
+      ${multi ? arrow(-1) : null}
+      <div class="flow-mid">
+        <div class=${gridCls}>${kids}</div>
+        ${(multi && !hideCount) ? html`<span class="flow-n" role="status" aria-live="polite">
+          ${info.page + 1} / ${info.pages}</span>` : null}
+      </div>
+      ${multi ? arrow(1) : null}
+    </div>`;
+  };
+
   /* 큰 점으로 보여 주는 진행 표시 — 글씨를 못 읽어도 어디쯤인지 알 수 있어요 */
   C.Dots = function (p) {
     var total = p.total, cur = p.current;
@@ -418,13 +535,22 @@
     </div>`;
   };
 
-  /* ======================= 단계 표시 ======================= */
+  /* ======================= 단계 표시 =======================
+     ★ 지나온 칸은 **눌러서 그 단계로 돌아갈 수 있습니다** (2026-08-26 · 선생님 말씀).
+       onGo(번호) 를 주면 ✓ 칸이 단추가 됩니다. 앞 단계(아직 안 한 것)는
+       누를 수 없습니다 — 건너뛰면 답하지 않은 질문이 생깁니다. */
   C.Steps = function (p) {
     return html`<nav class="steps" aria-label="진행 단계">
       ${p.steps.map(function (s, i) {
-        var cls = 'dot' + (i === p.current ? ' on' : (i < p.current ? ' done' : ''));
+        var done = i < p.current;
+        var cls = 'dot' + (i === p.current ? ' on' : (done ? ' done' : ''));
+        if (done && p.onGo) {
+          return html`<button key=${i} type="button" class=${cls + ' go'}
+            aria-label=${s + ' 단계로 돌아가기'}
+            onClick=${function () { p.onGo(i); }}>${'✓ ' + s}</button>`;
+        }
         return html`<span key=${i} class=${cls}
-          aria-current=${i === p.current ? 'step' : null}>${i < p.current ? '✓ ' : ''}${s}</span>`;
+          aria-current=${i === p.current ? 'step' : null}>${done ? '✓ ' : ''}${s}</span>`;
       })}
     </nav>`;
   };
@@ -787,32 +913,11 @@
         카드 위에 겹쳐 있었습니다 (2026-08-23).
      ▸ 그래서 여기에도 Stage 와 **같은 줄이기**를 넣습니다.
        다만 이어 채우기(.flowing)는 없습니다 — 넘겨 볼 쪽이 없으니까요. */
-  /* ======================= 세로로 돌려 주세요 =======================
-     ★ 이 앱은 **세로 화면**을 기준으로 만듭니다 (2026-08-23에 정했습니다).
-       가로로 눕힌 태블릿은 위아래가 절반밖에 안 돼서, 그림이 최소 크기까지
-       쪼그라들고도 모자라 화면이 좌우로 갈라집니다.
-         갤럭시탭 세로  … 흰 칸에 쓸 수 있는 높이 838px · 그림 250~300px
-         갤럭시탭 가로  … 337~559px · 그림 140~150px (더 못 줄임)
-     ▸ **태블릿·휴대폰만** 대상입니다. 손가락으로 쓰는 기기(pointer:coarse)이면서
-       가로이고 높이가 780px 아래일 때만 나옵니다.
-       ⛔ 전자칠판과 PC 는 가로여도 높이가 넉넉하므로 뜨지 않습니다.
-          (전자칠판도 손가락으로 쓰지만 화면이 커서 높이 조건에 안 걸립니다)
-     ▸ 막지는 않습니다. 「그냥 가로로 볼래요」 를 누르면 그대로 쓸 수 있습니다 —
-       기기 사정으로 세로가 안 되는 분을 가두면 안 됩니다. */
-  C.TurnHint = function () {
-    var offS = useState(false);
-    if (offS[0]) return null;
-    return html`<div class="turn-hint" role="note">
-      <div class="turn-card">
-        <div class="turn-emoji" aria-hidden="true">📱</div>
-        <b>태블릿을 세로로 돌려 주세요</b>
-        <div class="turn-say">세로로 세우면 그림이 두 배 크고,
-          고를 것이 한 화면에 다 보여요.</div>
-        <${C.Btn} size="small" onClick=${function () { offS[1](true); }}>
-          그냥 가로로 볼래요<//>
-      </div>
-    </div>`;
-  };
+  /* ======================= 세로로 돌려 주세요 — **없앴습니다** =======================
+     ★ 이 앱은 **가로모드 전용**으로 쓰기로 했습니다 (2026-08-25 · 선생님 말씀).
+       세로를 권하던 C.TurnHint 는 그 결정과 반대라 걷어냈습니다.
+       (app.css 의 .turn-hint 규칙 · app.js 의 호출도 함께 지웠습니다)
+     ⛔ 되살리려면 _이전버전/20260825_가로게임판_이전 을 보세요. */
 
   /* ═══════ ⛔⛔⛔ **마지막 그물 — 밖에서 지켜보기** (2026-08-24) ═══════
      `C.Stage` 안에서 아무리 촘촘히 재도, **어떤 화면에서는 재는 일 자체가
@@ -1313,7 +1418,14 @@
       });
     }
     function done() {
-      var url = cvRef.current.toDataURL('image/png');
+      /* ★ PNG → JPEG 0.85 (2026-08-25) : 손글씨 판(1000×760)이 PNG 로는
+           수백 KB 라, file:// 실행의 localStorage 폴백(5MB)을 몇 장에 채우고
+           그 뒤 **글자 기록 저장까지 함께 막았습니다.**
+         ▸ 바탕은 paintBase 가 늘 흰색으로 칠하므로 JPEG 로도 지장이 없습니다.
+         ▸ 사진 축소(photos.resize)와 같은 계열 품질입니다 (0.78~0.85). */
+      var url;
+      try { url = cvRef.current.toDataURL('image/jpeg', 0.85); }
+      catch (e) { url = cvRef.current.toDataURL('image/png'); }
       p.onDone(url);
     }
 

@@ -14,7 +14,13 @@
   --line-strong:#c7c7d6;
   --paper:    #ffffff;
   --paper-2:  #f7f8fc;
-  --bg:       #f6f8fc;
+  /* ★ B안 (2026-08-26 · 선생님 결정) : **회색 바탕 + 흰 스테이지 + 파랑 포인트 하나.**
+       바탕을 흰색에 가까운 #f6f8fc 에서 한 단 진한 회청색으로 내려,
+       흰 칸(무대)이 또렷이 떠 보이게 합니다. 벽지 그림도 껐습니다 (app.js). */
+  --bg:       #e9edf3;
+  /* 파랑 포인트 — 중요한 단추·고른 것 표시에 **이 한 색만** 씁니다.
+     (예전 하늘색 #5ec8f2 는 흰 글자와 대비가 모자랐습니다) */
+  --accent:   #2b7de9;
 
   /* 코너를 구별하는 색 — 작은 표시에만 쓰고 큰 면에는 칠하지 않습니다 */
   --sky:      #5ec8f2;   /* 계획하GO */
@@ -26,9 +32,9 @@
   --purple-deep:#b39ddb;
   --apricot-deep:#f5a86a;
 
-  /* 고른 것을 표시할 때 쓰는 옅은 바탕 */
+  /* 고른 것을 표시할 때 쓰는 옅은 바탕 — 파랑 포인트(--accent)와 같은 계열 */
   --sel-bg:   #f2f7ff;
-  --sel-line: #8fc9ee;
+  --sel-line: #9cc0f2;
 
   --ok:       #2fbf71;
   --warn:     #d1603d;
@@ -46,9 +52,27 @@
   --stage-gap: 34px;         /* 좌우 페이지 사이 간격 */
 
   /* 내용이 화면 끝까지 늘어지지 않도록 가운데 기둥에 모읍니다.
-     (GO! 문구마켓과 같은 폭 규칙 — 한눈에 들어오게 하기 위한 것) */
-  --page: 1060px;
+     (GO! 문구마켓과 같은 폭 규칙 — 한눈에 들어오게 하기 위한 것)
+     ★ 1060 → 1560 (2026-08-25 · 가로 게임판) : 이 앱은 **가로모드 전용**으로
+       쓰기로 했습니다. 가로 태블릿(1280)·전자칠판(1920)에서 좌우가 절반 가까이
+       비어 보여서, 흰 칸을 넓혀 카드와 그림이 그만큼 커지게 했습니다.
+       전자칠판에서도 1560 에서 멈춰 양옆 숨 쉴 자리는 남습니다. */
+  --page: 1560px;
   --gutter: 1rem;
+
+  /* ── 글자 크기 토큰 (2026-08-26 · 인수인계 19-2) ──────────────────
+     ★ 새 글자 크기는 **여기 토큰만** 쓰세요. 숫자를 새로 지어내면
+       화면마다 글자가 제각각이 됩니다 (점검에서 값 110종이 나왔습니다).
+     ▸ 기울기(vh 계수)를 단계마다 같은 비로 두어, 화면이 커져도
+       단계 사이 크기 차례가 뒤집히지 않습니다.
+       (제목 > 질문 > 큰단추 > 본문 > 보조 > 작게) */
+  --fs-title: clamp(1.30rem, .85rem + 1.30vh, 1.85rem);  /* 화면 제목 (topbar) */
+  --fs-q:     clamp(1.10rem, .72rem + 1.10vh, 1.57rem);  /* 질문 (제목의 85%) */
+  --fs-big:   clamp(1.20rem, .78rem + 1.20vh, 1.70rem);  /* 큰 단추 (지금 할 일) */
+  --fs-card:  clamp(1.05rem, .60rem + 1.30vh, 1.60rem);  /* 고르는 카드 이름 */
+  --fs-body:  1rem;                                      /* 본문 · 보통 단추 */
+  --fs-sub:   .95rem;                                    /* 힌트 · 보조 글 */
+  --fs-small: .86rem;                                    /* 작은 안내 */
 }
 
 *{ box-sizing:border-box; }
@@ -116,11 +140,11 @@ ul{ margin:0; padding:0; list-style:none; }
   background-size:var(--wallpaper-tile) auto;
   background-position:top left;
 }
-.app[data-corner="plan"]      { --accent:var(--sky); }
-.app[data-corner="map"]       { --accent:var(--green); }
-.app[data-corner="diary"]     { --accent:var(--purple); }
-.app[data-corner="portfolio"] { --accent:var(--apricot); }
-.app[data-corner="home"]      { --accent:#9aa0b4; }
+/* ★ 코너별 포인트 색은 **없앴습니다** (2026-08-26 · B안).
+     계획=하늘 · 지도=민트 · 일기=보라 · 포트폴리오=살구로 코너마다 색이
+     달랐는데, 「중요한 것은 늘 같은 파랑」 하나로 통일했습니다 —
+     학생이 화면마다 색 규칙을 새로 익히지 않아도 됩니다.
+   ⛔ 코너 색을 되살리려면 여기 다섯 줄을 되돌리세요 (_이전버전 참고). */
 
 /* 상단 줄 — 바탕 없이 벽지 위에 놓입니다 (제목과 단추만) */
 .topbar{
@@ -151,7 +175,7 @@ ul{ margin:0; padding:0; list-style:none; }
 /* 각 창의 제목은 한 줄뿐이라(…GO! 를 뺐습니다) 그만큼 크게 씁니다.
    좁은 화면에서는 줄어들어 다른 단추를 밀어내지 않습니다. */
 .topbar .title{
-  font-size:clamp(1.3rem,.85rem + 1.3vh,1.85rem);
+  font-size:var(--fs-title);
   font-weight:900; letter-spacing:-.02em; line-height:1.15;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
@@ -183,9 +207,13 @@ ul{ margin:0; padding:0; list-style:none; }
    ▸ 세로를 늘리는 것은 위 `align-items:stretch` 가 이미 합니다.
    ▸ 완성 화면은 종이를 크게 보아야 해서 폭 제한만 조금 넓힙니다.
      넓은 화면에서는 이 폭으로 **가운데** 놓입니다 (.stage 의 justify-content:center). */
-.stage.tall .panel{ width:min(100%, 1400px); }
+/* 1400 → 1600 (2026-08-25) : 기본 폭(--page)이 1560 으로 넓어지면서,
+   '조금 더 넓게' 라는 뜻을 지키려면 이 값도 그보다 커야 합니다. */
+.stage.tall .panel{ width:min(100%, 1600px); }
 .panel{
-  width:min(100%, var(--page));
+  /* 흰 칸이 화면 끝에 딱 붙으면 둥근 모서리가 잘려 보입니다 —
+     가로 태블릿(1280)에서도 양옆 숨 쉴 자리를 조금 남깁니다 (2026-08-25). */
+  width:min(calc(100% - 1.6rem), var(--page));
   max-height:100%;
   display:flex; flex-direction:column;
   background:#fff;
@@ -248,9 +276,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .stage-track.flowing .pick,
 .stage-track.flowing .corner,
 .stage-track.flowing .card,
-.stage-track.flowing .cs-item,
-.stage-track.flowing .tile,
-.stage-track.flowing .folio-box{ break-inside:avoid; }
+.stage-track.flowing .cs-item{ break-inside:avoid; }
 .stage-fit{ flex:1 1 auto; overflow:hidden; }
 
 /* 좌우 페이지 이동 — 흰 칸 안쪽 맨 아래 */
@@ -276,11 +302,14 @@ ul{ margin:0; padding:0; list-style:none; }
 
 /* 흰 칸 맨 아래에 붙는 '지금 할 일' 단추 — 한 줄을 꽉 채워 눈에 바로 들어옵니다 */
 .panel-action{ flex:0 0 auto; padding:0 1.1rem 1.1rem; }
+/* ★ 게임 단추처럼 (2026-08-25 · 가로 게임판) : 알약꼴 + 조금 더 크게.
+     '지금 할 일' 하나가 화면에서 가장 눈에 띄어야 합니다. */
 .panel-action .btn{
-  width:100%; min-height:66px; font-size:1.2rem;
+  width:100%; min-height:72px; font-size:var(--fs-big);
   background:var(--accent,#5ec8f2); border-color:transparent; color:#fff;
-  border-radius:18px; box-shadow:var(--shadow);
+  border-radius:999px; box-shadow:0 6px 0 rgba(50,60,90,.14);
 }
+.panel-action .btn:active{ transform:translateY(3px); box-shadow:0 3px 0 rgba(50,60,90,.14); }
 .panel-action .btn[disabled]{ background:#dcdce6; color:#8a8a9a; }
 /* 아래 단추가 둘일 때는 **한 줄에 나란히**, 키도 낮춥니다.
    위아래로 쌓으면 두 줄(약 150px)을 먹어서 그림일기가 그만큼 작아집니다. */
@@ -345,9 +374,13 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .iconbtn.has-img.inset:hover{ background:var(--paper-2); box-shadow:var(--shadow-2); }
 .iconbtn.has-img.inset img{ width:52%; height:52%; }
-/* 소리 꺼짐 : 회색으로 바꾸고 빗금을 그어 한눈에 알 수 있게 */
+/* 소리 꺼짐 : 회색으로 바꾸고 빗금을 그어 한눈에 알 수 있게
+   (2026-08-26 : PNG 단추뿐 아니라 선 아이콘 단추에도 빗금이 그이도록 넓힘) */
+.iconbtn.off{ position:relative; }
+.iconbtn.off img,.iconbtn.off svg{ filter:grayscale(1); opacity:.55; }
 .iconbtn.has-img.off{ position:relative; }
 .iconbtn.has-img.off img{ filter:grayscale(1); opacity:.55; }
+.iconbtn.off::after,
 .iconbtn.has-img.off::after{
   content:""; position:absolute; left:22%; right:22%; top:48%;
   height:5px; border-radius:999px; background:#d1425c;
@@ -368,8 +401,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .iconbtn:hover,.speak:hover{ background:var(--paper-2); box-shadow:var(--shadow); }
 .iconbtn:active,.speak:active{ transform:translateY(1px); }
 .iconbtn svg{ width:56%; height:56%; display:block; }
-.speak .speak-ico{ width:56%; height:56%; display:block; }
-.speak .speak-ico svg{ width:100%; height:100%; display:block; }
+/* 소리(음표) 단추 — 그림을 더 크게 · 한가운데 (2026-08-26 · 선생님 말씀) */
+.iconbtn.mute{ display:inline-flex; align-items:center; justify-content:center; }
+.iconbtn.mute svg{ width:74%; height:74%; margin:auto; }
 
 /* ============================ 카드 ============================ */
 
@@ -386,7 +420,9 @@ ul{ margin:0; padding:0; list-style:none; }
    칸 크기를 화면 높이에 맞춰 정하고 가운데로 모읍니다. */
 .corner-grid{
   display:grid;
-  grid-template-columns:repeat(2, clamp(140px, 21vh, 250px));
+  /* ★ 2×2 → **한 줄에 넷** (2026-08-26 · 선생님 말씀). 가로 화면 전용이라
+     옆으로 넓게 펴는 편이 자리를 잘 씁니다. 카드는 26vh (800높이 208px). */
+  grid-template-columns:repeat(4, clamp(150px, 26vh, 320px));
   justify-content:center;
   gap:clamp(.6rem,1.1vw,1.1rem);
   break-inside:avoid;
@@ -412,13 +448,17 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .corner .art{
   /* ※ padding 을 %로 주면 '카드 너비' 기준이라 그림이 0 이 됩니다. 반드시 고정값으로. */
-  width:clamp(56px,8.5vh,112px); height:clamp(56px,8.5vh,112px);
+  /* ★ B안 (2026-08-26) : 색 동그라미를 걷어내고 **그림을 직접 크게** 보여 줍니다.
+       코너별 색(--c)은 '작은 표시에만' 쓴다는 규칙과 어중간하게 겹쳐 있었고,
+       동그라미 테가 그림을 12vh 안에 다시 가두고 있었습니다. */
+  width:clamp(72px,15vh,190px); height:clamp(72px,15vh,190px);
   flex:0 0 auto;
-  border-radius:999px; padding:0;
+  border-radius:0; padding:0;
   display:grid; place-items:center;
-  background:color-mix(in srgb, var(--c,#9aa0b4) 16%, #fff);
+  background:transparent;
 }
-.corner .art svg{ width:60%; height:60%; }
+.corner .art svg{ width:80%; height:80%; }
+.corner .art img{ width:100%; height:100%; object-fit:contain; display:block; }
 .corner .txt{ min-width:0; }
 .corner .art svg{ display:block; }
 /* 무엇을 하는 곳인지(여가 계획하기)를 크게, 코너 이름(계획하GO!)은 작게.
@@ -435,10 +475,10 @@ ul{ margin:0; padding:0; list-style:none; }
   font-weight:900; letter-spacing:-.03em; color:var(--ink);
   white-space:nowrap;
 }
-.corner .name{
-  display:block; font-size:clamp(.85rem, .9vh + .3rem, 16px);
-  font-weight:800; color:var(--ink-soft); white-space:nowrap;
-}
+/* ★ B안 (2026-08-26) : 코너 이름(계획하GO!)은 **화면에서 숨깁니다.**
+     한 카드에 이름이 두 벌(여가 계획하기 + 계획하GO!)이면 읽기 부담입니다.
+     읽어주기(aria)에는 그대로 남아 있습니다 — 데이터는 안 바꿨습니다. */
+.corner .name{ display:none; }
 .corner .guide{ font-size:.88rem; color:var(--ink-soft); line-height:1.35; }
 
 /* 활동 카드 (선택용) */
@@ -472,8 +512,13 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .pick:hover{ background:var(--paper-2); }
 .pick:active{ transform:translateY(2px); }
+/* ★ 그림을 카드의 주인공으로 (2026-08-25 · 가로 게임판).
+     12.5vh → 19vh : 가로 화면(높이 800)에서 그림이 100px 뿐이라 카드 좌우가
+     텅 비어 보였습니다. 152px 로 키우면 카드를 그림이 채웁니다.
+   ▸ 넘치면 Stage 줄이기가 받아 주지만, 19vh 는 3×2 여섯 장이
+     800 높이에 줄이기 없이 들어가게 잰 값입니다. */
 .pick .thumb{
-  width:clamp(58px,12.5vh,158px); height:clamp(58px,12.5vh,158px);
+  width:clamp(72px,19vh,230px); height:clamp(72px,19vh,230px);
   display:grid; place-items:center;
 }
 /* 사람 그림처럼 위아래로 긴 그림을 담는 자리.
@@ -520,7 +565,7 @@ ul{ margin:0; padding:0; list-style:none; }
   width:100%; height:100%; display:block;
   object-fit:cover; object-position:center 12%;
 }
-.pick .label{ font-size:clamp(.95rem,.55rem + 1vh,1.35rem); font-weight:800; line-height:1.25; }
+.pick .label{ font-size:var(--fs-card); font-weight:900; line-height:1.25; }
 .pick .note{ font-size:.82rem; color:var(--ink-soft); }
 .pick .more{
   font-size:.78rem; font-weight:800; color:var(--ink-soft);
@@ -530,13 +575,14 @@ ul{ margin:0; padding:0; list-style:none; }
 .pick.sel{
   background:var(--sel-bg);
   border-width:3px; border-color:var(--sel-line);
-  box-shadow:0 0 0 3px rgba(94,200,242,.22), var(--shadow);
+  box-shadow:0 0 0 3px rgba(43,125,233,.22), var(--shadow);
 }
 .pick .check{
-  position:absolute; top:-12px; right:-10px;
-  width:36px; height:36px; border-radius:999px;
-  background:var(--ok); color:#fff; border:3px solid #fff;
-  display:none; place-items:center; font-size:1.1rem; font-weight:900;
+  position:absolute; top:-14px; right:-12px;
+  width:44px; height:44px; border-radius:999px;
+  /* 초록 → 파랑 (2026-08-26 · B안 : 포인트 색은 파랑 하나) */
+  background:var(--accent); color:#fff; border:3px solid #fff;
+  display:none; place-items:center; font-size:1.3rem; font-weight:900;
 }
 .pick.sel .check{ display:grid; }
 .pick.compact{ flex-direction:row; justify-content:flex-start; gap:.6rem; padding:.55rem .8rem; text-align:left; }
@@ -553,7 +599,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .pick.bare:hover{ background:rgba(0,0,0,.03); }
 .pick.bare.sel{
   background:var(--sel-bg); border-color:var(--sel-line);
-  box-shadow:0 0 0 3px rgba(94,200,242,.22);
+  box-shadow:0 0 0 3px rgba(43,125,233,.22);
 }
 
 /* ============================ 공통 조각 ============================ */
@@ -578,8 +624,8 @@ ul{ margin:0; padding:0; list-style:none; }
      크기를 바꾸려면 세 숫자를 **같은 비로** 고치세요. 하나만 고치면
      화면 크기에 따라 글자가 튑니다.
    이 한 줄이 계획·일기·캐릭터 고르기·팝업의 질문을 **모두** 같이 바꿉니다. */
-.q h2{ font-size:clamp(1.1rem,.72rem + 1.1vh,1.57rem); font-weight:900; letter-spacing:-.03em; }
-.q .hint{ font-size:.95rem; color:var(--ink-soft); font-weight:700; }
+.q h2{ font-size:var(--fs-q); font-weight:900; letter-spacing:-.03em; }
+.q .hint{ font-size:var(--fs-sub); color:var(--ink-soft); font-weight:700; }
 
 /* 질문 알약 — **파스텔 분홍**으로 채웁니다.
    ★ 예전에는 흰 알약이라 흰 배경에 묻혀서 '질문' 으로 눈에 띄지 않았습니다.
@@ -609,7 +655,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .q-bar .q-pill{
   display:inline-flex; align-items:center; justify-content:center;
   padding:.55rem 1.7rem; border-radius:999px;
-  background:#ffeef4; border:2px solid #f3c3d6;
+  /* 분홍 → 연한 파랑 (2026-08-26 · B안 : 색은 파랑 계열 하나로).
+     '질문이 가장 먼저 보인다'는 구실은 그대로 — 색만 팔레트에 맞췄습니다. */
+  background:var(--sel-bg); border:2px solid var(--sel-line);
   box-shadow:var(--shadow);
   max-width:100%;
 }
@@ -664,13 +712,15 @@ ul{ margin:0; padding:0; list-style:none; }
   background:#fff; font-size:.92rem; font-weight:900;
   display:inline-flex; align-items:center; justify-content:center;
 }
-.steps .dot.on{ background:var(--accent-deep,#f5c07a); border-width:3.5px; }
-/* ★ 지나온 단계는 **파란색**입니다.
-     예전에는 초록 글씨였는데, 화면 바탕도 연한 초록이라 눈에 띄지 않았습니다.
-     글자도 조금 키우고 칸을 넓혀 '어디까지 왔는지' 가 잘 보이게 했습니다. */
+/* 지금 단계 = 진한 파랑 + 흰 글씨 (B안 · 2026-08-26 : 주황 → 파랑 하나) */
+.steps .dot.on{ background:var(--accent); border-color:var(--accent); color:#fff; border-width:3.5px; }
+/* ★ 지나온 단계는 **연한 파란색**이고, 누르면 그 단계로 돌아갑니다 (2026-08-26). */
 .steps .dot.done{
   background:#daecfd; border-color:#7cbdf0; color:#114f7c;
 }
+.steps button.dot.go{ cursor:pointer; }
+.steps button.dot.go:hover{ border-color:var(--accent); }
+.steps button.dot.go:active{ transform:translateY(1px); }
 
 .chip{
   display:inline-flex; align-items:center; gap:.3rem;
@@ -737,7 +787,7 @@ textarea.sentence-edit:focus{
 .row{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
 .row .k{ font-weight:900; min-width:6.5em; color:var(--ink-soft); }
 .muted{ color:var(--ink-soft); }
-.small{ font-size:.86rem; }
+.small{ font-size:var(--fs-small); }
 .center{ text-align:center; }
 .grow{ flex:1 1 auto; }
 .wrap{ display:flex; flex-wrap:wrap; gap:.5rem; }
@@ -765,9 +815,31 @@ textarea.sentence-edit:focus{
      둘을 합쳐도 **남는 자리를 넘지 않습니다** (0.29 + 0.71 = 1).
      남는 자리(`--slack`)는 C.Stage 가 재어 넣어 주며,
      여백 때문에 쪽이 갈라지면 스스로 절반·4분의 1 로 줄어듭니다. */
-  margin-top:min(calc(var(--one-line) * .6), calc(var(--slack, 0px) * .29));
-  margin-bottom:min(calc(var(--one-line) * 1.5), calc(var(--slack, 0px) * .71));
+  /* ★ 2026-08-26 : 홈 흰 칸이 tall(화면 높이 전부)이 되면서 남는 자리가
+       커졌습니다. 위 0.22 · 아래 0.30 을 제목이, 0.28 을 코너 아래(아래 규칙),
+       나머지를 계획 칸 아래 여백이 갖습니다. 상한(one-line 배수)은
+       낮은 화면에서 여백이 내용을 밀어내지 않게 하는 안전선입니다. */
+  margin-top:min(calc(var(--one-line) * 1.1), calc(var(--slack, 0px) * .22));
+  margin-bottom:min(calc(var(--one-line) * 2.2), calc(var(--slack, 0px) * .30));
 }
+/* 코너 넉 장 아래 — 계획·도전 칸과 사이를 넉넉하게 */
+[data-corner="home"] .corner-grid{
+  margin-bottom:min(4rem, calc(var(--slack, 0px) * .28));
+}
+/* ★ 홈 흰 칸은 화면 끝까지 닿지 않게 **높이 85%** (2026-08-26 · 선생님 말씀 —
+     바닥까지 꽉 차니 답답합니다). tall 의 stretch 를 홈에서만 풉니다. */
+[data-corner="home"] .stage.tall{ align-items:center; }
+[data-corner="home"] .stage.tall .panel{ height:85%; }
+
+/* ★★ 흰 칸 높이 **전 화면 통일** (2026-08-26 · 선생님 말씀 — 인수인계 29).
+     내용이 적은 화면(포트폴리오 첫 화면 등)마다 칸 키가 제각각이었습니다.
+     이제 어느 화면이나 **홈과 같은 85%** 입니다.
+   ▸ 예외 둘 :
+       .tall  — 완성 화면처럼 종이를 크게 볼 때 (높이 전부)
+       .full  — 지도 (지도가 주인공이라 높이 전부)
+     선생님 설정(.tstage)도 목록이 길어 전부 씁니다. */
+.stage:not(.tall):not(.full):not(.tstage){ flex:1 1 auto; align-items:center; }
+.stage:not(.tall):not(.full):not(.tstage) > .panel{ height:85%; }
 .home-title h1{
   font-size:clamp(1.5rem, .7rem + 2.2vh, 42px);
   font-weight:900; letter-spacing:-.05em; line-height:1.15;
@@ -790,8 +862,12 @@ textarea.sentence-edit:focus{
   display:flex; align-items:center; gap:.4rem;
 }
 /* 카드 안의 본문 한 줄 — 작은 제목보다 늘 작습니다 (위 사다리) */
-.card-say{ display:block; font-size:clamp(.92rem, .55rem + .8vh, 22px); font-weight:900; }
-.divider{ height:3px; background:repeating-linear-gradient(90deg,var(--line) 0 10px,transparent 10px 20px); margin:.6rem 0; opacity:.5; }
+/* ★ 오늘의 계획 문장 — 더 크게 · **늘 한 줄** (2026-08-26 · 선생님 말씀).
+     길면 … 으로 줄입니다. 전체 문장은 계획 보기와 읽어주기가 보여 줍니다. */
+.card-say{
+  display:block; font-size:clamp(1.05rem, .6rem + 1.1vh, 26px); font-weight:900;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
 .field{
   border:2px solid var(--line); border-radius:var(--radius-s);
@@ -916,7 +992,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   background-color:#dbf0fe;
 }
 .map-canvas{ position:absolute; top:0; left:0; transform-origin:0 0; }
-.map-paths{ position:absolute; inset:0; pointer-events:none; }
 /* 섬 이름 : '나' 칸 양옆, 맨 윗부분과 나란히 놓는 알약 모양 '바'.
    가운데를 가르는 점선은 두지 않습니다 — 바탕 그림에 이미 물길이 있습니다. */
 /* 섬 이름 자리.
@@ -943,11 +1018,15 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   box-shadow:0 0 0 3px rgba(255,255,255,.92), var(--shadow-2);
   white-space:nowrap;
 }
+/* ★ 두 섬을 색으로도 가릅니다 (2026-08-26 · 선생님 말씀 — 「서로 색 대비」).
+     모아보기의 .mymap-island.in/.out 과 **같은 색**입니다 — 실내는 어디서나
+     주황, 실외는 어디서나 파랑이어야 학생이 한 번만 익힙니다.
+   ▸ 색만으로 가르지 않습니다 — 이름(실내/실외)이 늘 함께 적혀 있습니다. */
+.island-head.in  .island-label{ background:#ffe9cc; border-color:#c96a1e; color:#6b3a00; }
+.island-head.out .island-label{ background:#d6ebf9; border-color:#1f6e9e; color:#114f7c; }
 /* 그래도 멀리서 잘 안 보이면 — 아래 두 줄의 맨 앞 `.no-` 를 지우세요.
    진한 바탕 + 흰 글씨로 바뀌어 교실 뒤에서도 확 보입니다 (실내=갈색, 실외=초록).
    대신 파스텔 느낌은 사라집니다. */
-.no-map-wrap .island-head .island-label{ background:#7a5a3a; border-color:#5d422a; color:#fff; }
-.no-map-wrap .island-head.out .island-label{ background:#41794f; border-color:#2f5b3a; }
 /* 팝업 안 선택 카드는 작게 (스크롤이 생기지 않도록) */
 .modal .pick .thumb{ width:clamp(48px,7vh,84px); height:clamp(48px,7vh,84px); }
 .modal .pick{ padding:.6rem .4rem .5rem; }
@@ -959,11 +1038,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   --cw:106px;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25em;
   padding:8px 6px;
-  /* ★ 테두리를 **진하게**. 섬 배경이 그림이라 연한 테두리는 바탕에 묻혀
-       카드가 어디서 시작하고 끝나는지 잘 안 보였습니다.
-     ▸ 그림자도 조금 진하게 해서 카드가 배경 위에 떠 있어 보이게 합니다. */
-  border:3px solid #4a9fd4; border-radius:18px;
-  background:#fff; box-shadow:0 3px 0 rgba(30,80,120,.18);
+  /* ★ 테두리 없이 **살짝 음영**으로만 가릅니다 (2026-08-26 · 선생님 말씀).
+       테두리가 없어도 해본 곳은 바탕색 + 발자국 표시로 갈립니다. */
+  border:0; border-radius:20px;
+  background:#fff; box-shadow:0 3px 12px rgba(30,60,100,.16);
   text-align:center;
 }
 .mapcard:hover{ background:var(--paper-2); }
@@ -983,10 +1061,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
        그것을 거들 뿐 혼자 뜻을 나르지 않습니다. */
 /* ⚠ 주황·파랑을 밝게 두면 흑백으로 바꿨을 때 밝기가 6 밖에 차이 나지 않아
      사실상 같아 보입니다. **어둡게** 잡아야 갈립니다. */
+/* 해본 곳 — 테두리 대신 **바탕색 + 조금 진한 음영**으로 (발자국 표시가 뜻을 나릅니다) */
 .mapcard.tried{
-  border-width:5px; border-color:#c96a1e;
   background:#ffe9cc;
-  box-shadow:0 3px 0 rgba(150,90,30,.28);
+  box-shadow:0 4px 14px rgba(150,90,30,.30);
 }
 .mapcard.tried:hover{ background:#ffdfb5; }
 
@@ -997,9 +1075,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    ※ 색만으로 뜻을 나르지 않습니다 — 해본 곳은 **테두리가 5px 로 두껍고
      바탕이 칠해져** 있어서, 색을 못 가려도 안 해본 곳과 갈립니다. */
 .mapcard.outdoor.tried{
-  border-color:#1f6e9e;
   background:#d6ebf9;
-  box-shadow:0 3px 0 rgba(20,80,120,.28);
+  box-shadow:0 4px 14px rgba(20,80,120,.30);
 }
 .mapcard.outdoor.tried:hover{ background:#c4e2f6; }
 /* 그림을 크게 — 카드 높이의 절반 넘게 */
@@ -1041,20 +1118,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .mapcard .mb i.challenge{ background:var(--paper-2); }
 .mapcard .mb i.unsure{ background:var(--paper-2); }
 .mapcard.dim{ opacity:.2; }
-.map-me{
-  position:absolute; transform:translate(-50%,-50%);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
-  padding:3px; border:2px solid var(--line); border-radius:24px;
-  background:#fff; box-shadow:var(--shadow); text-align:center; overflow:hidden;
-}
-/* 네모 칸 크기는 그대로 두고 안쪽 그림·이름만 키웁니다 (여백을 줄여서) */
-.map-me .face{ width:74%; aspect-ratio:1; border-radius:999px; border:2px solid var(--line); overflow:hidden; background:#fff; }
-.map-me .face svg,.map-me .face img{ width:100%; height:100%; object-fit:cover; display:block; }
-.map-me .nm{ font-size:clamp(15px,1.35vw,25px); font-weight:900; }
-.map-me .sub{ font-size:clamp(9.5px,.72vw,13px); color:var(--ink-soft); font-weight:800; line-height:1.15; }
-.map-legend{
-  display:flex; gap:.4rem; flex-wrap:wrap; align-items:center;
-}
+/* 지도 가운데 학생 카드(.map-me)는 없앴습니다 (2026-08-26) —
+   맨 위 줄 오른쪽 학생 이름표와 같은 말이 두 번이었습니다. */
 /* 섬마다 아래에 붙는 이전 / 다음 */
 .island-nav{
   position:absolute; z-index:3;
@@ -1078,7 +1143,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .isl-dots{ display:flex; gap:3px; }
 .isl-dots i{ width:6px; height:6px; border-radius:999px; background:#d6d9e4; display:block; }
-.isl-dots i.on{ background:#5ec8f2; }
+.isl-dots i.on{ background:var(--accent); }
 
 .map-tools{ display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
 /* ★ 지금 무엇으로 걸러 보고 있는지 알려 주는 알약.
@@ -1105,7 +1170,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* (map-foot 은 이제 안 씁니다 — 모아보기가 지도 칸 오른쪽 위로 갔습니다) */
 
 /* 화면이 낮을 때에는 지도에 자리를 더 내어 줍니다 */
-@media (max-height: 820px), (max-width: 1100px){
+@media screen and (max-height: 820px), (max-width: 1100px){
   .map-tools .tab{ min-height:42px; font-size:.86rem; padding:.2rem .6rem; }
 }
 
@@ -1161,7 +1226,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .sheet-art img, .sheet-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
 /* 좁은 화면에서는 그림을 표 아래로 내려 가운데에 둡니다. */
-@media (max-width: 620px){
+@media screen and (max-width: 620px){
   .sheet-body{ grid-template-columns:1fr; }
   .sheet-art{ width:clamp(110px,26vw,170px); height:clamp(110px,26vw,170px); }
 }
@@ -1220,6 +1285,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
 .stu-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-2); border-color:var(--sel-line); }
+/* ★ 누른 즉시 보이는 반응 (2026-08-26) — 이름을 읽어 주는 0.35초 동안
+   아무 변화가 없으면 학생이 안 눌린 줄 알고 또 누릅니다. */
+.stu-card:active{ transform:scale(.97); }
+.stu-card.picked{
+  background:var(--sel-bg); border-width:3px; border-color:var(--sel-line);
+  box-shadow:0 0 0 3px rgba(43,125,233,.22), var(--shadow);
+}
 .stu-card-mark{ font-size:clamp(1.7rem,1rem + 1.4vh,40px); line-height:1; flex:0 0 auto; }
 /* `nowrap` 이 꼭 있어야 합니다. `min-width:0` 만 있고 `nowrap` 이 없으면
    칸이 좁아질 때 글자가 한 글자씩 줄바꿈됩니다. 이름은 잘리더라도
@@ -1243,6 +1315,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   font-size:1.2rem; font-weight:900; background:#fff;
   border:2px solid var(--line); border-radius:14px; padding:.35rem 1.2rem;
 }
+/* 이름 칸이 곧 입력칸 (2026-08-26) — 모양은 위 그대로, input 몫만 더합니다 */
+input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .cs-pickside{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
 /* '내 얼굴로 만들기' — 쪽 넘김 줄 바로 아래 */
 .face-row{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-top:.45rem; }
@@ -1259,7 +1333,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   box-shadow:var(--shadow); min-height:0;
 }
 .cs-item:hover{ background:var(--paper-2); }
-.cs-item.on{ background:var(--sel-bg); border-color:var(--sel-line); box-shadow:0 0 0 3px rgba(94,200,242,.22), var(--shadow); }
+.cs-item.on{ background:var(--sel-bg); border-color:var(--sel-line); box-shadow:0 0 0 3px rgba(43,125,233,.22), var(--shadow); }
 /* ⛔ 그림이 **칸을 넘지 못하게** 막습니다. 갤럭시탭에서 캐릭터 그림이
       커져서 이름 글자를 덮고 있었습니다 (2026-08-23).
       `> *` 만으로는 모자랍니다 — 그림이 한 겹 더 안에 들어 있으면
@@ -1269,7 +1343,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 /* 이름은 **줄어들지 않습니다**(flex:0 0 auto). 그림이 남는 자리만 씁니다.
    낮은 화면에서는 글자도 함께 작아집니다 — 고정 크기로 두면 카드보다 커집니다. */
 .cs-label{ flex:0 0 auto; font-size:clamp(.68rem,.38rem + .5vh,.86rem); font-weight:800; }
-@media (max-width: 820px){
+@media screen and (max-width: 820px){
   .cs-cols{ flex-direction:column; }
   .cs-preview{ flex:0 0 auto; flex-direction:row; }
   .cs-face{ width:84px; }
@@ -1285,8 +1359,20 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .tstage{ flex:1 1 auto !important; }
 .tpanel{ align-self:stretch; }
 .tscroll{ overflow-y:auto; overflow-x:hidden; padding:1rem 1.2rem 1.4rem; }
-.tsec{ padding:.85rem 0; border-top:1px solid var(--line); }
-.tsec:first-of-type{ border-top:0; }
+/* ★ 선생님 설정 — 흰 **카드 두 칸** 배열 (2026-08-26 · 선생님 말씀 : 구조화 +
+     오른쪽 여백 활용). 한 줄 목록이라 오른쪽 절반이 늘 비어 있었습니다.
+   ▸ 긴 항목(1 학생 · 7 사람 · 8 기분 · 9 활동 · 11 기록)은 .wide 로 한 줄 전체.
+   ▸ 좁은 화면(900px 아래)에서는 다시 한 칸으로 접힙니다. */
+.tscroll{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; align-content:start; }
+.tscroll > .row{ grid-column:1 / -1; }
+.tscroll > p{ grid-column:1 / -1; margin:0; }
+.tsec{
+  margin:0; padding:.85rem 1rem;
+  border:2px solid var(--line); border-radius:16px; background:var(--paper-2);
+}
+.tsec.wide{ grid-column:1 / -1; }
+@media screen and (max-width: 900px){ .tscroll{ grid-template-columns:1fr; } }
+.tsec:first-of-type{ border-top:2px solid var(--line); }
 .tsec > label{
   display:block; font-size:1.08rem; font-weight:900; margin-bottom:.5rem;
 }
@@ -1296,8 +1382,22 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   font-size:1rem; font-weight:800; color:var(--ink); box-shadow:var(--shadow);
 }
 .tchoice:hover{ background:var(--paper-2); }
-.tchoice.on{ background:#e6f7f2; border-color:#7fd6c2; color:#0f6b57; }
+/* ★ 고른 표시는 ✓ 없이 **색으로만** (2026-08-26 · 선생님 말씀).
+     테두리는 **연한 하늘색**(--sel-line) — 진한 파랑은 과해 보인다는 말씀. */
+.tchoice.on{ background:var(--sel-bg); border-color:var(--sel-line); border-width:3px; color:#114f7c; font-weight:900; }
 .tchoice.sm{ min-height:40px; padding:.2rem .7rem; font-size:.92rem; border-radius:12px; }
+/* 3. 일기 수준 · 4. 계획 방식 알약 — 「1단계␣␣그림으로 / 골라 쓰기」 꼴.
+   단계 이름 **옆에 두 칸쯤 띄고** 설명이 오고, 설명은 pre-line 으로
+   정해 둔 자리에서 줄바꿈됩니다 (2026-08-26 · 선생님 말씀). */
+.tchoice .t-name{ display:inline-block; font-weight:900; margin-right:1em; vertical-align:top; }
+.tchoice .t-sub{
+  display:inline-block; font-size:.85em; font-weight:700; color:var(--ink-soft);
+  /* pre : 줄바꿈은 **적어 둔 자리(\n)에서만**. pre-line 은 칸이 좁으면
+     제멋대로 접혀 「활동 · 함께하는 / 사람 · 날짜 · 장소」 가 됐습니다 (2026-08-26). */
+  white-space:pre; text-align:left; vertical-align:top; margin-top:.1em;
+}
+/* 1. 우리 반 학생 — 줄이 카드 폭을 다 먹지 않게 (2026-08-26 · 선생님 말씀) */
+.stu-edit{ max-width:36rem; }
 .tchoice.ghost{ color:var(--warn); border-color:#eec3b6; }
 .tchoice.add{ background:#dff1fb; border-color:#a9dcf5; color:#125b7d; }
 .tchoice[disabled]{ opacity:.4; cursor:default; box-shadow:none; }
@@ -1345,14 +1445,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .switch.on .pill::after{ left:28px; }
 .switch .txt{ font-size:.86rem; font-weight:900; min-width:2.4em; }
 
-.keypad{ display:grid; grid-template-columns:repeat(3,72px); gap:.5rem; justify-content:center; }
-.keypad button{
-  height:62px; font-size:1.4rem; font-weight:900;
-  border:2px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow);
-}
 
 /* 스크롤 가능한 목록 (교사 설정 등 내부 영역) */
-.scrolly{ overflow:auto; max-height:100%; }
 
 /* 인쇄용 자리 : 화면에서는 보이지 않습니다 */
 #print-root{ display:none; }
@@ -1401,7 +1495,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .cover-fallback p{ font-size:1.2rem; font-weight:800; color:var(--ink-soft); margin-top:.4rem; }
 
 /* 표지 안 왼쪽 위 : 지금 학생 */
-.cover-who{ position:absolute; top:14px; left:16px; z-index:2; }
 
 /* 표지 안 오른쪽 위 : 전체화면 · 선생님 설정 */
 .cover-top{
@@ -1437,15 +1530,15 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .cover-app.lit .start-btn{
   background:#4bb8e8;
   transform:translateY(-5px) scale(1.05);
-  box-shadow:var(--shadow-2), 0 0 0 5px rgba(94,200,242,.35);
+  box-shadow:var(--shadow-2), 0 0 0 5px rgba(43,125,233,.35);
 }
 .start-btn:active{
   transform:translateY(0) scale(1.01);
-  box-shadow:var(--shadow), 0 0 0 5px rgba(94,200,242,.35);
+  box-shadow:var(--shadow), 0 0 0 5px rgba(43,125,233,.35);
 }
 .cover-app.lit .cover-frame{
   border-color:var(--sel-line);
-  box-shadow:0 0 0 6px rgba(94,200,242,.28), var(--shadow-2);
+  box-shadow:0 0 0 6px rgba(43,125,233,.28), var(--shadow-2);
 }
 
 /* 움직임을 줄이는 설정에서는 크기 변화 없이 테두리만 밝아집니다 */
@@ -1456,15 +1549,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .start-btn:active{ transform:none; }
 }
 
-@media (max-height: 620px){
+@media screen and (max-height: 620px){
   .start-btn{ min-height:56px; padding:.45rem 1.7rem; }
   .cover-top{ top:10px; right:12px; }
-  .cover-who{ top:10px; left:12px; }
   .cover-actions{ bottom:10px; }
 }
 
 /* 반응형 : 좁은 화면 */
-@media (max-width: 900px){
+@media screen and (max-width: 900px){
   .pick-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   /* cols-3 은 좁아져도 3열 그대로 — 2열이면 여섯 장이 세 줄이 되어
      흰 칸을 넘치고, 격자가 통째로 다음 쪽으로 밀려 1쪽이 텅 빕니다. */
@@ -1475,7 +1567,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   }
   .topbar .sub{ display:none; }
 }
-@media (max-width: 620px){
+@media screen and (max-width: 620px){
   .pick-grid.cols-3,
   .pick-grid.cols-4,.pick-grid.cols-5{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   .pick-grid.cols-6,.pick-grid.cols-7,.pick-grid.cols-8{
@@ -1484,10 +1576,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .row .k{ min-width:100%; }
 }
 /* 세로형 태블릿 : 코너 카드 2열 */
-@media (max-aspect-ratio: 1/1){
+@media screen and (max-aspect-ratio: 1/1){
 }
 /* 아주 납작한 화면 (전자칠판 16:9 등) */
-@media (max-height: 560px){
+@media screen and (max-height: 560px){
   :root{ --tap:52px; }
   .corner .art{ width:clamp(46px,9vh,72px); height:clamp(46px,9vh,72px); }
 }
@@ -1498,7 +1590,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      그러면 선택지가 한 쪽에 안 들어가 2~3쪽으로 갈라집니다 (규칙 10-1).
      테두리를 조금씩 줄여 내용 자리를 약 90px 넓힙니다.
    ※ 손가락으로 누르는 크기(--tap 56px)는 줄이지 않습니다 — 누르기 어려워집니다. */
-@media (max-height: 780px){
+@media screen and (max-height: 780px){
   /* 위쪽 줄 */
   .topbar{ padding-top:.35rem; padding-bottom:.35rem; }
   .topbar-row.below{ margin-top:.15rem; }
@@ -1524,7 +1616,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   .sentence-box{ max-height:150px; overflow:auto; }
 }
 /* 완성 미리보기는 낮은 화면에서 더 작게 (위 --dv 규칙보다 뒤에 두어야 이깁니다) */
-@media (max-height: 780px){ .dv{ --dv:.30; } .dv-big{ --dv:.4; } }
+@media screen and (max-height: 780px){ .dv{ --dv:.30; } .dv-big{ --dv:.4; } }
 
 /* 완성 화면 : 기본은 위아래로 쌓습니다 */
 /* ★ 무대는 여러 단(column)으로 쪽을 나눕니다. 그 안의 칸이 **단보다 넓으면
@@ -1679,8 +1771,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:14px; width:100%; height:100%; min-height:0;
 }
-.pd-art-main{ display:flex; flex-direction:column; align-items:center; gap:6px; min-height:0; }
-.pd-art-main > span,.pd-art-main img,.pd-art-main svg{ flex:0 0 auto; }
 /* ※ 그림칸에는 **그림만** 넣습니다 — 이름표(`.pd-art-name`·`.pd-art-cap`)와
      안내 글(`.pd-art-note`)은 없앴습니다. 같은 말이 아래 원고지에 이미 있어서
      그림 밑에도 붙으면 종이가 글자로 빽빽해집니다.
@@ -1690,21 +1780,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      활동 그림은 '무슨 활동인가' 를 알려 주는 표시라 작아도 됩니다.
      학생이 고른 사람·기분·장소는 그림일기의 그림 노릇을 하니 크게 보여 줍니다. */
 .pd-art{ position:relative; }
-.pd-art-main{
-  position:absolute; left:0; top:0;
-  width:96px; height:96px;           /* 왼쪽 위 작은 표시 */
-  display:block; z-index:1;
-}
-.pd-art-main img,.pd-art-main svg,.pd-art-main > span{
-  width:100%; height:100%; object-fit:contain; display:block;
-}
 /* 고른 그림들은 가운데. 활동 그림은 **맨 위**에만 있어서 좌우 여백을 비워 둘
    필요가 없습니다 (위아래로 떨어져 있어 겹치지 않습니다).
    네 장까지 한 줄에 들어갑니다 : 4×150 + 3×26 = 678 ≤ 766 */
-.pd-art-row{
-  display:flex; flex-wrap:wrap; gap:26px; justify-content:center; align-items:center;
-  align-content:center; padding:0 12px;
-}
 .pd-art-thumb{ width:150px; height:150px; display:block; }
 .pd-art-thumb svg,.pd-art-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
 
@@ -1803,14 +1881,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* 포트폴리오 — 지금 보는 기간을 한 줄로만 (인쇄·판형·기간 고르기는 선생님 도구 창으로) */
 .folio-range{ text-align:center; margin:.1rem 0 .35rem; }
-/* 「나의 한마디」와 「돌아보기」 — 둘 다 학생이 글을 쓰는 곳이라 나란히.
-   위아래로 쌓으면 494px 라 화면을 넘겨 2쪽이 됩니다. */
-.folio-write{ display:grid; grid-template-columns:1fr; gap:.6rem; }
-@media (min-width: 1000px){
-  .folio-write{ grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:start; }
-}
-.review-row{ flex-wrap:nowrap; gap:.35rem; }
-.review-in{ flex:1 1 6rem; min-width:0; }
 
 /* ═══════ 1단계 크게 보기 — 그림과 문장만 ═══════
    ★ 1단계 학생은 글자를 못 읽습니다. 그림이 핵심이고 문장은 읽어주기로 듣습니다.
@@ -1854,7 +1924,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    옆과 아래 가운데 어느 쪽이 그림을 크게 만드는지는 picdiary.js 가 재서 고릅니다. */
 .look-main.below{ flex-direction:column; align-items:center; }
 .look-main.below .look-say{ max-width:100%; width:100%; flex-direction:row; }
-@media (max-width: 900px){
+@media screen and (max-width: 900px){
   .look-main{ flex-direction:column; align-items:center; }
   .look-say{ max-width:100%; width:100%; flex-direction:row; }
 }
@@ -1938,7 +2008,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   100%{ box-shadow:0 0 0 .35rem rgba(76,175,111,.18); }
 }
 .move-slot:not(.off) > .banner{ animation:알림뜸 .55s ease-out 1; }
-.reduce-motion .move-slot:not(.off) > .banner{ animation:none; }
 
 /* ★ 왼쪽 고치는 길을 **오른쪽 그림일기의 차례와 나란히** 묶습니다.
      위 = 그림칸 → 그림 두 가지 · 아래 = 원고지 → 글(노란 칸).
@@ -1975,7 +2044,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   flex-wrap:wrap; gap:.4rem .6rem; margin-top:.15rem;
 }
 .fix-undo .small{ font-size:.8rem; }
-.dv-cap{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
 /* 크게 보기 (팝업 안) */
 .dv-big{
   --dv:.62;
@@ -1983,9 +2051,9 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   overflow:hidden; margin:0 auto; background:#fff;
 }
 .dv-big .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
-@media (max-height: 900px){ .dv{ --dv:.46; } .dv-big{ --dv:.5; } }
+@media screen and (max-height: 900px){ .dv{ --dv:.46; } .dv-big{ --dv:.5; } }
 /* 아주 낮은 화면에서는 더 작게 — 안 그러면 완성 화면이 2쪽으로 갈라집니다 */
-@media (max-height: 780px){ .dv{ --dv:.36; } .dv-big{ --dv:.42; } }
+@media screen and (max-height: 780px){ .dv{ --dv:.36; } .dv-big{ --dv:.42; } }
 
 /* 손글씨로 쓴 일기를 그림일기에 그대로 넣습니다 (3단계).
    손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
@@ -2039,17 +2107,13 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   font-weight:800; color:#4a3608; line-height:1.5;
 }
 .bones > .btn{ grid-column:2; align-self:center; }
-@media (max-width:640px){
+@media screen and (max-width:640px){
   .bones{ grid-template-columns:1fr; }
   .bones > .btn{ grid-column:1; justify-self:stretch; }
 }
 
 /* '그림 그리기' — 이 화면에서 학생이 지금 할 일입니다.
    가운데에 큰 바로 두어 눈에 바로 들어오게 합니다. */
-.btn.draw-go{
-  align-self:center; min-width:min(420px, 100%);
-  border-width:3px;
-}
 
 /* 기록하GO! 에서 보는 손글씨 미리보기.
    ★ 높이를 반드시 제한해야 합니다. 1400×800 그림을 폭에 맞추면 580px 이 되어
@@ -2182,10 +2246,6 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   cursor:crosshair;
 }
 /* 손글씨 판은 옆으로 넓어서 비율을 따로 둡니다 */
-.dp.dp-wide .dp-canvas{
-  width:min(100%, calc(46vh * 7 / 4));
-  aspect-ratio:7 / 4;
-}
 
 /* ===========================================================
    일기 고치기 (좌우 2단)
@@ -2221,7 +2281,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .fix-paper .pd-sheet{ transform:scale(var(--fx)); transform-origin:top left; }
 /* 좁은 화면에서는 위아래로 */
-@media (max-width: 860px){
+@media screen and (max-width: 860px){
   .fix-2col{ flex-direction:column; align-items:stretch; }
   .fix-right{ align-items:center; }
 }
@@ -2264,7 +2324,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   overflow:hidden; margin:0 auto; background:#fff;
 }
 .jr-big .pd-sheet{ transform:scale(var(--jr)); transform-origin:top left; }
-@media (max-height: 780px){ .jr-big{ --jr:.42; } }
+@media screen and (max-height: 780px){ .jr-big{ --jr:.42; } }
 
 /* 그림 완성 확인 창에서 보여 주는 그림 */
 .made-shot{
@@ -2275,21 +2335,14 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* 기록하GO! 에서 보여 주는 '내가 그린 그림' 미리보기 */
 /* 직접 그린 그림 미리보기도 같은 이유로 높이를 제한합니다 */
-.my-draw{
-  max-width:min(100%, 340px); max-height:min(34vh, 300px);
-  width:auto; height:auto; object-fit:contain;
-  border:3px solid var(--line); border-radius:14px;
-  display:block; margin:0 auto; background:#fff;
-}
 
 /* ★ 낮은 화면에서는 미리보기를 아주 작게 합니다.
      크게 보려면 마지막 `완성` 화면의 그림일기를 누르면 됩니다.
-   ※ 이 규칙은 위 `.hw-shot` · `.my-draw` **기본 규칙보다 뒤**에 있어야 합니다.
+   ※ 이 규칙은 위 `.hw-shot` **기본 규칙보다 뒤**에 있어야 합니다.
      앞에 두면 기본 규칙(34vh)이 더 뒤에 있어서 이겨 버립니다.
      한 번 그렇게 두어 손글씨 그림이 238px 로 남아 3쪽으로 갈라졌습니다. */
-@media (max-height: 780px){
+@media screen and (max-height: 780px){
   .hw-shot{ max-height:min(15vh, 110px); }
-  .my-draw{ max-height:min(20vh, 150px); }
 }
 
 /* 사진 여러 장 가운데 그림일기에 넣을 한 장 고르기 */
@@ -2417,6 +2470,12 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 .frame-line .blank.on{ background:#fff; border-bottom-color:var(--ok); }
 .blank.wide{ min-width:10em; }
+/* ★ 제목 칸이 곧 입력칸 (2026-08-26) — 노란 띠의 빈칸 모양 그대로,
+     테두리 없이 밑줄만 남깁니다. 글자 상자 티가 나면 띠가 지저분해집니다. */
+input.title-input{
+  border:0; outline-offset:2px; text-align:left;
+  min-height:2.4rem; flex:1 1 12em; max-width:26em;
+}
 
 /* 흰 칸 맨 위 두 줄 — 빈칸이 채워지는 문장 (2·3단계).
    ★ 1줄은 세 단계가 똑같은 뼈대, 2줄은 그 단계에서 더 고르는 것.
@@ -2478,26 +2537,35 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .gate-count b{ font-size:1.2em; font-weight:900; }
 /* (`들어가기` 단추는 없앴습니다 — 섬 어디를 눌러도 들어갑니다) */
 /* 섬 안에서 지도로 돌아가는 길 — 왼쪽 위 */
-.island-back{
-  position:absolute; left:.6rem; top:.6rem; z-index:4;
-  padding:.4rem 1rem; border-radius:999px; cursor:pointer;
-  background:#fffdf3; border:3px solid #8a6a4e; color:#5a4230;
-  font-size:clamp(.9rem,.55rem + .8vh,1.15rem); font-weight:900;
-  box-shadow:0 3px 0 rgba(0,0,0,.12);
-}
-.island-back:hover{ transform:translateY(-2px); }
 /* 내가 표시한 활동 모아보기 — 지도 칸 오른쪽 위.
    ★ 맨 아래에 큰 띠로 두었더니 지도가 그만큼 눌렸고, 학생이 할 일인
      `섬에 들어가기` 보다 더 커 보였습니다. 왼쪽 위 `지도로` 와 짝이 되게
      오른쪽 위에 두면, 지도 칸 두 귀퉁이가 나가는 길이 됩니다. */
+/* 2026-08-26 : 지도 오른쪽 위 → **위 도구 줄**(지도 도움말 왼쪽)로 올라왔습니다.
+   absolute 를 걷어내고 줄 흐름에 앉습니다. */
 .map-collect{
-  position:absolute; right:.6rem; top:.6rem; z-index:4;
   padding:.4rem 1rem; border-radius:999px; cursor:pointer;
   background:#5fc4c0; border:3px solid #3f9e9a; color:#fff;
   font-size:clamp(.9rem,.55rem + .8vh,1.15rem); font-weight:900;
   box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
 .map-collect:hover{ transform:translateY(-2px); }
+/* ★ 섬 전환 알약(도구 줄) — 지금 있는 섬은 파란 겹테로 표시 */
+.map-toolrow .mymap-island{ cursor:pointer; }
+.map-toolrow .mymap-island.now{ box-shadow:0 0 0 3px rgba(43,125,233,.4); }
+/* ★ 쪽 넘김 = 카드 양옆 화살표 + 아래 큰 점 (2026-08-26 · 인수인계 25) */
+.isl-arrow{ position:absolute; top:50%; transform:translateY(-50%); z-index:5; }
+.isl-arrow.left{ left:.5rem; }
+.isl-arrow.right{ right:.5rem; }
+.isl-dots-big{
+  position:absolute; left:50%; bottom:.7rem; transform:translateX(-50%); z-index:5;
+  display:flex; gap:.55rem;
+}
+.isl-dots-big i{
+  width:15px; height:15px; border-radius:999px;
+  background:#fff; border:2px solid var(--line-strong);
+}
+.isl-dots-big i.on{ background:var(--accent); border-color:var(--accent); }
 /* 섬마다 다른 배경 — js 가 --island-bg 와 --island-sea 를 넣어 줍니다.
    ★ 둘레를 메우는 색도 **섬마다 다릅니다.** 실내섬은 파스텔 노랑(방 안 바닥),
      실외섬은 하늘색입니다. 그림 가장자리 색을 재서 맞춘 값이라, 색이 이어져
@@ -2522,6 +2590,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   flex:0 0 auto; display:flex; align-items:center; gap:.6rem;
   padding:.35rem .6rem; border:2px solid var(--line); border-radius:18px;
   background:#fff;
+  /* ★ 도장판은 **맨 아래**에 둡니다 (2026-08-26 · 선생님 말씀).
+       지도가 화면의 주인공이라 위쪽 자리를 지도에 줍니다.
+       부모(.stage-fit)가 세로 flex 라 order 하나로 내려갑니다. */
+  order:99;
 }
 .stampcard-lab{
   flex:0 0 auto; font-size:.9rem; font-weight:900; color:var(--ink-soft);
@@ -2617,13 +2689,12 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .sl-name{ flex:1 1 auto; min-width:0; font-weight:800; font-size:1.1rem; }
 .sl-date{ flex:0 0 auto; font-size:.85rem; font-weight:800; color:var(--ink-soft); }
 /* 좁은 화면에서는 위아래로 (예전 모습) */
-@media (max-width: 620px){
+@media screen and (max-width: 620px){
   .stamp-2col{ flex-direction:column; }
   .stamp-list{ width:100%; }
 }
 
 /* 도움말 창의 요약 글 — 큰 글씨로 다섯 줄이면 창이 글자로 빽빽해집니다 */
-.map-sum{ font-size:1rem; line-height:1.5; }
 
 /* ★ 지도 표시 뜻 — 네 가지를 **큼직한 줄 넷**으로.
      예전에는 작은 알약 다섯 개가 한 줄에 몰려 있고 그 아래 요약 다섯 줄이
@@ -2672,7 +2743,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
   position:absolute; left:0; top:50%; transform:translateY(-50%); z-index:2;
 }
 /* 좁은 화면에서는 겹치므로 다시 한 줄로 세웁니다 */
-@media (max-width:720px){
+@media screen and (max-width:720px){
   .mymap-head > .mymap-island{ position:static; transform:none; }
 }
 /* 색은 포트폴리오의 실내·실외 표시(.folio-where)와 같은 색입니다.
@@ -2690,19 +2761,26 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .mymap-island.in { background:#ffe9cc; border-color:#c96a1e; color:#8a4a12; }
 .mymap-island.out{ background:#d6ebf9; border-color:#1f6e9e; color:#14526f; }
 /* 표시 하나를 열어 본 화면에서 **네 가지 표시로 돌아가는** 알약.
-   ★ 옆에 있는 질문 알약(.q-pill)과 **같은 분홍**이되, 질문보다 작게 둡니다.
+   ★ 옆에 있는 질문 알약(.q-pill)과 **같은 색**이되, 질문보다 작게 둡니다
+     (B안 · 2026-08-26 부터 그 색은 연한 파랑입니다).
      같은 크기면 무엇이 질문인지 흐려집니다 — 질문이 주인공입니다. */
 .mymap-island.back{
-  background:#ffeef4; border-color:#f3c3d6; color:#8a4a5e;
+  background:var(--sel-bg); border-color:var(--sel-line); color:var(--ink);
   font-size:.9rem; padding:.32rem .8rem; border-width:2px;
 }
-@media (max-width:700px){ .mymap-island{ font-size:.9rem; padding:.35rem .8rem; } }
+@media screen and (max-width:700px){ .mymap-island{ font-size:.9rem; padding:.35rem .8rem; } }
 
 .mymap-grid{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
   gap:.7rem; break-inside:avoid;
   width:min(100%, calc(2 * clamp(150px, 26vh, 260px) + .7rem));
   margin:0 auto;
+}
+/* ★ 네 칸을 **한 줄(4×1)** 로 + 칸을 15% 크게 (2026-08-26 · 선생님 말씀).
+     26vh → 30vh (×1.15). 가로 공간이 남던 화면이라 옆으로 폅니다. */
+.mymap-grid.row4{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  width:min(100%, calc(4 * clamp(170px, 30vh, 300px) + 2.1rem));
 }
 .mymap-card{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -2719,18 +2797,11 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 .mymap-txt b{ font-size:1.1rem; font-weight:900; }
 .mymap-num{ font-size:.9rem; font-weight:800; color:var(--ink-soft); }
 
-.mymap-list{ display:flex; flex-direction:column; gap:.4rem; }
-.mymap-row{
-  display:flex; align-items:center; gap:.7rem;
-  padding:.4rem .8rem; border:2px solid var(--line); border-radius:14px; background:#fff;
-}
 .mymap-no{
   flex:0 0 auto; width:28px; height:28px; border-radius:999px;
   display:grid; place-items:center; font-weight:900; font-size:.88rem;
   background:var(--paper-2); border:2px solid var(--line);
 }
-.mymap-thumb{ width:38px; height:38px; flex:0 0 auto; }
-.mymap-thumb > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .mymap-date{ flex:0 0 auto; font-size:.88rem; font-weight:800; color:var(--ink-soft); }
 
 /* 아직 아무것도 없을 때 — 빈 창으로 두지 않고 다음에 할 일을 알려 줍니다 */
@@ -2835,7 +2906,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
    `.pick-grid` 는 통으로 다음 쪽으로 밀려 1쪽이 텅 빕니다.
    그림을 조금 줄이고, 카드마다 붙던 읽어주기는 뺍니다.
    (읽어주기는 화면마다 하나 — 질문 옆에 이미 있습니다. 규칙 4) */
-@media (max-height: 900px){
+@media screen and (max-height: 900px){
   .pick .thumb.portrait{ height:clamp(76px,13.5vh,150px); }
   .pick-grid .pick .speak{ display:none; }
   .pick-grid .pick{ padding:.6rem .5rem .55rem; gap:.25rem; }
@@ -2945,8 +3016,8 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      그림이 조금만 커도 넘칩니다. 1280×720 에서 16vh(115px)면 24px 넘쳐
      화면이 2쪽으로 갈라졌습니다. 14vh(101px)면 들어갑니다.
    ※ 이 규칙은 위 기본 규칙 **뒤에** 두어야 이깁니다. 앞의
-     `@media (max-height:900px)` 묶음에 넣었다가 기본 규칙에 덮였습니다. */
-@media (max-height: 820px){
+     `@media screen and (max-height:900px)` 묶음에 넣었다가 기본 규칙에 덮였습니다. */
+@media screen and (max-height: 820px){
   .pick-grid.big .thumb{ width:clamp(84px,14vh,150px); height:clamp(84px,14vh,150px); }
 }
 
@@ -3084,19 +3155,43 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      (`앞 질문으로` / 하위 활동에서는 `다른 활동 고르기`).
    ▸ 누르는 자리는 그대로 넓게 둡니다 — 그림만 커지고 단추는 여전히
      손가락으로 누르기 쉬운 크기여야 합니다. */
-.plan-back{
-  flex:0 0 auto;
-  background:none; border:none; box-shadow:none; padding:0;
-  width:clamp(46px,6.2vh,72px); height:clamp(46px,6.2vh,72px);
-}
-.plan-back img{ width:100%; height:100%; object-fit:contain; }
-.plan-back:hover{ background:none; transform:translateY(-2px); }
 
 /* 여가 지도 · 선생님 도구 한 줄 — 도장판 바로 아래.
    왼쪽 `찾아보기` · 오른쪽 `지도 도움말`, 가운데는 비워 둡니다. */
 .map-toolrow{
   flex:0 0 auto; display:flex; align-items:center; gap:.4rem;
 }
+/* ★ 가운데 토글바 한 줄 (2026-08-26) — 도움말만 오른쪽 끝에 띄웁니다 */
+.map-toolrow.center{ position:relative; justify-content:center; }
+.map-toolrow.center .map-help{ position:absolute; right:0; }
+/* 세 칸 슬라이드 메뉴 : [여가 섬(실내) | 여가 섬(실외) | 모아보기] */
+.isl-seg{
+  display:inline-flex; align-items:stretch; gap:4px;
+  padding:4px; border-radius:999px;
+  background:#fff; border:2px solid var(--line); box-shadow:var(--shadow);
+}
+.isl-seg .seg{
+  min-height:44px; padding:.3rem 1.1rem; border:0; border-radius:999px;
+  background:transparent; font-size:1rem; font-weight:900; color:var(--ink-soft);
+  cursor:pointer; transition:background .15s ease, color .15s ease;
+}
+/* 켜진 칸이 미끄러지듯 채워집니다 — 색은 섬 규칙 그대로 (실내 주황 · 실외 파랑) */
+.isl-seg .seg.in.on { background:#ffe9cc; color:#6b3a00; box-shadow:inset 0 0 0 2px #c96a1e; }
+.isl-seg .seg.out.on{ background:#d6ebf9; color:#114f7c; box-shadow:inset 0 0 0 2px #1f6e9e; }
+.isl-seg .seg.collect{ color:#0f6b57; }
+.isl-seg .seg.collect.on{ background:#dff3ef; box-shadow:inset 0 0 0 2px #3f9e9a; }
+.isl-seg .seg:hover{ background:var(--paper-2); }
+/* 모아보기 첫 화면 — 박스 없는 안내 한 줄 (질문보다 10% 큼 · 2026-08-26) */
+.mymap-say{
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  font-size:calc(var(--fs-q) * 1.1); font-weight:900; letter-spacing:-.03em;
+  margin:.2rem 0 .8rem; text-align:center;
+}
+/* 분류 토글바 안 표시 그림 */
+.isl-seg .seg{ display:inline-flex; align-items:center; gap:.35rem; }
+.isl-seg .seg-art{ width:24px; height:24px; flex:0 0 auto; }
+.isl-seg .seg-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
+.isl-seg .seg.mark.on{ background:var(--sel-bg); box-shadow:inset 0 0 0 2px var(--sel-line); color:var(--ink); }
 /* ===========================================================
    나눔바른펜 — 학생이 '쓴 글' 로 읽히는 문장에만 씁니다
    -----------------------------------------------------------
@@ -3194,20 +3289,24 @@ textarea.sentence-edit,
 
 /* 지도 도움말 창 — 표시 칩 줄과 점선 안 글을 **가운데**로. */
 .modal .wrap{ justify-content:center; }
-.modal .map-sum{ text-align:center; }
 
 /* 모아보기 목록 — 긴 가로 바 대신 **네모 카드 4장**.
    ★ 바가 길면 그림과 글자가 왼쪽에 작게 몰려서 무엇인지 알아보기
      어려웠습니다. 카드로 만들면 그림이 크고 몇 개인지도 한눈에 보입니다. */
+/* ★ 칸 크기를 **네 칸 화면과 똑같이** 못박습니다 (2026-08-26 · 선생님 말씀).
+     활동이 한 개뿐이어도 같은 크기 · 같은 세로 길이로, 줄은 가운데 정렬. */
 .mymap-cards{
-  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  display:grid; grid-template-columns:repeat(4, clamp(170px, 30vh, 300px));
   gap:clamp(.55rem,1.1vw,1rem);
+  justify-content:center;
 }
-@media (max-width: 780px){ .mymap-cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media screen and (max-width: 780px){ .mymap-cards{ grid-template-columns:repeat(2, clamp(170px, 30vh, 300px)); } }
 .mymap-item{
   position:relative; background:#fff; border:2px solid var(--line); border-radius:18px;
   padding:.8rem .6rem .7rem; box-shadow:var(--shadow);
-  display:flex; flex-direction:column; align-items:center; gap:.4rem; min-width:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:.4rem; min-width:0;
+  aspect-ratio:1;
 }
 .mymap-item .mymap-no{
   position:absolute; left:.5rem; top:.5rem;
@@ -3241,7 +3340,6 @@ textarea.sentence-edit,
    ⚠ `.pd-art-item` 에 position 을 주지 마세요 — 이미 absolute 로 자리를
      잡고 있어서(끌어 옮기기), 여기서 relative 로 덮으면 자리가 무너집니다. */
 .pd-art .pd-art-item{ z-index:1; }
-.pd-art .pd-art-row{ position:relative; z-index:1; }
 /* 그림 하나하나는 **칸 안의 어디에나** 놓입니다.
    left·top 은 `%` 이고, 그림의 **한가운데**가 그 지점에 오도록 반 칸 당깁니다.
    ※ 여기서 % 를 쓰는 것은 **자리**이지 크기가 아닙니다.
@@ -3307,34 +3405,8 @@ textarea.sentence-edit,
    여가 포트폴리오 — 세 코너에서 만든 것을 한곳에 모아 두는 곳
    ① 내가 세운 여가계획들  ② 나의 여가지도  ③ 나의 여가 일기장
    =========================================================== */
-/* 모음 셋 고르기 — 계획 / 지도 / 일기장.
-   한 번에 하나만 보여 줍니다. 셋을 다 펼치면 좌우 3쪽이 되어 넘겨야 하고,
-   무엇부터 볼지 학생이 정할 수 없습니다. */
-/* ⚠ 여백을 더 넓히지 마세요. 이 화면은 계획 213 + 한마디·돌아보기 350
-   + 모음 고르기 + 기간 한 줄로 무대(696px)에 **아슬아슬하게** 들어갑니다.
-   조금만 더 벌어져도 좌우 2쪽으로 갈라집니다. */
-/* ⚠ 칸 수가 늘면 **열 수도 같이** 늘려야 합니다. 4칸을 3열에 두었더니
-   두 줄로 접혀 높이가 113 → 220px 이 되었고, 그만큼 아래가 밀려 쪽이 갈라졌습니다. */
-.folio-pick{
-  display:grid; gap:.5rem; margin-bottom:.45rem;
-  grid-template-columns:repeat(4, minmax(0,1fr));
-}
-@media (max-width: 760px){ .folio-pick{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
-.folio-tab{
-  display:flex; flex-direction:column; align-items:center; gap:.1rem;
-  padding:.45rem .4rem; cursor:pointer; min-width:0;
-  background:#fff; border:3px solid var(--line); border-radius:18px;
-  box-shadow:var(--shadow);
-}
-.folio-tab:hover{ transform:translateY(-2px); border-color:var(--sel-line); }
-.folio-tab.on{ background:var(--sel-bg); border-color:var(--sel-line); }
-.folio-tab-art{ width:clamp(38px,5.5vh,58px); height:clamp(38px,5.5vh,58px); display:block; }
-.folio-tab-art svg,.folio-tab-art img{ width:100%; height:100%; object-fit:contain; display:block; }
-.folio-tab-nm{
-  font-size:clamp(.92rem,.55rem + .8vh,1.15rem); font-weight:900;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
-}
-.folio-tab-n{ font-size:.82rem; font-weight:800; color:var(--ink-soft); }
+/* 모음 셋 고르기(.folio-pick/.folio-tab-*)는 **없앴습니다** (2026-08-26 · 인수인계 19-5).
+   화면이 개편되며 어디서도 안 쓰게 된 규칙들이었습니다. */
 
 .folio-grid{
   display:grid; gap:.6rem;
@@ -3443,7 +3515,7 @@ textarea.sentence-edit,
 }
 .folio-who-range{ font-size:.82rem; font-weight:700; color:var(--ink-soft); }
 /* 좁은 화면에서는 「나」 를 위로 눕혀서 가로로 놓습니다 — 세로 자리를 아낍니다 */
-@media (max-width: 820px){
+@media screen and (max-width: 820px){
   .folio-who{ flex-direction:row; align-items:center; gap:.7rem; text-align:left; }
   .folio-who-face{ width:clamp(56px,9vh,84px); height:clamp(56px,9vh,84px); flex:0 0 auto; }
 }
@@ -3469,8 +3541,8 @@ textarea.sentence-edit,
      남는 폭에 맞춰 저절로 채우면(auto-fill) 화면마다 줄 수가 달라져서,
      같은 학생 것인데도 볼 때마다 모습이 달랐습니다. */
 .folio-grid.four{ grid-template-columns:repeat(4, minmax(0,1fr)); }
-@media (max-width: 900px){ .folio-grid.four{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
-@media (max-width: 640px){ .folio-grid.four{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+@media screen and (max-width: 900px){ .folio-grid.four{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+@media screen and (max-width: 640px){ .folio-grid.four{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 /* 실내·실외 창 안 — 창이 화면 폭을 다 쓰므로 **여덟씩**.
    대표 활동은 실내 15 · 실외 15 가지라 창마다 딱 2줄입니다 (8 + 7). */
 /* ══════ 4개씩 2줄 + 양쪽 화살표로 넘기기 ══════
@@ -3506,7 +3578,7 @@ textarea.sentence-edit,
   grid-template-columns:repeat(3, auto);
   justify-content:center; gap:.7rem;
 }
-@media (max-width: 620px){ .folio-grid.wide{ grid-template-columns:repeat(2, auto); } }
+@media screen and (max-width: 620px){ .folio-grid.wide{ grid-template-columns:repeat(2, auto); } }
 
 /* ★ 나의 여가지도 — 실내 창 · 실외 창을 **위아래**로. 한눈에 둘 다 보입니다.
      예전에는 한 덩어리로 섞고 카드마다 딱지를 붙여서, 어느 쪽이 몇 가지인지
@@ -3583,7 +3655,7 @@ textarea.sentence-edit,
   background:rgba(255,255,255,.6);
 }
 .me-bar + .me-bar{ margin-top:.5rem; }
-@media (max-width: 860px){ .me-bar{ grid-template-columns:1fr; } }
+@media screen and (max-width: 860px){ .me-bar{ grid-template-columns:1fr; } }
 
 /* 위 바 왼쪽 — 채우는 자리 두 알약 */
 .me-slots{ display:flex; flex-direction:column; align-items:stretch; gap:.3rem; min-width:0; }
@@ -3641,12 +3713,13 @@ textarea.sentence-edit,
 .me-saycol{
   min-width:0; display:flex; flex-direction:column; align-items:center; gap:.4rem;
 }
-/* 무엇을 하는 칸인지 — **질문 알약(.q-pill)과 같은 분홍**입니다.
-   ⚠ 한때 주황이었습니다. 이 앱에서 무엇을 묻는 자리는 늘 분홍이고,
-     고른 것은 늘 파랑입니다. 여기만 주황이면 규칙이 하나 더 늘어납니다. */
+/* 무엇을 하는 칸인지 — **질문 알약(.q-pill)과 같은 색**입니다.
+   ⚠ 한때 주황이었습니다. 이 앱에서 무엇을 묻는 자리는 늘 같은 알약색이고,
+     고른 것은 늘 파랑입니다. 여기만 다르면 규칙이 하나 더 늘어납니다.
+     (B안 · 2026-08-26 : 알약색을 분홍 → 연한 파랑으로 통일) */
 .me-cap{
   padding:.3rem 1.1rem; border-radius:999px;
-  background:#ffeef4; border:2px solid #f3c3d6; color:var(--ink);
+  background:var(--sel-bg); border:2px solid var(--sel-line); color:var(--ink);
   box-shadow:var(--shadow);
   font-size:clamp(1rem,.6rem + .9vh,1.25rem); font-weight:900; white-space:nowrap;
 }
@@ -3662,7 +3735,7 @@ textarea.sentence-edit,
   display:grid; gap:.5rem;
   grid-template-columns:repeat(3, minmax(0,1fr));
 }
-@media (max-width: 560px){ .me-picks{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+@media screen and (max-width: 560px){ .me-picks{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 /* 그림 카드는 이 화면에서만 조금 줄입니다 (팝업 안 카드와 같은 방법) */
 .me-picks .pick{ padding:.4rem .3rem .35rem; gap:.15rem; }
 .me-picks .pick .thumb{ width:clamp(44px,7.5vh,110px); height:clamp(44px,7.5vh,110px); }
@@ -3684,7 +3757,7 @@ textarea.sentence-edit,
 .me-word.on{
   background:var(--sel-bg); border-color:var(--sel-line); border-width:3px;
   color:var(--ink);
-  box-shadow:0 0 0 3px rgba(94,200,242,.22), var(--shadow);
+  box-shadow:0 0 0 3px rgba(43,125,233,.22), var(--shadow);
 }
 
 /* 만들어지는 한마디 */
@@ -3742,7 +3815,7 @@ textarea.sentence-edit,
   grid-template-columns:repeat(2, minmax(0,1fr));
   align-items:start;
 }
-@media (max-width: 820px){ .folio-diaries{ grid-template-columns:1fr; } }
+@media screen and (max-width: 820px){ .folio-diaries{ grid-template-columns:1fr; } }
 /* 눈에 띄게 — 테두리를 두껍게 하고, 전시할 일기는 색으로 한 번 더 알려 줍니다 */
 .dcard{
   padding:.55rem .7rem; border-width:3px;
@@ -3752,15 +3825,6 @@ textarea.sentence-edit,
 /* 전시하기로 고른 일기 — 여기도 **고른 것은 파랑** 규칙을 따릅니다 */
 .dcard.on{ border-color:var(--sel-line); background:var(--sel-bg); }
 
-/* 지도 요약 — 해봤어요 · 좋아해요 · 도전 */
-.folio-sum{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; }
-.folio-sum-item{
-  padding:.3rem .9rem; border-radius:999px;
-  background:var(--paper-2); border:2px solid var(--line);
-  font-size:clamp(.9rem,.55rem + .75vh,1.1rem); font-weight:800;
-}
-.folio-sum-item b{ font-weight:900; font-size:1.15em; }
-.folio-sum-item.new{ background:#fffbe8; border-color:var(--note-line); }
 
 /* 오른쪽 끝 칸 — 힌트 보고 쓰기일 때만 나오는 힌트 보기 */
 .pd-modehint{ grid-column:3; justify-self:end; display:flex; }
@@ -3823,7 +3887,7 @@ textarea.sentence-edit,
 .me-picks.four{ grid-template-columns:repeat(4, minmax(0,1fr)); }
 .me-picks.four .pick .thumb{ width:clamp(56px,12vh,150px); height:clamp(56px,12vh,150px); }
 .me-picks.four .pick .label{ font-size:clamp(.85rem,.5rem + .7vh,1.15rem); }
-@media (max-width: 640px){ .me-picks.four{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+@media screen and (max-width: 640px){ .me-picks.four{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 
 /* 돌아보기 줄 **맨 왼쪽**의 활동 그림 — 채워 넣은 말의 짝입니다.
    1단계 학생은 글을 못 읽으므로, 그림이 있어야 어느 줄에 무엇을 넣었는지 압니다.
@@ -3936,7 +4000,7 @@ textarea.sentence-edit,
   box-shadow:var(--shadow);
 }
 .mb-card:active{ cursor:grabbing; }
-.mb-card.picked{ box-shadow:0 0 0 4px rgba(94,200,242,.45), var(--shadow); }
+.mb-card.picked{ box-shadow:0 0 0 4px rgba(43,125,233,.45), var(--shadow); }
 .mb-art{ width:100%; aspect-ratio:1; display:block; }
 .mb-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .mb-nm{
@@ -3970,7 +4034,7 @@ textarea.sentence-edit,
 .mb-tray-cap{
   display:inline-block; margin-bottom:.3rem;
   padding:.15rem .8rem; border-radius:999px;
-  background:#ffeef4; border:2px solid #f3c3d6;
+  background:var(--sel-bg); border:2px solid var(--sel-line);
   font-size:.92rem; font-weight:900;
 }
 .mb-tray-grid{
@@ -4036,8 +4100,6 @@ textarea.sentence-edit,
 @media (prefers-reduced-motion: reduce){ .map-go{ animation:none; } }
 
 /* 지도에 붙이기 화면 맨 위 — 돌아가는 알약 + 지금 무엇을 하는지 */
-.mb-top{ display:flex; align-items:center; gap:.6rem; margin-bottom:.3rem; }
-.mb-title{ font-size:clamp(.95rem,.55rem + .9vh,1.25rem); font-weight:900; }
 
 /* ══════════ 나만의 여가 지도 — A3 인쇄 ══════════
    자리는 화면과 같은 % 라서 학생이 놓은 그대로 나옵니다. */
@@ -4132,7 +4194,7 @@ textarea.sentence-edit,
 .me-bar.slots{ grid-template-columns:minmax(0,12.5rem) minmax(0,1fr); }
 .me-bar.slots .me-slots{ align-items:center; }
 .me-bar.slots .me-slot{ width:100%; text-align:center; align-items:center; }
-@media (max-width: 860px){ .me-bar.slots{ grid-template-columns:1fr; } }
+@media screen and (max-width: 860px){ .me-bar.slots{ grid-template-columns:1fr; } }
 
 /* 줄 그림과 문장 사이를 띄웁니다 — 붙어 있으면 그림이 첫 글자에 닿아 보입니다 */
 .me-row{ gap:.55rem; }
@@ -4172,43 +4234,13 @@ textarea.sentence-edit,
    ⛔ 다시 카드 안에 넣지 마세요. 카드가 하나 늘면 화면을 넘겨서 세로로 세운
       태블릿에서는 2쪽으로 밀려나 아예 안 보였고, 카드 안 작은 입력칸이라
       손가락으로 누르기도 어려웠습니다 (2026-08-23). */
-.title-own{
-  display:flex; align-items:center; gap:.5rem;
-  margin-top:.5rem; padding:.5rem .8rem;
-  background:#fff; border:2px solid var(--line); border-radius:var(--radius);
-  box-shadow:var(--shadow);
-}
-.title-own .own-lab{ width:1.6rem; height:1.6rem; flex:0 0 auto; }
-.title-own .own-lab svg{ width:100%; height:100%; display:block; }
-.title-own .own-cap{ font-weight:900; flex:0 0 auto; white-space:nowrap; }
-.title-own .field{ flex:1 1 auto; min-width:0; min-height:2.6rem; font-size:1.05rem; }
+/* 「직접 쓰기」(.title-own)는 없앴습니다 (2026-08-26) — 제목 칸이 곧 입력칸입니다. */
 
-/* ============ 「태블릿을 세로로 돌려 주세요」 ============
-   ⛔ 기본은 **안 보입니다.** 아래 조건이 다 맞을 때만 나옵니다.
-      · pointer:coarse — 손가락으로 쓰는 기기 (PC 마우스는 제외)
-      · orientation:landscape — 가로로 눕힌 상태
-      · max-height:780px — 전자칠판처럼 큰 화면은 제외
-   ▸ 세 조건을 함께 두는 것이 중요합니다. 하나라도 빼면 전자칠판이나
-     PC 에서 뜹니다. */
-.turn-hint{ display:none; }
-@media (pointer: coarse) and (orientation: landscape) and (max-height: 780px){
-  .turn-hint{
-    display:flex; align-items:center; justify-content:center;
-    position:fixed; inset:0; z-index:90;
-    background:rgba(255,255,255,.94);
-    padding:1rem;
-  }
-  .turn-card{
-    display:flex; flex-direction:column; align-items:center; gap:.5rem;
-    max-width:30rem; text-align:center;
-    padding:1.4rem 1.6rem;
-    background:#fff; border:3px solid var(--line); border-radius:24px;
-    box-shadow:var(--shadow-2, var(--shadow));
-  }
-  .turn-card b{ font-size:1.25rem; }
-  .turn-emoji{ font-size:2.6rem; line-height:1; transform:rotate(90deg); }
-  .turn-say{ color:var(--ink-soft); font-weight:700; line-height:1.5; }
-}
+/* ============ 「태블릿을 세로로 돌려 주세요」 — **없앴습니다** ============
+   ★ 이 앱은 **가로모드 전용**으로 쓰기로 했습니다 (2026-08-25 · 선생님 말씀).
+     세로를 권하는 안내는 그 결정과 정반대라 통째로 걷어냈습니다.
+     (common.js 의 C.TurnHint · app.js 의 호출도 함께 지웠습니다)
+   ⛔ 세로 지원을 되살리려면 _이전버전/20260825_가로게임판_이전 을 보세요. */
 
 /* 손으로 따라 쓴 원고지 — 칸 대신 들어갑니다 (picdiary 의 paperwriting) */
 .pd-paperimg{ display:flex; align-items:flex-start; }
@@ -4394,7 +4426,6 @@ textarea.sentence-edit,
    ⛔ 다른 칸(7·8·9번 같은 목록)까지 넓히지 마세요. 거기는 고를 것이 많아
       넓히면 눈이 멀리 갑니다. 이 둘만 넓힙니다. */
 .tsec .tlevels,
-.tsec .tplans{ max-width:none; }
 /* ⛔ 폭 제한을 푸는 것만으로는 모자랍니다 — 좁은 화면에서는 셋을 한 줄에
       늘어놓을 자리가 아예 없습니다 (600px 화면 : 필요 691px · 자리 528px).
    ▸ 그래서 **셋이 폭을 고르게 나눠 갖게** 합니다. 글자가 길면 알약 안에서
@@ -4426,3 +4457,31 @@ textarea.sentence-edit,
    ▸ 줄이 짧으면 가운데처럼 보이도록 칸 자체를 글줄 길이에 맞춥니다. */
 .frame-line{ justify-content:flex-start; margin-left:auto; margin-right:auto; }
 .frame-line + .frame-line{ margin-top:-.15rem; }
+
+/* ============ 오류 안전망 화면 (2026-08-25 · 인수인계 17-1) ============
+   그리는 도중 오류가 났을 때 흰 화면 대신 나오는 안내입니다 (app.js ErrorBoundary).
+   ⛔ 지우지 마세요 — 이것이 없으면 오류 때 아무 안내 없는 흰 화면만 남습니다. */
+.crash{
+  position:fixed; inset:0; z-index:99;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg); padding:1rem;
+}
+.crash-card{
+  display:flex; flex-direction:column; align-items:center; gap:.7rem;
+  max-width:34rem; text-align:center;
+  padding:2rem 2.4rem;
+  background:#fff; border:3px solid var(--line); border-radius:26px;
+  box-shadow:var(--shadow-2);
+}
+.crash-emoji{ font-size:3rem; line-height:1; }
+.crash-card h1{ font-size:1.6rem; font-weight:900; }
+.crash-card p{ font-size:1.05rem; font-weight:700; line-height:1.6; color:var(--ink); }
+.crash-detail{ font-size:.82rem !important; font-weight:600 !important;
+  color:var(--ink-soft) !important; word-break:break-all; }
+
+/* 앱이 뜨기 전(사진 보관소 여는 2.5초까지) 빈 화면 대신 보이는 글 —
+   index.html 의 #root 안에 있다가 첫 그리기 때 사라집니다. */
+.boot-wait{
+  height:100vh; display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:1.2rem; color:var(--ink-soft);
+}

@@ -55,7 +55,9 @@
     App.useStore();
     var st = App.store.current();
     var on = !st || st.voice !== false;      // on = 소리 켜짐
-    return html`<${C.IconBtn} uiKey="speaker" icon=${on ? 'speaker' : 'speakerOff'}
+    /* ★ 읽어주기(스피커 그림)와 **다른 그림**을 씁니다 (2026-08-26 · 선생님 말씀).
+         둘 다 스피커면 무엇이 끄는 단추인지 헷갈립니다 — 소리 끄기는 음표입니다. */
+    return html`<${C.IconBtn} icon="music" className="mute"
       off=${!on}
       label=${on ? '소리 끄기' : '소리 켜기'}
       onClick=${function () {

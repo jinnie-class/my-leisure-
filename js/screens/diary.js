@@ -87,7 +87,7 @@
     }, deps);
     return [boxRef, innerRef];
   }
-  var PAGE_SIZE = 6;
+  var PAGE_SIZE = App.PAGE_SIZE;   /* 공용 규칙 — common.js (2026-08-26) */
 
   /* 3단계가 일기를 쓰는 세 가지 방법.
      ★ 학생마다 쓰기 수단이 다릅니다. 키보드를 못 치는 학생도 3단계일 수 있어서
@@ -167,10 +167,14 @@
       <!-- 아래에는 쪽 넘기는 단추만 남기고 가운데에 둡니다.
            실내·실외 다시 고르기는 위 질문 줄 오른쪽으로 올렸습니다.
            ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+      <!-- ★ 문구와 크기를 계획하기와 **똑같이** 맞췄습니다 (2026-08-26).
+             규칙(작업노트 §5)은 「앞 ○○ 보기 / ○○ 더 보기」 인데 여기만
+             「앞 활동 / 다음 활동」 에 작은 단추(44px)여서, 같은 화면 계열이
+             다르게 보였습니다. -->
       ${pages > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
-        <${C.Btn} size="small" icon="back" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동<//>
+        <${C.Btn} icon="back" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동 보기<//>
         <span class="chip">${page + 1} / ${pages}</span>
-        <${C.Btn} size="small" icon="next" disabled=${page >= pages - 1} onClick=${function () { pageS[1](page + 1); }}>다음 활동<//>
+        <${C.Btn} icon="next" disabled=${page >= pages - 1} onClick=${function () { pageS[1](page + 1); }}>활동 더 보기<//>
       </div>`}
       ${addS[0] && html`<${C.AddActivityModal} area=${areaS[0]}
         onClose=${function () { addS[1](false); }}
@@ -209,7 +213,15 @@
       };
       return d;
     }
-    var dr = useState(initial);
+    /* ---------- 쓰다 만 일기 (이어서 하기) ----------
+       나가면서 「여기까지 저장」을 눌렀으면 여기 담겨 있습니다.
+       ▸ 고치기(editing)·계획에서 온 길(fromPlan)에는 쓰지 않습니다 —
+         들어온 뜻이 분명한데 쓰다 만 것을 끼워 넣으면 헷갈립니다. */
+    var stored = (!editing && !fromPlan && student)
+      ? App.store.draftOf(student.id, 'diary') : null;
+    var dr = useState(function () {
+      return (stored && stored.draft) ? Object.assign({}, stored.draft) : initial();
+    });
     var draft = dr[0], setDraft = dr[1];
     function patch(o) { setDraft(Object.assign({}, draft, o)); }
 
@@ -227,8 +239,25 @@
        ⚠ 단계 목록(L1/L2/L3)은 아래에서 정해지므로, 여기서는 **가장 긴 것**을
          기준으로 잡고 아래에서 실제 길이에 맞춰 깎습니다. */
     var stepS = useState(function () {
-      return (params.step === 'last') ? 99 : 0;
+      if (params.step === 'last') return 99;
+      return stored ? (stored.step || 0) : 0;
     });
+
+    /* 쓰다 만 일기를 안고 켜졌으면 — 이어서 할지 물어봅니다.
+       화면으로 이미 옮겨 왔으므로 보관함은 비웁니다 (다시 나가면 또 물어봅니다). */
+    useEffect(function () {
+      if (!stored) return;
+      App.store.clearDraft(student.id, 'diary');
+      App.ui.confirm({
+        title: '쓰다 만 일기가 있어요',
+        body: '이어서 쓸까요, 처음부터 새로 쓸까요?',
+        okText: '이어서 쓰기', cancelText: '새로 쓰기'
+      }).then(function (ok) {
+        if (ok) return;
+        setDraft(initial());
+        stepS[1](0);
+      });
+    }, []);
     var placePageS = useState(0);      // 장소 20곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
     var whoPageS = useState(0);        // 사람 16명을 6명씩 넘겨 볼 때 쓰는 쪽 번호
     var moodPageS = useState(0);       // 기분 10가지를 6가지씩 넘겨 볼 때 쓰는 쪽 번호
@@ -301,6 +330,9 @@
 
     /* --------------------- 저장 --------------------- */
     function save() {
+      /* ★ 연타 잠금 (2026-08-26) : 저장 뒤 화면이 바뀌기 전에 두 번째 탭이
+           떨어지면 일기가 두 개 생깁니다. 이미 저장했으면 그냥 돌아갑니다. */
+      if (savedIdS[0]) return;
       if (!draft.activityId) { App.ui.toast('무엇을 했는지 먼저 골라 주세요.'); return; }
       var payload = {
         studentId: student.id, planId: draft.planId, level: draft.level, date: draft.date,
@@ -347,6 +379,7 @@
       if (payload.againId === 'again')       { mark.like = true;  mark.challenge = true; mark.unsure = false; }
       else if (payload.againId === 'unsure') { mark.unsure = true; }
       App.store.setMapState(student.id, payload.cardId, mark);
+      App.store.clearDraft(student.id, 'diary');   /* 끝까지 저장했으니 쓰다 만 것은 비웁니다 */
       savedIdS[1](id);
       afterS[1](0);
       App.speakFor(student, '일기를 잘 기록했어요.');
@@ -543,7 +576,7 @@
            오른쪽이 잘렸습니다. 아래 장소 · 활동과 **같은 개수**라 학생이
            규칙 하나만 익히면 됩니다. */
       if (step === 1) {
-        var WHO_PER = 6;
+        var WHO_PER = App.PAGE_SIZE;
         var whPages = Math.max(1, Math.ceil(partners.length / WHO_PER));
         var whPage = Math.min(whoPageS[0], whPages - 1);
         var whShown = partners.slice(whPage * WHO_PER, whPage * WHO_PER + WHO_PER);
@@ -580,7 +613,7 @@
         if (act && act.defaultPlace) {
           places = [act.defaultPlace].concat(places.filter(function (s) { return s !== act.defaultPlace; }));
         }
-        var PLACE_PER = 6;
+        var PLACE_PER = App.PAGE_SIZE;
         var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
         var plPage = Math.min(placePageS[0], plPages - 1);
         var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
@@ -634,7 +667,7 @@
            ▸ 사람 · 장소 · 활동과 **같은 개수 · 같은 말**이라 학생이 규칙
              하나만 익히면 됩니다.
            ▸ 여러 개 골라도 됩니다 — 쪽을 넘겨도 고른 것은 그대로 남습니다. */
-        var MOOD_PER = 6;
+        var MOOD_PER = App.PAGE_SIZE;
         var mdPages = Math.max(1, Math.ceil(moods.length / MOOD_PER));
         var mdPage = Math.min(moodPageS[0], mdPages - 1);
         var mdShown = moods.slice(mdPage * MOOD_PER, mdPage * MOOD_PER + MOOD_PER);
@@ -1376,9 +1409,16 @@
     /* 제목 고르기 — 그림일기 맨 위에 들어갑니다 */
     function titleStep() {
       var f = frames();
+      /* ★ 제목 칸이 곧 입력칸입니다 (2026-08-26 · 선생님 말씀).
+           예전에는 아래에 「직접 쓰기」 줄이 따로 있었는데, 같은 값을 받는
+           칸이 두 개라 헷갈렸습니다. 카드를 고르면 이 칸에 들어오고,
+           칸을 눌러 바로 고치거나 새로 쓸 수도 있습니다. */
       return html`<${React.Fragment}>
         <div class="frame-line"><b>제목 :</b>
-          <span class=${'blank wide' + (draft.title ? ' on' : '')}>${draft.title || '　　　　'}</span>
+          <input class=${'blank wide title-input' + (draft.title ? ' on' : '')}
+            value=${draft.title || ''} placeholder="제목을 고르거나 여기에 써요"
+            aria-label="일기 제목"
+            onChange=${function (e) { patch({ title: e.target.value }); }} />
         </div>
         <${C.Question} bar=${true} note=${lvNote} speakText="일기 제목을 골라요. 그림일기 맨 위에 들어가요.">일기 제목을 골라요<//>
         <${C.PickGrid} cols=${6}>
@@ -1395,20 +1435,8 @@
                 : html`<${C.Art} src=${App.pickImage('title', w.img)} iconKey=${w.icon} />`} />`;
           })}
         <//>
-        <!-- ★ 「직접 쓰기」는 **고르는 카드 밖 한 줄**입니다 (2026-08-23).
-               예전에는 다섯 번째 카드로 격자 안에 있었는데 :
-               ① 카드 하나가 더 늘어 화면을 넘겨서, 세로로 세운 태블릿에서는
-                  **2쪽으로 밀려나 아예 안 보였습니다** (나왔다 안 나왔다 함)
-               ② 카드 안의 작은 입력칸이라 손가락으로 누르기 어려웠습니다
-             ▸ 한 줄로 빼니 자리도 덜 먹고 입력칸도 큼직합니다. -->
-        <div class="title-own">
-          <span class="own-lab" aria-hidden="true"
-            dangerouslySetInnerHTML=${{ __html: App.icon('pencil') }}></span>
-          <label class="own-cap" for="title-own-input">직접 쓰기</label>
-          <input id="title-own-input" class="field" value=${draft.title || ''}
-            placeholder="제목을 써 보아요"
-            onChange=${function (e) { patch({ title: e.target.value }); }} />
-        </div>
+        <!-- 「직접 쓰기」 줄은 없앴습니다 (2026-08-26) — 맨 위 제목 칸이
+             곧 입력칸입니다. -->
       <//>`;
     }
 
@@ -1700,6 +1728,30 @@
          `p.back()` 은 지나온 길을 되짚는데, 그 길에는 포트폴리오의 어느 칸을
          보고 있었는지가 없습니다. `from` 을 보고 곧장 그 칸으로 갑니다
          (그림일기 화면이 쓰는 방법과 같습니다 — picdiary 의 goBack). */
+    /* ---------- 나가기 전 「여기까지 저장할까요?」 ----------
+       ▸ 질문을 하나라도 지난 뒤에만 묻습니다.
+       ▸ 고치기(editing)는 이미 저장된 일기가 있으므로 묻지 않습니다.
+       ▸ Esc·바깥 누르기 = 「계속 할래요」 — 실수로 닫아도 잃는 것이 없습니다. */
+    function leave(go) {
+      var started = !editing && !savedIdS[0] && step > 0;
+      if (!started) { go(); return; }
+      App.ui.confirm({
+        title: '여기까지 저장할까요?',
+        body: '저장해 두면 다음에 이어서 쓸 수 있어요.',
+        okText: '여기까지 저장', altText: '저장 안 해요', cancelText: '계속 할래요',
+        icon: 'save'
+      }).then(function (r) {
+        if (r === false) return;
+        if (r === true) App.store.setDraft(student.id, 'diary', { draft: draft, step: step });
+        else App.store.clearDraft(student.id, 'diary');
+        go();
+      });
+    }
+    function goHomeAsk() { leave(function () { p.nav('home'); }); }
+    /* 공용 맨 위 줄(홈·나의 여가·설정·학생 바꾸기)이 이 확인을 거쳐 가도록 겁니다. */
+    App.leaveGuard = leave;
+    useEffect(function () { return function () { App.leaveGuard = null; }; }, []);
+
     function diaryBack() {
       /* ★ 포트폴리오에서 왔으면 **어느 단계에 있든** 곧장 나의 일기장으로.
            화살표 자리에 「나의 일기장으로 돌아가기」 라고 적혀 있으므로,
@@ -1707,7 +1759,7 @@
          ▸ 앞 질문으로 가려면 아래 단계 띠에서 그 칸을 누릅니다. */
       if (params.from === 'folio') { p.nav('portfolio', { studentId: student.id, tab: 'diary' }); return; }
       if (step > 0) { stepS[1](step - 1); return; }
-      p.back('home');
+      leave(function () { p.back('home'); });
     }
     var backLabel = (params.from === 'folio') ? '나의 일기장으로'
                   : (step > 0 ? '앞 질문으로' : '앞 화면으로');
@@ -1717,7 +1769,8 @@
          처음부터 훑는 길이 아니라 완성 화면 한 곳에서 고치고 돌아가는
          길이라, 열두 칸이 늘어서 있으면 무엇을 하는 화면인지 흐려집니다. */
     var stepsBar = (params.from !== 'folio' && (level === 1 || (level !== 1 && draft.activityId)))
-      ? html`<${C.Steps} steps=${steps} current=${step} />` : null;
+      ? html`<${C.Steps} steps=${steps} current=${step}
+          onGo=${function (i) { stepS[1](i); }} />` : null;
 
     return html`<div class="app" data-corner="diary">
       <!-- ★ 포트폴리오에서 고치러 왔으면 **화살표 자리에 글자 단추**를 둡니다.
@@ -1729,7 +1782,7 @@
         onBack=${diaryBack}
         backLabel=${backLabel}
         backText=${params.from === 'folio' ? '나의 일기장으로 돌아가기' : null}
-        onTitle=${function () { p.nav("home"); }}
+        onTitle=${goHomeAsk}
         below=${stepsBar}>
         <div class="wrap" style=${{ gap: '.25rem' }}>
           <span class="small" style=${{ fontWeight: 900 }}>일기 단계</span>
@@ -1741,7 +1794,6 @@
               onClick=${function () { patch({ level: lv.id }); stepS[1](0); }}>${lv.id}<//>`;
           })}
         </div>
-        <${C.WhoChip} student=${student} />
       <//>
 
       <!-- ★ 확인(완성) 화면은 **쪽을 나누지 않습니다.**

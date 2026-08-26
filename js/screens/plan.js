@@ -4,9 +4,9 @@
    =========================================================== */
 (function () {
   var App = window.App, React = window.React, html = App.html, C = App.C;
-  var useState = React.useState;
+  var useState = React.useState, useEffect = React.useEffect;
 
-  var PAGE_SIZE = 6;
+  var PAGE_SIZE = App.PAGE_SIZE;   /* 공용 규칙 — common.js (2026-08-26) */
 
   /* 시간대 선택지 — `아침 · 낮 · 저녁`.
      ★ 예전에는 `오전 · 오후` 였습니다. '오전' 은 학생에게 추상적이어서,
@@ -111,7 +111,7 @@
     var fromChallenge = (!existing && p.params && p.params.activityId)
       ? App.act(p.params.activityId) : null;
 
-    var init = existing || {
+    var fresh = {
       level: (student && student.planLevel) || 'easy',
       area: fromChallenge ? fromChallenge.area : null,
       cardId: fromChallenge ? App.cardIdOf(fromChallenge.id) : null,
@@ -122,13 +122,36 @@
       supplies: fromChallenge ? (fromChallenge.defaultSupplies || []).slice() : [],
       memo: ''
     };
+    /* ---------- 쓰다 만 계획 (이어서 하기) ----------
+       나가면서 「여기까지 저장」을 눌렀으면 여기 담겨 있습니다.
+       ▸ 고치기(existing)·오늘의 도전(fromChallenge)으로 들어온 때는 쓰지 않습니다 —
+         들어온 뜻이 분명한데 쓰다 만 것을 끼워 넣으면 헷갈립니다. */
+    var stored = (!existing && !fromChallenge && student)
+      ? App.store.draftOf(student.id, 'plan') : null;
+    var init = existing || (stored && stored.draft) || fresh;
     var dr = useState(Object.assign({}, init));
     var draft = dr[0], setDraft = dr[1];
     var extraS = useState(false);      // '여기 없는 준비물' 팝업
     var memoS = useState(false);       // '메모' 팝업
     /* 도전 활동을 안고 왔으면 '누구와' 부터 물어봅니다 (실내·실외와 활동은 이미 정해졌어요) */
-    var stepS = useState(fromChallenge ? 2 : 0);
+    var stepS = useState(fromChallenge ? 2 : (stored ? (stored.step || 0) : 0));
     var step = stepS[0], setStep = stepS[1];
+
+    /* 쓰다 만 계획을 안고 켜졌으면 — 이어서 할지 물어봅니다.
+       화면으로 이미 옮겨 왔으므로 보관함은 비웁니다 (다시 나가면 또 물어봅니다). */
+    useEffect(function () {
+      if (!stored) return;
+      App.store.clearDraft(student.id, 'plan');
+      App.ui.confirm({
+        title: '쓰다 만 계획이 있어요',
+        body: '이어서 할까요, 처음부터 새로 할까요?',
+        okText: '이어서 하기', cancelText: '새로 하기'
+      }).then(function (ok) {
+        if (ok) return;
+        setDraft(Object.assign({}, fresh));
+        setStep(0);
+      });
+    }, []);
     var pageS = useState(0);
     var whoPageS = useState(0);        // 「누구와 할까요?」 가 보고 있는 쪽
     var placePageS = useState(0);      // 장소는 19곳이라 쪽을 나눕니다
@@ -331,12 +354,41 @@
       return true;
     }
     function next() { if (step < KEYS.length - 1) setStep(step + 1); }
+
+    /* ---------- 나가기 전 「여기까지 저장할까요?」 ----------
+       ▸ 하나라도 고른 뒤에만 묻습니다. 아무것도 안 골랐으면 그냥 나갑니다.
+       ▸ 고치기(existing)는 이미 저장된 계획이 있으므로 묻지 않습니다.
+       ▸ Esc·바깥 누르기 = 「계속 할래요」 — 실수로 닫아도 잃는 것이 없습니다. */
+    function leave(go) {
+      var started = !existing && !savedS[0]
+        && (step > 0 || !!draft.area || !!draft.activityId);
+      if (!started) { go(); return; }
+      App.ui.confirm({
+        title: '여기까지 저장할까요?',
+        body: '저장해 두면 다음에 이어서 할 수 있어요.',
+        okText: '여기까지 저장', altText: '저장 안 해요', cancelText: '계속 할래요',
+        icon: 'save'
+      }).then(function (r) {
+        if (r === false) return;
+        if (r === true) App.store.setDraft(student.id, 'plan', { draft: draft, step: step });
+        else App.store.clearDraft(student.id, 'plan');
+        go();
+      });
+    }
+    function goHome() { leave(function () { p.nav('home'); }); }
+    /* 공용 맨 위 줄(홈·나의 여가·설정·학생 바꾸기)이 이 확인을 거쳐 가도록 겁니다. */
+    App.leaveGuard = leave;
+    useEffect(function () { return function () { App.leaveGuard = null; }; }, []);
+
     function back() {
       if (subCard) { subS[1](null); return; }
-      if (step > 0) setStep(step - 1); else p.nav('home');
+      if (step > 0) setStep(step - 1); else goHome();
     }
 
     function save() {
+      /* ★ 연타 잠금 (2026-08-26) : 저장 뒤 화면이 바뀌기 전에 두 번째 탭이
+           떨어지면 계획이 두 개 생깁니다. 이미 저장했으면 그냥 돌아갑니다. */
+      if (savedS[0]) return;
       var payload = {
         studentId: student.id, level: draft.level, area: draft.area,
         activityId: draft.activityId, cardId: draft.cardId,
@@ -346,6 +398,7 @@
       var id;
       if (existing) { App.store.updatePlan(existing.id, payload); id = existing.id; }
       else { id = App.store.addPlan(payload); }
+      App.store.clearDraft(student.id, 'plan');   /* 끝까지 저장했으니 쓰다 만 것은 비웁니다 */
       savedS[1](id);
       App.ui.toast('계획을 저장했어요.');
       App.speakFor(student, '계획을 저장했어요. ' + App.sentences.plan(payload));
@@ -364,10 +417,8 @@
                  바를 하나 더 두면 **같은 말을 세 번** 하는 셈입니다
                  (규칙 7 — 중복 금지). 그만큼 계획표가 커집니다. -->
           <${C.PlanSheet} plan=${saved} student=${student} />
-          <div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="home" className="pastel-yellow"
-              onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>
-          </div>
+          <!-- 「나의 여가로 돌아가기」는 없앴습니다 (2026-08-26) —
+               홈 가는 길은 맨 위 줄의 「나의 여가」와 홈 단추 둘로 충분합니다. -->
         <//>`;
       }
 
@@ -448,7 +499,7 @@
            ▸ 넘기는 단추 말은 활동 고르기와 **같은 규칙**입니다 —
              아래 「다음」과 헷갈리지 않게 '사람' 이라고 붙입니다. */
         var partners = App.partnersFor(student);
-        var WHO_SIZE = 6;
+        var WHO_SIZE = App.PAGE_SIZE;
         var whoPages = Math.max(1, Math.ceil(partners.length / WHO_SIZE));
         var wp = Math.min(whoPageS[0], whoPages - 1);
         var whoShow = partners.slice(wp * WHO_SIZE, wp * WHO_SIZE + WHO_SIZE);
@@ -535,7 +586,7 @@
              `무엇을 할까요?` 와 **같은 개수**라, 학생이 '한 화면에 여섯,
              더 있으면 넘긴다' 는 규칙을 하나만 익히면 됩니다.
              19곳 → 4쪽 (4곳씩이면 5쪽이라 넘기는 횟수가 늘어납니다). */
-        var PLACE_PER = 6;
+        var PLACE_PER = App.PAGE_SIZE;
         var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
         var plPage = Math.min(placePageS[0], plPages - 1);
         var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
@@ -746,9 +797,8 @@
       <${C.TopBar} title="여가 계획하기"
         onBack=${back}
         backLabel=${subCard ? '다른 활동 고르기' : (step > 0 ? '앞 질문으로' : '나의 여가로')}
-        onTitle=${function () { p.nav('home'); }}>
+        onTitle=${goHome}>
         ${!saved && html`<${C.Dots} total=${KEYS.length} current=${step} />`}
-        <${C.WhoChip} student=${student} />
       <//>
 
       <${C.Stage} top=${backBtn} action=${action}>${body()}<//>

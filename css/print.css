@@ -81,6 +81,18 @@ html,body{
 /* 잉크 절약 : 배경은 옅게 */
 *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
+/* --------------- 화면 장치가 인쇄에 새어 들지 않게 (2026-08-26 · 인수인계 19-4) ---------------
+   ★ app.css 는 media 없이 불려서 **인쇄에도 그대로 적용**됩니다.
+     화면 축소(zoom·transform)나 vh 크기가 인쇄 영역에 섞이면 종이가 흔들립니다.
+   ▸ app.css 의 화면용 미디어쿼리에는 전부 `screen and` 를 붙여 두었습니다 —
+     새 미디어쿼리를 만들 때도 꼭 붙이세요. 안 붙이면 인쇄 폭(A4 703px)에서
+     max-width 분기가 켜져 **인쇄 레이아웃이 소리 없이 바뀝니다.** */
+#print-root .fitting > *{ zoom:1 !important; }
+#print-root .dv-paper,#print-root .fix-paper,
+#print-root .jr-paper,#print-root .jr-big{ transform:none !important; }
+/* 계획표 그림 — vh 는 인쇄에서 쪽 높이 기준이라 값이 흔들립니다. 종이에서는 고정. */
+.print-area .sheet-art{ width:200px !important; height:200px !important; }
+
 /* --------------- 나만의 여가 지도 : A3 가로 한 장 ---------------
    ★ 지도는 가로로 넓고(1671:941) 카드가 여럿 올라가므로, A4 로는 카드 글씨가
      너무 작아집니다. A3 가로면 교실 벽에 붙일 만한 크기가 됩니다.

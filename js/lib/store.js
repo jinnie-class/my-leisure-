@@ -63,6 +63,10 @@
       customActivities: [],   // 선생님이 더한 '우리 반 활동'
       customPartners: [],     // 선생님이 더한 '함께하는 사람'
       customMoods: [],        // 선생님이 더한 '기분'
+      /* 쓰다 만 계획·일기 — 나가면서 「여기까지 저장」을 눌렀을 때 담깁니다.
+         { 학생id: { plan: {draft,step}|null, diary: {draft,step}|null } }
+         ▸ 백업(내보내기)에는 넣지 않습니다 — 완성 전의 임시 기록입니다. */
+      drafts: {},
       seeded: false
     };
   }
@@ -146,6 +150,7 @@
       out.customActivities = out.customActivities || [];
       out.customPartners = out.customPartners || [];
       out.customMoods = out.customMoods || [];
+      out.drafts = out.drafts || {};
       if (!out.students.length) return seed(emptyState());
       if (!out.currentStudentId || !out.students.some(function (s) { return s.id === out.currentStudentId; })) {
         out.currentStudentId = out.students[0].id;
@@ -158,16 +163,32 @@
 
   var saveTimer = null;
   var lastSaveError = null;
+  /* ★ 저장 실패를 **소리 내어** 알립니다 (2026-08-25).
+       예전에는 lastSaveError 에 담기만 하고 아무도 읽지 않아서, 저장 공간이
+       가득 차면 학생이 일기를 다 썼는데 **아무 말 없이 사라졌습니다.**
+     ▸ 실패가 **시작될 때 한 번만** 알립니다 — 저장은 글자를 칠 때마다
+       일어나므로, 매번 알리면 알림이 화면을 덮습니다. 성공하면 다시 무장합니다. */
+  var warnedSaveFail = false;
+  function noteSaveResult(err) {
+    lastSaveError = err || null;
+    if (err && !warnedSaveFail) {
+      warnedSaveFail = true;
+      if (App.ui && App.ui.toast) {
+        App.ui.toast('⚠ 기록을 저장하지 못했어요. 저장 공간이 가득 찼을 수 있어요 — 선생님 설정 → 데이터에서 정리해 주세요.');
+      }
+    }
+    if (!err) warnedSaveFail = false;
+  }
   function save() {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); lastSaveError = null; }
-      catch (e) { lastSaveError = e; }
+      try { localStorage.setItem(KEY, JSON.stringify(state)); noteSaveResult(null); }
+      catch (e) { noteSaveResult(e); }
     }, 120);
   }
   function saveNow() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); lastSaveError = null; return true; }
-    catch (e) { lastSaveError = e; return false; }
+    try { localStorage.setItem(KEY, JSON.stringify(state)); noteSaveResult(null); return true; }
+    catch (e) { noteSaveResult(e); return false; }
   }
 
   function notify() { listeners.slice().forEach(function (f) { try { f(); } catch (e) {} }); }
@@ -328,6 +349,31 @@
     },
     current: function () { return Store.student(null); },
     setCurrent: function (id) { set(function (s) { s.currentStudentId = id; }); },
+
+    /* ---------- 쓰다 만 계획·일기 (이어서 하기) ----------
+       kind 는 'plan' | 'diary'. data 는 화면이 넣고 싶은 것 그대로
+       ({ draft, step }) — 여기서는 뜻을 모르는 채 담기만 합니다. */
+    draftOf: function (studentId, kind) {
+      var d = state.drafts && state.drafts[studentId];
+      return (d && d[kind]) || null;
+    },
+    setDraft: function (studentId, kind, data) {
+      set(function (s) {
+        s.drafts = Object.assign({}, s.drafts);
+        var d = Object.assign({}, s.drafts[studentId]);
+        d[kind] = data;
+        s.drafts[studentId] = d;
+      });
+    },
+    clearDraft: function (studentId, kind) {
+      set(function (s) {
+        if (!s.drafts || !s.drafts[studentId]) return;
+        s.drafts = Object.assign({}, s.drafts);
+        var d = Object.assign({}, s.drafts[studentId]);
+        d[kind] = null;
+        s.drafts[studentId] = d;
+      });
+    },
     addStudent: function (partial) {
       var s = newStudent(partial);
       set(function (x) {
@@ -349,6 +395,7 @@
         x.plans = x.plans.filter(function (p) { return p.studentId !== id; });
         x.diaries = x.diaries.filter(function (d) { return d.studentId !== id; });
         var m = Object.assign({}, x.map); delete m[id]; x.map = m;
+        var dr = Object.assign({}, x.drafts); delete dr[id]; x.drafts = dr;
         if (x.currentStudentId === id) x.currentStudentId = x.students.length ? x.students[0].id : null;
       });
       if (App.photos) App.photos.removeByStudent(id);
@@ -448,7 +495,13 @@
       });
       if (d && App.photos) {
         (d.photoIds || []).forEach(function (pid) { App.photos.remove(pid); });
+        /* ★ 손글씨 두 장도 함께 지웁니다 (2026-08-26).
+             예전에는 photoIds·drawPhotoId 만 지워서, 가장 큰
+             원고지 손글씨(paperPhotoId)·손글씨 일기(writePhotoId)가
+             일기를 지워도 보관소에 그대로 쌓였습니다. */
         if (d.drawPhotoId) App.photos.remove(d.drawPhotoId);
+        if (d.paperPhotoId) App.photos.remove(d.paperPhotoId);
+        if (d.writePhotoId) App.photos.remove(d.writePhotoId);
       }
     },
 
@@ -537,8 +590,16 @@
     },
     /* mode : 'merge' (덧붙이기) | 'replace' (모두 바꾸기) */
     importData: function (data, mode) {
+      /* ★ 파일 검증 (2026-08-26) : 예전에는 students 배열만 있으면 무엇이든
+           들어와서, 다른 앱의 JSON 을 골라도 조용히 섞였습니다.
+         ▸ app 표시가 있으면 이 앱 것인지 보고, 없으면(아주 옛 백업)
+           학생 record 가 이 앱 모양(id·name)인지 봅니다. */
       if (!data || !Array.isArray(data.students)) throw new Error('불러올 수 있는 파일이 아니에요.');
-      var idMap = {};
+      if (data.app && data.app !== '나의 여가') throw new Error('이 파일은 「나의 여가」 백업이 아니에요.');
+      var looksRight = data.students.every(function (s) {
+        return s && typeof s === 'object' && typeof s.id === 'string';
+      });
+      if (!looksRight) throw new Error('불러올 수 있는 파일이 아니에요.');
       var incoming = data.students.map(function (s) { return Object.assign(newStudent({}), s); });
 
       if (mode === 'replace') {
@@ -562,33 +623,47 @@
         return Promise.resolve();
       }
 
-      /* 덧붙이기 : id 가 겹치면 새 id 를 부여합니다 */
+      /* ══════════ 덧붙이기 — **id 가 같으면 같은 것** (2026-08-26 개편) ══════════
+         ★ 예전에는 id 가 겹치면 **새 id 를 부여**했습니다. 그래서
+           · 같은 백업을 두 번 불러오면 학생·계획·일기가 **두 벌**이 되고
+           · 계획·일기 id 를 늘 새로 매기면서 **doneDiaryId(계획↔일기 연결)가
+             끊어져** 「✓ 일기까지 마쳤어요」 가 거짓으로 나왔고
+           · 두 벌이 **같은 사진 id** 를 가리켜, 한 벌을 지우면
+             남은 벌의 사진까지 사라졌습니다.
+         ▸ id 는 무작위(uid)라 **다른 자료끼리 우연히 겹칠 일이 사실상 없습니다.**
+           그러므로 id 가 같다 = 같은 백업에서 온 같은 기록입니다. 건너뜁니다.
+           (예시 자료의 고정 id 들도 같은 원리로 두 벌이 되지 않습니다)
+         ▸ id 를 그대로 두므로 planId · doneDiaryId 연결도 **저절로** 유지됩니다.
+         ⛔ 다시 「겹치면 새 id」 로 되돌리지 마세요 — 위 세 가지가 다시 생깁니다. */
       var st = Store.get();
-      var existing = {};
-      st.students.forEach(function (s) { existing[s.id] = true; });
-      incoming.forEach(function (s) {
-        if (existing[s.id]) { var nid = uid('st'); idMap[s.id] = nid; s.id = nid; }
-      });
-      var plans = (data.plans || []).map(function (p) {
-        var q = Object.assign({}, p);
-        q.studentId = idMap[q.studentId] || q.studentId;
-        q.id = uid('pl');
-        return q;
-      });
-      var diaries = (data.diaries || []).map(function (d) {
-        var q = Object.assign({}, d);
-        q.studentId = idMap[q.studentId] || q.studentId;
-        q.id = uid('dy');
-        q.planId = null;
-        return q;
-      });
+      var haveStu = {}, havePlan = {}, haveDiary = {};
+      st.students.forEach(function (s) { haveStu[s.id] = true; });
+      st.plans.forEach(function (p) { havePlan[p.id] = true; });
+      st.diaries.forEach(function (d) { haveDiary[d.id] = true; });
+
+      var newStudents = incoming.filter(function (s) { return !haveStu[s.id]; });
+      var plans = (data.plans || []).filter(function (p) {
+        return p && p.id && !havePlan[p.id];
+      }).map(function (p) { return Object.assign({}, p); });
+      var diaries = (data.diaries || []).filter(function (d) {
+        return d && d.id && !haveDiary[d.id];
+      }).map(function (d) { return Object.assign({}, d); });
+
       set(function (x) {
-        x.students = x.students.concat(incoming);
+        x.students = x.students.concat(newStudents);
         x.plans = x.plans.concat(plans);
         x.diaries = x.diaries.concat(diaries);
+        /* 지도 표시는 칸마다 **더 새것(updatedAt)** 을 남깁니다 —
+           옛 백업을 다시 불러와도 지금 표시가 옛것으로 되돌아가지 않습니다. */
         var m = Object.assign({}, x.map);
         Object.keys(data.map || {}).forEach(function (k) {
-          m[idMap[k] || k] = Object.assign({}, m[idMap[k] || k] || {}, data.map[k]);
+          var cur = m[k] || {}, inc = data.map[k] || {};
+          var merged = Object.assign({}, cur);
+          Object.keys(inc).forEach(function (cid) {
+            var a = cur[cid], b = inc[cid];
+            merged[cid] = (!a || ((b && b.updatedAt) || 0) >= ((a && a.updatedAt) || 0)) ? b : a;
+          });
+          m[k] = merged;
         });
         x.map = m;
         /* 더한 것들은 **id 가 같으면 이미 있는 것**이라 건너뜁니다.
@@ -601,7 +676,8 @@
         });
         if (!x.currentStudentId && x.students.length) x.currentStudentId = x.students[0].id;
       });
-      if (App.photos) return App.photos.importRecords(data.photos || [], idMap);
+      /* 사진도 id 그대로 — 같은 id 는 같은 사진이라 덮어써도 잃는 것이 없습니다 */
+      if (App.photos) return App.photos.importRecords(data.photos || [], null);
       return Promise.resolve();
     }
   };

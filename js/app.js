@@ -7,7 +7,7 @@
 
   /* 지금 열려 있는 것이 최신판인지 확인할 때 씁니다.
      선생님 설정 → 데이터 → 저장 상태 에서 볼 수 있습니다. */
-  App.VERSION = '2026-08-17 · 그림일기판 (모으기·전시·칭찬)';
+  App.VERSION = '2026-08-26 · 미니멀판 11 (칸 높이 통일 · 계획 문장 한 줄 · 단추 통일)';
 
   /* 인쇄 내용을 담아 두는 자리 (실제 그리기는 Root 가 맡습니다) */
   var setPrintContent = null;
@@ -29,6 +29,40 @@
     App.printNode(html`<div style=${{ padding: '4px' }}>
       <${C.PlanSheet} plan=${plan} student=${student} />
     </div>`);
+  };
+
+  /* ══════════ 오류 안전망 (2026-08-25) ══════════
+     ★ 그리는 도중 오류가 나면 React 18 은 화면을 **통째로 내립니다** —
+       아무 안내 없는 흰 화면만 남고, 학생도 선생님도 까닭을 알 수 없습니다
+       (html 주석 사고 때 실제로 겪었습니다 — 작업노트 §4).
+     ▸ 여기서 받아서 「선생님을 불러 주세요」 화면으로 바꿉니다.
+       학생 기록은 localStorage/IndexedDB 에 이미 있으므로 다시 열면 그대로입니다.
+     ⛔ 지우지 마세요. 평소에는 아무 일도 하지 않습니다. */
+  function ErrorBoundary(props) {
+    React.Component.call(this, props);
+    this.state = { err: null };
+  }
+  ErrorBoundary.prototype = Object.create(React.Component.prototype);
+  ErrorBoundary.prototype.constructor = ErrorBoundary;
+  ErrorBoundary.getDerivedStateFromError = function (e) { return { err: e || true }; };
+  ErrorBoundary.prototype.componentDidCatch = function (e) {
+    try { console.error('나의 여가 — 화면 오류:', e); } catch (x) {}
+  };
+  ErrorBoundary.prototype.render = function () {
+    if (!this.state.err) return this.props.children;
+    var msg = '';
+    try { msg = String(this.state.err && this.state.err.message || this.state.err); } catch (x) {}
+    return html`<div class="crash" role="alert">
+      <div class="crash-card">
+        <div class="crash-emoji" aria-hidden="true">🌳</div>
+        <h1>잠깐 쉬었다 할게요</h1>
+        <p>화면에 문제가 생겼어요. <b>선생님을 불러 주세요.</b><br />
+          지금까지 저장한 기록은 그대로 있어요.</p>
+        <button type="button" class="btn primary big"
+          onClick=${function () { location.reload(); }}>다시 열기</button>
+        ${msg && html`<p class="crash-detail">선생님께 : ${msg}</p>`}
+      </div>
+    </div>`;
   };
 
   function Root() {
@@ -54,7 +88,19 @@
          (같은 화면에서 딸린 값만 바꾸는 경우).
          ※ 길을 쌓는 일은 setState 안에서 하지 마세요 — React 가 그 함수를
            두 번 부를 수 있어서 같은 길이 두 번 쌓입니다. */
-      if (route && route.name !== name) {
+      /* ★ 가려는 곳이 **길의 맨 위와 같은 화면이면 = 되돌아가는 이동**입니다 (2026-08-25).
+           그때는 쌓지 않고 그 칸을 **되짚어(pop)** 없앱니다.
+           예전에는 되돌아가는 nav('portfolio') 도 길에 쌓여서,
+             포트폴리오 → 그림일기 → (되돌아옴) 포트폴리오 → 파란 화살표
+           를 누르면 홈이 아니라 **방금 나온 그림일기로 다시** 갔습니다.
+           map.js 가 같은 증상을 두 번 만나 화면마다 p.back 을 피해 둔 것이
+           이 뿌리 때문이었습니다.
+         ▸ 딸린 값(params)이 달라도 이름이 같으면 되짚은 것으로 봅니다 —
+           같은 화면을 두 겹으로 쌓아 두면 뒤로가기가 제자리를 돕니다. */
+      var top = histRef.current[histRef.current.length - 1];
+      if (top && top.name === name) {
+        histRef.current.pop();
+      } else if (route && route.name !== name) {
         histRef.current.push(route);
         if (histRef.current.length > 20) histRef.current.shift();
       }
@@ -75,6 +121,36 @@
 
     App.nav = nav;
     App.navBack = navBack;
+
+    /* ══════════ 안드로이드·브라우저 뒤로가기 (2026-08-26) ══════════
+       ★ 예전에는 태블릿의 뒤로 단추를 누르면 **앱 밖으로** 나갔습니다
+         (전체화면이면 그대로 종료). 학생 화면에서는 사고입니다.
+       ▸ 방법 : 켜질 때 history 에 한 칸을 쌓아 두고, popstate 가 오면
+         곧바로 한 칸을 다시 쌓아 **앱 밖으로 못 나가게** 한 뒤,
+         화면에 보이는 것과 똑같이 움직입니다 —
+           · 팝업(확인창·큰 창)이 열려 있으면 → 그 팝업을 닫고
+           · 파란 화살표가 있으면 → 그것을 누른 것과 같게
+             (앞 질문으로 · 나가기 확인 「여기까지 저장할까요?」 포함)
+           · 둘 다 없으면(표지·홈) → 아무 일도 하지 않습니다.
+       ⛔ 여기서 navBack() 을 **직접 부르지 마세요** — 계획·일기의 단계
+          되돌리기와 나가기 확인을 건너뛰어, 쓰던 것을 묻지도 않고 버립니다.
+          화면의 단추를 그대로 누르는 것이 언제나 화면과 같은 결과를 냅니다. */
+    useEffect(function () {
+      try { history.pushState({ ny: 1 }, ''); } catch (e) {}
+      function onPop() {
+        try { history.pushState({ ny: 1 }, ''); } catch (e) {}
+        var mask = document.querySelector('.mask');
+        if (mask) {
+          /* 바깥을 누른 것과 같게 — 확인창은 「그대로 있기」, 큰 창은 닫기 */
+          try { mask.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); } catch (e) {}
+          return;
+        }
+        var back = document.querySelector('.topbar-back, .topbar-backbtn');
+        if (back) back.click();
+      }
+      window.addEventListener('popstate', onPop);
+      return function () { window.removeEventListener('popstate', onPop); };
+    }, []);
 
     /* 학생이 하나도 없으면 학생 화면으로 (표지는 그대로 둡니다) */
     useEffect(function () {
@@ -111,7 +187,6 @@
     return html`<${React.Fragment}>
       ${React.cloneElement(screen, { key: route.name + JSON.stringify(route.params) })}
       <div id="print-root" class="print-area">${printS[0]}</div>
-      <${C.TurnHint} />
       <${C.UiHost} />
     <//>`;
   }
@@ -138,17 +213,21 @@
       };
       probe.src = url;
     }
-    useIfExists(App.IMAGE_BASE.wallpaper, '--wallpaper');
+    /* ★ 벽지는 **끕니다** (2026-08-26 · B안 : 회색 바탕 + 흰 스테이지 + 파랑 하나).
+         무늬 벽지는 카드·그림과 겹쳐 시각 자극을 늘립니다.
+         되살리려면 아래 줄의 주석을 풀면 됩니다 — 그림 파일은 그대로 있습니다. */
+    /* useIfExists(App.IMAGE_BASE.wallpaper, '--wallpaper'); */
     useIfExists(App.IMAGE_BASE.mapbg, '--mapbg');
     /* 포트폴리오 첫 화면 창 다섯 안쪽의 바탕 그림 */
     useIfExists(App.IMAGE_BASE.folioBg, '--folio-bg');
 
     var root = document.getElementById('root');
     var render = function () {
+      var tree = html`<${ErrorBoundary}><${Root} /><//>`;
       if (window.ReactDOM.createRoot) {
-        window.ReactDOM.createRoot(root).render(html`<${Root} />`);
+        window.ReactDOM.createRoot(root).render(tree);
       } else {
-        window.ReactDOM.render(html`<${Root} />`, root);
+        window.ReactDOM.render(tree, root);
       }
     };
     /* 사진 저장소를 먼저 준비한 뒤 화면을 그립니다 */

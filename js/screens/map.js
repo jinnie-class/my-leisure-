@@ -11,13 +11,16 @@
   /* -----------------------------------------------------------------
      여가 탐험 지도의 자리 잡기
      · 가운데에 학생 캐릭터
-     · 양옆(또는 위아래)으로 '실내 여가 섬' 과 '실외 여가 섬'
+     · 양옆(또는 위아래)으로 '여가 섬(실내)' 과 '여가 섬(실외)'
      · 화면 크기에 맞추어 카드 크기를 스스로 정하므로 글씨가 작아지지 않습니다
      ----------------------------------------------------------------- */
   /* 섬 이름 바는 섬 칸 안이 아니라 '나' 칸 양옆(같은 높이)에 놓습니다.
      TOP_H 는 이름 자리는 아니지만 섬 칸 위쪽 여백으로 그대로 남겨 둡니다.
      ※ 0 으로 줄이면 활동 카드가 175 → 231px 로 커져 지도 느낌이 달라집니다. */
-  var PAD = 10, GAP = 10, LABEL_H = 52, NAV_H = 52;
+  /* LABEL_H 52 → 2 · NAV_H 52 → 10 (2026-08-26) : 이름 바·아래 줄이 없어져
+     여백을 더 걷어냈습니다 — 카드가 10%쯤 더 커집니다 (선생님 말씀).
+     아래 큰 점은 absolute 라 자리를 먹지 않습니다. */
+  var PAD = 4, GAP = 8, LABEL_H = 2, NAV_H = 10;
   /* 진행 막대 앞에 붙는 그림 — '해봤어요' 표시와 같은 그림을 씁니다 */
   var footImg = App.uiImage('tried');                 // images/해봤어요.png (없으면 null)
   var COLS = 2, ROWS = 2;              // 한 섬에 2줄 × 2칸 = 4장씩
@@ -29,11 +32,10 @@
        위아래로 낮아서, 줄을 늘리면 카드가 바로 쪼그라듭니다.
      ▸ 그래서 아래 짜임 가운데 **카드가 가장 커지는 것**을 그때그때 고릅니다.
        카드 크기가 거의 같으면(5% 안) 한 쪽에 더 많이 담기는 쪽을 씁니다. */
-  /* ★ 한 쪽에 **4장까지만**. 5~6장을 놓아 보니 자극이 너무 많았습니다.
-       섬 안에 들어온 까닭이 '조금씩 천천히 보기' 인데, 칸을 늘리면
-       1층에서 카드를 다 펼쳐 두던 때와 다를 것이 없어집니다.
-     ▸ 4장이면 카드가 가장 커지기도 합니다 (한 줄이면 화면 높이를 다 씁니다). */
-  var F_PLANS = [[4, 1], [2, 2]];
+  /* ★ 한 쪽에 **4칸 × 2줄 = 8장** (2026-08-26 · 선생님 말씀).
+       카드 크기는 bestPlan 이 칸에 맞춰 재므로 스크롤이 생기지 않습니다.
+       15가지 활동이 두 쪽에 다 담겨 쪽 넘김이 절반으로 줍니다. */
+  var F_PLANS = [[4, 2]];
 
   function bestPlan(region) {
     var best = null;
@@ -66,7 +68,11 @@
     var y0 = region.y + LABEL_H + Math.max(0, (innerH - totalH) / 2);
     return list.map(function (card, i) {
       var r = Math.floor(i / cols), c = i % cols;
-      return { card: card, x: x0 + c * (cw + GAP), y: y0 + r * (cw + GAP), w: cw, h: cw };
+      /* ★ 마지막 줄이 덜 찼으면 **그 줄만 가운데로** (2026-08-26 · 선생님 말씀).
+           2쪽에 3장만 남으면 왼쪽으로 쏠려 보였습니다. */
+      var inRow = Math.min(cols, list.length - r * cols);
+      var rowX0 = region.x + (region.w - (inRow * cw + (inRow - 1) * GAP)) / 2;
+      return { card: card, x: rowX0 + c * (cw + GAP), y: y0 + r * (cw + GAP), w: cw, h: cw };
     });
   }
 
@@ -143,7 +149,7 @@
         pageIn: focus === 'in' ? fp : 0, pageOut: focus === 'out' ? fp : 0,
         islands: [{
           key: focus,
-          label: focus === 'in' ? '실내 여가 섬' : '실외 여가 섬',
+          label: focus === 'in' ? '여가 섬(실내)' : '여가 섬(실외)',
           region: full, labelBox: { x: full.x, w: full.w },
           tone: focus === 'in' ? '#c9a87f' : '#8fbb85',
           page: fp, pages: fPages
@@ -188,9 +194,9 @@
       labelTop: labelTop,
       pagesIn: pagesIn, pagesOut: pagesOut, pageIn: pi, pageOut: po,
       islands: [
-        { key: 'in', label: '실내 여가 섬', region: regionIn, tone: '#c9a87f',
+        { key: 'in', label: '여가 섬(실내)', region: regionIn, tone: '#c9a87f',
           labelBox: labelBox(regionIn, -1), page: pi, pages: pagesIn },
-        { key: 'out', label: '실외 여가 섬', region: regionOut, tone: '#8fbb85',
+        { key: 'out', label: '여가 섬(실외)', region: regionOut, tone: '#8fbb85',
           labelBox: labelBox(regionOut, 1), page: po, pages: pagesOut }
       ]
     };
@@ -213,7 +219,7 @@
 
     var pIn = useState(0), pOut = useState(0);   // 섬마다 따로 넘깁니다
     /* 어느 섬에 들어가 있는지 (null 이면 섬 고르기 화면).
-       모아보기에서 `실내 여가 섬으로!` 처럼 섬을 안고 들어올 수 있습니다. */
+       모아보기에서 `여가 섬(실내)으로!` 처럼 섬을 안고 들어올 수 있습니다. */
     var islandS = useState(function () {
       var want = p.params && p.params.island;
       return (want === 'in' || want === 'out') ? want : null;
@@ -435,16 +441,17 @@
              ▸ 안내 한 줄은 반대로 **지도 칸 안**으로 내려갔습니다.
                맨 위에 있을 때는 화면이 좁으면 통째로 숨어서, 세로로 세운
                태블릿에서는 아무에게도 보이지 않았습니다. -->
-        ${!islandS[0] && html`<${C.Btn} size="small" icon="home" className="pastel-yellow"
-          onClick=${function () { p.nav('home'); }}>나의 여가로 돌아가기<//>`}
+        <!-- 「나의 여가로 돌아가기」는 없앴습니다 (2026-08-26) — 맨 위 줄의
+             「나의 여가」·홈 단추가 그 일을 합니다. -->
         <${C.Speak} text=${islandS[0]
           ? ('나의 여가 탐험 지도. ' + summary.join(' '))
-          : ('나의 여가 탐험 지도. 실내 여가 섬과 실외 여가 섬을 눌러 여가 탐험을 시작해요. '
+          : ('나의 여가 탐험 지도. 여가 섬(실내)과 여가 섬(실외)을 눌러 여가 탐험을 시작해요. '
              + summary.join(' '))} />
-        <${C.WhoChip} student=${student} />
       <//>
 
-      <div class="stage">
+      <!-- full : 지도는 흰 칸 높이 통일(85%) 규칙의 **예외**입니다 —
+           지도가 주인공이라 남는 높이를 다 씁니다 (2026-08-26 · 인수인계 29). -->
+      <div class="stage full">
         <!-- 폭은 다른 화면과 같게(가운데 기둥), 높이만 남는 만큼 씁니다.
              ※ flex:1 1 auto 를 주면 '가로로도' 늘어나 다른 화면보다 넓어집니다. -->
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
@@ -493,23 +500,28 @@
                  여기서 할 일은 '어느 섬에 갈까?' 하나뿐인데, 찾아보기와
                  도움말이 함께 있으면 고를 것이 셋으로 늘어납니다.
                  둘 다 활동 카드를 볼 때 쓰는 것이라 섬 안(2층)에만 둡니다. -->
-          ${L.focus && html`<div class="map-toolrow">
-            <${C.Btn} size="small" icon="eye" onClick=${function () { toolsS[1](!toolsS[0]); }}>
-              찾아보기 ${toolsS[0] ? '▲' : '▼'}<//>
-            <!-- ★ 지금 고른 것을 **아래 단추와 같은 색**으로 보여 줍니다.
-                   색이 같으면 '찾아보기가 지금 무엇을 하고 있는지' 를
-                   눈으로 바로 잇습니다. 흰 알약이면 그냥 안내 글로 보였습니다.
-                   그림도 함께 넣어 색만으로 알리지 않습니다. -->
-            ${filter[0] !== 'all' && (function () {
-              var f = FILTERS.filter(function (x) { return x.id === filter[0]; })[0];
-              return html`<span class="chip filter-now">
-                <span class="filter-art" aria-hidden="true"
-                  dangerouslySetInnerHTML=${{ __html: App.icon(f.icon) }} />
-                ${f.name} 만 보여요
-              </span>`;
-            })()}
-            <span class="grow"></span>
-            <${C.Btn} size="small" icon="question"
+          <!-- ★ 도구 줄 = **가운데 토글바 하나** (2026-08-26 · 선생님 말씀).
+                 [여가 섬(실내) | 여가 섬(실외) | 모아보기] 세 칸 슬라이드 메뉴.
+                 찾아보기는 없앴고, 지도 도움말만 오른쪽 끝에 남습니다.
+               ⚠ L.islands 는 섬 안에서 들어온 섬 하나만 담습니다 —
+                 토글바는 고정 목록으로 그립니다. -->
+          ${L.focus && html`<div class="map-toolrow center">
+            <div class="isl-seg" role="tablist" aria-label="여가 섬 고르기">
+              ${[['in', '여가 섬(실내)'], ['out', '여가 섬(실외)']].map(function (sw) {
+                var cur = L.focus === sw[0];
+                return html`<button key=${'sw' + sw[0]} type="button" role="tab"
+                  class=${'seg ' + sw[0] + (cur ? ' on' : '')}
+                  aria-selected=${cur ? 'true' : 'false'}
+                  onClick=${function () {
+                    if (!cur) { islandS[1](sw[0]); App.speakFor(student, sw[1] + '에 가요'); }
+                  }}>${sw[1]}</button>`;
+              })}
+              <button type="button" role="tab" class="seg collect" aria-selected="false"
+                onClick=${function () { p.nav('mymap', { island: L.focus }); }}
+                aria-label=${(L.focus === 'in' ? '실내' : '실외') + ' 여가 섬에서 내가 표시한 활동 모아보기'}>
+                모아보기 ▶</button>
+            </div>
+            <${C.Btn} size="small" icon="question" className="map-help"
               onClick=${function () { helpS[1](true); }}>지도 도움말<//>
           </div>`}
 
@@ -537,28 +549,18 @@
                    지도 칸 안으로 들여놓으니 어느 화면에서나 보입니다.
                  ▸ 섬 안에서는 넣지 않습니다 — 이미 들어와 있으니 할 말이 다릅니다. -->
             ${!L.focus && html`<span class="map-say">
-              실내 여가 섬과 실외 여가 섬을 눌러 여가 탐험을 시작해요!</span>`}
+              여가 섬(실내)과 여가 섬(실외)을 눌러 여가 탐험을 시작해요!</span>`}
 
-            <!-- ★ 섬 안에서 **섬 고르기로 돌아가는 알약** (2026-08-23).
-                   맨 위 파란 화살표가 같은 일을 하지만, 학생이 그것을 못 찾아
-                   우왕좌왕했습니다. 오른쪽 위 「모아보기 ▶」 와 짝이 되어
-                   지도 칸 두 귀퉁이가 길이 됩니다. -->
-            ${L.focus && html`<button type="button" class="map-islands"
-              onClick=${function () { filter[1]('all'); toolsS[1](false); islandS[1](null); }}
-              aria-label="실내외 여가 섬 고르기로 돌아가기">
-              ◀ 실내외 여가 섬으로</button>`}
+            <!-- 「실내외 여가 섬으로」 알약은 없앴습니다 (2026-08-26) —
+                 위 도구 줄의 섬 전환 알약(여가 섬(실내)/(실외))이 그 일을 하고,
+                 섬 고르기 화면은 맨 위 파란 화살표로 갑니다. -->
 
             <div class="map-canvas" style=${{ width: W + 'px', height: H + 'px',
                 transform: 'translate(' + offX + 'px,' + offY + 'px) scale(' + scale + ')' }}>
 
-              <!-- 섬 이름 바 — 활동 카드 첫 줄 바로 위 (섬에 들어갔을 때만) -->
-              ${L.focus && L.islands.map(function (is) {
-                var r = is.labelBox || is.region;
-                return html`<div key=${'t' + is.key} class=${'island-head ' + is.key}
-                    style=${{ left: r.x + 'px', top: L.labelTop + 'px', width: r.w + 'px' }}>
-                  <span class="island-label">${is.label}</span>
-                </div>`;
-              })}
+              <!-- 섬 안의 섬 이름 바는 없앴습니다 (2026-08-26 · 선생님 말씀) —
+                   위 도구 줄 토글바에 같은 이름이 이미 켜져 있어 중복입니다.
+                   (섬 고르기 화면의 이름은 island-gate 안 gate-name 이 그대로 씁니다) -->
 
               <!-- ★ 섬 고르기 — 카드 대신 **섬 두 개만**.
                      한 화면에 카드 8장이 늘 떠 있어서 섬 그림이 거의 다 덮이고,
@@ -598,11 +600,9 @@
               })}
 
 
-              <div class="map-me" style=${{ left: CX + 'px', top: CY + 'px',
-                  width: L.center.w + 'px', height: L.center.h + 'px' }}>
-                <span class="face"><${C.AvatarArt} student=${student} /></span>
-                <span class="nm">${student ? student.name : ''}</span>
-              </div>
+              <!-- ★ 가운데 학생 카드(map-me)는 없앴습니다 (2026-08-26 · 선생님 말씀).
+                     맨 위 줄 오른쪽에 학생 이름표가 늘 있어서 같은 말이 두 번이었고,
+                     지도 한가운데를 가렸습니다. -->
 
               ${placed.map(function (q) {
                 var st = statusOf(q.card.id);
@@ -627,45 +627,43 @@
                 </button>`;
               })}
 
-              <!-- 쪽 넘김은 **지도 그림 안**에 둡니다.
-                   ⚠ 밖(map-wrap)에 두면 그림이 가운데로 옮겨간 만큼 어긋납니다.
-                     실제로 그림 자리가 382~902 인데 줄은 140~641 에 있어서
-                     252px 왼쪽으로 치우쳐 있었습니다.
-                     여기(map-canvas) 안에 두면 그림과 같이 움직여 늘 맞습니다. -->
-              ${L.islands.map(function (is) {
-                /* 섬 고르기 화면에는 두지 않습니다 — 카드를 한 장도 안 놓았는데
-                   쪽 넘김만 남아 있으면 무엇을 넘기는지 알 수 없습니다. */
-                if (!L.focus || is.pages <= 1) return null;
-                var r = is.region;
-                return html`<div key=${'nav' + is.key} class="island-nav"
-                    style=${{ left: r.x + 'px', top: (r.y + r.h - 46) + 'px', width: r.w + 'px' }}>
-                  <button type="button" class="isl-btn prev" aria-label=${is.label + ' 앞 활동 보기'}
-                    disabled=${is.page === 0} onClick=${function () { turn(is.key, -1); }}>◀ 이전</button>
-                  <span class="isl-page">
-                    <b>${is.page + 1} / ${is.pages} 쪽</b>
-                    <span class="isl-dots">
-                      ${Array.apply(null, { length: is.pages }).map(function (_, i) {
-                        return html`<i key=${i} class=${i === is.page ? 'on' : ''}></i>`;
-                      })}
-                    </span>
-                  </span>
-                  <button type="button" class="isl-btn next" aria-label=${is.label + ' 다음 활동 보기'}
-                    disabled=${is.page >= is.pages - 1} onClick=${function () { turn(is.key, 1); }}>다음 ▶</button>
-                </div>`;
-              })}
+              <!-- 아래 줄 「이전 · 1/4 쪽 · 다음」 은 없앴습니다 (2026-08-26 ·
+                   선생님 말씀) — 쪽 넘김은 카드 양옆 화살표 + 아래 큰 점입니다
+                   (map-canvas 밖, map-wrap 에 붙어 있습니다). -->
             </div>
 
             <!-- 되돌아가는 길은 맨 위 파란 화살표가 맡습니다.
                  여기 있던 지도로 알약은 지웠습니다 (같은 일을 하는 길이 둘). -->
 
-            <!-- 모아보기 (오른쪽 위) — **섬 안에서만**.
-                 큰 여가지도(섬 고르기)에서는 아직 어느 섬인지 정해지지 않았고,
-                 여기서 할 일은 '어느 섬에 갈까?' 하나뿐입니다.
-                 들어온 섬을 안고 가서, 그 섬 활동만 모아 보여 줍니다. -->
-            ${L.focus && html`<button type="button" class="map-collect"
-              onClick=${function () { p.nav('mymap', { island: L.focus }); }}
-              aria-label=${(L.focus === 'in' ? '실내' : '실외') + ' 여가 섬에서 내가 표시한 활동 모아보기'}>
-              모아보기 ▶</button>`}
+            <!-- 모아보기 알약은 위 도구 줄(지도 도움말 왼쪽)로 올렸습니다 (2026-08-26). -->
+
+            <!-- ★ 쪽 넘김 = 카드 **양옆 화살표** + 아래 큰 점 (2026-08-26 · 선생님 말씀).
+                   아래 줄의 「이전 · 1/4 쪽 · 다음」 을 걷어내고, 홈·포트폴리오의
+                   화살표(flow-arrow)와 같은 모양으로 맞췄습니다. -->
+            ${L.focus && (function () {
+              var is = L.islands.filter(function (x) { return x.key === L.focus; })[0];
+              if (!is || is.pages <= 1) return null;
+              return html`<${React.Fragment}>
+                <button type="button" class="flow-arrow isl-arrow left"
+                  aria-label=${is.label + ' 앞 활동 보기'}
+                  disabled=${is.page === 0} onClick=${function () { turn(is.key, -1); }}>
+                  <span class="ico" aria-hidden="true"
+                    dangerouslySetInnerHTML=${{ __html: App.icon('back') }} />
+                </button>
+                <button type="button" class="flow-arrow isl-arrow right"
+                  aria-label=${is.label + ' 활동 더 보기'}
+                  disabled=${is.page >= is.pages - 1} onClick=${function () { turn(is.key, 1); }}>
+                  <span class="ico" aria-hidden="true"
+                    dangerouslySetInnerHTML=${{ __html: App.icon('next') }} />
+                </button>
+                <span class="isl-dots-big" role="status"
+                  aria-label=${'모두 ' + is.pages + '쪽 가운데 ' + (is.page + 1) + '쪽'}>
+                  ${Array.apply(null, { length: is.pages }).map(function (_, i) {
+                    return html`<i key=${i} class=${i === is.page ? 'on' : ''}></i>`;
+                  })}
+                </span>
+              <//>`;
+            })()}
 
           </div>
 
@@ -675,34 +673,9 @@
                요약 문장은 그대로 살아 있습니다 — 맨 위 읽어주기와
                지도 도움말 창에서 다섯 줄을 다 들려주고 보여 줍니다. -->
 
-          <!-- ⚠ 찾아보기 상자도 **섬 안에서만**.
-                 큰 여가지도에는 활동 카드가 한 장도 없으니 걸러 볼 것이 없습니다.
-                 섬 안에서 켜 둔 채 지도로 를 누르면 이 상자만 덩그러니
-                 남아 있었습니다 (아래 배율 단추도 함께). -->
-          ${L.focus && toolsS[0] && html`<div class="map-toolbox">
-            <div class="map-tools">
-              ${FILTERS.map(function (f) {
-                return html`<button key=${f.id} type="button"
-                  class=${'tab' + (filter[0] === f.id ? ' on' : '')}
-                  aria-pressed=${filter[0] === f.id ? 'true' : 'false'}
-                  onClick=${function () { filter[1](f.id); }}>
-                  <span class="filter-art" aria-hidden="true">
-                    ${f.id === 'all' || f.id === 'none'
-                      ? html`<span dangerouslySetInnerHTML=${{ __html: App.icon(f.icon) }} />`
-                      : html`<${C.StateArt} state=${App.state(f.id)} />`}
-                  </span>
-                  ${f.name}${filter[0] === f.id ? ' ✓' : ''}</button>`;
-              })}
-            </div>
-            <!-- 배율은 **5%씩** 움직입니다 (예전 20%씩 — 한 번에 너무 크게 뛰었습니다).
-                 소수점이 쌓여 99.99% 같은 값이 되지 않도록 반올림해 둡니다. -->
-            <div class="map-tools" style=${{ marginTop: '.4rem' }}>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.max(0.6, Math.round((view[0].zoom - 0.05) * 100) / 100), px: 0, py: 0 }); }} ariaLabel="지도 작게">－ 작게<//>
-              <span class="chip">${Math.round(view[0].zoom * 100)}%</span>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: Math.min(2.2, Math.round((view[0].zoom + 0.05) * 100) / 100), px: 0, py: 0 }); }} ariaLabel="지도 크게">＋ 크게<//>
-              <${C.Btn} size="small" onClick=${function () { view[1]({ zoom: 1, px: 0, py: 0 }); }}>처음 크기<//>
-            </div>
-          </div>`}
+          <!-- 찾아보기(거르기·배율 상자)는 **없앴습니다** (2026-08-26 · 선생님 말씀).
+               한 쪽 8장이 되면서 걸러 볼 만큼 카드가 많지 않습니다.
+               되살리려면 _이전버전/20260826_지도도장판외이전 을 보세요. -->
 
           <!-- 맨 아래는 학생이 쓰는 큰 단추 하나만. 가운데입니다.
                선생님 도구는 맨 위 줄로 올렸습니다 (위 TopBar 를 보세요). -->
@@ -857,13 +830,13 @@
     if (!student) return null;
 
     /* ★ 모아보기는 **들어온 섬 것만** 보여 줍니다.
-         실외 여가 섬에서 들어오면 실외 활동만, 실내에서 들어오면 실내만.
+         여가 섬(실외)에서 들어오면 실외 활동만, 실내에서 들어오면 실내만.
          섬 안에서 하던 일을 그대로 이어 보는 것이라, 갑자기 다른 섬 활동까지
          섞여 나오면 '여기가 어디지?' 가 됩니다.
        ▸ 나가는 단추도 그 섬 하나뿐입니다 (아래 backTo). */
     var island = (p.params && p.params.island) || null;   // 'in' | 'out' | null
     var area = island === 'in' ? 'indoor' : (island === 'out' ? 'outdoor' : null);
-    var islandName = island === 'in' ? '실내 여가 섬' : (island === 'out' ? '실외 여가 섬' : null);
+    var islandName = island === 'in' ? '여가 섬(실내)' : (island === 'out' ? '여가 섬(실외)' : null);
 
     var cards = App.visibleCards(student, area);
     var statusMap = App.store.mapOf(student.id);
@@ -890,25 +863,28 @@
 
     if (!open) {
       body = html`<${React.Fragment}>
-        <!-- ★ 어느 섬 것인지를 질문 글 안에 적어 두었더니 분홍 바가 길어지고,
-               그 말이 **읽을 것**일 뿐 아무 일도 하지 않았습니다.
-               이제 질문 **왼쪽 알약**으로 떼어 내고, 누르면 그 섬으로 돌아갑니다.
-               이름표와 돌아가는 길을 한 가지가 겸합니다.
-             ▸ 색은 포트폴리오의 실내·실외 표시(folio-where)와 **같은 색**입니다.
-               실내 밝은 주황 · 실외 밝은 하늘. 같은 뜻에는 같은 색을 씁니다.
-             ▸ 맨 위 파란 화살표도 같은 곳으로 가지만, 화면 끝이라 멉니다.
-               여기 알약은 **보고 있는 자리 바로 옆**에 있는 지름길입니다. -->
-        <div class="mymap-head">
-          ${island && html`<button type="button" class=${'mymap-island ' + island}
-            title=${islandName + '으로 돌아가기'}
-            aria-label=${islandName + '으로 돌아가기'}
-            onClick=${function () { p.nav('map', { island: island }); }}>
-            ◀ ${islandName}<//>`}
-          <${C.Question} bar=${true}
-            speakText=${(islandName ? islandName + '에서 ' : '') + '내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.'}>
-            내가 표시한 활동을 모아 볼까요?<//>
+        <!-- ★ 여기도 섬 화면과 **같은 토글바** (2026-08-26 · 선생님 말씀).
+               [여가 섬(실내)|여가 섬(실외)|모아보기] — 모아보기가 켜져 있고,
+               섬 칸을 누르면 그 섬으로 돌아갑니다. 왼쪽 「◀ 섬으로」 알약과
+               분홍 질문 바는 걷어냈습니다 — 안내는 박스 없는 글 한 줄로. -->
+        <div class="map-toolrow center" style=${{ marginBottom: '.5rem' }}>
+          <div class="isl-seg" role="tablist" aria-label="여가 섬 고르기">
+            ${[['in', '여가 섬(실내)'], ['out', '여가 섬(실외)']].map(function (sw) {
+              return html`<button key=${'sw' + sw[0]} type="button" role="tab"
+                class=${'seg ' + sw[0]} aria-selected="false"
+                onClick=${function () { p.nav('map', { island: sw[0] }); }}>${sw[1]}</button>`;
+            })}
+            <button type="button" role="tab" class="seg collect on"
+              aria-selected="true">모아보기 ▶</button>
+          </div>
         </div>
-        <div class="mymap-grid">
+        <div class="mymap-say">
+          내가 표시한 활동을 모아 볼까요?
+          <${C.Speak}
+            text=${(islandName ? islandName + '에서 ' : '') + '내가 표시한 활동을 모아 볼 수 있어요. 보고 싶은 것을 눌러 보세요.'} />
+        </div>
+        <!-- 네 칸을 **한 줄(4×1)** 로 (2026-08-26 · 선생님 말씀) -->
+        <div class="mymap-grid row4">
           ${App.DATA.mapStates.map(function (m) {
             var n = listOf(m.id).length;
             return html`<button key=${m.id} type="button" class=${'mymap-card' + (n ? '' : ' empty')}
@@ -929,22 +905,25 @@
     var shown = list.slice(myPage * MY_PER, myPage * MY_PER + MY_PER);
       var e = EMPTY_WORD[open.id] || { line: '아직 없어요.', tip: '활동을 시작해 보아요!' };
       body = html`<${React.Fragment}>
-        <!-- 표시 그림을 말 앞에 붙입니다 (해봤어요 앞에 발자국처럼).
-             네 칸 화면에서는 그림을 보고 골랐는데 들어오면 글자만 남아서,
-             방금 무엇을 눌렀는지 이어지지 않았습니다.
-             ★ 왼쪽 알약은 **네 가지 표시로 돌아가는 지름길**입니다.
-               맨 위 파란 화살표도 같은 곳으로 가지만 화면 끝이라 멀고,
-               여기가 어디에서 들어온 자리인지도 알려 줍니다.
-               섬 알약(mymap-island)과 **같은 자리 · 같은 결**로 두었습니다. -->
-        <div class="mymap-head">
-          <button type="button" class="mymap-island back"
-            title="내가 표시한 활동으로 돌아가기"
-            aria-label="내가 표시한 활동으로 돌아가기"
-            onClick=${function () { openS[1](null); }}>◀ 내가 표시한 활동<//>
-          <${C.Question} bar=${true} speakText=${open.name + '. ' + open.help}>
-            <span class="q-art" aria-hidden="true"><${C.StateArt} state=${open} /></span>
-            ${open.name}
-          <//>
+        <!-- ★ 분류 안에서도 **같은 토글바** (2026-08-26 · 선생님 말씀).
+               [해봤어요|좋아해요|도전하고 싶어요|잘 모르겠어요] 네 칸 —
+               지금 보는 것이 켜져 있고, 다른 칸을 누르면 바로 건너갑니다.
+               「◀ 내가 표시한 활동」 알약과 분홍 질문 바는 걷어냈습니다.
+               네 칸 화면으로는 맨 위 파란 화살표가 갑니다. -->
+        <div class="map-toolrow center" style=${{ marginBottom: '.5rem' }}>
+          <div class="isl-seg" role="tablist" aria-label="표시 고르기">
+            ${App.DATA.mapStates.map(function (m) {
+              var cur = open.id === m.id;
+              return html`<button key=${m.id} type="button" role="tab"
+                class=${'seg mark' + (cur ? ' on' : '')}
+                aria-selected=${cur ? 'true' : 'false'}
+                onClick=${function () {
+                  if (!cur) { openS[1](m); myPageS[1](0); App.speakFor(student, m.name); }
+                }}>
+                <span class="seg-art" aria-hidden="true"><${C.StateArt} state=${m} /></span>
+                ${m.name}</button>`;
+            })}
+          </div>
         </div>
         ${list.length
           ? html`<${React.Fragment}>
@@ -993,7 +972,6 @@
         backLabel=${openS[0] ? '네 가지 표시로' : (islandName ? islandName + '으로' : '여가 지도로')}
         onTitle=${function () { p.nav("home"); }}>
         <${C.Speak} text=${open ? open.name + '. ' + open.help : '내가 표시한 활동을 모아 볼 수 있어요.'} />
-        <${C.WhoChip} student=${student} />
       <//>
 
       <!-- 되짚는 길은 맨 위 파란 화살표와 왼쪽 알약이 맡습니다.

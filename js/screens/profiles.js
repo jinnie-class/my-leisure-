@@ -87,7 +87,13 @@
               <!-- 왼쪽 : 지금 고른 캐릭터 -->
               <div class="cs-preview">
                 <div class="cs-face"><${C.AvatarArt} student=${student} /></div>
-                <div class="cs-name">${student.name}</div>
+                <!-- ★ 이름 칸이 곧 입력칸입니다 (2026-08-26 · 선생님 말씀).
+                     예전에는 이름을 고치려면 선생님 설정까지 가야 했습니다. -->
+                <input class="cs-name" value=${student.name || ''}
+                  aria-label="학생 이름 (눌러서 고칠 수 있어요)" placeholder="이름"
+                  onChange=${function (e) {
+                    App.store.updateStudent(student.id, { name: e.target.value });
+                  }} />
               </div>
 
               <!-- 오른쪽 : 고를 수 있는 캐릭터 -->
@@ -146,8 +152,14 @@
     var store = App.useStore();
     var students = store.students;
     var q = '누구의 여가생활일까요?';
+    /* ★ 누른 카드 표시 (2026-08-26) : 이름을 읽어 주는 0.35초 동안 화면에
+         아무 반응이 없어서, 학생이 안 눌린 줄 알고 **또 눌렀습니다.**
+         누르는 즉시 파란 테두리를 켜고, 그동안 다른 카드는 잠급니다. */
+    var pickedS = React.useState(null);
 
     function choose(s) {
+      if (pickedS[0]) return;              /* 읽어 주는 동안 겹눌림 막기 */
+      pickedS[1](s.id);
       App.store.setCurrent(s.id);
       App.speakFor(s, s.name);
       /* 캐릭터를 아직 고르지 않았으면 캐릭터 고르기부터 */
@@ -156,22 +168,9 @@
       }, 350);
     }
 
-    /* 왼쪽 위 : 홈 화면과 **똑같이** `나의 여가` 글자 그림입니다.
-       ⚠ 예전에는 집 모양이었는데 누르면 **표지**로 갔습니다. 그림과 가는 곳이
-         달라서, 집을 누르면 홈으로 갈 줄 알게 됩니다. 여기서는 학생을 아직
-         안 골랐으니 홈으로 갈 수도 없습니다.
-       ▸ 홈 화면 왼쪽 위와 같은 자리·같은 그림·같은 곳 — 한 번 익히면 어디서나 같습니다. */
-    var coverWord = App.uiImage('coverWord');
-
+    /* 맨 위 줄(로고·홈·전체화면·설정·학생 이름표)은 C.TopBar 가 공용으로 그립니다. */
     return html`<div class="app" data-corner="home">
-      <${C.TopBar}
-        left=${html`<button type="button" class="cover-word"
-            onClick=${function () { p.nav('cover'); }}
-            aria-label="표지로 가기" title="표지로 가기">
-          ${coverWord
-            ? html`<img src=${coverWord} alt="" />`
-            : html`<span class="cover-word-text">나의 여가</span>`}
-        </button>`} />
+      <${C.TopBar} />
 
       <${C.Stage}>
         <div class="q">
@@ -181,7 +180,8 @@
 
         ${students.length ? html`<div class="stu-grid">
           ${students.map(function (s) {
-            return html`<button key=${s.id} type="button" class="stu-card"
+            return html`<button key=${s.id} type="button"
+                class=${'stu-card' + (pickedS[0] === s.id ? ' picked' : '')}
                 onClick=${function () { choose(s); }}
                 aria-label=${(s.name || '이름 없음') + (s.id === store.currentStudentId ? ', 지금 학생' : '')}>
               <span class="stu-card-mark">${s.mark || '🌸'}</span>
