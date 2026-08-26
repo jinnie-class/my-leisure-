@@ -16,7 +16,7 @@
     var cur = App.avatarFor(student);
     var back = (p.params && p.params.from) || 'profiles';
     /* ★ 쪽 넘김이 없습니다 (2026-08-26 · 선생님 말씀 「한 장 안에서 선택하고
-         넘어가게」). 캐릭터 여덟 + 「사진 찍기」 한 칸 = **3칸 × 3줄**.
+         넘어가게」). 캐릭터 여덟 + 「사진 넣기」 한 칸 = **3칸 × 3줄**.
        ▸ 예전에는 38개를 12개씩 네 쪽에 나눠 놓아, 고르기 전에 「다음 ▶」을
          누르는 일부터 배워야 했습니다. 사진 넣기도 격자 **밖 아래**에 따로
          있어서 캐릭터와 나란히 견주기 어려웠습니다.
@@ -116,7 +116,10 @@
                     <span class="cs-art">
                       <${C.Art} src=${face || App.uiImage('camera')} iconKey="camera" />
                     </span>
-                    <span class="cs-label">${busy[0] ? '넣는 중…' : (face ? '내 사진' : '사진 찍기')}</span>
+                    <!-- 「사진 찍기」가 아니라 **「사진 넣기」** 입니다 (2026-08-26 ·
+                         선생님 말씀). 카메라로 찍어도 되고 갤러리에서 골라도
+                         되므로, 「찍기」는 할 수 있는 일을 좁혀 말합니다. -->
+                    <span class="cs-label">${busy[0] ? '넣는 중…' : (face ? '내 사진' : '사진 넣기')}</span>
                   </button>
                   <input ref=${faceRef} type="file" accept="image/*"
                     style=${{ display: 'none' }} onChange=${pickFace} />
