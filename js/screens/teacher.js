@@ -146,9 +146,14 @@
             style=${{ flex: '0 0 auto' }}
             aria-label=${(s.name || '이 학생') + ' 캐릭터 고르기'}
             onClick=${function () { p.nav('avatar', { studentId: s.id, from: 'teacher' }); }}>
-            <!-- 「캐릭터」 글자는 뺐습니다 (2026-08-26) — 그림이 곧 뜻이고,
-                 aria-label 이 화면 낭독기에 뜻을 전합니다. -->
+            <!-- ★ 「캐릭터」 글자를 되살렸습니다 (2026-08-26 · 선생님 말씀 —
+                   「캐릭터 창이 너무 작아 눌러서 골라야할지 모를듯」).
+                 잠깐 글자를 빼고 그림만 두었더니, 고른 뒤에는 흰 네모에 작은
+                 그림 하나라 **눌리는 것으로 보이지 않았습니다.**
+               ⛔ 다시 글자를 빼지 마세요. 그림만으로는 「누르는 곳」임이
+                  드러나지 않습니다 (그림은 뜻이지 손짓이 아닙니다). -->
             <span class="stu-av"><${C.AvatarArt} student=${s} /></span>
+            <span class="stu-av-word">캐릭터</span>
           </button>
 
           <div class="wrap" style=${{ flex: '0 0 auto', gap: '.3rem' }}>

@@ -2907,9 +2907,16 @@ input.title-input{
 .tchoice.avatar.done{
   background:#fff; border-color:var(--line); border-style:solid; color:var(--ink);
 }
-.tchoice.avatar.done:hover{ background:var(--paper-2); }
-.stu-av{ width:28px; height:28px; flex:0 0 auto; display:block; }
+/* ⛔ 고른 뒤에도 **눌리는 곳으로 보여야** 합니다 (2026-08-26 · 선생님 말씀).
+      흰 바탕 + 28px 그림 하나였을 때 학생·선생님 모두 그냥 그림인 줄 알았습니다.
+      ▸ 고른 뒤에도 연한 하늘색 바탕을 남기고, 그림을 44px 로 키우고,
+        「캐릭터」 글자를 함께 둡니다. */
+.tchoice.avatar.done{ background:#eef6fd; border-color:#a9dcf5; color:#125b7d; }
+.tchoice.avatar.done:hover{ background:#dff1fb; }
+.tchoice.avatar{ min-height:56px; padding:.25rem .6rem; }
+.stu-av{ width:44px; height:44px; flex:0 0 auto; display:block; }
 .stu-av img,.stu-av svg,.stu-av span{ width:100%; height:100%; object-fit:contain; display:block; }
+.stu-av-word{ font-size:.9rem; font-weight:900; white-space:nowrap; }
 
 /* 여가 지도 활동 표시 그림 (해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요) */
 .chip .chip-art{ width:20px; height:20px; flex:0 0 auto; display:block; }
