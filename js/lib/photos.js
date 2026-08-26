@@ -112,11 +112,6 @@
     /* 화면에 바로 쓰는 동기 조회 (init 이후) */
     url: function (id) { var r = cache[id]; return r ? r.dataUrl : null; },
     has: function (id) { return !!cache[id]; },
-    listByStudent: function (studentId) {
-      return Object.keys(cache).map(function (k) { return cache[k]; })
-        .filter(function (r) { return r.studentId === studentId; })
-        .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
-    },
     count: function () { return Object.keys(cache).length; },
 
     /* 파일을 줄여서 저장 → id 를 돌려줍니다 */

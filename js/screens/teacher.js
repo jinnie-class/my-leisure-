@@ -70,7 +70,6 @@
       })}
     </div>`;
   }
-  C.Choices = Choices;
 
   /* ------------------------- 설정 화면 ------------------------- */
   C.TeacherScreen = function (p) {

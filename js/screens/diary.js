@@ -274,23 +274,6 @@
     var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
     var paperS = useState(false);      // 원고지 따라쓰기 판이 열려 있는지 (모든 단계)
 
-    /* 고르면 0.45초 뒤 다음 질문으로 넘어갑니다 (규칙 2).
-       시간이 지나 저절로 넘어가는 것이 아니라, 학생이 고른 결과로 넘어갑니다. */
-    var goTimer = React.useRef(null);
-    useEffect(function () {
-      return function () { if (goTimer.current) clearTimeout(goTimer.current); };
-    }, []);
-    function goNext() {
-      if (goTimer.current) clearTimeout(goTimer.current);
-      goTimer.current = setTimeout(function () {
-        /* ※ 지금 단계 목록의 마지막을 넘지 않게 막습니다.
-             ⚠ 세 단계를 **모두** 적어야 합니다. 3단계가 빠져 있어서 L1(8칸)
-               길이로 깎였고, `또 하고 싶나` 를 제목 뒤(8번째)로 옮기자
-               3단계가 그 칸에서 더 못 넘어갔습니다 (2026-08-22). */
-        var list = (draft.level === 2) ? L2 : (draft.level === 3 ? L3 : L1);
-        stepS[1](function (s) { return Math.min(s + 1, list.length - 1); });
-      }, 450);
-    }
 
     var level = draft.level;
     /* 확인 화면이 **한 쪽을 넘지 않게** 통째로 줄여 주는 장치 (위 useFitOnePage).
@@ -1225,25 +1208,6 @@
     }
 
     /* --------------------- 공통 기록 머리 --------------------- */
-    function metaBar() {
-      var pt = App.partner(draft.partnerId);
-      return html`<div class="banner info" style=${{ marginBottom: '.7rem' }}>
-        <div class="row">
-          <span class="chip"><span aria-hidden="true"
-            dangerouslySetInnerHTML=${{ __html: App.icon('calendar') }} />${App.fmtDateShort(draft.date)}</span>
-          <span class="chip">${act ? act.name : '활동을 골라 주세요'}</span>
-          <span class="chip">${pt ? pt.name : '함께한 사람'}</span>
-          <span class="chip">${draft.place || '장소'}</span>
-          ${draft.weather && html`<span class="chip">
-            <span class="chip-art" aria-hidden="true"
-              dangerouslySetInnerHTML=${{ __html: App.weatherSvg(App.weather(draft.weather)) }} />
-            ${(App.weather(draft.weather) || {}).name}</span>`}
-          <div class="grow"></div>
-          ${fromPlan && html`<span class="star-badge">계획에서 가져왔어요</span>`}
-          <${C.Btn} size="small" icon="pencil" onClick=${function () { editMetaS[1](0); }}>바꾸기<//>
-        </div>
-      </div>`;
-    }
 
     /* --------------------- 2단계 ---------------------
        예전에는 문장 4개 + 기분 + 또하기 + 그림이 한 화면에 몰려 있어서
@@ -1285,16 +1249,6 @@
     }
 
     /* 만들어지고 있는 문장을 늘 위에 보여 줍니다 (지금 어디를 채우는지 보이도록) */
-    function frameLine(f) {
-      return html`<div class="frame-line">
-        ${fromPlan && html`<span class="from-plan">계획에서 가져왔어요</span>`}
-        <b>나는</b>
-        <span class=${'blank' + (f.f1a ? ' on' : '')}>${f.f1a || '　　'}</span>
-        <b>${josaOf(f.f1a, '과/와') + ' 함께'}</b>
-        <span class=${'blank' + (f.f1b ? ' on' : '')}>${f.f1b || '　　'}</span>
-        <b>${josaOf(f.f1b, '을/를') + ' 했어요.'}</b>
-      </div>`;
-    }
 
     /* 낱말 카드 — 활동 카드처럼 크게, 그림을 붙여서 고릅니다.
        (작은 글자 단추는 읽기 어려운 학생이 고르기 힘듭니다) */
@@ -1463,31 +1417,6 @@
 
 
     /* 기분 · 또 하고 싶은지 (2·3단계 공통) */
-    function moodAndAgain() {
-      return html`<${React.Fragment}>
-        <${C.Sec} title="오늘의 기분" speakText="오늘의 기분">
-          <${C.PickGrid} cols=${4}>
-            ${moods.map(function (m) {
-              var on = draft.moodIds.indexOf(m.id) >= 0;
-              return html`<${C.Pick} key=${m.id} selected=${on} label=${m.name} speakText=${m.name}
-                onClick=${function () {
-                  patch({ moodIds: on ? draft.moodIds.filter(function (x) { return x !== m.id; })
-                                      : draft.moodIds.concat([m.id]) });
-                }} art=${html`<${C.MoodArt} mood=${m} />`} />`;
-            })}
-          <//>
-        <//>
-        <${C.Sec} title="또 하고 싶은 활동인가요?" speakText="또 하고 싶은 활동인가요?">
-          <${C.PickGrid} cols=${3}>
-            ${App.DATA.agains.map(function (g) {
-              return html`<${C.Pick} key=${g.id} selected=${draft.againId === g.id} label=${g.name}
-                speakText=${g.name} onClick=${function () { patch({ againId: g.id }); }}
-                art=${html`<${C.Art} src=${App.againImage(g)} iconKey=${g.icon} />`} />`;
-            })}
-          <//>
-        <//>
-      <//>`;
-    }
 
     /* --------------------- 3단계 --------------------- */
     /* ★ 3단계도 **한 단계에 한 가지**씩 묻습니다.

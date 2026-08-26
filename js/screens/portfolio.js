@@ -492,14 +492,6 @@
                exhibited: exhibited, photoIds: photoIds };
     }, [student, range.from, range.to, App.store.get()]);
 
-    function setRange(id) {
-      var pf = Object.assign({}, student.portfolio || {}, { rangeId: id });
-      if ((id === 'term' || id === 'custom') && !pf.start) {
-        pf.start = App.addMonths(App.todayKey(), -4);
-        pf.end = App.todayKey();
-      }
-      App.store.updateStudent(student.id, { portfolio: pf });
-    }
     function setDate(k, v) {
       var pf = Object.assign({}, student.portfolio || {});
       pf[k] = v;

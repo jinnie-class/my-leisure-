@@ -12,7 +12,7 @@ html,body{
 }
 
 /* 화면 전용 요소 숨기기 */
-.topbar,.bottombar,.pager,.mask,.toast,.no-print{ display:none !important; }
+.topbar,.pager,.mask,.toast,.no-print{ display:none !important; }
 
 /* 앱 껍데기 해제 */
 .app{ height:auto !important; display:block !important; overflow:visible !important; background:#fff !important; }

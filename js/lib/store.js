@@ -50,7 +50,6 @@
     };
     return Object.assign(s, partial || {});
   }
-  App.newStudent = newStudent;
 
   function emptyState() {
     return {
@@ -66,8 +65,7 @@
       /* 쓰다 만 계획·일기 — 나가면서 「여기까지 저장」을 눌렀을 때 담깁니다.
          { 학생id: { plan: {draft,step}|null, diary: {draft,step}|null } }
          ▸ 백업(내보내기)에는 넣지 않습니다 — 완성 전의 임시 기록입니다. */
-      drafts: {},
-      seeded: false
+      drafts: {}
     };
   }
 
@@ -129,7 +127,6 @@
       camping:   { tried: false, like: false, challenge: true, unsure: false, updatedAt: Date.now() },
       museum:    { tried: false, like: false, challenge: true, unsure: false, updatedAt: Date.now() }
     };
-    st.seeded = true;
     return st;
   }
 
@@ -162,15 +159,15 @@
   }
 
   var saveTimer = null;
-  var lastSaveError = null;
   /* ★ 저장 실패를 **소리 내어** 알립니다 (2026-08-25).
-       예전에는 lastSaveError 에 담기만 하고 아무도 읽지 않아서, 저장 공간이
+       예전에는 오류를 변수에 담기만 하고 아무도 읽지 않아서, 저장 공간이
        가득 차면 학생이 일기를 다 썼는데 **아무 말 없이 사라졌습니다.**
      ▸ 실패가 **시작될 때 한 번만** 알립니다 — 저장은 글자를 칠 때마다
-       일어나므로, 매번 알리면 알림이 화면을 덮습니다. 성공하면 다시 무장합니다. */
+       일어나므로, 매번 알리면 알림이 화면을 덮습니다. 성공하면 다시 무장합니다.
+     ⛔ 오류를 변수에 담아 두기만 하는 자리로 되돌리지 마세요 — 담아 두면
+        아무도 안 읽습니다. 그 자리에서 말해 주어야 합니다 (2026-08-26 정리). */
   var warnedSaveFail = false;
   function noteSaveResult(err) {
-    lastSaveError = err || null;
     if (err && !warnedSaveFail) {
       warnedSaveFail = true;
       if (App.ui && App.ui.toast) {
@@ -278,8 +275,6 @@
       listeners.push(fn);
       return function () { listeners = listeners.filter(function (f) { return f !== fn; }); };
     },
-    saveNow: saveNow,
-    lastError: function () { return lastSaveError; },
 
     /* --------------- 우리 반 활동 (선생님이 더한 활동) --------------- */
     addActivity: function (o) {
@@ -289,13 +284,6 @@
       }, o);
       set(function (x) { x.customActivities = (x.customActivities || []).concat([a]); });
       return a.id;
-    },
-    updateActivity: function (id, patch) {
-      set(function (x) {
-        x.customActivities = (x.customActivities || []).map(function (a) {
-          return a.id === id ? Object.assign({}, a, patch) : a;
-        });
-      });
     },
     /* --------------- 우리 반 사람 · 기분 (선생님이 더한 것) ---------------
        활동과 **같은 방식**입니다. 지우면 학생마다 켜 둔 목록에서도 함께 지웁니다. */
@@ -416,11 +404,6 @@
       var t = App.todayKey();
       return Store.plans(studentId).filter(function (p) { return p.date === t; });
     },
-    upcomingPlans: function (studentId) {
-      var t = App.todayKey();
-      return Store.plans(studentId).filter(function (p) { return p.date > t; })
-        .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-    },
     addPlan: function (p) {
       var plan = Object.assign({
         id: uid('pl'), studentId: Store.get().currentStudentId, level: 'easy',
@@ -436,9 +419,6 @@
       set(function (x) {
         x.plans = x.plans.map(function (p) { return p.id === id ? Object.assign({}, p, patch) : p; });
       });
-    },
-    removePlan: function (id) {
-      set(function (x) { x.plans = x.plans.filter(function (p) { return p.id !== id; }); });
     },
 
     /* --------------- 일기 --------------- */
@@ -615,7 +595,6 @@
         state.customMoods = (data.customMoods || []).slice();
         syncCustom();                     // 목록에 바로 반영
         state.currentStudentId = incoming.length ? incoming[0].id : null;
-        state.seeded = true;
         saveNow(); notify();
         if (App.photos) {
           return App.photos.clearAll().then(function () {

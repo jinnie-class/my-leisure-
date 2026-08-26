@@ -31,7 +31,6 @@
   var Speech = {
     /* 이 브라우저에서 음성 안내를 쓸 수 있는지 */
     supported: function () { return !!(synth && typeof window.SpeechSynthesisUtterance === 'function'); },
-    hasKorean: function () { return !!picked; },
     speaking: false,
 
     speak: function (text, opts) {

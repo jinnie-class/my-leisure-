@@ -351,7 +351,6 @@
         CARD_OF[c.id] = a.id;
       });
     });
-    App.DATA.activities = ALL;
   }
 
   App.DATA = App.DATA || {};
@@ -373,10 +372,6 @@
       });
     });
     reindex();
-  };
-  App.isCustomActivity = function (id) {
-    var a = BY_ID[id];
-    return !!(a && a.custom);
   };
 
   reindex();

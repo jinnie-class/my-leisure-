@@ -32,7 +32,6 @@
     return { has: false, rieul: false };   // 기호 등은 받침 없음으로 처리
   }
 
-  App.hasBatchim = function (w) { return batchimInfo(w).has; };
 
   /* 낱말 + 조사 : App.josa('슬라임', '을/를') → '슬라임을' */
   App.josa = function (word, pair) {
@@ -44,16 +43,10 @@
     if (pair === '으로/로') return w + (info.has && !info.rieul ? '으로' : '로');
     return w + (info.has ? withB : withoutB);
   };
-  App.eunNeun = function (w) { return App.josa(w, '은/는'); };
-  App.iGa = function (w) { return App.josa(w, '이/가'); };
   App.eulReul = function (w) { return App.josa(w, '을/를'); };
   App.waGwa = function (w) { return App.josa(w, '과/와'); };
   App.iEyo = function (w) { return App.josa(w, '이에요/예요'); };
 
-  /* 목록을 '가위, 풀, 색종이' 처럼 잇기 */
-  App.joinList = function (arr, sep) {
-    return (arr || []).filter(Boolean).join(sep || ', ');
-  };
   /* 목록을 '보드게임과 요리' 처럼 잇기 */
   App.joinAnd = function (arr) {
     var a = (arr || []).filter(Boolean);

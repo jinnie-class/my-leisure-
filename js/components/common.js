@@ -446,18 +446,6 @@
     </header>`;
   };
 
-  C.BottomBar = function (p) {
-    return html`<footer class="bottombar pagepad">
-      ${p.onBack && html`<${C.Btn} icon="back" onClick=${p.onBack}>${p.backLabel || '이전'}<//>`}
-      ${p.extraLeft}
-      <div class="spacer"></div>
-      ${p.center}
-      <div class="spacer"></div>
-      ${p.extraRight}
-      ${p.onHome && html`<${C.Btn} icon="home" onClick=${p.onHome}>홈<//>`}
-      ${p.onNext && html`<${C.Btn} kind="primary" icon="next" disabled=${p.nextDisabled} onClick=${p.onNext}>${p.nextLabel || '다음'}<//>`}
-    </footer>`;
-  };
 
   /* ══════════ 쪽 나누기 공용 (2026-08-26 · 인수인계 19-3) ══════════
      ★ 「고를 것이 많은 화면은 한 쪽에 여섯(3×2)」 이 이 앱의 규칙입니다.
@@ -981,13 +969,6 @@
       };
     });
   };
-  C.StageFit = function (p) {
-    var ref = useRef(null);
-    C.useFitBox(ref);
-    return html`<div class="stage"><div class="panel">
-      <div class="stage-fit" ref=${ref}>${p.children}</div></div></div>`;
-  };
-
   /* ======================= 질문 머리말 ======================= */
   /* 화면 안 질문.
      `bar` 를 주면 **동그란 흰 알약 바에 담아 가운데**에 놓습니다.
@@ -1682,5 +1663,4 @@
     </section>`;
   };
 
-  App.useMemo2 = useMemo;
 })();

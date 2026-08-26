@@ -193,7 +193,6 @@
       ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
       body + '</svg>';
   };
-  App.hasUiIcon = function (key) { return !!UI[key]; };
 
   /* 아이콘 markup 을 <svg> 로 감싸 돌려줍니다. */
   App.icon = function (key) {
@@ -202,6 +201,4 @@
       '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
       body + '</svg>';
   };
-  App.hasIcon = function (key) { return !!ICONS[key]; };
-  App.ICONS = ICONS;
 })();

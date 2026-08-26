@@ -198,13 +198,6 @@
       guide: '나의 여가 기록을 모아 전시해요.', icon: 'cornerFolio', color: '#f5a86a' }
   ];
 
-  /* ------------------------- 2단계 일기 문장 틀 ------------------------- */
-  D.frames = [
-    { id: 'f1', before: '나는 ', mid: '와 함께 ', after: '을 했어요.', slots: ['partner', 'activity'] },
-    { id: 'f2', before: '활동을 하니 ', mid: '', after: '했어요.', slots: ['mood'] },
-    { id: 'f3', before: '가장 기억에 남는 것은 ', mid: '', after: '이에요.', slots: ['free'] },
-    { id: 'f4', before: '다음에는 ', mid: '', after: '하고 싶어요.', slots: ['free'] }
-  ];
 
   /* ------------------------- 3단계 문장 도움말 ------------------------- */
   D.writingHelp = [
@@ -318,8 +311,6 @@
   App.mood = finder(D.moods);
   App.again = finder(D.agains);
   App.avatar = finder(D.avatars);
-  App.corner = finder(D.corners);
-  App.state = finder(D.mapStates);     // 해봤어요 · 좋아해요 · 도전하고 싶어요 · 아직 잘 모르겠어요
   App.weather = finder(D.weathers);    // 맑음 · 흐림 · 비 · 눈
 
   /* 학생 설정에 맞춰 걸러낸 선택지 */
