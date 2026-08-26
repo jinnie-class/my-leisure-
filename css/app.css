@@ -1322,11 +1322,19 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .face-row{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-top:.45rem; }
 .face-note{ font-size:.85rem; font-weight:700; color:var(--ink-soft); }
 .face-photo{ border-radius:50%; }
+/* ★ 3칸 × 3줄 = 아홉 (2026-08-26) — 캐릭터 여덟 + 「사진 찍기」 한 칸.
+     쪽 넘김이 없어서 한 화면에서 고르고 바로 넘어갑니다.
+   ⛔ 칸 수를 바꾸려면 options.js 의 캐릭터 수도 함께 보세요 — 아홉이 넘으면
+      줄이 하나 더 생겨 카드가 작아집니다. */
 .cs-grid{
   flex:1 1 auto; min-height:0;
-  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
   grid-auto-rows:1fr; gap:.5rem;
 }
+/* 사진 칸 — 캐릭터와 같은 크기, 테두리만 점선으로 「넣는 자리」임을 알립니다 */
+.cs-item.cs-photo{ border-style:dashed; }
+.cs-item.cs-photo.on{ border-style:solid; }
+.cs-item.cs-photo .cs-art img{ border-radius:50%; object-fit:cover; }
 .cs-item{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem;
   background:#fff; border:2px solid var(--line); border-radius:16px; padding:.35rem;
@@ -1363,15 +1371,27 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      오른쪽 여백 활용). 한 줄 목록이라 오른쪽 절반이 늘 비어 있었습니다.
    ▸ 긴 항목(1 학생 · 7 사람 · 8 기분 · 9 활동 · 11 기록)은 .wide 로 한 줄 전체.
    ▸ 좁은 화면(900px 아래)에서는 다시 한 칸으로 접힙니다. */
-.tscroll{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; align-content:start; }
-.tscroll > .row{ grid-column:1 / -1; }
+/* ⛔⛔ 칸을 `1fr 1fr` 로 두지 마세요 — **오른쪽이 잘립니다** (2026-08-26).
+      `1fr` 은 `minmax(auto,1fr)` 이라 「내용보다 작아지지 않는다」는 뜻입니다.
+      3·4번 알약이 nowrap(늘 셋이 나란히)이라 한 칸의 최소 폭이 513px 로
+      굳었고, 격자 전체가 **1027px 아래로 안 줄어들었습니다.** 창이 그보다
+      좁으면 격자가 흰 칸을 삐져나가 「설정 완료」 단추와 2·4·6·8번 오른쪽이
+      통째로 잘려 나갔습니다. 가로 스크롤도 안 생겨 되찾을 길이 없었습니다.
+      (재어 확인 : 폭 940 일 때 넘침 109px · 1024 일 때 25px · 1100 부터 0)
+    ▸ `minmax(0,1fr)` 은 「필요하면 0까지 줄어도 된다」 — 안쪽 내용이 대신
+      좁아집니다. 알약은 min-width:0 이 있어 한 줄을 지키며 눌립니다. */
+.tscroll{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:.7rem; align-content:start; }
+.tscroll > .row{ grid-column:1 / -1; min-width:0; }
 .tscroll > p{ grid-column:1 / -1; margin:0; }
 .tsec{
   margin:0; padding:.85rem 1rem;
   border:2px solid var(--line); border-radius:16px; background:var(--paper-2);
 }
 .tsec.wide{ grid-column:1 / -1; }
-@media screen and (max-width: 900px){ .tscroll{ grid-template-columns:1fr; } }
+.tsec{ min-width:0; }
+/* 두 칸이 편히 들어가려면 1100px 은 있어야 합니다 (위 ⛔ 의 잰 값).
+   예전 기준은 900px 이라, 900~1100 사이에서는 두 칸이 서로 밀며 눌려 있었습니다. */
+@media screen and (max-width: 1100px){ .tscroll{ grid-template-columns:minmax(0,1fr); } }
 .tsec:first-of-type{ border-top:2px solid var(--line); }
 .tsec > label{
   display:block; font-size:1.08rem; font-weight:900; margin-bottom:.5rem;
@@ -1786,22 +1806,10 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .pd-art-thumb{ width:150px; height:150px; display:block; }
 .pd-art-thumb svg,.pd-art-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
 
-/* 4. 제 목 */
-/* ★ 제목도 **원고지 한 줄**입니다 (2026-08-23).
-   같은 격자에 넣으면 칸 크기도 글자 크기도 본문과 저절로 같아집니다.
-   칸 수와 글자 크기는 picdiary.js 가 인라인으로 넣어 줍니다.
-   ⛔ 여기에 font-size 를 적지 마세요 — 인라인 값이 덮입니다. */
-.pd-titlegrid{ font-weight:900; }
-/* 「제목」 딱지는 앞 **두 칸**을 씁니다.
-   ⚠ aspect-ratio 를 풀어야 합니다. 그대로 두면 두 칸 너비만큼 **키가 두 배**가
-     되어 제목 줄만 정사각형 두 개 높이로 커집니다. */
-/* ⚠ `.pd-box` 규칙이 **뒤에** 나오므로 힘을 같게 두면 집니다.
-     `.pd-box.pd-titlelab` 로 한 단계 올려야 aspect-ratio 가 풀립니다.
-     안 풀면 두 칸 너비만큼 키가 두 배(159px)가 됩니다 — 재어서 확인. */
-.pd-box.pd-titlelab{
-  grid-column:span 2; aspect-ratio:auto;
-  font-size:.6em; color:#4a4a55; letter-spacing:.1em;
-}
+/* 4. 제 목  →  `.pd-titleline` 하나뿐입니다 (아래쪽에 있습니다).
+   ※ 원고지 격자로 된 제목(.pd-titlegrid · .pd-box.pd-titlelab)은 2026-08-26 에
+     걷어냈습니다. 앞 두 칸을 딱지가 쓰고 남은 칸만 글자를 받아서, 제목이
+     길면 **뒤가 잘려 사라졌습니다.** 되살리지 마세요. */
 
 /* 5. 원고지 — 한 칸에 한 글자.
    글자 크기는 칸 수에 따라 picdiary.js 가 인라인으로 정해 줍니다. */
@@ -1831,8 +1839,12 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .pd-sheet.t-trace .pd-ch{ color:#c9c9d2; }
 .pd-sheet.t-empty .pd-grid .pd-ch,
 .pd-sheet.t-empty .pd-lines .pd-ch{ visibility:hidden; }
-.pd-sheet.t-trace .pd-titlegrid .pd-ch{ color:#c9c9d2; }
-.pd-sheet.t-empty .pd-titlegrid .pd-ch{ visibility:hidden; }
+/* 제목도 본문과 **같이** 흐려지고 같이 숨습니다 (2026-08-26 에 한 줄로 바뀌면서
+   `.pd-titlegrid .pd-ch` → `.pd-titletext` 로 옮겼습니다).
+   ⛔ 이 두 줄을 빠뜨리면 「따라 쓰기」에서 본문만 흐리고 제목은 진하게 나오고,
+      「빈 줄」로 뽑아도 제목만 인쇄돼 학생이 쓸 자리가 없어집니다. */
+.pd-sheet.t-trace .pd-titletext{ color:#c9c9d2; }
+.pd-sheet.t-empty .pd-titletext{ visibility:hidden; }
 
 /* ======================= 완성 미리보기 (기록하GO! 마지막) =======================
    저장하기 전에 완성된 그림일기를 작게 그대로 보여 줍니다.
@@ -4274,6 +4286,9 @@ textarea.sentence-edit,
      어수선합니다 (2026-08-24 · 선생님 말씀).
    ⛔ 높이는 원고지 제목 줄(TITLE_ROW_H = 79px)과 **같게** 둡니다.
       다르면 아래 밑줄 칸 계산이 어긋나 종이가 한 장을 넘습니다. */
+/* ★ 세 단계 모두 제목은 이 한 줄을 씁니다 (2026-08-26).
+   ⛔ 높이는 화면 코드가 **인라인으로** 넣습니다 (그 단계의 원고지 한 줄 높이).
+      여기 79px 는 값이 안 올 때를 위한 기본값입니다. */
 .pd-titleline{
   display:flex; align-items:center; gap:.6em;
   height:79px; box-sizing:border-box;

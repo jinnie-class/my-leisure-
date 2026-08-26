@@ -122,56 +122,32 @@
   /* ------------------------- 학생 캐릭터 ------------------------- */
   /* imageKey : images/avatars/<imageKey>.png
      icon     : 그림 파일이 없을 때 대신 나오는 기본 SVG 그림
-     group    : 캐릭터 고르기 화면에서 묶어 보여줄 갈래 */
-  function AV(id, name, group, icon) {
-    return { id: id, name: name, group: group, icon: icon || 'avBear', imageKey: name };
+
+     ★ 여덟 개만 둡니다 (2026-08-26 · 선생님 말씀 「너무 많은 선택권을 준 것
+       같아 … 군더더기는 덜어내려고」).
+       예전에는 38개를 갈래 넷(친구·동물·곤충·바다)으로 나눠 **네 쪽에 걸쳐**
+       보여 주었습니다. 고르기 전에 넘기는 일부터 배워야 했습니다.
+     ▸ 남자아이 · 여자아이 · 동물 여섯 = 여덟. 여기에 「사진 찍기」 한 칸을
+       더해 **3칸 × 3줄 = 아홉**, 한 화면에 다 들어옵니다 (profiles.js).
+     ⛔ 여기에 캐릭터를 더하면 아홉 칸이 깨져 쪽 넘김이 되살아납니다.
+        더하려면 profiles.js 의 칸 배열도 함께 보세요.
+     ▸ 동물 여섯은 집에서 보는 둘(강아지·고양이) · 작고 귀여운 둘(토끼·곰) ·
+       큰 동물 둘(사자·코끼리)로 갈래가 고르게 섞이도록 골랐습니다.
+       생김새가 비슷한 곰·판다·여우가 함께 있으면 글자를 못 읽는 학생이
+       헷갈립니다. */
+  function AV(id, name, icon) {
+    return { id: id, name: name, icon: icon || 'avBear', imageKey: name };
   }
-  D.avatarGroups = [
-    { id: 'friend', name: '친구' },
-    { id: 'animal', name: '동물' },
-    { id: 'insect', name: '곤충' },
-    { id: 'sea',    name: '바다 친구' }
-  ];
   D.avatars = [
-    AV('girl',       '여자아이',   'friend', 'avStar'),
-    AV('boy',        '남자아이',   'friend', 'avStar'),
+    AV('boy',      '남자아이', 'avStar'),
+    AV('girl',     '여자아이', 'avStar'),
 
-    AV('bear',       '곰',         'animal', 'avBear'),
-    AV('rabbit',     '토끼',       'animal', 'avRabbit'),
-    AV('cat',        '고양이',     'animal', 'avCat'),
-    AV('dog',        '강아지',     'animal', 'avFox'),
-    AV('fox',        '여우',       'animal', 'avFox'),
-    AV('lion',       '사자',       'animal', 'avFox'),
-    AV('panda',      '판다',       'animal', 'avBear'),
-    AV('pig',        '돼지',       'animal', 'avBear'),
-    AV('monkey',     '원숭이',     'animal', 'avBear'),
-    AV('elephant',   '코끼리',     'animal', 'avBear'),
-
-    AV('ladybug',    '무당벌레',   'insect', 'avSprout'),
-    AV('butterfly',  '나비',       'insect', 'avSprout'),
-    AV('bee',        '꿀벌',       'insect', 'avSprout'),
-    AV('stagbeetle', '사슴벌레',   'insect', 'avSprout'),
-    AV('rhinobeetle', '장수풍뎅이', 'insect', 'avSprout'),
-    AV('dragonfly',  '잠자리',     'insect', 'avSprout'),
-    AV('mantis',     '사마귀',     'insect', 'avSprout'),
-    AV('grasshopper', '메뚜기',    'insect', 'avSprout'),
-    AV('cicada',     '매미',       'insect', 'avSprout'),
-    AV('firefly',    '반딧불이',   'insect', 'avSprout'),
-    AV('ant',        '개미',       'insect', 'avSprout'),
-    AV('caterpillar', '애벌레',    'insect', 'avSprout'),
-
-    AV('whale',      '고래',       'sea', 'avBird'),
-    AV('dolphin',    '돌고래',     'sea', 'avBird'),
-    AV('shark',      '상어',       'sea', 'avBird'),
-    AV('clownfish',  '흰동가리',   'sea', 'avBird'),
-    AV('seahorse',   '해마',       'sea', 'avBird'),
-    AV('seaturtle',  '바다거북',   'sea', 'avBird'),
-    AV('seal',       '물개',       'sea', 'avBird'),
-    AV('octopus',    '문어',       'sea', 'avBird'),
-    AV('squid',      '오징어',     'sea', 'avBird'),
-    AV('jellyfish',  '해파리',     'sea', 'avBird'),
-    AV('starfish',   '불가사리',   'sea', 'avBird'),
-    AV('crab',       '꽃게',       'sea', 'avBird')
+    AV('dog',      '강아지',   'avFox'),
+    AV('cat',      '고양이',   'avCat'),
+    AV('rabbit',   '토끼',     'avRabbit'),
+    AV('bear',     '곰',       'avBear'),
+    AV('lion',     '사자',     'avFox'),
+    AV('elephant', '코끼리',   'avBear')
   ];
 
   /* ------------------------- 일기 수준 ------------------------- */

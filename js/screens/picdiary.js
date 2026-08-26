@@ -375,18 +375,31 @@
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
     /* 3단계 밑줄의 줄 간격·글자 크기 (글이 길면 한 단계씩 작아집니다) */
     var lineFit = useLines ? fitLines(lines) : null;
-    /* 제목 글자 크기 — **본문 글자와 같은 크기**로 맞춥니다.
-       1·2단계는 원고지 칸 글자, 3단계는 밑줄 글자를 따라갑니다. */
-    /* 제목도 **원고지 한 줄**이라, 칸 수와 글자 크기가 본문과 같습니다.
-       3단계(밑줄)에는 본문 칸이 없으므로 10칸을 씁니다. */
-    var titleCols = useLines ? TITLE_COLS_LINE : g.cols;
-    /* ⛔ **3단계 제목은 본문과 같은 크기**입니다 (2026-08-24 · 선생님 말씀 —
-         「제목과 내용 글자 크기 동일」). 3단계는 칸이 없어 줄글로 쓰므로,
-         칸 수로 셈한 크기(55px)를 쓰면 본문(34px)보다 훨씬 커집니다.
-       ▸ 1·2단계는 본문이 원고지 칸이라 그 칸 글자 크기를 그대로 씁니다. */
+    /* ★★ 제목은 **칸 없이 한 줄**입니다 (2026-08-26 · 선생님 말씀 —
+           「제목이 길어지니 원고지 칸 이상 써지지 않아」).
+         예전에는 제목도 원고지 격자였고, 앞 두 칸을 「제목」 딱지가 쓰고
+         나머지 `칸수-2` 개만 글자를 받았습니다. 10칸이면 여덟 글자.
+         「가족, 친구와 함께 보드게임」 같은 제목은 **뒤가 잘려 사라졌습니다** —
+         화면에도 인쇄에도 안 나왔습니다 (글자 누락 : 원고지 규칙 13 위반).
+       ▸ 이제 세 단계 모두 한 줄입니다. 길면 줄 안에서 글자가 작아집니다.
+       ⛔ 줄 높이는 그 단계의 **원고지 한 줄과 똑같아야** 합니다. 다르면
+          fitGrid 의 `+1`(제목 줄) 셈이 어긋나 종이가 한 장을 넘습니다. */
+    var titleRowH = useLines ? TITLE_ROW_H : Math.round((A4_W - 4) / g.cols);
+    /* ⛔ 제목 글자는 **본문과 같은 크기**입니다 (2026-08-24 · 선생님 말씀 —
+         「제목과 내용 글자 크기 동일」). 1·2단계는 원고지 칸 글자,
+         3단계는 밑줄 글자를 따라갑니다. */
     var titleFs = useLines
       ? lineFit.fs
-      : Math.round((A4_W - 4) / titleCols * GLYPH_FILL);
+      : Math.round((A4_W - 4) / g.cols * GLYPH_FILL);
+    /* 제목이 길면 **줄 안에서 글자를 줄여** 다 담습니다.
+       ⛔ 「…」로 잘라 내지 않습니다 — 잘라 내면 칸에서 잘리던 것과 똑같습니다.
+       ▸ 쓸 수 있는 폭 700 = 종이 속 790 - 「제목」 딱지·여백 90 (재어 맞춘 값).
+         한글 한 글자는 대략 글자 크기만큼 폭을 씁니다.
+       ▸ 18px 아래로는 안 줄입니다. 그보다 긴 제목은 학생이 읽기 어렵습니다. */
+    var titleText = String(d.title || (a ? a.name : '') || '');
+    var titleFsFit = titleText.length
+      ? Math.max(18, Math.min(titleFs, Math.floor(700 / titleText.length)))
+      : titleFs;
     /* 힌트 보기에 쓸 문장 — 학생이 아래 빈 칸에 보고 쓸 내용입니다 */
     var hintLines = lines;
 
@@ -613,39 +626,17 @@
             </div>`}
       </div>
 
-      <!-- ★ 제목 글자는 **원고지 칸 글자와 같은 크기**입니다 (2026-08-22).
-             예전에는 제목이 20px 로 못박혀 있어서, 칸 글자(55px)와 견주면
-             제목이 유난히 작아 보였습니다. 인쇄해 보면 더 도드라집니다.
-           ▸ 칸 글자 크기는 글 길이에 따라 달라지므로(칸 수가 바뀝니다),
-             제목도 **그때 그때 따라가야** 늘 같은 크기로 보입니다.
-           ▸ 3단계(밑줄에 쓰기)는 칸이 없으므로 그 줄 글자 크기를 씁니다.
+      <!-- ★ 제목 = **칸 없는 한 줄** (세 단계 모두 · 2026-08-26).
+             글자 크기는 본문과 같고, 높이는 그 단계의 원고지 한 줄과 같습니다.
+             까닭과 ⛔ 는 위 titleRowH 를 정하는 곳에 적어 두었습니다.
            ⛔ 이 주석은 html 안입니다. 여는 것과 닫는 것을 **짝 맞춰** 쓰세요.
              js 주석 닫기(별표+빗금)로 닫으면 주석이 안 닫혀서 뒤 마크업이
              통째로 먹히고 화면이 아예 안 뜹니다. 백틱도 쓰지 마세요. -->
-      <!-- ★ **3단계는 제목도 줄글**입니다 (2026-08-24 · 선생님 말씀).
-             본문이 밑줄인데 제목만 칸이면 한 장 안에서 두 가지 모양이 섞여
-             어수선합니다. 3단계는 「제목」 딱지 옆에 한 줄로 씁니다.
-           ⛔ 1·2단계는 그대로 원고지 칸입니다 — 그쪽은 본문도 칸이라
-             제목이 칸이어야 짝이 맞습니다. -->
-      ${useLines
-        ? html`<div class="pd-titleline" style=${{ fontSize: titleFs + 'px' }}>
-            <span class="pd-titlelab-line">제목</span>
-            <span class="pd-titletext">${String(d.title || (a ? a.name : '') || '')}</span>
-          </div>`
-        : html`<div class="pd-grid pd-titlegrid"
-             style=${{ gridTemplateColumns: 'repeat(' + titleCols + ', 1fr)',
-                       fontSize: titleFs + 'px' }}>
-          <span class="pd-box pd-titlelab">제목</span>
-          ${(function () {
-            var t = String(d.title || (a ? a.name : '') || '');
-            var cells = [];
-            /* 앞 두 칸은 「제목」 딱지가 씁니다 */
-            for (var i = 0; i < titleCols - 2; i++) cells.push(t.charAt(i) || '');
-            return cells.map(function (ch, i) {
-              return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
-            });
-          })()}
-        </div>`}
+      <div class="pd-titleline"
+           style=${{ fontSize: titleFsFit + 'px', height: titleRowH + 'px' }}>
+        <span class="pd-titlelab-line">제목</span>
+        <span class="pd-titletext">${titleText}</span>
+      </div>
 
       ${hint}
 

@@ -15,19 +15,15 @@
 
     var cur = App.avatarFor(student);
     var back = (p.params && p.params.from) || 'profiles';
-    /* 한 쪽에 보여 줄 캐릭터 수.
-       ★ 세로로 세운 태블릿(폭 820px 아래)에서는 미리보기가 격자 **위로** 내려와
-         자리를 나눠 씁니다. 그때 12개를 다 놓으면 카드가 손톱만 해지고,
-         화면을 넘겨서 이름 글자와 아래 단추까지 덮었습니다 (2026-08-23).
-       ▸ 여섯이면 3칸 × 2줄이라 그림이 큼직하고, 넘기는 화살표로 다 볼 수 있습니다. */
-    var PER = (typeof window !== 'undefined' && window.innerWidth <= 820) ? 6 : 12;
-    var pg = useState(0);
+    /* ★ 쪽 넘김이 없습니다 (2026-08-26 · 선생님 말씀 「한 장 안에서 선택하고
+         넘어가게」). 캐릭터 여덟 + 「사진 찍기」 한 칸 = **3칸 × 3줄**.
+       ▸ 예전에는 38개를 12개씩 네 쪽에 나눠 놓아, 고르기 전에 「다음 ▶」을
+         누르는 일부터 배워야 했습니다. 사진 넣기도 격자 **밖 아래**에 따로
+         있어서 캐릭터와 나란히 견주기 어려웠습니다.
+       ⛔ 캐릭터를 더하면 아홉 칸이 깨집니다 — options.js 의 ⛔ 를 보세요. */
     var fitRef = useRef(null);
     C.useFitBox(fitRef);
-    var all = App.DATA.avatars;
-    var pages = Math.max(1, Math.ceil(all.length / PER));
-    var page = Math.min(pg[0], pages - 1);
-    var list = all.slice(page * PER, page * PER + PER);
+    var list = App.DATA.avatars;
 
     var faceRef = useRef(null);
     var busy = useState(false);
@@ -108,28 +104,28 @@
                       <span class="cs-label">${a.name}</span>
                     </button>`;
                   })}
-                </div>
-                ${pages > 1 && html`<div class="island-nav" style=${{ position: 'static', marginTop: '.4rem' }}>
-                  <button type="button" class="isl-btn prev" disabled=${page === 0}
-                    onClick=${function () { pg[1](Math.max(0, page - 1)); }}>◀ 이전</button>
-                  <span class="isl-page"><b>${page + 1} / ${pages} 쪽</b>
-                    <span class="isl-dots">${Array.apply(null, { length: pages }).map(function (_, i) {
-                      return html`<i key=${i} class=${i === page ? 'on' : ''}></i>`; })}</span>
-                  </span>
-                  <button type="button" class="isl-btn next" disabled=${page >= pages - 1}
-                    onClick=${function () { pg[1](Math.min(pages - 1, page + 1)); }}>다음 ▶</button>
-                </div>`}
 
-                <!-- 내 얼굴 사진으로 캐릭터 만들기 -->
-                <div class="face-row">
-                  <${C.Btn} size="small" className="pastel-blue" icon="camera" disabled=${busy[0]}
-                    onClick=${function () { if (faceRef.current) faceRef.current.click(); }}>
-                    ${busy[0] ? '넣는 중…' : '내 얼굴로 만들기'}<//>
+                  <!-- ★ 아홉 번째 칸 = 내 사진 (2026-08-26).
+                         캐릭터와 **같은 크기·같은 자리**에 있어야 「이것도
+                         고를 수 있는 것」으로 보입니다. 예전처럼 격자 밖
+                         아래에 단추로 두면 학생 눈에 안 들어왔습니다. -->
+                  <button type="button" class=${'cs-item cs-photo' + (face ? ' on' : '')}
+                      aria-pressed=${face ? 'true' : 'false'} disabled=${busy[0]}
+                      aria-label="내 사진으로 만들기"
+                      onClick=${function () { if (faceRef.current) faceRef.current.click(); }}>
+                    <span class="cs-art">
+                      <${C.Art} src=${face} iconKey="camera" />
+                    </span>
+                    <span class="cs-label">${busy[0] ? '넣는 중…' : (face ? '내 사진' : '사진 찍기')}</span>
+                  </button>
                   <input ref=${faceRef} type="file" accept="image/*"
                     style=${{ display: 'none' }} onChange=${pickFace} />
-                  ${face && html`<${C.Btn} size="small" icon="back" onClick=${dropFace}>캐릭터로 되돌리기<//>`}
-                  <span class="face-note">사진은 이 기기에만 저장돼요.</span>
                 </div>
+
+                ${face && html`<div class="face-row">
+                  <${C.Btn} size="small" icon="back" onClick=${dropFace}>캐릭터로 되돌리기<//>
+                  <span class="face-note">사진은 이 기기에만 저장돼요.</span>
+                </div>`}
               </div>
             </div>
           </div>

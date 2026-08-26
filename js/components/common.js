@@ -267,29 +267,9 @@
     return html`<${C.Art} src=${App.partnerImage(pt, student)} iconKey=${pt.icon} size=${p.size} />`;
   };
 
-  /* 캐릭터 고르기 (갈래별로 나누어 보여 줍니다) */
-  C.AvatarPicker = function (p) {
-    var groups = App.DATA.avatarGroups;
-    var cur = App.avatar(p.value);
-    var gs = useState((cur && cur.group) || groups[0].id);
-    var list = App.DATA.avatars.filter(function (a) { return a.group === gs[0]; });
-    return html`<div>
-      <div class="wrap" style=${{ marginBottom: '.45rem' }}>
-        ${groups.map(function (g) {
-          return html`<button key=${g.id} type="button" class=${'tab' + (gs[0] === g.id ? ' on' : '')}
-            aria-pressed=${gs[0] === g.id ? 'true' : 'false'}
-            onClick=${function () { gs[1](g.id); }}>${gs[0] === g.id ? '✓ ' : ''}${g.name}</button>`;
-        })}
-      </div>
-      <${C.PickGrid} cols=${6} label="캐릭터">
-        ${list.map(function (a) {
-          return html`<${C.Pick} key=${a.id} selected=${p.value === a.id} label=${a.name} speak=${false}
-            onClick=${function () { p.onChange(a.id); }}
-            art=${html`<${C.AvatarArt} avatarId=${a.id} />`} />`;
-        })}
-      <//>
-    </div>`;
-  };
+  /* ※ C.AvatarPicker(갈래 탭으로 캐릭터 고르기)는 2026-08-26 에 걷어냈습니다.
+       부르는 곳이 한 곳도 없었고, 캐릭터가 여덟으로 줄면서 갈래 자체가
+       없어졌습니다 (options.js · 인수인계 §30 의 죽은 코드 목록). */
 
   /* ======================= 읽어주기 ======================= */
   App.speakFor = function (student, text) {
