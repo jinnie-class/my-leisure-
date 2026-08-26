@@ -1303,13 +1303,18 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 
 /* ===== 캐릭터 고르기 (왼쪽 미리보기 · 오른쪽 목록) ===== */
 .cs-cols{ display:flex; gap:1rem; align-items:stretch; min-height:0; }
+/* ★ 왼쪽 「나」가 **오른쪽 고르는 칸보다 커야** 합니다 (2026-08-26 · 선생님 말씀
+     — 「내가 더 중요하니 바뀐 캐릭터를 내가 확인하며 볼 수 있게」).
+     예전에는 30% 칸에 160px 로 묶여 있어서, 고르는 칸(그림 180px)보다
+     **작았습니다.** 무엇을 고르는 중인지가 고른 결과보다 커 보였습니다.
+   ▸ 칸을 36% 로 넓히고 얼굴은 칸 폭의 84% 까지 자라게 둡니다. */
 .cs-preview{
-  flex:0 0 30%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
+  flex:0 0 36%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.9rem;
   background:var(--paper-2); border:2px solid var(--line); border-radius:20px; padding:1rem; min-width:0;
 }
 .cs-face{
-  width:min(60%, 160px); aspect-ratio:1; border-radius:999px; overflow:hidden;
-  border:3px solid var(--line); background:#fff;
+  width:min(84%, 40vh); aspect-ratio:1; border-radius:999px; overflow:hidden;
+  border:4px solid var(--line); background:#fff; flex:0 0 auto;
 }
 .cs-name{
   font-size:1.2rem; font-weight:900; background:#fff;
@@ -4257,6 +4262,44 @@ textarea.sentence-edit,
 /* 손으로 따라 쓴 원고지 — 칸 대신 들어갑니다 (picdiary 의 paperwriting) */
 .pd-paperimg{ display:flex; align-items:flex-start; }
 .pd-paperimg img{ width:100%; height:auto; display:block; }
+
+/* ============ 종이 위에 바로 쓰기 (2026-08-26) ============
+   선생님 말씀 : 「이 화면에 그대로 위에 쓸 수 있게」.
+   원고지 칸은 **선 그대로 두고**, 글씨만 투명한 한 겹으로 얹습니다.
+   ⛔ 칸과 글씨를 한 장으로 합치지 마세요 — 인쇄가 흐려집니다. */
+.pd-writewrap{ position:relative; }
+/* 저장해 둔 글씨 — 화면·인쇄·일기 모음 어디서나 칸 위에 함께 나옵니다.
+   ⛔ pointer-events:none 이 없으면 글씨 겹이 칸을 덮어 누를 수가 없습니다. */
+.pd-writeink{
+  position:absolute; left:0; top:0; width:100%; height:100%;
+  object-fit:fill; pointer-events:none;
+}
+/* 쓰는 동안 얹히는 투명한 그림판.
+   ⛔ 배경을 칠하지 마세요 — 아래 원고지 칸이 가려집니다.
+   ⛔ touch-action:none 이 없으면 태블릿에서 글씨 대신 화면이 밀립니다. */
+.pd-writepad{
+  position:absolute; left:0; top:0; width:100%; height:100%;
+  touch-action:none; cursor:crosshair; background:transparent;
+}
+/* 쓰는 중에는 인쇄 모양 줄을 접어 **종이를 키웁니다** (선생님 결정 2026-08-26).
+   800 높이 화면에서 칸이 41 → 50px 로 커집니다. */
+.pd-app.writing .pd-modebar{ display:none; }
+/* ⛔ `.panel-action .btn` 은 `width:100%` · `min-height:72px` 입니다 (큰 알약).
+      도구 줄에 그대로 걸리면 단추 일곱이 **세로로 쌓여** 438px 를 먹고,
+      정작 종이가 255px 로 눌립니다 (재어 확인 2026-08-26).
+    ▸ 그래서 도구 줄 안에서만 폭·키를 되돌립니다. */
+.pd-writebar{ display:flex; flex-wrap:wrap; align-items:center; gap:.45rem; justify-content:center; }
+.pd-writebar .btn{
+  width:auto; min-height:44px; font-size:1rem;
+  border-radius:999px; box-shadow:none;
+}
+.pd-writehint{ font-weight:800; color:var(--ink-soft); margin-right:.3rem; }
+.pd-pens{ display:flex; gap:.3rem; align-items:center; }
+.pd-pen{
+  width:30px; height:30px; border-radius:50%; border:3px solid #fff;
+  box-shadow:0 0 0 2px var(--line); cursor:pointer; padding:0;
+}
+.pd-pen.on{ box-shadow:0 0 0 3px var(--sel-line); transform:scale(1.12); }
 /* 확인 화면 「원고지에 손으로 쓰기」 줄 */
 .fix-hand{ display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.45rem; }
 

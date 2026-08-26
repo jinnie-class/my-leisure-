@@ -143,6 +143,12 @@
     ]
   };
 
+  /* 종이 위에 바로 쓸 때 쓰는 펜 (2026-08-26).
+     ⛔ 그림판(C.DrawPad)의 색·굵기와 **같은 값**으로 둡니다 — 두 곳에서 쓴
+        글씨의 굵기가 다르면 한 장 안에서 어긋나 보입니다. */
+  var PEN_COLORS = ['#2f2f38', '#d23b3b', '#e08b28', '#e5c126', '#2e9e5b', '#2b7de9', '#8b5cf6', '#8a5a2b'];
+  var PEN_SIZES = [{ name: '가늘게', v: 4 }, { name: '보통', v: 8 }, { name: '굵게', v: 14 }];
+
   function levelOf(d, student) {
     var lv = (d && d.level) || (student && student.diaryLevel) || 1;
     return (lv === 2 || lv === 3) ? lv : 1;
@@ -375,6 +381,21 @@
     var g = useLines ? { cols: 0, rows: [] } : fitGrid(lines);
     /* 3단계 밑줄의 줄 간격·글자 크기 (글이 길면 한 단계씩 작아집니다) */
     var lineFit = useLines ? fitLines(lines) : null;
+
+    /* ── 종이 위에 바로 쓴 글씨 (2026-08-26) ───────────────────────
+       writeInk : 저장해 둔 **투명한 글씨 한 겹**. 화면·인쇄·일기 모음·
+                  포트폴리오 어디에서 종이를 그리든 늘 함께 나옵니다.
+       writing  : 지금 쓰는 중일 때만 그림판 칸을 얹습니다 (그림일기 화면에서만).
+       gridPx   : 원고지 칸 전체의 **종이 좌표 크기**. 칸은 정사각형이라
+                  높이 = 줄 수 x 한 칸 크기입니다. 그림판 칸을 이 크기로
+                  잡아야 글씨가 칸과 어긋나지 않습니다.
+       ⛔ 여기 숫자를 눈대중으로 바꾸지 마세요 — cellSize 와 같은 셈이라야
+          화면에서 쓴 자리와 인쇄된 자리가 맞습니다. */
+    var writeInk = (!useLines && d.writeInkId) ? App.photos.url(d.writeInkId) : null;
+    var writing = !!p.writing && !useLines;
+    var padRef = p.padRef;
+    var gridPx = { w: Math.round(A4_W - 4),
+                   h: Math.round((g.rows.length || 1) * cellSize(g.cols || 10)) };
     /* ★★ 제목은 **칸 없이 한 줄**입니다 (2026-08-26 · 선생님 말씀 —
            「제목이 길어지니 원고지 칸 이상 써지지 않아」).
          예전에는 제목도 원고지 격자였고, 앞 두 칸을 「제목」 딱지가 쓰고
@@ -661,17 +682,34 @@
            ★ 손으로 따라 쓴 원고지가 있으면 **그것을 그대로** 넣습니다. */
         : paperwriting
         ? html`<div class="pd-paperimg"><img src=${paperwriting} alt="손으로 쓴 원고지" /></div>`
-        : html`<div class="pd-grid" style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
-            fontSize: Math.round(790 / g.cols * GLYPH_FILL) + 'px' }}>
-          ${g.rows.map(function (row, r) {
-            return row.map(function (ch, c) {
-              /* 한 칸에 글자+마침표가 함께 들어간 칸(원고지 규칙 4)은
-                 글자를 조금 줄여야 칸 선을 넘지 않습니다 */
-              var two = String(ch).length > 1;
-              return html`<span key=${r + '-' + c} class="pd-box">
-                <span class=${'pd-ch' + (two ? ' two' : '')}>${ch}</span></span>`;
-            });
-          })}
+        /* ★★ 원고지 칸 + 그 **위에 겹치는 손글씨** (2026-08-26 · 선생님 말씀 —
+                「이 화면에 그대로 위에 쓸 수 있게」).
+              예전에는 「원고지에 손으로 쓰기」가 팝업 그림판을 열었습니다.
+              선생님이 바라신 것은 팝업이 아니라 **보고 있는 이 종이 위에**
+              그대로 쓰는 것이었습니다.
+            ▸ 칸은 그대로 두고 글씨만 **투명한 한 겹**으로 얹습니다. 그래서
+              인쇄해도 칸은 또렷한 선 그대로고 글씨만 위에 앉습니다.
+            ⛔ 글씨를 칸과 **한 장으로 합쳐 저장하지 마세요** — 칸이 그림이
+               되어 인쇄가 흐려지고, 글자 크기를 바꾸면 칸과 어긋납니다. */
+        : html`<div class="pd-writewrap">
+          <div class="pd-grid" style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
+              fontSize: Math.round(790 / g.cols * GLYPH_FILL) + 'px' }}>
+            ${g.rows.map(function (row, r) {
+              return row.map(function (ch, c) {
+                /* 한 칸에 글자+마침표가 함께 들어간 칸(원고지 규칙 4)은
+                   글자를 조금 줄여야 칸 선을 넘지 않습니다 */
+                var two = String(ch).length > 1;
+                return html`<span key=${r + '-' + c} class="pd-box">
+                  <span class=${'pd-ch' + (two ? ' two' : '')}>${ch}</span></span>`;
+              });
+            })}
+          </div>
+          ${writeInk && !writing && html`<img class="pd-writeink" src=${writeInk} alt="손으로 쓴 글씨" />`}
+          ${writing && html`<canvas class="pd-writepad" ref=${padRef}
+            width=${gridPx.w} height=${gridPx.h}
+            onPointerDown=${p.onPenDown} onPointerMove=${p.onPenMove}
+            onPointerUp=${p.onPenUp} onPointerCancel=${p.onPenUp}
+            onPointerLeave=${p.onPenUp} />`}
         </div>`}
 
       <div class="pd-foot">
@@ -955,22 +993,110 @@
     /* 다른 학생(다른 단계)의 일기로 넘어가면 그 단계의 기본 모양으로 돌립니다 */
     var lvRef = useRef(lv);
     if (lvRef.current !== lv) { lvRef.current = lv; traceS[1](defaultModeFor(lv)); }
-    var paperS = useState(false);      // 원고지 따라쓰기 판이 열려 있는지
     var useLines = (lv === 3);         // 3단계는 칸이 아니라 밑줄이라 원고지 판을 안 씁니다
 
+    /* ── 종이 위에 바로 쓰기 (2026-08-26) ────────────────────────────
+       writing  : 지금 쓰는 중인지. 켜지면 아래 단추 줄·인쇄 모양 줄을 접고
+                  종이를 화면 가득 키웁니다 (선생님 결정 — 칸이 41 → 50px).
+       writeInk : 저장해 둔 **투명한 글씨 한 겹**. 칸 위에 그대로 얹습니다. */
+    var writeS = useState(false);
+    var padRef = useRef(null);
+    var penS = useState(PEN_COLORS[0]);
+    var thickS = useState(PEN_SIZES[1].v);
+    var eraseS = useState(false);
+    var writing = writeS[0];
+
+    /* 쓰기를 켜면 저장해 둔 글씨를 판 위에 **먼저 깔아** 이어서 쓰게 합니다.
+       ⛔ 판은 투명하게 둡니다 — 흰색을 칠하면 아래 원고지 칸이 가려집니다. */
     useLayoutEffect(function () {
-      function measure() {
-        var el = boxRef.current; if (!el) return;
-        var r = el.getBoundingClientRect();
-        var s = Math.min(r.width / A4_W, r.height / A4_H);
-        if (!(s > 0)) return;
-        fit[1](function (prev) { return Math.abs(prev - s) < 0.002 ? prev : s; });
+      if (!writing) return;
+      var cv = padRef.current; if (!cv) return;
+      var g2 = cv.getContext('2d');
+      g2.clearRect(0, 0, cv.width, cv.height);
+      if (d && d.writeInkId) {
+        var img = new window.Image();
+        img.onload = function () { g2.drawImage(img, 0, 0, cv.width, cv.height); };
+        img.src = App.photos.url(d.writeInkId);
       }
-      measure();
-      var ro = window.ResizeObserver ? new window.ResizeObserver(measure) : null;
+    }, [writing, d && d.writeInkId]);
+
+    /* 화면 좌표 → 판 좌표.
+       ⛔ 종이는 transform:scale 로 줄여 놓았습니다. 그래서 **잰 크기(rect)** 로
+          셈해야 합니다. A4 크기(gridPx)로 직접 나누면 손끝과 그려지는 자리가
+          어긋납니다 (그림판에서 한 번 겪은 고장입니다 — common.js 의 at()). */
+    function padXY(e) {
+      var cv = padRef.current, r = cv.getBoundingClientRect();
+      return { x: (e.clientX - r.left) * (cv.width / r.width),
+               y: (e.clientY - r.top) * (cv.height / r.height) };
+    }
+    var drawingRef = useRef(false);
+    function penDown(e) {
+      var cv = padRef.current; if (!cv) return;
+      drawingRef.current = true;
+      if (cv.setPointerCapture) { try { cv.setPointerCapture(e.pointerId); } catch (err) {} }
+      var g2 = cv.getContext('2d'), pt = padXY(e);
+      g2.lineCap = 'round'; g2.lineJoin = 'round';
+      g2.beginPath(); g2.moveTo(pt.x, pt.y);
+      penMove(e);
+    }
+    function penMove(e) {
+      if (!drawingRef.current) return;
+      var cv = padRef.current; if (!cv) return;
+      var g2 = cv.getContext('2d'), pt = padXY(e);
+      /* 지우개는 **투명하게 도려냅니다**(destination-out) — 흰색으로 덧칠하면
+         아래 원고지 칸까지 하얗게 덮여 칸이 사라집니다. */
+      g2.globalCompositeOperation = eraseS[0] ? 'destination-out' : 'source-over';
+      g2.strokeStyle = penS[0];
+      g2.lineWidth = eraseS[0] ? thickS[0] * 4 : thickS[0];
+      g2.lineTo(pt.x, pt.y); g2.stroke();
+      g2.beginPath(); g2.moveTo(pt.x, pt.y);
+    }
+    function penUp() {
+      drawingRef.current = false;
+      var cv = padRef.current;
+      if (cv) cv.getContext('2d').globalCompositeOperation = 'source-over';
+    }
+    function clearPad() {
+      var cv = padRef.current; if (!cv) return;
+      var g2 = cv.getContext('2d');
+      g2.globalCompositeOperation = 'source-over';
+      g2.clearRect(0, 0, cv.width, cv.height);
+    }
+    function stopWriting() { writeS[1](false); }
+    function saveInk() {
+      var cv = padRef.current;
+      if (!cv || !d) { writeS[1](false); return; }
+      var url = cv.toDataURL('image/png');   // 투명한 글씨 한 겹
+      App.photos.addDataUrl(url, student.id, 'ink').then(function (id) {
+        var old = d.writeInkId;
+        App.store.updateDiary(d.id, { writeInkId: id });
+        if (old) App.photos.remove(old);
+        writeS[1](false);
+        App.ui.toast('종이에 쓴 글씨를 담았어요.');
+      })['catch'](function () {
+        App.ui.toast('글씨를 담지 못했어요.');
+      });
+    }
+
+    /* ⛔ measure 를 효과(effect) **안에** 두지 마세요. 안에 두면 처음 한 번만
+          매어 두게 되어, 화면이 달라져도 다시 재지 못합니다.
+        ▸ 실제로 겪은 고장 (2026-08-26) : 쓰기를 켜면 인쇄 모양 줄이 접히고
+          흰 칸이 가득 차서 자리가 630px 로 넓어지는데, 종이는 480px 그대로
+          남았습니다 (칸 28px). 손으로 resize 를 한 번 일으키면 그제야 630 으로
+          커졌습니다 — **재는 일이 안 일어난 것**이었습니다. */
+    function measureSheet() {
+      var el = boxRef.current; if (!el) return;
+      var r = el.getBoundingClientRect();
+      var s = Math.min(r.width / A4_W, r.height / A4_H);
+      if (!(s > 0)) return;
+      fit[1](function (prev) { return Math.abs(prev - s) < 0.002 ? prev : s; });
+    }
+    useLayoutEffect(function () {
+      measureSheet();
+      var ro = window.ResizeObserver ? new window.ResizeObserver(measureSheet) : null;
       if (ro && boxRef.current) ro.observe(boxRef.current);
-      window.addEventListener('resize', measure);
-      return function () { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
+      window.addEventListener('resize', measureSheet);
+      return function () { if (ro) ro.disconnect(); window.removeEventListener('resize', measureSheet); };
     }, []);
 
     /* 힌트 보고 쓰기(빈 칸·빈 줄)에서만 쓰는 **힌트 보기**.
@@ -978,8 +1104,23 @@
        크게 띄워 보고 쓰게 합니다. */
     var hintS = useState(false);
     var canHint = (traceS[0] === 'empty');
+
+    /* 화면 모양이 달라지는 순간마다 **다시 잽니다** — 쓰기를 켜고 끌 때,
+       인쇄 모양을 바꿀 때, 힌트를 열고 닫을 때. 자리가 그때마다 바뀝니다.
+       ⛔ 두 번 재도 손해가 없습니다 (같은 값이면 그대로 둡니다).
+       ⛔ 이 효과를 hintS 보다 **위로 옮기지 마세요** — 아직 만들어지지 않은
+          값을 딸림 목록에 적게 되어 힌트를 열어도 다시 재지 않습니다. */
+    useLayoutEffect(function () {
+      measureSheet();
+      var t = setTimeout(measureSheet, 60);   // 접히고 나서 한 번 더
+      return function () { clearTimeout(t); };
+    }, [writing, traceS[0], hintS[0]]);
+    /* 쓰기 판은 **종이 안에** 있어야 칸과 딱 맞습니다. 그래서 그리는 자리를
+       C.PicDiarySheet 에 넘겨 줍니다 (writing · padRef · writeInk). */
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace=${traceS[0]}
-      showHint=${canHint && hintS[0]} />`;
+      showHint=${canHint && hintS[0]}
+      writing=${writing} padRef=${padRef}
+      onPenDown=${penDown} onPenMove=${penMove} onPenUp=${penUp} />`;
 
     /* 인쇄 모양 단추는 제목·단추와 한 줄에 두면 서로 밀려 제목이 잘립니다 → 아랫줄로.
        단추는 **그 학생의 단계에 있는 것만** 나옵니다 (1단계는 하나뿐). */
@@ -1042,7 +1183,7 @@
       p.nav('home');
     }
 
-    return html`<div class="app pd-app" data-corner="diary">
+    return html`<div class=${'app pd-app' + (writing ? ' writing' : '')} data-corner="diary">
       <!-- ★ 포트폴리오에서 왔으면 **화살표 자리에 글자 단추**를 둡니다.
              화살표만으로는 어디로 가는지 몰라 학생이 누르지 못했습니다.
              아래에 두었더니 A4 인쇄와 나란히 서서 무엇이 나가는 길인지
@@ -1055,7 +1196,11 @@
         <${C.Speak} text=${d ? App.sentences.diaryBody(d) : '일기를 찾을 수 없어요.'} />
       <//>
 
-      <div class="stage">
+      <!-- ★ 쓰는 동안에는 흰 칸을 **가득** 씁니다 (tall · 2026-08-26).
+             보통 화면은 85% 만 쓰는 것이 규칙인데(인수인계 §29-1), 종이 위에
+             손으로 쓸 때만은 칸이 클수록 좋습니다. 800 높이 화면에서
+             원고지 한 칸이 28 → 41px 로 커집니다. -->
+      <div class=${'stage' + (writing ? ' tall' : '')}>
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
           <div class="stage-fit" style=${{ display: 'flex', flexDirection: 'column' }}>
             ${d ? html`<div class="pd-fit grow" ref=${boxRef}>
@@ -1073,49 +1218,55 @@
                  지금은 **맨 위 줄 화살표 자리**에 글자 단추로 있습니다.
                ▸ 포트폴리오에서 왔을 때에는 「나의 일기 모음」 도 빼 둡니다 —
                  돌아갈 곳이 둘이면 어디가 앞 화면인지 흐려집니다. -->
-          <div class="panel-action pd-acts">
+          <!-- ★ 쓰는 중에는 도구 줄로 바뀝니다 (2026-08-26).
+                 인쇄·모음 단추를 그대로 두면 쓰다가 눌러 나가 버립니다. -->
+          ${writing ? html`<div class="panel-action pd-writebar">
+            <span class="pd-writehint">종이에 그대로 써 보아요</span>
+            <span class="pd-pens">
+              ${PEN_COLORS.map(function (c) {
+                return html`<button key=${c} type="button"
+                  class=${'pd-pen' + (!eraseS[0] && penS[0] === c ? ' on' : '')}
+                  style=${{ background: c }} aria-label="펜 색"
+                  onClick=${function () { eraseS[1](false); penS[1](c); }} />`;
+              })}
+            </span>
+            ${PEN_SIZES.map(function (s) {
+              return html`<${C.Btn} key=${s.v} size="small"
+                className=${!eraseS[0] && thickS[0] === s.v ? 'pastel-blue on' : ''}
+                onClick=${function () { eraseS[1](false); thickS[1](s.v); }}>${s.name}<//>`;
+            })}
+            <${C.Btn} size="small" className=${eraseS[0] ? 'pastel-blue on' : ''}
+              onClick=${function () { eraseS[1](!eraseS[0]); }}>지우개<//>
+            <${C.Btn} size="small" icon="trash" onClick=${clearPad}>다 지우기<//>
+            <${C.Btn} kind="primary" icon="check" onClick=${saveInk}>다 썼어요<//>
+            <${C.Btn} size="small" onClick=${stopWriting}>그만두기<//>
+          </div>` : html`<div class="panel-action pd-acts">
             <${C.Btn} kind="primary" icon="print"
               onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
               A4 인쇄하기<//>
-            <!-- ★ **여기에서 바로 손으로 따라 씁니다** (2026-08-24 · 선생님 말씀).
-                   종이로 뽑지 않아도 전자칠판 · 태블릿에서 그 자리에서 씁니다.
-                 ▸ 일기 확인 화면의 것과 **같은 판**입니다 (C.DrawPad · paper).
+            <!-- ★ **보고 있는 이 종이 위에 그대로 씁니다** (2026-08-26 · 선생님 말씀).
+                   팝업을 열지 않습니다. 누르면 종이가 커지고 칸 위에 바로 씁니다.
                  ⛔ 1·2단계만 내놓습니다. 3단계는 칸이 아니라 밑줄이라
                     원고지 판이 맞지 않고, 그쪽에는 「손글씨로 쓰기」가 따로 있습니다. -->
             ${!useLines && html`<${C.Btn} icon="pencil" className="pastel-blue"
-              onClick=${function () { paperS[1](true); }}>
-              ${d && d.paperPhotoId ? '원고지 이어 쓰기' : '원고지에 손으로 쓰기'}<//>`}
-            ${d && d.paperPhotoId && html`<${C.Btn} size="small" icon="back"
+              onClick=${function () { writeS[1](true); }}>
+              ${d && d.writeInkId ? '이어서 쓰기' : '원고지에 손으로 쓰기'}<//>`}
+            ${d && d.writeInkId && html`<${C.Btn} size="small" icon="back"
               onClick=${function () {
-                var old = d.paperPhotoId;
-                App.store.updateDiary(d.id, { paperPhotoId: null });
+                var old = d.writeInkId;
+                App.store.updateDiary(d.id, { writeInkId: null });
                 if (old) App.photos.remove(old);
-              }}>글자 원고지로<//>`}
+              }}>손글씨 지우기<//>`}
             ${params.from !== 'folio' && html`<${C.Btn} icon="book" className="pastel-yellow"
               onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
               나의 일기 모음 보기<//>`}
-          </div>
+          </div>`}
 
-          <!-- 원고지 따라쓰기 판 — 확인 화면의 것과 같은 규칙입니다.
-               ⛔ 줄 나누기를 새로 셈하지 마세요. 「App.manuscriptRows」 로
-                  그림일기와 같은 규칙을 씁니다. -->
-          ${paperS[0] && d && html`<${C.Modal} title="원고지에 따라 써요" wide=${true}
-            onClose=${function () { paperS[1](false); }}
-            actions=${html`<${C.Btn} onClick=${function () { paperS[1](false); }}>그만두기<//>`}>
-            <${C.DrawPad} w=${1000} h=${760}
-              paper=${{ cols: 10, rows: App.manuscriptRows([App.sentences.diaryBody(d)], 10), trace: true }}
-              startFrom=${d.paperPhotoId ? App.photos.url(d.paperPhotoId) : null}
-              doneText="다 썼어요"
-              hintText="흐린 글자를 따라 칸 안에 써 보아요. 색과 굵기를 고를 수 있어요."
-              onDone=${function (url) {
-                App.photos.addDataUrl(url, student.id, 'paper').then(function (id) {
-                  var old = d.paperPhotoId;
-                  App.store.updateDiary(d.id, { paperPhotoId: id });
-                  if (old) App.photos.remove(old);
-                  paperS[1](false);
-                });
-              }} />
-          <//>`}
+          <!-- ※ 예전에는 여기에 원고지 팝업(C.Modal + C.DrawPad)이 있었습니다.
+                 2026-08-26 에 걷어냈습니다 — 선생님이 바라신 것은 팝업이 아니라
+                 **보고 있는 종이 위에 그대로** 쓰는 것이었습니다.
+                 지금은 위 「writing」 이 켜지면 종이 안 원고지 칸 위에
+                 투명한 그림판이 얹힙니다 (C.PicDiarySheet 의 .pd-writepad). -->
         </div>
       </div>
     </div>`;

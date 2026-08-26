@@ -502,6 +502,8 @@
         if (d.drawPhotoId) App.photos.remove(d.drawPhotoId);
         if (d.paperPhotoId) App.photos.remove(d.paperPhotoId);
         if (d.writePhotoId) App.photos.remove(d.writePhotoId);
+        /* 그림일기 위에 바로 쓴 글씨 (2026-08-26) */
+        if (d.writeInkId) App.photos.remove(d.writeInkId);
       }
     },
 

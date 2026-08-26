@@ -114,7 +114,7 @@
                       aria-label="내 사진으로 만들기"
                       onClick=${function () { if (faceRef.current) faceRef.current.click(); }}>
                     <span class="cs-art">
-                      <${C.Art} src=${face} iconKey="camera" />
+                      <${C.Art} src=${face || App.uiImage('camera')} iconKey="camera" />
                     </span>
                     <span class="cs-label">${busy[0] ? '넣는 중…' : (face ? '내 사진' : '사진 찍기')}</span>
                   </button>
