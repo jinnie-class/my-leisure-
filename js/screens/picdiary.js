@@ -396,15 +396,16 @@
     var padRef = p.padRef;
     var gridPx = { w: Math.round(A4_W - 4),
                    h: Math.round((g.rows.length || 1) * cellSize(g.cols || 10)) };
-    /* ★★ 제목은 **칸 없이 한 줄**입니다 (2026-08-26 · 선생님 말씀 —
-           「제목이 길어지니 원고지 칸 이상 써지지 않아」).
-         예전에는 제목도 원고지 격자였고, 앞 두 칸을 「제목」 딱지가 쓰고
-         나머지 `칸수-2` 개만 글자를 받았습니다. 10칸이면 여덟 글자.
-         「가족, 친구와 함께 보드게임」 같은 제목은 **뒤가 잘려 사라졌습니다** —
-         화면에도 인쇄에도 안 나왔습니다 (글자 누락 : 원고지 규칙 13 위반).
-       ▸ 이제 세 단계 모두 한 줄입니다. 길면 줄 안에서 글자가 작아집니다.
-       ⛔ 줄 높이는 그 단계의 **원고지 한 줄과 똑같아야** 합니다. 다르면
-          fitGrid 의 `+1`(제목 줄) 셈이 어긋나 종이가 한 장을 넘습니다. */
+    /* ★★ 제목은 **짧으면 칸, 길면 줄글**입니다 (2026-08-26 · 선생님 말씀).
+       ▸ 짧은 제목은 원고지 칸에 넣습니다. 그러면 제목 글자와 본문 칸 글자가
+         **정확히 같은 크기**가 되어, 한 장 안에서 크기가 어긋나 보이지 않습니다.
+       ▸ 긴 제목은 칸 없이 한 줄로 씁니다. 칸에 넣으면 앞 두 칸을 「제목」 딱지가
+         쓰고 남은 `칸수-2` 개만 글자를 받아서 **뒤가 잘려 사라집니다**
+         (「가족, 친구와 함께 보드게임」 → 열 칸이면 여덟 글자에서 끊김.
+          원고지 규칙 13 — 글자 누락 금지).
+       ⛔ 3단계(밑줄)에는 본문 칸이 없으므로 늘 줄글입니다.
+       ⛔ 줄 높이는 어느 쪽이든 그 단계의 **원고지 한 줄과 똑같아야** 합니다.
+          다르면 fitGrid 의 `+1`(제목 줄) 셈이 어긋나 종이가 한 장을 넘습니다. */
     var titleRowH = useLines ? TITLE_ROW_H : Math.round((A4_W - 4) / g.cols);
     /* ⛔ 제목 글자는 **본문과 같은 크기**입니다 (2026-08-24 · 선생님 말씀 —
          「제목과 내용 글자 크기 동일」). 1·2단계는 원고지 칸 글자,
@@ -421,6 +422,12 @@
     var titleFsFit = titleText.length
       ? Math.max(18, Math.min(titleFs, Math.floor(700 / titleText.length)))
       : titleFs;
+    /* ★ 가르는 자리 — 「제목」 딱지가 앞 두 칸을 쓰므로 **칸수-2** 글자까지만
+         칸에 담깁니다. 한 글자라도 넘치면 줄글로 갑니다 (잘리지 않게).
+       ⛔ 여기 숫자를 늘리지 마세요 — 딱지가 두 칸이라는 사실에서 나온 값입니다
+          (css 의 `.pd-box.pd-titlelab{grid-column:span 2}`). */
+    var titleCells = Math.max(0, (g.cols || 0) - 2);
+    var titleFits = !useLines && titleText.length > 0 && titleText.length <= titleCells;
     /* 힌트 보기에 쓸 문장 — 학생이 아래 빈 칸에 보고 쓸 내용입니다 */
     var hintLines = lines;
 
@@ -653,11 +660,24 @@
            ⛔ 이 주석은 html 안입니다. 여는 것과 닫는 것을 **짝 맞춰** 쓰세요.
              js 주석 닫기(별표+빗금)로 닫으면 주석이 안 닫혀서 뒤 마크업이
              통째로 먹히고 화면이 아예 안 뜹니다. 백틱도 쓰지 마세요. -->
-      <div class="pd-titleline"
-           style=${{ fontSize: titleFsFit + 'px', height: titleRowH + 'px' }}>
-        <span class="pd-titlelab-line">제목</span>
-        <span class="pd-titletext">${titleText}</span>
-      </div>
+      ${titleFits
+        ? html`<div class="pd-grid pd-titlegrid"
+             style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
+                       fontSize: titleFs + 'px' }}>
+            <span class="pd-box pd-titlelab">제목</span>
+            ${(function () {
+              var cells = [];
+              for (var i = 0; i < titleCells; i++) cells.push(titleText.charAt(i) || '');
+              return cells.map(function (ch, i) {
+                return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
+              });
+            })()}
+          </div>`
+        : html`<div class="pd-titleline"
+             style=${{ fontSize: titleFsFit + 'px', height: titleRowH + 'px' }}>
+            <span class="pd-titlelab-line">제목</span>
+            <span class="pd-titletext">${titleText}</span>
+          </div>`}
 
       ${hint}
 

@@ -1820,10 +1820,22 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .pd-art-thumb{ width:150px; height:150px; display:block; }
 .pd-art-thumb svg,.pd-art-thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
 
-/* 4. 제 목  →  `.pd-titleline` 하나뿐입니다 (아래쪽에 있습니다).
-   ※ 원고지 격자로 된 제목(.pd-titlegrid · .pd-box.pd-titlelab)은 2026-08-26 에
-     걷어냈습니다. 앞 두 칸을 딱지가 쓰고 남은 칸만 글자를 받아서, 제목이
-     길면 **뒤가 잘려 사라졌습니다.** 되살리지 마세요. */
+/* 4. 제 목 — **짧으면 칸, 길면 줄글** (2026-08-26 · 선생님 말씀)
+   ▸ 짧은 제목 : `.pd-titlegrid` (원고지 한 줄). 칸 글자와 크기가 **정확히 같아**
+     한 장 안에서 어긋나 보이지 않습니다.
+   ▸ 긴 제목  : `.pd-titleline` (칸 없는 한 줄). 길면 글자를 줄여 다 담습니다.
+   ⛔ 긴 제목을 칸에 넣지 마세요 — 앞 두 칸을 딱지가 쓰고 남은 칸만 글자를
+      받아서 **뒤가 잘려 사라집니다** (원고지 규칙 13 — 글자 누락 금지).
+      가르는 자리는 picdiary.js 의 titleFits 입니다. */
+.pd-titlegrid{ font-weight:900; }
+/* 「제목」 딱지는 앞 **두 칸**을 씁니다.
+   ⚠ `.pd-box` 규칙이 뒤에 나오므로 힘을 같게 두면 집니다. `.pd-box.pd-titlelab`
+     로 한 단계 올려야 aspect-ratio 가 풀립니다. 안 풀면 두 칸 너비만큼 키가
+     두 배(159px)가 됩니다 — 재어서 확인. */
+.pd-box.pd-titlelab{
+  grid-column:span 2; aspect-ratio:auto;
+  font-size:.6em; color:#4a4a55; letter-spacing:.1em;
+}
 
 /* 5. 원고지 — 한 칸에 한 글자.
    글자 크기는 칸 수에 따라 picdiary.js 가 인라인으로 정해 줍니다. */
@@ -1857,8 +1869,10 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
    `.pd-titlegrid .pd-ch` → `.pd-titletext` 로 옮겼습니다).
    ⛔ 이 두 줄을 빠뜨리면 「따라 쓰기」에서 본문만 흐리고 제목은 진하게 나오고,
       「빈 줄」로 뽑아도 제목만 인쇄돼 학생이 쓸 자리가 없어집니다. */
-.pd-sheet.t-trace .pd-titletext{ color:#c9c9d2; }
-.pd-sheet.t-empty .pd-titletext{ visibility:hidden; }
+.pd-sheet.t-trace .pd-titletext,
+.pd-sheet.t-trace .pd-titlegrid .pd-ch{ color:#c9c9d2; }
+.pd-sheet.t-empty .pd-titletext,
+.pd-sheet.t-empty .pd-titlegrid .pd-ch{ visibility:hidden; }
 
 /* ======================= 완성 미리보기 (기록하GO! 마지막) =======================
    저장하기 전에 완성된 그림일기를 작게 그대로 보여 줍니다.
@@ -4355,8 +4369,11 @@ textarea.sentence-edit,
   border:2px solid #2f2f38; border-radius:6px;
   background:#fff;
 }
+/* ⛔ 딱지와 제목 글자를 붙이지 마세요 (2026-08-26 · 선생님 말씀 — 「너무 붙어
+      있어서」). 오른쪽 여백을 넉넉히 주어 칸 제목과 비슷한 사이가 나게 합니다. */
 .pd-titlelab-line{
   flex:0 0 auto; font-size:.6em; color:#4a4a55; letter-spacing:.1em; font-weight:800;
+  margin-right:.8em;
 }
 .pd-titletext{
   flex:1 1 auto; min-width:0; font-weight:800; line-height:1.2;
