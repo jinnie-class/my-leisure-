@@ -1,12 +1,34 @@
 /* ===========================================================
    나의 여가 — 계획하GO! (나의 여가 계획하기)
-   한 화면에 한 가지 질문만 보여 주고, 활동은 6개씩 나누어 보여 줍니다.
+   한 화면에 한 가지 질문만 보여 주고, 활동·사람·장소를 **세 개씩** 보여 줍니다.
    =========================================================== */
 (function () {
   var App = window.App, React = window.React, html = App.html, C = App.C;
   var useState = React.useState, useEffect = React.useEffect;
 
   var PAGE_SIZE = App.PAGE_SIZE;   /* 공용 규칙 — common.js (2026-08-26) */
+
+  /* ★ 쪽 넘김 = **화살표만** (2026-08-26 · 선생님 말씀 — 「앞활동보기, 활동
+       더보기가 아니라 그냥 화살표 방향만 제시(투머치설명)」).
+     ▸ 「앞 활동 보기 / 활동 더 보기」처럼 말로 적으면, 정작 중요한 **문장과
+       그림**보다 설명이 더 눈에 띄었습니다. 화살표는 그림이라 글을 못 읽는
+       학생도 곧바로 압니다.
+     ⛔ 화살표만 두더라도 **어디쯤인지(1/3)** 는 남깁니다 — 없으면 몇 쪽이
+        더 있는지 알 길이 없어 학생이 끝없이 누릅니다.
+     ⛔ 화면마다 따로 적지 마세요. 활동 · 사람 · 장소가 **같은 모양**이라야
+        한 번 익히면 어디서나 통합니다. */
+  function arrowPager(page, count, go, what) {
+    if (count <= 1) return null;
+    return html`<div class="pg-arrows">
+      <button type="button" class="pg-arrow" disabled=${page === 0}
+        aria-label=${'앞 ' + what + ' 보기'}
+        onClick=${function () { go(page - 1); }}>◀</button>
+      <span class="pg-now" aria-live="polite">${page + 1} / ${count}</span>
+      <button type="button" class="pg-arrow" disabled=${page >= count - 1}
+        aria-label=${what + ' 더 보기'}
+        onClick=${function () { go(page + 1); }}>▶</button>
+    </div>`;
+  }
 
   /* 시간대 선택지 — `아침 · 낮 · 저녁`.
      ★ 예전에는 `오전 · 오후` 였습니다. '오전' 은 학생에게 추상적이어서,
@@ -187,10 +209,18 @@
     var addS = useState(false);
     var canAdd = !student || student.addTools !== false;
 
+    /* ★ 계획하기는 **한 쪽에 셋**입니다 (2026-08-26 · 선생님 말씀).
+       ▸ 이 화면의 주인공은 위쪽 **문장**입니다. 문장이 2/3 를 쓰므로 고르는
+         칸에는 1/3 만 남습니다. 그 자리에 여섯을 넣어 보니 카드가 409×94 로
+         눌리고 그림이 63px 이 되었으며, 어차피 셋씩 끊겨 보였습니다
+         (재어 확인 2026-08-26). 그럴 바에는 **셋을 크게** 놓습니다.
+       ⛔ App.PAGE_SIZE(여섯)를 여기에 쓰지 마세요 — 이 화면만 다릅니다.
+          일기·지도의 여섯은 그대로입니다. */
+    var PLAN_PER = 3;
     var cards = App.visibleCards(student, draft.area);
-    var pageCount = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
+    var pageCount = Math.max(1, Math.ceil(cards.length / PLAN_PER));
     var page = Math.min(pageS[0], pageCount - 1);
-    var pageCards = cards.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+    var pageCards = cards.slice(page * PLAN_PER, page * PLAN_PER + PLAN_PER);
 
     function chooseCard(card) {
       var kids = App.visibleChildren(student, card);
@@ -478,17 +508,13 @@
           <//>
           ${addS[0] && html`<${C.AddActivityModal} area=${draft.area}
             onClose=${function () { addS[1](false); }}
-            onAdded=${function () { pageS[1](Math.ceil((cards.length + 1) / PAGE_SIZE) - 1); }} />`}
+            onAdded=${function () { pageS[1](Math.ceil((cards.length + 1) / PLAN_PER) - 1); }} />`}
           <!-- ★ 쪽 넘기는 단추에서 '다음' 이라는 말을 뺐습니다.
                  아래 넘어가는 단추도 '다음' 이라, 한 화면에 '다음' 이 둘이 되어
                  학생이 어느 것을 눌러야 하는지 헷갈렸습니다.
                  여기는 '활동을 더 본다', 아래는 '이 활동으로 정하고 넘어간다' 입니다.
                  ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
-          ${pageCount > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="back" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동 보기<//>
-            <span class="chip">${page + 1} / ${pageCount}</span>
-            <${C.Btn} icon="next" disabled=${page >= pageCount - 1} onClick=${function () { pageS[1](page + 1); }}>활동 더 보기<//>
-          </div>`}
+          ${arrowPager(page, pageCount, function (n) { pageS[1](n); }, '활동')}
         <//>`;
       }
 
@@ -499,7 +525,7 @@
            ▸ 넘기는 단추 말은 활동 고르기와 **같은 규칙**입니다 —
              아래 「다음」과 헷갈리지 않게 '사람' 이라고 붙입니다. */
         var partners = App.partnersFor(student);
-        var WHO_SIZE = App.PAGE_SIZE;
+        var WHO_SIZE = PLAN_PER;      /* 계획하기는 셋 — 위 PLAN_PER 주석 */
         var whoPages = Math.max(1, Math.ceil(partners.length / WHO_SIZE));
         var wp = Math.min(whoPageS[0], whoPages - 1);
         var whoShow = partners.slice(wp * WHO_SIZE, wp * WHO_SIZE + WHO_SIZE);
@@ -515,13 +541,7 @@
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
           <//>
-          ${whoPages > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="back" disabled=${wp === 0}
-              onClick=${function () { whoPageS[1](wp - 1); }}>앞 사람 보기<//>
-            <span class="chip">${wp + 1} / ${whoPages}</span>
-            <${C.Btn} icon="next" disabled=${wp >= whoPages - 1}
-              onClick=${function () { whoPageS[1](wp + 1); }}>사람 더 보기<//>
-          </div>`}
+          ${arrowPager(wp, whoPages, function (n) { whoPageS[1](n); }, '사람')}
         <//>`;
       }
 
@@ -586,7 +606,7 @@
              `무엇을 할까요?` 와 **같은 개수**라, 학생이 '한 화면에 여섯,
              더 있으면 넘긴다' 는 규칙을 하나만 익히면 됩니다.
              19곳 → 4쪽 (4곳씩이면 5쪽이라 넘기는 횟수가 늘어납니다). */
-        var PLACE_PER = App.PAGE_SIZE;
+        var PLACE_PER = PLAN_PER;     /* 계획하기는 셋 — 위 PLAN_PER 주석 */
         var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
         var plPage = Math.min(placePageS[0], plPages - 1);
         var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
@@ -613,13 +633,7 @@
                 onChange=${function (e) { patch({ place: e.target.value }); }} />
             </div>`}
           <//>
-          ${plPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="back" disabled=${plPage === 0}
-              onClick=${function () { placePageS[1](plPage - 1); }}>앞 장소 보기<//>
-            <span class="chip">${plPage + 1} / ${plPages}</span>
-            <${C.Btn} icon="next" disabled=${plPage >= plPages - 1}
-              onClick=${function () { placePageS[1](plPage + 1); }}>장소 더 보기<//>
-          </div>`}
+          ${arrowPager(plPage, plPages, function (n) { placePageS[1](n); }, '장소')}
         <//>`;
       }
 
