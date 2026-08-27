@@ -542,7 +542,7 @@
       if (!data.plans.length) { App.ui.toast('이 기간에 세운 계획이 없어요.'); return; }
       App.printNode(html`<div>
         ${data.plans.map(function (pl) {
-          return html`<div key=${pl.id} class="book-page">
+          return html`<div key=${pl.id} class="book-page plain">
             <${C.PlanSheet} plan=${pl} student=${student} />
             <${C.PlanWorksheet} plan=${pl} student=${student} />
           </div>`;
@@ -1246,7 +1246,7 @@
              (2026-08-26). 세 곳(계획하기 · 포트폴리오 계획 모음 · 이 책자)이
              모두 C.PlanWorksheet 하나를 씁니다. -->
         ${data.plans.map(function (pl) {
-          return html`<div key=${'p' + pl.id} class="book-page">
+          return html`<div key=${'p' + pl.id} class="book-page plain">
             <${C.PlanSheet} plan=${pl} student=${student} />
             <${C.PlanWorksheet} plan=${pl} student=${student} />
           </div>`;

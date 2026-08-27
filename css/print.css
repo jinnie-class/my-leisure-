@@ -40,6 +40,14 @@ html,body{
   page-break-inside:avoid;
   break-inside:avoid;
 }
+/* ⛔ 계획표가 든 쪽은 **바깥 테두리를 뺍니다** (2026-08-26 · 선생님 말씀 —
+      「겹두줄로 테두리가 되는데 그냥 여가계획의 여가계획표가 그대로
+       연달아서 출력되도록. 너무 투머치로 가지말자」).
+      계획표(.sheet)가 이미 제 테두리를 가지고 있어서, 쪽 테두리까지
+      그리면 **테두리가 두 겹**으로 보였습니다.
+    ▸ 쪽 나누기(break-after)는 그대로 두고 **선만** 뺍니다 — 계획표가
+      한 장에 하나씩, 계획하기에서 뽑은 것과 똑같은 모습으로 이어집니다. */
+.print-area .book-page.plain{ border:0 !important; padding:0 !important; }
 .book-page{ break-after:page; page-break-after:always; }
 .book-page:last-child{ break-after:auto; page-break-after:auto; }
 
