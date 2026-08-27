@@ -3937,6 +3937,30 @@ textarea.sentence-edit,
 /* 전시하기로 고른 일기 — 여기도 **고른 것은 파랑** 규칙을 따릅니다 */
 .dcard.on{ border-color:var(--sel-line); background:var(--sel-bg); }
 
+/* ── 일기 카드 : **왼쪽 그림 한 장 · 오른쪽 세 줄** (2026-08-28) ────────
+   선생님 : 「왼쪽에 활동 그림만 넣고 오른쪽에 년월일요일 밑에 제목,
+             그 밑에 세개의 바 … 난 **그림이 좀 눈에 띄었으면** 해서」
+   ★ 그림이 54px 일 때는 이름표처럼 작아 제목 옆에 묻혔습니다. 이제 오른쪽
+     세 줄 높이를 통째로 써서 카드에서 가장 먼저 보입니다.
+   ⚠ 그림 칸은 `auto` 가 아니라 **clamp 로 못박습니다.** auto 로 두면 일기마다
+     그림 크기가 달라져 카드가 들쭉날쭉해집니다. */
+.dcard-in{
+  display:grid; grid-template-columns:auto minmax(0,1fr);
+  gap:.75rem; align-items:center;
+}
+.dcard-art{
+  width:clamp(64px, 7.5vw, 96px); aspect-ratio:1;
+  display:block; align-self:center;
+}
+/* ⚠ 속 그림이 칸을 넘지 않게 눌러 둡니다 — 캐릭터가 머리만 보이던 고장과
+     같은 까닭입니다 (인수인계 36-1). */
+.dcard-art > *, .dcard-art img, .dcard-art svg{
+  width:100%; height:100%; object-fit:contain; display:block;
+}
+.dcard-txt{ display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+/* 제목이 길면 한 줄로 줄여 보여 줍니다 (카드 높이가 일기마다 달라지지 않게) */
+.dcard-title{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 /* ── 일기 카드 아래 **단추 한 줄** (2026-08-28) ────────────────────────
    ★ 예전에는 알약 단추 셋이 따로 놓여, 카드 하나에 상자가 넷으로 보였습니다
      (선생님 말씀 — 「여긴 너무 많은 정보와 상자가 많아」).
@@ -3945,7 +3969,7 @@ textarea.sentence-edit,
      바깥 규칙이 끼어들어 단추가 세로로 쌓인 적이 있습니다 (인수인계 33-4). */
 .dcard-bar{
   display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
-  margin-top:.5rem; background:#fff;
+  margin-top:.15rem; background:#fff;
   border:2px solid var(--line, #d8dce6); border-radius:999px;
   overflow:hidden;
 }

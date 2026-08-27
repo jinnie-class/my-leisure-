@@ -1977,17 +1977,23 @@
                      ⚠ 전시 여부는 딱지 대신 **카드 테두리(.dcard.on)** 와 아래
                        단추의 눌린 모양으로 압니다 — 표시가 사라진 것이 아닙니다. */
                 return html`<div key=${d.id} class=${'card dcard' + (d.exhibit ? ' on' : '')}>
-                  <div class="row" style=${{ alignItems: 'center' }}>
-                    <span style=${{ width: 54, height: 54, flex: '0 0 auto' }}><${C.ActivityArt} activity=${a} /></span>
-                    <div class="grow" style=${{ minWidth: 0 }}>
-                      <b>${d.title || (a ? a.name : '여가 일기')}</b>
+                  <!-- ★ **왼쪽은 그림 한 장, 오른쪽은 세 줄** (2026-08-28 · 선생님 말씀 —
+                         「왼쪽에 활동 그림만 넣고 오른쪽에 년월일요일 밑에 제목,
+                         그 밑에 세개의 바 … 난 그림이 좀 눈에 띄었으면 해서」).
+                         그림이 54px 일 때는 이름표처럼 작아서 제목 옆에 묻혔습니다.
+                         이제 오른쪽 세 줄 높이를 통째로 써서 **가장 먼저 보입니다.**
+                       ▸ 날짜가 제목 **위**입니다 — 일기는 날짜로 찾는 것이라
+                         먼저 눈에 들어와야 합니다.
+                       ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+                  <div class="dcard-in">
+                    <span class="dcard-art"><${C.ActivityArt} activity=${a} /></span>
+                    <div class="dcard-txt">
                       <div class="small muted">${App.fmtDateLong(d.date)}</div>
-                    </div>
-                  </div>
-                  <!-- ★ 단추 셋을 **흰 바 하나** 안에 넣어 한 줄로 보이게 했습니다.
-                         낱개 알약이 셋이면 상자가 셋으로 보여 어수선했습니다.
-                       ▸ 칸막이 선은 CSS(.dcard-bar) 가 긋습니다. -->
-                  <div class="dcard-bar">
+                      <b class="dcard-title">${d.title || (a ? a.name : '여가 일기')}</b>
+                      <!-- ★ 단추 셋을 **흰 바 하나** 안에 넣어 한 줄로 보이게 했습니다.
+                             낱개 알약이 셋이면 상자가 셋으로 보여 어수선했습니다.
+                           ▸ 칸막이 선은 CSS(.dcard-bar) 가 긋습니다. -->
+                      <div class="dcard-bar">
                     <button type="button" class=${'dcard-act' + (d.exhibit ? ' on' : '')}
                       aria-pressed=${d.exhibit ? 'true' : 'false'}
                       onClick=${function () {
@@ -2015,6 +2021,8 @@
                       <span class="ico" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('pencil') }} />
                       <span>일기 고치기</span>
                     </button>
+                      </div>
+                    </div>
                   </div>
                 </div>`;
               }), '일기');
