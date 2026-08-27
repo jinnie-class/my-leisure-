@@ -1212,7 +1212,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
       제각각(무엇을·어디에서)이라 **왼쪽 끝이 들쑥날쑥**해집니다.
    ▸ 딱지는 왼쪽 맞춤 + 같은 폭(6.5em). 그래야 딱지의 왼쪽도, 답의 왼쪽도
      **각각 한 세로선**에 놓여 눈이 곧게 내려갑니다. */
-.sheet-body .rows{ margin-inline:auto; }
+/* ⛔ `.rows` 에 `margin-inline:auto` 를 주지 마세요 — flex 칸에서 auto 여백은
+      **남는 자리를 통째로 먹어** 옆에 있는 활동 그림을 종이 오른쪽 끝으로
+      밀어냅니다 (2026-08-26 · 2·3단계에서 실제로 그랬습니다).
+      가운데 맞추기는 위 `.sheet-body{justify-content:center}` 가 이미 합니다. */
 .sheet-body .row{ justify-content:flex-start; }
 .sheet-body .row .k{ text-align:left; flex:0 0 auto; }
 /* 왼쪽 표는 **글자만큼만**(auto), 남는 자리는 모두 그림 칸(1fr).
