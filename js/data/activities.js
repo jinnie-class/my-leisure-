@@ -26,7 +26,7 @@
          시간대 : 아침 · 낮 · 저녁 */
     when:  'images/시간/',
     time:  'images/시간/',
-    place: 'images/장소/',           // 교실.png · 집.png · 조리실.png …
+    place: 'images/장소/',           // 교실.png · 집.png · 부엌.png …
     again: 'images/또하기/',         // 또 하고 싶어요.png · … (일기 저장 뒤 질문)
     /* 일기 제목 고르기 칸의 그림. 제목은 활동에 따라 달라지지만(텃밭 가꾸기 …)
        그림은 **제목의 꼴**을 나타내므로 파일 이름은 늘 같습니다.
@@ -214,23 +214,23 @@
     A({
       id: 'cook', area: 'indoor', name: '요리하기', icon: 'pot', imageKey: '요리하기',
       planText: '요리를 할 거예요', diaryText: '요리를 했어요',
-      defaultPlace: '조리실', defaultSupplies: ['앞치마', '재료'],
+      defaultPlace: '부엌', defaultSupplies: ['앞치마', '재료'],
       children: [
         A({ id: 'cook-bread', area: 'indoor', name: '식빵 요리', icon: 'bread', imageKey: '식빵 요리',
             planText: '식빵 요리를 할 거예요', diaryText: '식빵 요리를 했어요',
-            defaultPlace: '조리실', defaultSupplies: ['식빵', '잼', '접시'] }),
+            defaultPlace: '부엌', defaultSupplies: ['식빵', '잼', '접시'] }),
         A({ id: 'cook-fries', area: 'indoor', name: '오지치즈후라이', icon: 'fries', imageKey: '오지치즈후라이',
             planText: '오지치즈후라이를 만들 거예요', diaryText: '오지치즈후라이를 만들었어요',
-            defaultPlace: '조리실', defaultSupplies: ['감자튀김', '치즈', '앞치마'] }),
+            defaultPlace: '부엌', defaultSupplies: ['감자튀김', '치즈', '앞치마'] }),
         A({ id: 'cook-brownie', area: 'indoor', name: '오레오 브라우니', icon: 'brownie', imageKey: '오레오 브라우니',
             planText: '오레오 브라우니를 만들 거예요', diaryText: '오레오 브라우니를 만들었어요',
-            defaultPlace: '조리실', defaultSupplies: ['오레오', '우유', '그릇'] }),
+            defaultPlace: '부엌', defaultSupplies: ['오레오', '우유', '그릇'] }),
         A({ id: 'cook-tteok', area: 'indoor', name: '로제떡볶이', icon: 'tteok', imageKey: '로제떡볶이',
             planText: '로제떡볶이를 만들 거예요', diaryText: '로제떡볶이를 만들었어요',
-            defaultPlace: '조리실', defaultSupplies: ['떡', '소스', '앞치마'] }),
+            defaultPlace: '부엌', defaultSupplies: ['떡', '소스', '앞치마'] }),
         A({ id: 'cook-eggrice', area: 'indoor', name: '간장계란밥', icon: 'eggrice', imageKey: '간장계란밥',
             planText: '간장계란밥을 만들 거예요', diaryText: '간장계란밥을 만들었어요',
-            defaultPlace: '조리실', defaultSupplies: ['밥', '계란', '간장'] }),
+            defaultPlace: '부엌', defaultSupplies: ['밥', '계란', '간장'] }),
         A({ id: 'cook-nofire', area: 'indoor', name: '과일 요거트', icon: 'fruit', imageKey: '과일 요거트',
             planText: '과일 요거트를 만들 거예요', diaryText: '과일 요거트를 만들었어요',
             defaultPlace: '교실', defaultSupplies: ['과일', '접시', '포크'] })

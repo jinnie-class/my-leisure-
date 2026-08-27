@@ -109,7 +109,7 @@
       diary({
         id: 'dy_sample2', date: App.addDays(today, -6),
         activityId: 'cook-eggrice', cardId: 'cook', partnerId: 'teacher',
-        place: '조리실', moodIds: ['proud'], againId: 'again', exhibit: true,
+        place: '부엌', moodIds: ['proud'], againId: 'again', exhibit: true,
         title: '간장계란밥 만들기'
       }),
       diary({
