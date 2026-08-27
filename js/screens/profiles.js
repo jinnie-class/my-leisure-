@@ -66,7 +66,10 @@
         left=${html`<${C.Btn} size="small" icon="back" className="pastel-yellow"
           onClick=${function () { p.nav(back); }}>누구의 여가생활일까요?<//>`} />
 
-      <div class="stage">
+      <!-- ★ tall — 흰 칸을 가득 씁니다 (2026-08-26).
+             85% 만 쓰면 그 15% 가 그대로 캐릭터 카드 높이에서 빠집니다.
+             카드가 248×138 로 납작해져 그림이 작게 보였습니다. -->
+      <div class="stage tall cs-stage">
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
           <!-- ⛔ ref 를 지우지 마세요 — 넘칠 때 통째로 조금 줄여 주는 장치입니다
                  (C.useFitBox). 없으면 낮은 화면에서 캐릭터 그림이 이름 글자를

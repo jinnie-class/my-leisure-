@@ -12,7 +12,20 @@
      imageKey : images/avatars/<imageKey>.png
      variants : 남녀 그림이 둘 다 있는 경우. 학생마다 어느 쪽을 쓸지 고를 수 있습니다.
                 (문장은 어느 쪽이든 똑같이 "친구와" 로 만들어집니다) */
+  /* ★ 차례 = **자주 고르는 사람이 앞** (2026-08-26 · 선생님 말씀).
+       한 쪽에 여섯이라, 앞 여섯이 **첫 화면에 보이는 사람**입니다.
+       학교에서 쓰는 앱이므로 선생님 · 친구가 가장 잦고, 그다음이 혼자,
+       그리고 집 사람(가족 · 엄마 · 아빠)입니다.
+     ⛔ 이 여섯의 차례를 바꾸지 마세요 — 바꾸면 첫 화면에 보이는 사람이
+        달라져, 학생이 늘 넘겨서 찾아야 합니다.
+     ▸ 일곱째부터는 넘겨서 봅니다 (할머니 · 할아버지 · 삼촌 …). */
   D.partners = [
+    { id: 'teacher', name: '선생님', phrase: '선생님과', icon: 'pTeacher',
+      variants: [{ id: 'm', name: '남', imageKey: '선생님 남' },
+                 { id: 'f', name: '여', imageKey: '선생님 여' }] },
+    { id: 'friend',  name: '친구',   phrase: '친구와',   icon: 'pFriend',
+      variants: [{ id: 'm', name: '남', imageKey: '친구-남' },
+                 { id: 'f', name: '여', imageKey: '친구-여' }] },
     { id: 'alone',   name: '혼자',   phrase: '혼자',     icon: 'pAlone',
       variants: [{ id: 'm', name: '남', imageKey: '혼자 남학생' },
                  { id: 'f', name: '여', imageKey: '혼자 여학생' }] },
@@ -47,13 +60,10 @@
          감춰 두면 새로 고를 수는 없고 예전 기록은 그대로 읽힙니다. */
     { id: 'sibling', name: '형제자매', phrase: '형제자매와', icon: 'pSibling', hidden: true,
       variants: [{ id: 'm', name: '남', imageKey: '형제자매 남' },
-                 { id: 'f', name: '여', imageKey: '형제자매 여' }] },
-    { id: 'friend',  name: '친구',   phrase: '친구와',   icon: 'pFriend',
-      variants: [{ id: 'm', name: '남', imageKey: '친구-남' },
-                 { id: 'f', name: '여', imageKey: '친구-여' }] },
-    { id: 'teacher', name: '선생님', phrase: '선생님과', icon: 'pTeacher',
-      variants: [{ id: 'm', name: '남', imageKey: '선생님 남' },
-                 { id: 'f', name: '여', imageKey: '선생님 여' }] }
+                 { id: 'f', name: '여', imageKey: '형제자매 여' }] }
+    /* ※ 선생님 · 친구는 **맨 앞으로** 옮겼습니다 (2026-08-26). 여기 있던 것을
+         지운 것이 아니라 자리를 바꾼 것입니다 — id 가 같으므로 예전 기록도
+         그대로 읽힙니다. */
   ];
 
   /* ------------------------- 기분 ------------------------- */

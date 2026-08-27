@@ -1248,6 +1248,10 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
 }
 
 /* ===== 캐릭터 고르기 (왼쪽 미리보기 · 오른쪽 목록) ===== */
+/* ⛔ 캐릭터 고르기는 흰 칸을 **가득** 씁니다 (2026-08-26).
+      이 화면은 data-corner="home" 이라 홈의 85% 규칙에 걸려 있었습니다.
+      85% 만 쓰면 그 15% 가 그대로 카드 높이에서 빠져 그림이 납작해집니다. */
+[data-corner="home"] .stage.tall.cs-stage > .panel{ height:100%; }
 .cs-cols{ display:flex; gap:1rem; align-items:stretch; min-height:0; }
 /* ★ 왼쪽 「나」가 **오른쪽 고르는 칸보다 커야** 합니다 (2026-08-26 · 선생님 말씀
      — 「내가 더 중요하니 바뀐 캐릭터를 내가 확인하며 볼 수 있게」).
@@ -1285,7 +1289,9 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 /* 사진 칸 — 캐릭터와 같은 크기, 테두리만 점선으로 「넣는 자리」임을 알립니다 */
 .cs-item.cs-photo{ border-style:dashed; }
 .cs-item.cs-photo.on{ border-style:solid; }
-.cs-item.cs-photo .cs-art img{ border-radius:50%; object-fit:cover; }
+/* 얼굴 사진을 넣었을 때만 동그랗게 꽉 채웁니다(.on).
+   ⛔ 아직 안 넣었을 때(카메라 그림)까지 cover 로 두지 마세요 — 그림이 잘립니다. */
+.cs-item.cs-photo.on .cs-art > *{ border-radius:50%; object-fit:cover; }
 .cs-item{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem;
   background:#fff; border:2px solid var(--line); border-radius:16px; padding:.35rem;
@@ -1293,12 +1299,22 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 }
 .cs-item:hover{ background:var(--paper-2); }
 .cs-item.on{ background:var(--sel-bg); border-color:var(--sel-line); box-shadow:0 0 0 3px rgba(43,125,233,.22), var(--shadow); }
-/* ⛔ 그림이 **칸을 넘지 못하게** 막습니다. 갤럭시탭에서 캐릭터 그림이
-      커져서 이름 글자를 덮고 있었습니다 (2026-08-23).
-      `> *` 만으로는 모자랍니다 — 그림이 한 겹 더 안에 들어 있으면
-      손자는 제한을 안 받아 그대로 넘칩니다. */
-.cs-art{ width:100%; flex:1 1 auto; min-height:0; display:grid; place-items:center; overflow:hidden; }
-.cs-art *{ max-width:100%; max-height:100%; }
+/* ⛔⛔ 그림이 **칸을 넘지 못하게** 막습니다 (2026-08-23 · 다시 2026-08-26).
+      ★ 2026-08-26 에 실제 갤럭시탭에서 **머리 윗부분만** 보였습니다.
+        재어 보니 그림 칸은 104px 인데 **그림 자체가 232px** 이었고,
+        칸 밖으로 나간 아랫부분이 overflow:hidden 에 잘려 나간 것이었습니다.
+      ▸ 까닭 : `max-height:100%` 는 **부모 높이가 확실할 때만** 풀립니다.
+        격자(grid) 칸 안에서는 그 값이 안 풀려 그림이 제 크기대로 커졌습니다.
+      ▸ 그래서 그림을 **자리에서 띄워(absolute)** 칸에 딱 맞춥니다.
+        띄운 그림은 부모(높이가 확실한 .cs-art)에 늘 맞춰집니다.
+      ⛔ `display:grid; place-items:center` + `max-height:100%` 로 되돌리지
+         마세요 — 같은 고장이 그대로 납니다. */
+.cs-art{ position:relative; width:100%; flex:1 1 auto; min-height:0; overflow:hidden; }
+.cs-art > *{
+  position:absolute; inset:0;
+  width:100%; height:100%; object-fit:contain;
+}
+.cs-art > * > *{ width:100%; height:100%; object-fit:contain; display:block; }
 /* 이름은 **줄어들지 않습니다**(flex:0 0 auto). 그림이 남는 자리만 씁니다.
    낮은 화면에서는 글자도 함께 작아집니다 — 고정 크기로 두면 카드보다 커집니다. */
 .cs-label{ flex:0 0 auto; font-size:clamp(.68rem,.38rem + .5vh,.86rem); font-weight:800; }
