@@ -253,22 +253,22 @@
       children: [
         A({ id: 'block-wood', area: 'indoor', name: '나무 블록놀이', icon: 'blocks', imageKey: '나무 블록놀이',
             planText: '나무 블록놀이를 할 거예요', diaryText: '나무 블록놀이를 했어요',
-            defaultPlace: '교실', defaultSupplies: ['나무 블록'] }),
+            defaultPlace: '교실', defaultSupplies: ['블록'] }),
         A({ id: 'block-lego', area: 'indoor', name: '레고 블록놀이', icon: 'blocks', imageKey: '레고 블록놀이',
             planText: '레고 블록놀이를 할 거예요', diaryText: '레고 블록놀이를 했어요',
-            defaultPlace: '교실', defaultSupplies: ['레고 블록'] }),
+            defaultPlace: '교실', defaultSupplies: ['블록'] }),
         A({ id: 'block-magnet', area: 'indoor', name: '자석 블록놀이', icon: 'blocks', imageKey: '자석 블록놀이',
             planText: '자석 블록놀이를 할 거예요', diaryText: '자석 블록놀이를 했어요',
-            defaultPlace: '교실', defaultSupplies: ['자석 블록'] }),
+            defaultPlace: '교실', defaultSupplies: ['블록'] }),
         A({ id: 'block-paper', area: 'indoor', name: '종이 블록놀이', icon: 'blocks', imageKey: '종이 블록놀이',
             planText: '종이 블록놀이를 할 거예요', diaryText: '종이 블록놀이를 했어요',
-            defaultPlace: '교실', defaultSupplies: ['종이 블록'] }),
+            defaultPlace: '교실', defaultSupplies: ['블록'] }),
         A({ id: 'block-big', area: 'indoor', name: '큰 블록놀이', icon: 'blocks', imageKey: '큰 블록놀이',
             planText: '큰 블록놀이를 할 거예요', diaryText: '큰 블록놀이를 했어요',
-            defaultPlace: '교실', defaultSupplies: ['큰 블록'] }),
+            defaultPlace: '교실', defaultSupplies: ['블록'] }),
         A({ id: 'block-fit', area: 'indoor', name: '끼우기 블록놀이', icon: 'blocks', imageKey: '끼우기 블록놀이',
             planText: '끼우기 블록놀이를 할 거예요', diaryText: '끼우기 블록놀이를 했어요',
-            defaultPlace: '교실', defaultSupplies: ['끼우기 블록'] })
+            defaultPlace: '교실', defaultSupplies: ['블록'] })
       ]
     }),
     /* ★ 이름에서 「실내에서」를 뺐습니다 (2026-08-26 · 선생님 말씀 —
