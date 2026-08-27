@@ -2326,43 +2326,18 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 /* 손글씨 판은 옆으로 넓어서 비율을 따로 둡니다 */
 
 /* ===========================================================
-   일기 고치기 (좌우 2단)
-   왼쪽에서 고치면 오른쪽 그림일기에 바로 보입니다.
+   일기 고치기
+   ★ 이 화면은 **완성 화면과 같은 규칙**을 씁니다 (2026-08-28 · 선생님 말씀 —
+     「화면 구성을 똑같이 … 안의 구성 디자인 위치는 이렇게 동일하게」).
+     짜임새는 위쪽 `.confirm-fit / .confirm-2col / .confirm-left` 를,
+     묶음 이름표는 `.fix-part / .fix-lab / .fix-body` 를 그대로 씁니다.
+   ⛔ 여기에 이 화면만의 좌우 2단 규칙을 **다시 만들지 마세요.**
+      예전에 `.fix-2col` · `.fix-left` · `.fix-right` · `.fix-paper` 가
+      따로 있었고, `.fix-paper` 는 왼쪽 칸을 **420px 로 못박아** 두어서
+      완성 화면보다 왼쪽이 넓었습니다. 그래서 두 화면이 달라 보였습니다.
+      (지운 규칙들입니다 — 되살리면 같은 고장이 돌아옵니다)
    =========================================================== */
-.fix-2col{
-  display:flex; gap:1rem; align-items:flex-start; break-inside:avoid;
-}
-.fix-left{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.5rem; align-self:stretch; }
 .btn.fix-go{ align-self:stretch; border-width:3px; }
-.fix-text{ display:flex; flex-direction:column; gap:.35rem; }
-.fix-right{
-  flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:.25rem;
-}
-/* 종이는 794×1123 로 크기가 고정이라 transform 으로 줄여 담습니다.
-   ★ **화면에 들어가는 만큼 가장 크게** 보여 줍니다.
-     줄이는 비율을 `.34` 처럼 못박아 두면 큰 화면에서 종이가 작게 남고,
-     작은 화면에서는 넘칩니다. 그래서 화면 높이·너비에서
-     맨 위 줄과 아래 단추 자리를 뺀 만큼으로 셈합니다.
-     세 값 가운데 **가장 작은 것**을 쓰므로 어느 쪽으로도 안 넘칩니다.
-       · 0.62  : 이보다 크면 왼쪽 고치는 단추가 눌립니다
-       · 높이  : 맨 위 줄 + 아래 단추 = 넉넉히 250px
-       · 너비  : 왼쪽 단추 칸 + 사이 = 넉넉히 420px */
-/* ⚠ 이 값은 **JS 가 넣어 줍니다** (picdiary.js 의 fitScale).
-     CSS 의 min() 으로는 못 냅니다 — calc 안에서 `길이 ÷ 길이` 가 안 되어
-     비율(단위 없는 수)을 만들 수 없고, 그러면 규칙 전체가 무효가 됩니다.
-     실제로 그렇게 두었더니 --fx 가 없는 값이 되어 종이가 794px 그대로 나왔습니다. */
-.fix-paper{
-  --fx:.34;
-  width:calc(794px * var(--fx)); height:calc(1123px * var(--fx));
-  overflow:hidden; border:2px solid var(--line); border-radius:10px;
-  background:#fff; box-shadow:var(--shadow); flex:0 0 auto;
-}
-.fix-paper .pd-sheet{ transform:scale(var(--fx)); transform-origin:top left; }
-/* 좁은 화면에서는 위아래로 */
-@media screen and (max-width: 860px){
-  .fix-2col{ flex-direction:column; align-items:stretch; }
-  .fix-right{ align-items:center; }
-}
 
 /* ===========================================================
    나의 일기 모음 — 날짜별로 차곡차곡 쌓입니다
@@ -3493,14 +3468,9 @@ textarea.sentence-edit,
   box-shadow:0 0 0 5px var(--ok), 0 0 0 9px rgba(255,255,255,.75);
 }
 
-/* 일기 고치기 : 단추 아래 남는 자리 가운데에 뜨는 설명·고치는 칸.
-   ★ 단추 바로 밑에 붙여 두면 단추의 일부처럼 보여서, 그것이 설명이라는
-     것을 알기 어려웠습니다. 사이를 띄우고 가운데에 두면 따로 뜬 것으로 읽힙니다.
-   ▸ 재배열·일기 내용을 둘 다 켜면 위에서부터 차례로 쌓입니다. */
-.fix-panes{
-  flex:1 1 auto; display:flex; flex-direction:column; justify-content:center;
-  gap:.7rem; margin-top:.9rem; min-height:0;
-}
+/* ⚠ `.fix-panes` 를 지웠습니다 (2026-08-28) — 일기 고치기가 완성 화면과
+     같은 짜임새를 쓰면서, 켜고 끌 때 자리가 밀리지 않는 `.move-slot` 으로
+     바뀌었습니다. 글 칸은 이제 늘 펴 두므로 쌓을 일도 없습니다. */
 .pd-art .pd-art-thumb{
   /* ★ 종이(`.pd-sheet`)는 794×1123 **고정 크기**를 만든 뒤 통째로 줄여서
        보여 줍니다. 그래서 여기 안에서는 `%` 나 `vh` 가 아니라 **px** 로

@@ -87,6 +87,11 @@
     }, deps);
     return [boxRef, innerRef];
   }
+  /* ★ 일기 고치기 화면(picdiary.js 의 C.FixDiaryScreen)도 **같은 장치**를 씁니다
+       (2026-08-28 · 선생님 말씀 — 「화면 구성을 똑같이」).
+       두 화면이 같은 짜임새(.confirm-2col)를 쓰니 줄이는 장치도 같아야
+       합니다. 한쪽만 없으면 흰 칸을 넘칠 때 그 화면만 쪽이 갈라집니다. */
+  App.useFitOnePage = useFitOnePage;
   /* ★ 일기도 계획하기와 **똑같이 한 쪽에 셋**입니다 (2026-08-26 · 선생님 말씀 —
      「여가일기도 여가계획하기와 동일하게 3개씩 그림구성」).
      위쪽 문장이 자리를 많이 써서, 여섯을 넣으면 카드가 눌립니다.
@@ -1677,15 +1682,12 @@
            적힌 곳과 가는 곳이 달라서는 안 됩니다.
          ▸ 앞 질문으로 가려면 아래 단계 띠에서 그 칸을 누릅니다. */
       if (params.from === 'folio') { p.nav('portfolio', { studentId: student.id, tab: 'diary' }); return; }
-      /* ★ 일기 모음에서 고치러 왔으면 **일기 모음으로** 돌아갑니다 (2026-08-28).
-           예전에는 이 길이 따로 만든 화면(fixdiary)으로 갔는데, 짜임새도
-           크기도 완성 화면과 달라서 학생이 다른 화면으로 보았습니다
-           (선생님 말씀 — 「완전 달라. 그 화면과 동일하게」). */
-      if (params.from === 'journal') { p.nav('journal', { studentId: student.id }); return; }
       if (step > 0) { stepS[1](step - 1); return; }
       leave(function () { p.back('home'); });
     }
-    var fromList = (params.from === 'folio' || params.from === 'journal');
+    /* ⚠ 일기 모음의 「고치기」 는 여기로 오지 않습니다 — fixdiary 로 갑니다.
+         (한때 여기로 보냈다가 선생님 말씀으로 되돌렸습니다. picdiary.js 주석 참고) */
+    var fromList = (params.from === 'folio');
     var backLabel = fromList ? '나의 일기장으로'
                   : (step > 0 ? '앞 질문으로' : '앞 화면으로');
 

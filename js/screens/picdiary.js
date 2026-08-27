@@ -1303,29 +1303,20 @@
     var student = d ? App.store.student(d.studentId) : App.store.current();
     var drawS = useState(false);       // 그림판이 열려 있는지
     var madeS = useState(null);        // 방금 그린 그림 (확인 창)
-    var textS = useState(false);       // 문장 고치는 칸을 펼쳤는지
+    /* ⚠ 예전의 `textS`(문장 칸을 펼쳤는지)는 없앴습니다 — 완성 화면처럼
+         글 칸을 **늘 펴 두기** 때문입니다 (2026-08-28). */
     var moveS = useState(false);       // 그림 자리를 옮기는 중인지
     var pickedS = useState(null);      // 크기를 바꾸려고 고른 그림
 
-    /* 오른쪽 그림일기를 **화면에 들어가는 만큼 가장 크게** 보여 줍니다.
-       비율을 .34 처럼 못박아 두면 큰 화면에서 종이가 작게 남습니다.
-       화면 크기에서 맨 위 줄·아래 단추(250px)와 왼쪽 단추 칸(420px)을 빼고 셈합니다.
-       셋 가운데 가장 작은 값을 쓰므로 어느 쪽으로도 안 넘칩니다. */
-    function fitScale() {
-      return Math.max(0.18, Math.min(0.62,
-        (window.innerHeight - 250) / A4_H,
-        (window.innerWidth - 420) / A4_W));
-    }
-    var fxS = useState(fitScale);
-    useLayoutEffect(function () {
-      function onResize() {
-        var s = fitScale();
-        fxS[1](function (prev) { return Math.abs(prev - s) < 0.004 ? prev : s; });
-      }
-      onResize();
-      window.addEventListener('resize', onResize);
-      return function () { window.removeEventListener('resize', onResize); };
-    }, []);
+    /* ⛔ 여기서 종이 크기를 따로 셈하지 않습니다 (2026-08-28).
+         예전에는 `fitScale()` 이 왼쪽 단추 칸을 **420px 로 못박고** 남는
+         자리로 종이를 셈했습니다. 그래서 완성 화면보다 왼쪽이 넓었습니다
+         (선생님 말씀 — 「왼쪽 바가 더 넓게 차지하고 구성도 완전 달라」).
+       ▸ 이제 완성 화면과 **같은 부품**(C.DiaryPreview)을 씁니다. 그 안의
+         fitDv 가 흰 칸을 직접 재므로 두 화면의 종이 크기가 저절로 같습니다.
+       ▸ 흰 칸을 넘으면 완성 화면과 같은 장치로 통째로 줄입니다. */
+    var fitPair = App.useFitOnePage([params.diaryId, moveS[0], d && d.bodyEdit]);
+    var fitBox = fitPair[0], fitInner = fitPair[1];
 
     if (!d) {
       return html`<div class="app" data-corner="diary">
@@ -1364,17 +1355,24 @@
       next[key] = { x: now.x, y: now.y, s: Math.round(s * 100) / 100 };
       App.store.updateDiary(d.id, { artLayout: next });
     }
+    /* 인쇄할 때 쓰는 종이 (고치는 손잡이가 없는 깨끗한 것).
+       ⚠ 화면에 보이는 종이는 이제 C.DiaryPreview 가 그립니다 — 완성 화면과
+         같은 부품이라 크기도 같습니다. 여기서 또 만들지 마세요. */
     var sheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text" />`;
-    var editSheet = html`<${C.PicDiarySheet} diary=${d} student=${student} trace="text"
-      arrange=${moveS[0]} onMoveArt=${moveArt}
-      picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />`;
-    /* 지금 그림일기에 보이는 문장 (고쳐 쓴 것이 있으면 그것) */
-    var shown = App.sentences.diaryShown(d);
+
+    /* ★ 고치고 나면 **온 곳으로** 돌아갑니다 (2026-08-28 · 선생님 말씀 —
+         「고치기를 누르고 고친다음 다시 나의 일기모음으로 가게」). */
+    var fromJournal = (params.from === 'journal');
+    function fixBack() {
+      if (fromJournal) { p.nav('journal', { studentId: student.id }); return; }
+      p.back('picdiary');
+    }
 
     return html`<div class="app" data-corner="diary">
       <${C.TopBar} title="일기 고치기"
-        onBack=${function () { p.back("picdiary"); }}
-        backLabel="그림일기로"
+        onBack=${fixBack}
+        backLabel=${fromJournal ? '나의 일기 모음으로' : '그림일기로'}
+        backText=${fromJournal ? '나의 일기 모음으로 돌아가기' : null}
         onTitle=${function () { p.nav("home"); }}>
         <!-- 그림일기로 알약을 없앴습니다. 바로 왼쪽 파란 화살표가 같은 일을
              하므로, 같은 뜻의 단추가 둘이면 어느 것을 눌러야 할지 헷갈립니다.
@@ -1385,7 +1383,11 @@
       <!-- 맨 아래 : 인쇄와 담기를 **따로** 둡니다.
              인쇄는 안 하고 모아 두기만 할 때가 있어서, 하나로 묶으면
              종이를 쓰지 않고는 모을 길이 없었습니다. -->
-      <${C.Stage} action=${html`<div class="fix-acts">
+      <!-- ★ tall — 완성 화면과 **같게** 켭니다 (2026-08-28).
+             켜지 않으면 무대가 내용만큼만 커져서 남는 높이가 여백이 되고,
+             종이가 완성 화면보다 작아집니다 (291px 대 339px).
+             여기도 **종이를 크게 보는 것이 목적**인 화면입니다. -->
+      <${C.Stage} tall=${true} action=${html`<div class="fix-acts">
         <${C.Btn} kind="primary" icon="print"
           onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
           A4 인쇄하기<//>
@@ -1396,29 +1398,37 @@
           }}>나의 일기모음에 담기<//>
       </div>`}>
 
-        <div class="fix-2col">
-          <!-- 왼쪽 : 고치는 길 세 가지 -->
-          <div class="fix-left">
-            ${lv === 1 && html`<${C.Banner} tone="info" icon="people">
-              <b>선생님이 도와주세요.</b>
-              <div class="small">글을 고칠 때 선생님과 함께 읽어 보아요.</div>
-            <//>`}
+        <!-- ★★ 여기부터는 **완성 화면(일기가 완성되었어요)과 똑같은 짜임새**입니다
+                (2026-08-28 · 선생님 말씀 — 「화면 구성을 똑같이 해달라고 했지
+                위치를 이동하라는건 아니었어 … 안의 구성 디자인 위치는 이렇게 동일하게」).
+              ▸ 껍데기 이름까지 완성 화면 것을 그대로 씁니다
+                (.confirm-fit · .confirm-2col · .confirm-left · .fix-part).
+                이름이 같아야 **CSS 한 곳만 고치면 두 화면이 함께** 바뀝니다.
+              ⛔ 여기에 이 화면만의 규칙(.fix-2col · .fix-left · .fix-paper)을
+                다시 만들지 마세요 — 그래서 두 화면이 달라졌던 것입니다.
+              ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+        <div class="confirm-fit" ref=${fitBox}>
+        <div class="confirm-2col" ref=${fitInner}>
+          <div class="confirm-left">
+            <!-- ⚠ 「선생님이 도와주세요.」 설명 칸을 뺐습니다 (선생님 말씀).
+                   완성 화면에도 없습니다 — 두 화면이 같아야 합니다. -->
 
-            <${C.Btn} size="big" className=${'pastel-green fix-go' + (moveS[0] ? ' on' : '')} icon="expand"
-              onClick=${function () { moveS[1](!moveS[0]); }}>
-              ${moveS[0] ? '자리 옮기기 끝내기' : '그림 재배열하기'}<//>
-
-            <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
-              onClick=${function () { drawS[1](true); }}>그림 그리기 수정하기<//>
-
-            <${C.Btn} size="big" className="pastel-blue fix-go" icon="edit"
-              onClick=${function () { textS[1](!textS[0]); }}>
-              ${textS[0] ? '글 고치기 닫기' : '일기 내용 수정하기'}<//>
+            <!-- 위 = 그림칸 → 그림 고치기 둘 / 아래 = 원고지 → 글 고치기.
+                 왼쪽 차례가 오른쪽 그림일기의 차례와 나란히 놓입니다. -->
+            <div class="fix-part">
+              <span class="fix-lab">그림</span>
+              <div class="fix-body">
+                <${C.Btn} size="big" className=${'pastel-green fix-go' + (moveS[0] ? ' on' : '')}
+                  icon="expand" onClick=${function () { moveS[1](!moveS[0]); }}>
+                  ${moveS[0] ? '자리 옮기기 끝내기' : '그림 자리 · 크기 바꾸기'}<//>
+                <${C.Btn} size="big" className="pastel-red fix-go" icon="pencil"
+                  onClick=${function () { drawS[1](true); }}>그림 다시 그리기<//>
+              </div>
+            </div>
 
             <!-- 내가 그린 그림(또는 사진)으로 바꾼 뒤 **되돌릴 길**.
-                 완성 화면과 같은 말을 씁니다 — 두 화면이 다른 말을 쓰면
-                 학생이 다른 일로 봅니다.
-                 그린 그림은 지워지지 않고 그대로 남습니다. -->
+                 그림 묶음 바로 아래에 둡니다 — 그림에 딸린 일이라
+                 그림 자리에 있어야 무엇을 되돌리는지 압니다. -->
             ${(d.picKind === 'draw' || d.picKind === 'photo') && html`<div class="fix-undo">
               <${C.Btn} size="small" icon="back"
                 onClick=${function () { App.store.updateDiary(d.id, { picKind: 'app' }); }}>
@@ -1426,49 +1436,49 @@
               <span class="small muted">그린 그림은 지워지지 않아요.</span>
             </div>`}
 
-            <!-- ★ 설명·고치는 칸은 단추 바로 밑에 붙이지 않고, 단추 아래
-                   **남는 자리 가운데**에 띄웁니다. 붙여 두면 단추의 일부처럼
-                   보여서, 그것이 설명이라는 것을 알기 어려웠습니다.
-                   둘 다 켜면 위에서부터 차례로 쌓입니다. -->
-            ${(moveS[0] || textS[0]) && html`<div class="fix-panes">
-              ${moveS[0] && html`<${C.Banner} tone="info" icon="expand"
-                speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꿔 보아요.">
+            <!-- ★ 자리 옮기기 안내는 그림 묶음과 글 묶음 **사이**에 두고,
+                   **자리는 늘 잡아 둡니다**(move-slot). 켜고 끌 때마다 아래
+                   칸이 밀려 올라갔다 내려갔다 하면 안 됩니다. -->
+            <div class=${'move-slot' + (moveS[0] ? '' : ' off')} aria-hidden=${moveS[0] ? 'false' : 'true'}>
+              <${C.Banner} tone="info" icon="expand"
+                speakText="그림을 손가락이나 마우스로 끌어서 자리를 옮기고, 크기도 바꾸어 보아요.">
                 <b>그림을 끌어서 옮겨요.</b>
                 <div class="small">오른쪽 그림일기에서 그림을 잡고 끌면 자리가 바뀌어요.
-                  그림을 누르면 크기도 바꿀 수 있어요.</div>
+                  그림을 한 번 누르면 크기도 바꿀 수 있어요.</div>
                 <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.5rem' }}>
                   <${C.Btn} size="small" className="pastel-blue"
                     onClick=${function () { sizeArt(-1); }}>고른 그림 작게<//>
                   <${C.Btn} size="small" className="pastel-blue"
                     onClick=${function () { sizeArt(1); }}>고른 그림 크게<//>
+                  <${C.Btn} size="small"
+                    onClick=${function () {
+                      App.store.updateDiary(d.id, { artLayout: null }); pickedS[1](null);
+                    }}>처음 자리로<//>
                 </div>
-                <div class="wrap" style=${{ justifyContent: 'center', marginTop: '.35rem' }}>
-                  <${C.Btn} size="small" onClick=${function () {
-                    App.store.updateDiary(d.id, { artLayout: null });
-                  }}>처음 자리로 되돌리기<//>
-                </div>
-              <//>`}
+              <//>
+            </div>
 
-              ${textS[0] && html`<div class="fix-text">
-                <span class="lab">일기 내용</span>
-                <${C.Area} rows=${5} value=${d.bodyEdit == null ? shown : d.bodyEdit}
-                  placeholder="여기에 고쳐 써요."
-                  onChange=${function (v) { App.store.updateDiary(d.id, { bodyEdit: v }); }} />
-                <div class="wrap" style=${{ justifyContent: 'center' }}>
-                  <${C.Btn} size="small" onClick=${function () {
-                    App.store.updateDiary(d.id, { bodyEdit: null });
-                  }}>처음 문장으로 되돌리기<//>
-                </div>
-              </div>`}
-            </div>`}
+            <!-- ★ 글은 **접었다 폈다 하지 않고 늘 펴 둡니다** — 완성 화면과 같게.
+                   예전에는 「일기 내용 수정하기」 단추를 눌러야 칸이 나왔습니다. -->
+            <div class="fix-part">
+              <span class="fix-lab">글</span>
+              <div class="fix-body">
+                <${C.SentenceEdit}
+                  made=${App.sentences.diaryMade(d)}
+                  value=${d.bodyEdit === undefined ? null : d.bodyEdit}
+                  placeholder="아직 고른 내용이 없어요. 여기에 직접 써도 돼요."
+                  onChange=${function (v) { App.store.updateDiary(d.id, { bodyEdit: v }); }}
+                  onReset=${function () { App.store.updateDiary(d.id, { bodyEdit: null }); }} />
+              </div>
+            </div>
           </div>
 
-          <!-- 오른쪽 : 고친 것이 바로 보이는 그림일기.
-                 이름표(완성된 그림일기)를 없앴습니다. 무엇인지 보면 알고,
-                 그 한 줄만큼 종이를 더 크게 보여 줄 수 있습니다. -->
-          <div class="fix-right">
-            <div class="fix-paper" style=${{ '--fx': fxS[0] }}>${editSheet}</div>
-          </div>
+          <!-- 오른쪽 : 완성 화면과 **같은 부품**. 종이 크기를 여기서 따로
+               셈하지 않으므로 두 화면의 그림일기가 늘 같은 크기입니다. -->
+          <${C.DiaryPreview} draft=${d} student=${student}
+            arrange=${moveS[0]} onMoveArt=${moveArt}
+            picked=${pickedS[0]} onPickArt=${function (k) { pickedS[1](k); }} />
+        </div>
         </div>
       <//>
 
@@ -1587,17 +1597,16 @@
               <${C.PicDiarySheet} diary=${open} student=${student} trace="text" />
             </div>`);
           }}>이 일기만 인쇄<//>
-          <!-- ★ 고치는 화면은 **하나뿐**입니다 (2026-08-28 · 선생님 말씀 —
-                 「원래 우리가 일기가 완성되었어요에서 고치는 화면과 완전 달라.
-                 그 화면과 동일하게 구성하고 크기도 동일하게 모두 똑같이」).
-                 예전에는 여기만 따로 만든 화면(fixdiary)으로 갔는데, 왼쪽
-                 단추 칸이 420px 로 못박혀 있어 더 넓게 차지했고 짜임새도
-                 그림/글 이름표가 없어 달랐습니다.
-               ▸ 이제 포트폴리오의 「일기 고치기」 와 **같은 곳**으로 갑니다.
-                 step:'last' 라야 처음 질문부터 다시 훑지 않습니다.
+          <!-- ⛔ 여기는 **fixdiary 로 그대로 둡니다** (2026-08-28 · 선생님 말씀 —
+                 「고치기를 눌렀더니 일기가 완성해요로 가버렸네? 그럼 안돼지!!
+                 화면 구성을 똑같이 해달라고 했지 **위치를 이동하라는건 아니었어.**
+                 고치기를 누르고 고친다음 다시 나의 일기모음으로 가게」).
+               ▸ 한때 완성 화면(diary step:'last')으로 보냈다가 되돌렸습니다.
+                 고칠 것은 **화면 안의 짜임새**이지 가는 곳이 아닙니다.
+                 고치고 나면 **나의 일기 모음으로** 돌아와야 합니다.
                ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
           <${C.Btn} icon="pencil" className="pastel-yellow"
-            onClick=${function () { p.nav('diary', { diaryId: open.id, step: 'last', from: 'journal' }); }}>고치기<//>
+            onClick=${function () { p.nav('fixdiary', { diaryId: open.id, from: 'journal' }); }}>고치기<//>
           <${C.Btn} onClick=${function () { openS[1](null); }}>닫기<//>
         <//>`}>
         <div class="jr-big"><${C.PicDiarySheet} diary=${open} student=${student} trace="text" /></div>

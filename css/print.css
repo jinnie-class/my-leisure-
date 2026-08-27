@@ -96,7 +96,9 @@ html,body{
      새 미디어쿼리를 만들 때도 꼭 붙이세요. 안 붙이면 인쇄 폭(A4 703px)에서
      max-width 분기가 켜져 **인쇄 레이아웃이 소리 없이 바뀝니다.** */
 #print-root .fitting > *{ zoom:1 !important; }
-#print-root .dv-paper,#print-root .fix-paper,
+/* ⚠ `.fix-paper` 는 뺐습니다 (2026-08-28) — 일기 고치기가 완성 화면과 같은
+     `.dv-paper` 를 쓰게 되어 그 이름이 더는 없습니다. */
+#print-root .dv-paper,
 #print-root .jr-paper,#print-root .jr-big{ transform:none !important; }
 /* 계획표 그림 — vh 는 인쇄에서 쪽 높이 기준이라 값이 흔들립니다. 종이에서는 고정. */
 .print-area .sheet-art{ width:200px !important; height:200px !important; flex:0 0 auto !important; }
