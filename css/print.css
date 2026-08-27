@@ -124,10 +124,13 @@ html,body{
   color:#22242c;
 }
 /* 1단계 — 흐린 글자를 따라 씁니다. 아래에 줄을 깔아 글줄이 흔들리지 않게. */
-.print-area .ws-trace{
-  font-size:20pt; font-weight:800; line-height:2.4; text-align:center;
-  color:#c9c9d2;
-}
+/* ★ 1단계 따라 쓰기 — **위 노란 점선 바와 같은 모양**, 글자만 연하게.
+     (2026-08-26 · 선생님 말씀 — 「위의 점선 노란색 그대로를 제공하되
+      글자 진하기가 연하게 … 그 위에 덧쓰기를 할 수 있게」)
+   ▸ `.sentence.sentence-center` 를 그대로 쓰므로 바탕·점선·여백·글자
+     크기가 위 계획표와 저절로 같습니다. 여기서는 **색만** 바꿉니다.
+   ⛔ 여기에 크기나 바탕을 다시 적지 마세요 — 위와 어긋납니다. */
+.print-area .ws-trace{ color:#cfcfd8; }
 /* 2단계 — 시간 · 장소 · 활동만 빈칸 */
 .print-area .ws-fill{
   display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:center;

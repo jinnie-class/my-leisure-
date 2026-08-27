@@ -115,9 +115,17 @@
       </div>` : null}
       <div class="sentence sentence-center" style=${{ marginTop: '.6rem' }}>
         ${App.sentences.plan(plan)}</div>
+      <!-- ★ 오른쪽 활동 그림은 **위 그림 줄이 있을 때 빼 둡니다**
+             (2026-08-26 · 선생님 말씀 — 「이제 그림이 커져서 아래에
+              활동그림이 안들어가도 될 것 같아」).
+             위 「sheet-pics」 에 같은 활동 그림이 이미 크게 나와 있어서,
+             아래에 또 두면 한 장에 같은 그림이 두 번 나옵니다.
+           ⚠ 2·3단계는 위 그림 줄이 **없습니다**(그림은 1단계에만 냅니다).
+             그래서 그때는 오른쪽 그림을 그대로 둡니다 — 아예 없애면
+             2·3단계 계획표에 그림이 한 장도 없게 됩니다. -->
       <div class="sheet-body">
         ${rows}
-        <div class="sheet-art"><${C.ActivityArt} activity=${a} /></div>
+        ${!pics.length && html`<div class="sheet-art"><${C.ActivityArt} activity=${a} /></div>`}
       </div>
     </div>`;
   };
@@ -146,9 +154,12 @@
     var a = App.act(plan.activityId);
     var say = App.sentences.plan(plan);
 
-    var TITLE = { 1: '여가 계획표 따라 쓰기',
-                  2: '여가 계획표 빠진 낱말 찾아 쓰기',
-                  3: '여가 계획표 다시 스스로 쓰기' };
+    /* 제목은 짧게 (2026-08-26 · 선생님 말씀 — 「여가 계획표 따라쓰기 → 따라 쓰기」).
+       바로 위에 「오늘의 여가 계획표」가 이미 적혀 있어서, 다시 붙이면
+       같은 말이 두 번입니다. **하는 일만** 적습니다. */
+    var TITLE = { 1: '따라 쓰기',
+                  2: '빠진 낱말 찾아 쓰기',
+                  3: '다시 스스로 쓰기' };
 
     /* 2단계 — 문장을 토막으로 나누고 셋만 빈칸으로 둡니다.
        ⛔ 글자를 잘라 내지 말고 **토막을 이어 붙여** 만듭니다. 잘라 내면
@@ -178,13 +189,13 @@
     return html`<div class="ws">
       <div class="ws-title">${TITLE[lv] || TITLE[1]}</div>
       ${lv === 1
-        /* 흐린 글자를 따라 쓴 다음, **아래 빈 줄에 한 번 더** 써 봅니다.
-           ⛔ 흐린 글자 아래에 배경 그림으로 줄을 깔지 마세요 — 인쇄 창의
-              「배경 그래픽」을 끄면 그 줄만 사라집니다. 줄은 테두리로 긋습니다. */
-        ? html`<${React.Fragment}>
-            <div class="ws-trace">${say}</div>
-            <div class="ws-lines"><i></i><i></i></div>
-          <//>`
+        /* ★ 1단계는 **위 노란 점선 바를 그대로** 한 번 더 내고, 글자만
+             연하게 합니다 (2026-08-26 · 선생님 말씀 — 「위의 점선 노란색
+             그대로를 제공하되 글자 진하기가 연하게 제공되어서 그 위에
+             덧쓰기를 할 수 있게」).
+           ⛔ 줄글 밑줄로 바꾸지 마세요. 위 계획표와 **같은 모양**이라야
+              학생이 「저 문장을 그대로 덧쓴다」는 것을 바로 압니다. */
+        ? html`<div class="sentence sentence-center ws-trace">${say}</div>`
         : (lv === 2
           ? html`<div class="ws-fill">
               ${blanks().map(function (x, i) {
