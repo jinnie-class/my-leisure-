@@ -848,13 +848,27 @@
           })()}
           <span class="me-print-txt">${student.word || '　'}</span>
         </div>
+        <!-- ★ **돌아보기도 나의 한마디처럼 그림과 함께** (2026-08-26 ·
+               선생님 말씀 — 「1단계 돌아보기도 나의 한마디처럼 같은 구성으로」).
+               화면에서는 줄마다 그림이 있었는데 **인쇄에만 빠져 있어서**,
+               집에 가져간 종이는 글자뿐이었습니다. 글을 못 읽는 학생에게는
+               제 기록으로 보이지 않습니다.
+             ▸ 2·3단계는 글자만 냅니다 — 위 한마디와 같은 규칙입니다. -->
         <div class="sheet-title" style=${{ marginTop: '20px' }}>돌아보기</div>
         <div class="stack">
           ${App.reviewFramesFor(student.diaryLevel, rv).map(function (f) {
             var txt = App.reviewLine(f, rv[f.id]);
-            return html`<div key=${f.id} class="sentence">
-              ${txt || html`<${React.Fragment}>${f.before}
-                <u style=${{ padding: '0 .5rem' }}>　　　　　　</u>${f.after}<//>`}
+            var lv1 = ((student && student.diaryLevel) || 1) === 1;
+            var got = lv1 ? (actByName(rv[f.id])
+              || App.act((student.reviewPick || {})[f.id])) : null;
+            return html`<div key=${f.id} class="sentence me-print-say">
+              ${got && html`<span class="me-print-art">
+                <span class="me-print-pic"><${C.ActivityArt} activity=${got} /></span>
+              </span>`}
+              <span class="me-print-txt">
+                ${txt || html`<${React.Fragment}>${f.before}
+                  <u style=${{ padding: '0 .5rem' }}>　　　　　　</u>${f.after}<//>`}
+              </span>
             </div>`;
           })}
         </div>

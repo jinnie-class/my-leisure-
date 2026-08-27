@@ -199,7 +199,12 @@
        ▸ 기본값은 CSS(`.pick .thumb …`)가 정합니다. 여기서는 크기만 잡습니다. */
     var style = { width: p.size ? p.size + 'px' : '100%', height: p.size ? p.size + 'px' : '100%', display: 'block' };
     if (p.src && !fail[0]) {
-      return html`<img src=${p.src} alt="" style=${style} onError=${function () { fail[1](true); }} />`;
+      /* `data-word` 는 **그림 하나만 손볼 수 있게** 붙여 둔 표시입니다.
+         그림 파일마다 속에 그려진 글자 크기가 조금씩 다른데(예 : 「오늘」은
+         「어제」보다 글자가 큽니다), CSS 로는 그림 속 글자를 못 줄입니다.
+         대신 `[data-word="오늘"]` 로 **그 그림만** 조금 작게 놓아 맞춥니다. */
+      return html`<img src=${p.src} alt="" data-word=${p.word || null}
+        style=${style} onError=${function () { fail[1](true); }} />`;
     }
     return html`<span aria-hidden="true" style=${style}
       dangerouslySetInnerHTML=${{ __html: App.icon(p.iconKey || 'question') }} />`;
@@ -228,7 +233,7 @@
      **그림을 한 장씩 넣어도 넣은 것부터 바로 보입니다.** */
   C.PickArt = function (p) {
     return html`<${C.Art} src=${App.pickImage(p.kind, p.word)} iconKey=${p.iconKey || 'question'}
-      size=${p.size} />`;
+      word=${p.word} size=${p.size} />`;
   };
 
   C.ActivityArt = function (p) {
