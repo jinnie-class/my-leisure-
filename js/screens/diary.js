@@ -741,6 +741,23 @@
       return html`<span class=${'blank' + (on ? ' on hi' : '') + (wide ? ' wide' : '')}>
         ${on ? v : '　　　'}</span>`;
     }
+    /* ⛔⛔ **조사와 마침표는 빈칸에 붙여야 합니다** (2026-08-28 · 선생님이
+         여러 번 말씀하신 곳). 이 줄은 flex 라 칸마다 7.65px 씩 벌어집니다.
+         그대로 두면 이렇게 보입니다 :
+
+           나는 [오늘] [　　　] 와 함께 [　　　] 에서 [　　　] 를 했어요.
+                                 ↑ 조사가 딴 낱말처럼 떨어져 있습니다
+
+         우리말에서 조사는 앞말에 **붙여 씁니다.** 떨어져 있으면 학생이
+         「와」 를 하나의 낱말로 읽습니다. 마침표도 마찬가지입니다.
+       ▸ 빈칸과 조사를 **한 칸(.tie)에 함께** 담으면 사이가 벌어지지 않습니다.
+         칸 사이 간격은 낱말과 낱말 사이에만 남습니다.
+       ⛔ 간격(gap)을 0 으로 만들어 해결하지 마세요 — 그러면 「나는오늘」
+         처럼 낱말끼리도 붙어 버립니다. */
+    function tie(a, b) {
+      if (!b) return a;
+      return html`<span class="tie">${a}${b}</span>`;
+    }
     /* ══════ 틀의 고정 말이 학생 글과 겹치면 붙이지 않습니다 ══════
        3단계는 학생이 **자기 말로** 씁니다. 안내 예시부터 `예) 친구 민수와`,
        `예) 학교 놀이터에서` 처럼 **조사까지 포함**해 쓰라고 되어 있습니다.
@@ -822,10 +839,11 @@
         <div class="frame-line">
           ${나는 && html`<b>${나는}</b>`} ${blank(w1)}
           <!-- 혼자는 와 함께 를 붙이지 않습니다 (혼자와 함께 는 말이 안 됩니다).
-               이미 있는 App.partnerPhrase 와 같은 규칙을 씁니다. -->
-          ${blank(w2)}${함께 && html`<b>${함께}</b>`}
-          ${blank(w3)}${에서 && html`<b>${에서}</b>`}
-          ${blank(w4, true)}${했어요 && html`<b>${했어요}</b>`}
+               이미 있는 App.partnerPhrase 와 같은 규칙을 씁니다.
+               ★ tie 로 묶어야 조사가 빈칸에 붙습니다 (위 tie 주석). -->
+          ${tie(blank(w2), 함께 && html`<b>${함께}</b>`)}
+          ${tie(blank(w3), 에서 && html`<b>${에서}</b>`)}
+          ${tie(blank(w4, true), 했어요 && html`<b>${했어요}</b>`)}
         </div>
         <!-- ⛔ **문장 하나에 줄 하나**입니다 (2026-08-24 · 선생님 말씀).
                예전에는 「기분이 …」 「기억에 남는 것은 …」 「다음에는 …」 을
@@ -835,18 +853,20 @@
              ▸ 줄이 늘어 자리를 더 먹지만, 넘치면 화면이 저절로 줄어듭니다
                (App.guardFit · Stage 의 줄이기). -->
         <div class="frame-line">
-          ${headWord(howWord, '기분이') && html`<b>기분이</b>`} ${blank(howWord)}<b>${dotOf(howWord)}</b>
+          ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+          ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
         </div>
         ${level === 2 && html`<${React.Fragment}>
           <div class="frame-line">
-            <b>기억에 남는 것은</b> ${blank(f.f3)}<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>
+            <b>기억에 남는 것은</b>
+            ${tie(blank(f.f3), html`<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>`)}
           </div>
           <div class="frame-line">
             <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
           </div>
         <//>`}
         ${level === 3 && html`<div class="frame-line">
-          <b>왜냐하면</b> ${blank(say('why', ''), true)}<b>${dotOf(say('why', ''))}</b>
+          <b>왜냐하면</b> ${tie(blank(say('why', ''), true), html`<b>${dotOf(say('why', ''))}</b>`)}
         </div>`}
       <//>`;
     }

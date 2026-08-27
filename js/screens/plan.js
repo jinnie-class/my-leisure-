@@ -465,12 +465,18 @@
       var w4 = (passed('what') && a2) ? App.frameWord(a2) : '';
       var alone = who().length === 1 && who()[0] === 'alone';
       var hasTime = KEYS.indexOf('time') >= 0, hasPlace = KEYS.indexOf('place') >= 0;
+      /* ⛔⛔ **조사는 빈칸에 붙여 씁니다** (2026-08-28 · 선생님이 여러 번
+           말씀하신 곳). 이 줄은 flex 라 칸마다 gap 이 들어가서, 그냥 나란히
+           두면 「[　　　] 과 함께」 처럼 조사가 떨어져 딴 낱말로 읽힙니다.
+         ▸ `.tie` 로 빈칸과 조사를 **한 칸에** 담습니다 (일기와 같은 규칙).
+         ⛔ gap 을 0 으로 만들지 마세요 — 「나는오늘」 이 됩니다. */
+      function tie(a, b) { return b ? html`<span class="tie">${a}${b}</span>` : a; }
       return html`<div class="frame-line">
         <b>나는</b> ${slot(w1)}
         ${hasTime && slot(wT)}
-        ${slot(w2)}<b>${alone ? '' : (jo(w2, '과/와') + ' 함께')}</b>
-        ${hasPlace && html`<${React.Fragment}>${slot(w3)}<b>에서</b><//>`}
-        ${slot(w4)}<b>${jo(w4, '을/를') + ' 할 거예요.'}</b>
+        ${tie(slot(w2), alone ? null : html`<b>${jo(w2, '과/와') + ' 함께'}</b>`)}
+        ${hasPlace && tie(slot(w3), html`<b>에서</b>`)}
+        ${tie(slot(w4), html`<b>${jo(w4, '을/를') + ' 할 거예요.'}</b>`)}
       </div>`;
     }
 

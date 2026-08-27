@@ -2538,6 +2538,15 @@ input.title-input{
 /* ⛔ `.frame-top` 안이라고 넘겨짚지 마세요 — 제목 줄은 **고르는 칸
       (.stage-track) 안**에 있습니다. 그 조건으로 걸었더니 규칙이
       아예 안 먹어 폭이 97% 그대로였습니다 (2026-08-26 · 재어서 확인). */
+/* ⛔⛔ **조사·마침표를 빈칸에 붙이는 칸** (2026-08-28 · 선생님이 여러 번
+      말씀하신 곳). `.frame-line` 은 flex 라 칸마다 gap 이 들어갑니다.
+      그대로 두면 「[　　　] 와 함께」 처럼 조사가 떨어져, 학생이 「와」 를
+      하나의 낱말로 읽습니다. 우리말에서 조사는 앞말에 **붙여 씁니다.**
+    ▸ 빈칸과 조사를 이 칸에 함께 담으면 그 둘 사이에는 gap 이 없습니다.
+      낱말과 낱말 사이 간격은 그대로 남습니다.
+    ⛔ `.frame-line` 의 gap 을 0 으로 만들지 마세요 — 「나는오늘」 이 됩니다. */
+.frame-line .tie{ display:inline-flex; align-items:center; min-width:0; }
+
 .frame-line.title-line{
   width:auto; max-width:min(100%, 62em);
   margin-inline:auto; padding:.55rem 2.4rem;
