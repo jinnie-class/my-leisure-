@@ -28,6 +28,7 @@
     var student = App.store.student(plan.studentId) || App.store.current();
     App.printNode(html`<div style=${{ padding: '4px' }}>
       <${C.PlanSheet} plan=${plan} student=${student} />
+      <${C.PlanWorksheet} plan=${plan} student=${student} />
     </div>`);
   };
 

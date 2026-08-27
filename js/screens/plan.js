@@ -122,6 +122,90 @@
     </div>`;
   };
 
+  /* ==================== 계획표 학습지 (인쇄할 때만) ====================
+     ★ 선생님 말씀 (2026-08-26) : 「인쇄하면 계획표 아래에 쓰기 칸을 두어
+       학습자료로도 쓸 수 있게」. 계획표를 뽑으면 **그 아래 반쪽**이 늘
+       비어 있었는데, 그 자리를 쓰기 칸으로 씁니다.
+
+     단계마다 하는 일이 다릅니다 — 일기의 인쇄 모양과 같은 결입니다.
+       1단계  여가 계획표 따라 쓰기        흐린 글자를 따라 씁니다
+       2단계  여가 계획표 빠진 낱말 찾아 쓰기  시간·장소·활동만 빈칸
+       3단계  여가 계획표 다시 스스로 쓰기   빈 줄에 스스로 씁니다
+
+     ▸ 화면에는 안 나옵니다 — 인쇄할 것만 담는 `#print-root` 안에 들어가고,
+       그 칸은 화면에서 `display:none` 입니다 (app.css 1488줄).
+       ⛔ 화면 어딘가에 이 학습지를 또 그리지 마세요. 계획을 다 세운 학생에게
+          같은 문장을 두 번 보여 주면 무엇을 하라는 것인지 흐려집니다.
+     ⛔ 빈칸은 **시간 · 장소 · 활동** 셋만입니다. 「누구와」는 뒤에 오는
+        조사가 `와/과` 로 갈려서, 빈칸으로 두면 학생이 무엇을 쓰든 조사가
+        틀리게 됩니다 (선생님 말씀 — 「조사의 영향을 받지 않음」). */
+  C.PlanWorksheet = function (p) {
+    var plan = p.plan;
+    if (!plan) return null;
+    var lv = (p.student && p.student.diaryLevel) || 1;
+    var a = App.act(plan.activityId);
+    var say = App.sentences.plan(plan);
+
+    var TITLE = { 1: '여가 계획표 따라 쓰기',
+                  2: '여가 계획표 빠진 낱말 찾아 쓰기',
+                  3: '여가 계획표 다시 스스로 쓰기' };
+
+    /* 2단계 — 문장을 토막으로 나누고 셋만 빈칸으로 둡니다.
+       ⛔ 글자를 잘라 내지 말고 **토막을 이어 붙여** 만듭니다. 잘라 내면
+          조사가 함께 사라져 문장이 어그러집니다. */
+    function blanks() {
+      var when = App.whenPhrase(plan.date, plan.time);         // 오늘 낮에
+      var pp = App.partnerPhrase(plan.partnerId, plan.partnerIds);
+      /* ⛔ `a.planText`(슬라임 놀이를 할 거예요)를 통째로 빈칸에 넣지 마세요 —
+            빈칸이 한 줄을 다 먹고, 학생이 서술어까지 옮겨 적어야 합니다.
+         ▸ `App.frameWord` 는 **낱말만**(슬라임 놀이) 돌려줍니다.
+           조사와 「할 거예요」는 빈칸 **밖에** 찍습니다 (계획하기 2단계
+           문장 틀 planBlankLine 과 같은 방식). */
+      var actWord = a ? App.frameWord(a) : '여가활동';
+      var parts = [];
+      parts.push({ t: '나는' });
+      if (when) parts.push({ t: when, blank: true });           // 시간
+      if (pp) parts.push({ t: pp });                            // 누구와 — 조사 때문에 그대로
+      if (plan.place) { parts.push({ t: plan.place, blank: true }); parts.push({ t: '에서' }); }
+      parts.push({ t: actWord, blank: true });                  // 활동
+      /* App.josa 는 「낱말+조사」를 함께 돌려주므로, 낱말 길이만큼 잘라
+         **조사만** 남깁니다 (빈칸 뒤에 붙일 것이라서입니다). */
+      var jo2 = App.josa(actWord, '을/를').slice(actWord.length);
+      parts.push({ t: jo2 + ' 할 거예요.' });
+      return parts;
+    }
+
+    return html`<div class="ws">
+      <div class="ws-title">${TITLE[lv] || TITLE[1]}</div>
+      ${lv === 1
+        /* 흐린 글자를 따라 쓴 다음, **아래 빈 줄에 한 번 더** 써 봅니다.
+           ⛔ 흐린 글자 아래에 배경 그림으로 줄을 깔지 마세요 — 인쇄 창의
+              「배경 그래픽」을 끄면 그 줄만 사라집니다. 줄은 테두리로 긋습니다. */
+        ? html`<${React.Fragment}>
+            <div class="ws-trace">${say}</div>
+            <div class="ws-lines"><i></i><i></i></div>
+          <//>`
+        : (lv === 2
+          ? html`<div class="ws-fill">
+              ${blanks().map(function (x, i) {
+                return x.blank
+                  ? html`<span key=${i} class="ws-blank" style=${{ minWidth: Math.max(4, x.t.length) + 'em' }}></span>`
+                  : html`<span key=${i} class="ws-word">${x.t}</span>`;
+              })}
+            </div>`
+          : html`<div class="ws-lines">
+              <i></i><i></i><i></i>
+            </div>`)}
+      ${lv === 2 && html`<div class="ws-hint">
+        <b>낱말 상자</b>
+        ${[App.whenPhrase(plan.date, plan.time), plan.place, a ? App.frameWord(a) : '']
+          .filter(Boolean).map(function (w, i) {
+            return html`<span key=${i} class="ws-chip">${w}</span>`;
+          })}
+      </div>`}
+    </div>`;
+  };
+
   /* ------------------------- 계획 만들기 ------------------------- */
   C.PlanScreen = function (p) {
     App.useStore();
@@ -736,8 +820,14 @@
            활동을 마친 뒤에는 **홈의 '오늘의 여가 계획' 카드**에서
            `활동을 했어요` 를 눌러 일기로 갑니다. */
       action = html`<${C.Btn} kind="primary" icon="print"
-        onClick=${function () { App.printNode(html`<${C.PlanSheet}
-          plan=${App.store.plan(saved) || previewPlan} student=${student} />`); }}>
+        onClick=${function () {
+          var pl = App.store.plan(saved) || previewPlan;
+          /* 계획표 한 장 + 그 아래 **쓰기 학습지** (단계마다 다릅니다) */
+          App.printNode(html`<${React.Fragment}>
+            <${C.PlanSheet} plan=${pl} student=${student} />
+            <${C.PlanWorksheet} plan=${pl} student=${student} />
+          <//>`);
+        }}>
         계획표 인쇄하기<//>`;
     } else if (key === 'confirm') {
       action = html`<${C.Btn} icon="save" onClick=${save}>계획 저장하기<//>`;

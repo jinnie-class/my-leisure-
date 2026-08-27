@@ -106,3 +106,49 @@ html,body{
    칸 시작 자리는 .lb-sheet 의 padding(12.5mm · 20.5mm)이 잡습니다. */
 @page labelA4{ size:A4 portrait; margin:0; }
 .print-area .lb-sheet{ page:labelA4; }
+
+/* --------------- 계획표 학습지 (2026-08-26) ---------------
+   ★ 선생님 말씀 : 「인쇄하면 계획표 아래에 쓰기 칸을 두어 학습자료로도」.
+     계획표를 뽑으면 아래 반쪽이 늘 비어 있었는데, 그 자리를 씁니다.
+   ⛔ 화면에는 내지 않습니다 — 아래 app.css 의 `.print-only{display:none}` 이
+      막고, 여기서 인쇄일 때만 되살립니다.
+   ⛔ 계획표와 학습지가 **한 장에** 들어가야 합니다. 쪽을 넘기지 마세요
+      (break-inside:avoid). 두 장이 되면 들고 다니기 번거롭습니다. */
+.print-area .ws{
+  display:block; break-inside:avoid;
+  margin-top:10mm; padding-top:6mm;
+  border-top:.4mm dashed #c9c9d2;
+}
+.print-area .ws-title{
+  font-size:14pt; font-weight:900; text-align:center; margin-bottom:5mm;
+  color:#22242c;
+}
+/* 1단계 — 흐린 글자를 따라 씁니다. 아래에 줄을 깔아 글줄이 흔들리지 않게. */
+.print-area .ws-trace{
+  font-size:20pt; font-weight:800; line-height:2.4; text-align:center;
+  color:#c9c9d2;
+}
+/* 2단계 — 시간 · 장소 · 활동만 빈칸 */
+.print-area .ws-fill{
+  display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:center;
+  gap:2mm 3mm; font-size:18pt; font-weight:800; line-height:2.4;
+}
+.print-area .ws-blank{
+  display:inline-block; min-width:22mm; height:1.6em;
+  border-bottom:.5mm solid #6b6b78;
+}
+/* 낱말 상자 — 무엇을 넣어야 할지 고를 수 있게 (혼자 쓰기 어려운 학생용) */
+.print-area .ws-hint{
+  margin-top:6mm; text-align:center; font-size:11pt; font-weight:800; color:#6b6b78;
+}
+.print-area .ws-hint b{ margin-right:3mm; color:#22242c; }
+.print-area .ws-chip{
+  display:inline-block; margin:0 1.5mm;
+  padding:.6mm 3mm; border:.4mm solid #c9c9d2; border-radius:99mm;
+  color:#22242c;
+}
+/* 3단계 — 빈 줄에 스스로 씁니다 */
+.print-area .ws-lines{ display:block; }
+.print-area .ws-lines i{
+  display:block; height:14mm; border-bottom:.4mm solid #c9c9d2;
+}
