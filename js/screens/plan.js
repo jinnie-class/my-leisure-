@@ -381,7 +381,9 @@
         if (pp) bits.push(pp);
       }
       if (passed('place') && draft.place) bits.push(draft.place + '에서');
-      bits.push(a.planText || (a.name + '을 할 거예요'));
+      /* ⛔ 조사 「을」 을 박아 두지 마세요 — 선생님이 더한 「우리 반 활동」 의
+           이름에 받침이 없으면 「블록놀이을 할 거예요」 가 됩니다. */
+      bits.push(a.planText || (App.eulReul(a.name) + ' 할 거예요'));
       return bits.join(' ') + (key === 'confirm' ? '.' : ' …');
     }
 
@@ -551,7 +553,12 @@
       if (subCard) {
         var kids = App.visibleChildren(student, subCard);
         /* 앞 질문과 똑같은 말이면 되돌아간 것처럼 느껴집니다 — 이어지는 질문으로 씁니다. */
-        var subQ = '어떤 ' + App.shortName(subCard) + '을 할까요?';
+        /* ⛔ 조사 「을」 을 글자에 박아 두지 마세요 (2026-08-28 · 선생님이 잡아 주심).
+             받침이 없는 이름에는 **를** 이 붙어야 합니다.
+               블록놀이 + 을  → 「어떤 블록놀이을 할까요?」  ✗
+               블록놀이 + 를  → 「어떤 블록놀이를 할까요?」  ○
+             `App.eulReul(w)` 는 받침을 보고 낱말까지 함께 돌려줍니다. */
+        var subQ = '어떤 ' + App.eulReul(App.shortName(subCard)) + ' 할까요?';
         if (subCard.id === 'cook') subQ = '어떤 요리를 할까요?';
         else if (subCard.id === 'make') subQ = '무엇을 만들까요?';
         else if (subCard.id === 'collect') subQ = '무엇을 모을까요?';

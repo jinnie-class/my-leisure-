@@ -725,8 +725,12 @@
         var fill = student.wordFill || {};
         function saveFill(k, v) {
           var next = Object.assign({}, fill); next[k] = v;
+          /* ⛔ 조사 「을」 을 글자에 박아 두지 마세요 — 학생이 받침 없는 말을
+               쓰면 「블록놀이을 할 때」 가 됩니다 (2026-08-28 선생님이 잡아 주심).
+               빈칸일 때에는 예전처럼 「　　　을」 로 둡니다. */
+          var actHead = next.act ? App.eulReul(next.act) : '　　　을';
           var made = (next.act || next.mood)
-            ? ('나는 ' + (next.act || '　　　') + '을 할 때 ' + (next.mood || '　　　') + '.')
+            ? ('나는 ' + actHead + ' 할 때 ' + (next.mood || '　　　') + '.')
             : '';
           App.store.updateStudent(student.id, { wordFill: next, word: made });
         }
