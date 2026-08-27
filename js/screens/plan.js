@@ -8,26 +8,10 @@
 
   var PAGE_SIZE = App.PAGE_SIZE;   /* 공용 규칙 — common.js (2026-08-26) */
 
-  /* ★ 쪽 넘김 = **화살표만** (2026-08-26 · 선생님 말씀 — 「앞활동보기, 활동
-       더보기가 아니라 그냥 화살표 방향만 제시(투머치설명)」).
-     ▸ 「앞 활동 보기 / 활동 더 보기」처럼 말로 적으면, 정작 중요한 **문장과
-       그림**보다 설명이 더 눈에 띄었습니다. 화살표는 그림이라 글을 못 읽는
-       학생도 곧바로 압니다.
-     ⛔ 화살표만 두더라도 **어디쯤인지(1/3)** 는 남깁니다 — 없으면 몇 쪽이
-        더 있는지 알 길이 없어 학생이 끝없이 누릅니다.
-     ⛔ 화면마다 따로 적지 마세요. 활동 · 사람 · 장소가 **같은 모양**이라야
-        한 번 익히면 어디서나 통합니다. */
+  /* 쪽 넘김은 **공용**입니다 — common.js 의 App.arrowPager.
+     ⛔ 여기에 다시 만들지 마세요. 일기와 모양이 어긋납니다. */
   function arrowPager(page, count, go, what) {
-    if (count <= 1) return null;
-    return html`<div class="pg-arrows">
-      <button type="button" class="pg-arrow" disabled=${page === 0}
-        aria-label=${'앞 ' + what + ' 보기'}
-        onClick=${function () { go(page - 1); }}>◀</button>
-      <span class="pg-now" aria-live="polite">${page + 1} / ${count}</span>
-      <button type="button" class="pg-arrow" disabled=${page >= count - 1}
-        aria-label=${what + ' 더 보기'}
-        onClick=${function () { go(page + 1); }}>▶</button>
-    </div>`;
+    return App.arrowPager(page, count, go, what);
   }
 
   /* 시간대 선택지 — `아침 · 낮 · 저녁`.

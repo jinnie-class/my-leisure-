@@ -455,6 +455,28 @@
        (지도의 4·5개는 섬 배치에 맞춘 **다른 규칙**이라 그대로 둡니다) */
   App.PAGE_SIZE = 6;
 
+  /* ★ 쪽 넘김 = **화살표만** (2026-08-26 · 선생님 말씀 — 「앞활동보기, 활동
+       더보기가 아니라 그냥 화살표 방향만 제시(투머치설명)」).
+     ▸ 말로 적으면 정작 중요한 **문장과 그림**보다 설명이 더 눈에 띄었습니다.
+       화살표는 그림이라 글을 못 읽는 학생도 곧바로 압니다.
+     ⛔ 화살표만 두더라도 **어디쯤인지(1/3)** 는 남깁니다 — 없으면 몇 쪽이
+        더 있는지 알 길이 없어 학생이 끝없이 누릅니다.
+     ⛔ 화면마다 따로 만들지 마세요. 계획하기 · 일기가 **같은 모양**이라야
+        한 번 익히면 어디서나 통합니다. 그래서 여기(공용)에 둡니다.
+     ▸ `what` 은 화면 낭독기에만 쓰입니다 (활동 · 사람 · 장소 · 기분). */
+  App.arrowPager = function (page, count, go, what) {
+    if (count <= 1) return null;
+    return html`<div class="pg-arrows">
+      <button type="button" class="pg-arrow" disabled=${page === 0}
+        aria-label=${'앞 ' + what + ' 보기'}
+        onClick=${function () { go(page - 1); }}>◀</button>
+      <span class="pg-now" aria-live="polite">${page + 1} / ${count}</span>
+      <button type="button" class="pg-arrow" disabled=${page >= count - 1}
+        aria-label=${what + ' 더 보기'}
+        onClick=${function () { go(page + 1); }}>▶</button>
+    </div>`;
+  };
+
   /* pageOf · flowBox — 예전에는 portfolio.js 에 있었습니다.
      화면 파일에 공용 헬퍼가 살면 불러오는 차례에 기대는 층위 역전이라 옮겼습니다.
      per 를 주면 그만큼씩 끊습니다 (일기 카드는 키가 커서 **넉 장**씩) */

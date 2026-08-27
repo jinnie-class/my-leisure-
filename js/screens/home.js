@@ -195,7 +195,13 @@
 
       <//>
 
-      ${viewPlan[0] && html`<${C.Modal} title="나의 여가 계획표" onClose=${function () { viewPlan[1](null); }}
+      <!-- ⛔ 계획표를 담는 창은 **넓은 창**이라야 합니다 (2026-08-26 · 선생님
+             말씀 — 「폭이 좁아 어그러져있어」). 기본 창(760px)에서는 문장이
+             세 줄로 접히고 「무엇을 · 누구와 …」 표와 그림이 아래위로 눌려
+             계획표 모양이 무너집니다.
+           ▸ 포트폴리오의 계획 팝업도 같은 까닭으로 wide 를 씁니다. -->
+      ${viewPlan[0] && html`<${C.Modal} title="나의 여가 계획표" wide=${true}
+        onClose=${function () { viewPlan[1](null); }}
         speakText=${App.sentences.plan(viewPlan[0])}
         actions=${html`<${React.Fragment}>
           <${C.Btn} kind="primary" icon="check" onClick=${function () {

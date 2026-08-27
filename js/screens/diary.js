@@ -87,7 +87,11 @@
     }, deps);
     return [boxRef, innerRef];
   }
-  var PAGE_SIZE = App.PAGE_SIZE;   /* 공용 규칙 — common.js (2026-08-26) */
+  /* ★ 일기도 계획하기와 **똑같이 한 쪽에 셋**입니다 (2026-08-26 · 선생님 말씀 —
+     「여가일기도 여가계획하기와 동일하게 3개씩 그림구성」).
+     위쪽 문장이 자리를 많이 써서, 여섯을 넣으면 카드가 눌립니다.
+   ⛔ App.PAGE_SIZE(여섯)로 되돌리지 마세요 — 지도·모아보기만 여섯입니다. */
+  var PAGE_SIZE = 3;
 
   /* 3단계가 일기를 쓰는 세 가지 방법.
      ★ 학생마다 쓰기 수단이 다릅니다. 키보드를 못 치는 학생도 3단계일 수 있어서
@@ -171,11 +175,7 @@
              규칙(작업노트 §5)은 「앞 ○○ 보기 / ○○ 더 보기」 인데 여기만
              「앞 활동 / 다음 활동」 에 작은 단추(44px)여서, 같은 화면 계열이
              다르게 보였습니다. -->
-      ${pages > 1 && html`<div class="wrap" style=${{ marginTop: '.7rem', justifyContent: 'center' }}>
-        <${C.Btn} icon="back" disabled=${page === 0} onClick=${function () { pageS[1](page - 1); }}>앞 활동 보기<//>
-        <span class="chip">${page + 1} / ${pages}</span>
-        <${C.Btn} icon="next" disabled=${page >= pages - 1} onClick=${function () { pageS[1](page + 1); }}>활동 더 보기<//>
-      </div>`}
+      ${App.arrowPager(page, pages, function (n) { pageS[1](n); }, '활동')}
       ${addS[0] && html`<${C.AddActivityModal} area=${areaS[0]}
         onClose=${function () { addS[1](false); }}
         onAdded=${function (id) { pageS[1](Math.ceil((cards.length + 1) / PAGE_SIZE) - 1); }} />`}
@@ -559,7 +559,7 @@
            오른쪽이 잘렸습니다. 아래 장소 · 활동과 **같은 개수**라 학생이
            규칙 하나만 익히면 됩니다. */
       if (step === 1) {
-        var WHO_PER = App.PAGE_SIZE;
+        var WHO_PER = PAGE_SIZE;      /* 계획하기와 같이 셋 */
         var whPages = Math.max(1, Math.ceil(partners.length / WHO_PER));
         var whPage = Math.min(whoPageS[0], whPages - 1);
         var whShown = partners.slice(whPage * WHO_PER, whPage * WHO_PER + WHO_PER);
@@ -576,13 +576,7 @@
                 art=${html`<${C.PartnerArt} partner=${pt} student=${student} />`} />`;
             })}
           <//>
-          ${whPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="back" disabled=${whPage === 0}
-              onClick=${function () { whoPageS[1](whPage - 1); }}>앞 사람 보기<//>
-            <span class="chip">${whPage + 1} / ${whPages}</span>
-            <${C.Btn} icon="next" disabled=${whPage >= whPages - 1}
-              onClick=${function () { whoPageS[1](whPage + 1); }}>사람 더 보기<//>
-          </div>`}
+          ${App.arrowPager(whPage, whPages, function (n) { whoPageS[1](n); }, '사람')}
         <//>`;
       }
 
@@ -596,7 +590,7 @@
         if (act && act.defaultPlace) {
           places = [act.defaultPlace].concat(places.filter(function (s) { return s !== act.defaultPlace; }));
         }
-        var PLACE_PER = App.PAGE_SIZE;
+        var PLACE_PER = PAGE_SIZE;    /* 계획하기와 같이 셋 */
         var plPages = Math.max(1, Math.ceil(places.length / PLACE_PER));
         var plPage = Math.min(placePageS[0], plPages - 1);
         var plShown = places.slice(plPage * PLACE_PER, plPage * PLACE_PER + PLACE_PER);
@@ -623,13 +617,7 @@
                 onChange=${function (e) { patch({ place: e.target.value }); }} />
             </div>`}
           <//>
-          ${plPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="back" disabled=${plPage === 0}
-              onClick=${function () { placePageS[1](plPage - 1); }}>앞 장소 보기<//>
-            <span class="chip">${plPage + 1} / ${plPages}</span>
-            <${C.Btn} icon="next" disabled=${plPage >= plPages - 1}
-              onClick=${function () { placePageS[1](plPage + 1); }}>장소 더 보기<//>
-          </div>`}
+          ${App.arrowPager(plPage, plPages, function (n) { placePageS[1](n); }, '장소')}
         <//>`;
       }
 
@@ -650,7 +638,7 @@
            ▸ 사람 · 장소 · 활동과 **같은 개수 · 같은 말**이라 학생이 규칙
              하나만 익히면 됩니다.
            ▸ 여러 개 골라도 됩니다 — 쪽을 넘겨도 고른 것은 그대로 남습니다. */
-        var MOOD_PER = App.PAGE_SIZE;
+        var MOOD_PER = PAGE_SIZE;     /* 계획하기와 같이 셋 */
         var mdPages = Math.max(1, Math.ceil(moods.length / MOOD_PER));
         var mdPage = Math.min(moodPageS[0], mdPages - 1);
         var mdShown = moods.slice(mdPage * MOOD_PER, mdPage * MOOD_PER + MOOD_PER);
@@ -670,13 +658,7 @@
                 art=${html`<${C.MoodArt} mood=${m} />`} />`;
             })}
           <//>
-          ${mdPages > 1 && html`<div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
-            <${C.Btn} icon="back" disabled=${mdPage === 0}
-              onClick=${function () { moodPageS[1](mdPage - 1); }}>앞 기분 보기<//>
-            <span class="chip">${mdPage + 1} / ${mdPages}</span>
-            <${C.Btn} icon="next" disabled=${mdPage >= mdPages - 1}
-              onClick=${function () { moodPageS[1](mdPage + 1); }}>기분 더 보기<//>
-          </div>`}
+          ${App.arrowPager(mdPage, mdPages, function (n) { moodPageS[1](n); }, '기분')}
         <//>`;
       }
 
