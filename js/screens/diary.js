@@ -724,9 +724,16 @@
        ▸ 2줄에는 그 단계에서 더 고르는 것만 담습니다. 2줄이 길어져도
          1줄이 밀리지 않습니다.
        ▸ 3단계는 학생이 **직접 쓴 글**로 같은 칸을 채웁니다. */
+    /* ★ 고른 낱말은 **빨갛게** — 계획하기와 같은 규칙입니다 (2026-08-26 ·
+         선생님 말씀 — 「여가계획처럼 빨간 글자가 들어갔으면」).
+         빈칸이 채워질 때마다 어디가 채워졌는지 한눈에 보입니다.
+       ▸ 빨강은 **눈에 띄게 하려는 것**이지 뜻을 나르지 않습니다. 고른 것과
+         안 고른 것은 「글자가 있나 없나」로 갈리므로, 색을 못 가려도
+         흑백으로 인쇄해도 뜻이 그대로입니다 (계획하기의 .blank.on.hi 주석).
+       ⛔ `hi` 를 빼지 마세요 — 빼면 계획하기와 일기가 서로 달라 보입니다. */
     function blank(v, wide) {
       var on = !!(v && String(v).trim());
-      return html`<span class=${'blank' + (on ? ' on' : '') + (wide ? ' wide' : '')}>
+      return html`<span class=${'blank' + (on ? ' on hi' : '') + (wide ? ' wide' : '')}>
         ${on ? v : '　　　'}</span>`;
     }
     /* ══════ 틀의 고정 말이 학생 글과 겹치면 붙이지 않습니다 ══════
@@ -1670,17 +1677,23 @@
            적힌 곳과 가는 곳이 달라서는 안 됩니다.
          ▸ 앞 질문으로 가려면 아래 단계 띠에서 그 칸을 누릅니다. */
       if (params.from === 'folio') { p.nav('portfolio', { studentId: student.id, tab: 'diary' }); return; }
+      /* ★ 일기 모음에서 고치러 왔으면 **일기 모음으로** 돌아갑니다 (2026-08-28).
+           예전에는 이 길이 따로 만든 화면(fixdiary)으로 갔는데, 짜임새도
+           크기도 완성 화면과 달라서 학생이 다른 화면으로 보았습니다
+           (선생님 말씀 — 「완전 달라. 그 화면과 동일하게」). */
+      if (params.from === 'journal') { p.nav('journal', { studentId: student.id }); return; }
       if (step > 0) { stepS[1](step - 1); return; }
       leave(function () { p.back('home'); });
     }
-    var backLabel = (params.from === 'folio') ? '나의 일기장으로'
+    var fromList = (params.from === 'folio' || params.from === 'journal');
+    var backLabel = fromList ? '나의 일기장으로'
                   : (step > 0 ? '앞 질문으로' : '앞 화면으로');
 
     /* 단계 띠는 **일기를 처음 쓸 때** 어디쯤 왔는지 알려 주는 것입니다.
        ★ 포트폴리오에서 **다 쓴 일기를 고치러** 왔을 때에는 넣지 않습니다.
          처음부터 훑는 길이 아니라 완성 화면 한 곳에서 고치고 돌아가는
          길이라, 열두 칸이 늘어서 있으면 무엇을 하는 화면인지 흐려집니다. */
-    var stepsBar = (params.from !== 'folio' && (level === 1 || (level !== 1 && draft.activityId)))
+    var stepsBar = (!fromList && (level === 1 || (level !== 1 && draft.activityId)))
       ? html`<${C.Steps} steps=${steps} current=${step}
           onGo=${function (i) { stepS[1](i); }} />` : null;
 
@@ -1693,7 +1706,7 @@
       <${C.TopBar} title="여가 일기"
         onBack=${diaryBack}
         backLabel=${backLabel}
-        backText=${params.from === 'folio' ? '나의 일기장으로 돌아가기' : null}
+        backText=${fromList ? '나의 일기장으로 돌아가기' : null}
         onTitle=${goHomeAsk}
         below=${stepsBar}>
         <div class="wrap" style=${{ gap: '.25rem' }}>

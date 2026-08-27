@@ -239,10 +239,38 @@
     A({ id: 'insect', area: 'indoor', name: '곤충 키우기', icon: 'bug', imageKey: '곤충 키우기',
         planText: '곤충을 키워 볼 거예요', diaryText: '곤충을 키워 보았어요',
         defaultPlace: '교실', defaultSupplies: ['사육통', '먹이'] }),
-    A({ id: 'magnet', area: 'indoor', name: '자석놀이', icon: 'magnet', imageKey: '자석놀이',
-        speechName: '자석놀이',
-        planText: '자석놀이를 할 거예요', diaryText: '자석놀이를 했어요',
-        defaultPlace: '교실', defaultSupplies: ['자석', '클립'] }),
+    /* ★ 자석놀이를 **블록놀이**로 바꾸었습니다 (2026-08-28 · 선생님 말씀 —
+         「실내여가놀이에서 자석놀이 대신에 블록놀이를 넣기, 자석놀이 삭제」).
+         자석놀이는 없어진 것이 아니라 **블록놀이 안의 한 가지**로 들어갔습니다
+         (자석 블록놀이). 그래서 예전 기록도 뜻이 이어집니다.
+       ▸ 예전 일기·계획이 가리키던 `magnet` 은 아래 ALIAS 가 `block-magnet`
+         으로 이어 줍니다 — 그러지 않으면 지난 기록의 활동 칸이 빕니다. */
+    A({
+      id: 'block', area: 'indoor', name: '블록놀이', icon: 'blocks', imageKey: '블록놀이',
+      speechName: '블록놀이',
+      planText: '블록놀이를 할 거예요', diaryText: '블록놀이를 했어요',
+      defaultPlace: '교실', defaultSupplies: ['블록'],
+      children: [
+        A({ id: 'block-wood', area: 'indoor', name: '나무 블록놀이', icon: 'blocks', imageKey: '나무 블록놀이',
+            planText: '나무 블록놀이를 할 거예요', diaryText: '나무 블록놀이를 했어요',
+            defaultPlace: '교실', defaultSupplies: ['나무 블록'] }),
+        A({ id: 'block-lego', area: 'indoor', name: '레고 블록놀이', icon: 'blocks', imageKey: '레고 블록놀이',
+            planText: '레고 블록놀이를 할 거예요', diaryText: '레고 블록놀이를 했어요',
+            defaultPlace: '교실', defaultSupplies: ['레고 블록'] }),
+        A({ id: 'block-magnet', area: 'indoor', name: '자석 블록놀이', icon: 'blocks', imageKey: '자석 블록놀이',
+            planText: '자석 블록놀이를 할 거예요', diaryText: '자석 블록놀이를 했어요',
+            defaultPlace: '교실', defaultSupplies: ['자석 블록'] }),
+        A({ id: 'block-paper', area: 'indoor', name: '종이 블록놀이', icon: 'blocks', imageKey: '종이 블록놀이',
+            planText: '종이 블록놀이를 할 거예요', diaryText: '종이 블록놀이를 했어요',
+            defaultPlace: '교실', defaultSupplies: ['종이 블록'] }),
+        A({ id: 'block-big', area: 'indoor', name: '큰 블록놀이', icon: 'blocks', imageKey: '큰 블록놀이',
+            planText: '큰 블록놀이를 할 거예요', diaryText: '큰 블록놀이를 했어요',
+            defaultPlace: '교실', defaultSupplies: ['큰 블록'] }),
+        A({ id: 'block-fit', area: 'indoor', name: '끼우기 블록놀이', icon: 'blocks', imageKey: '끼우기 블록놀이',
+            planText: '끼우기 블록놀이를 할 거예요', diaryText: '끼우기 블록놀이를 했어요',
+            defaultPlace: '교실', defaultSupplies: ['끼우기 블록'] })
+      ]
+    }),
     /* ★ 이름에서 「실내에서」를 뺐습니다 (2026-08-26 · 선생님 말씀 —
          활동 이름에 장소를 넣지 않는 규칙 8-18(17)과도 맞습니다).
        ⛔ imageKey 는 그림 **파일 이름 그대로**라 바꾸지 않습니다. */
@@ -376,9 +404,20 @@
 
   reindex();
 
-  App.act = function (id) { return BY_ID[id] || null; };
-  App.cardIdOf = function (id) { return CARD_OF[id] || id; };
-  App.cardOf = function (id) { return BY_ID[CARD_OF[id]] || null; };
+  /* ------------------------- 없어진 활동 이어 주기 -------------------------
+     활동을 지우거나 이름을 바꾸면 **이미 저장된 계획·일기·지도 표시**가
+     사라진 id 를 가리킨 채 남습니다. 그러면 지난 기록의 활동 칸이 통째로
+     비고, 학생은 자기가 쓴 일기가 망가진 것으로 봅니다.
+   ▸ 그래서 지울 때는 여기에 **새 자리를 적어 둡니다.** 한 줄이면 됩니다.
+   ⛔ 줄을 지우지 마세요 — 지우면 그 기록이 그때 빕니다. */
+  var ALIAS = {
+    magnet: 'block-magnet'      // 자석놀이 → 블록놀이 안의 자석 블록놀이 (2026-08-28)
+  };
+  function realId(id) { return (BY_ID[id] ? id : ALIAS[id]) || id; }
+
+  App.act = function (id) { return BY_ID[realId(id)] || null; };
+  App.cardIdOf = function (id) { id = realId(id); return CARD_OF[id] || id; };
+  App.cardOf = function (id) { return BY_ID[App.cardIdOf(id)] || null; };
   App.allActivities = function () { return Object.keys(BY_ID).map(function (k) { return BY_ID[k]; }); };
   App.topCards = function (area) {
     return ALL.filter(function (a) { return !area || a.area === area; });

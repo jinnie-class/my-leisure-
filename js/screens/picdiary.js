@@ -1587,8 +1587,17 @@
               <${C.PicDiarySheet} diary=${open} student=${student} trace="text" />
             </div>`);
           }}>이 일기만 인쇄<//>
+          <!-- ★ 고치는 화면은 **하나뿐**입니다 (2026-08-28 · 선생님 말씀 —
+                 「원래 우리가 일기가 완성되었어요에서 고치는 화면과 완전 달라.
+                 그 화면과 동일하게 구성하고 크기도 동일하게 모두 똑같이」).
+                 예전에는 여기만 따로 만든 화면(fixdiary)으로 갔는데, 왼쪽
+                 단추 칸이 420px 로 못박혀 있어 더 넓게 차지했고 짜임새도
+                 그림/글 이름표가 없어 달랐습니다.
+               ▸ 이제 포트폴리오의 「일기 고치기」 와 **같은 곳**으로 갑니다.
+                 step:'last' 라야 처음 질문부터 다시 훑지 않습니다.
+               ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
           <${C.Btn} icon="pencil" className="pastel-yellow"
-            onClick=${function () { p.nav('fixdiary', { diaryId: open.id }); }}>고치기<//>
+            onClick=${function () { p.nav('diary', { diaryId: open.id, step: 'last', from: 'journal' }); }}>고치기<//>
           <${C.Btn} onClick=${function () { openS[1](null); }}>닫기<//>
         <//>`}>
         <div class="jr-big"><${C.PicDiarySheet} diary=${open} student=${student} trace="text" /></div>

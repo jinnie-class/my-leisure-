@@ -1964,27 +1964,27 @@
               return flowBox(info, function (n) { diaryPageS[1](n); }, 'folio-diaries',
                 info.items.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);
+                /* ★ 카드에는 **활동 그림 · 제목 · 날짜** 셋만 둡니다
+                       (2026-08-28 · 선생님 말씀 — 「굳이 여기서 내용을 다 써서
+                       보여줄 필요 없음 … 여긴 너무 많은 정보와 상자가 많아」).
+                     ▸ 뺀 것 : 「전시할 일기」 딱지 · 「· 친구 · 교실」 · 일기 글 전문 · 사진.
+                       일기 내용은 바로 아래 「그림일기」 를 누르면 제대로 보입니다.
+                       여기서 또 보여 주면 같은 것이 두 번 나오는 셈입니다.
+                     ⚠ 전시 여부는 딱지 대신 **카드 테두리(.dcard.on)** 와 아래
+                       단추의 눌린 모양으로 압니다 — 표시가 사라진 것이 아닙니다. */
                 return html`<div key=${d.id} class=${'card dcard' + (d.exhibit ? ' on' : '')}>
-                  <div class="row" style=${{ alignItems: 'flex-start' }}>
+                  <div class="row" style=${{ alignItems: 'center' }}>
                     <span style=${{ width: 54, height: 54, flex: '0 0 auto' }}><${C.ActivityArt} activity=${a} /></span>
                     <div class="grow" style=${{ minWidth: 0 }}>
-                      <div class="row" style=${{ gap: '.35rem' }}>
-                        <b>${d.title || (a ? a.name : '여가 일기')}</b>
-                        ${d.exhibit && html`<span class="star-badge">전시할 일기</span>`}
-                      </div>
-                      <div class="small muted">${App.fmtDateLong(d.date)} · ${pt ? pt.name : ''} ${d.place ? '· ' + d.place : ''}</div>
-                      <div class="small" style=${{ marginTop: '.25rem' }}>${App.sentences.diaryBody(d)}</div>
-                      ${d.photoIds && d.photoIds.length ? html`<div class="wrap" style=${{ marginTop: '.35rem' }}>
-                        ${d.photoIds.slice(0, 3).map(function (id) {
-                          var u = App.photos.url(id);
-                          return u ? html`<img key=${id} src=${u} alt="활동 사진"
-                            style=${{ width: 66, height: 50, objectFit: 'cover', borderRadius: 8, border: '2px solid #8a6a4e' }} /> ` : null;
-                        })}
-                      </div>` : null}
+                      <b>${d.title || (a ? a.name : '여가 일기')}</b>
+                      <div class="small muted">${App.fmtDateLong(d.date)}</div>
                     </div>
                   </div>
-                  <div class="wrap" style=${{ marginTop: '.5rem' }}>
-                    <button type="button" class=${'btn small exhibit-btn' + (d.exhibit ? ' on' : '')}
+                  <!-- ★ 단추 셋을 **흰 바 하나** 안에 넣어 한 줄로 보이게 했습니다.
+                         낱개 알약이 셋이면 상자가 셋으로 보여 어수선했습니다.
+                       ▸ 칸막이 선은 CSS(.dcard-bar) 가 긋습니다. -->
+                  <div class="dcard-bar">
+                    <button type="button" class=${'dcard-act' + (d.exhibit ? ' on' : '')}
                       aria-pressed=${d.exhibit ? 'true' : 'false'}
                       onClick=${function () {
                         var next = !d.exhibit;
@@ -2001,10 +2001,16 @@
                          ▸ 일기 고치기는 step:'last' 로 **완성 화면**에서 엽니다.
                            그러지 않으면 「언제 했나요?」 부터 다시 훑게 됩니다.
                          ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
-                    <${C.Btn} size="small" icon="book"
-                      onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'folio' }); }}>그림일기<//>
-                    <${C.Btn} size="small" icon="pencil"
-                      onClick=${function () { p.nav('diary', { diaryId: d.id, step: 'last', from: 'folio' }); }}>일기 고치기<//>
+                    <button type="button" class="dcard-act"
+                      onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'folio' }); }}>
+                      <span class="ico" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('book') }} />
+                      <span>그림일기</span>
+                    </button>
+                    <button type="button" class="dcard-act"
+                      onClick=${function () { p.nav('diary', { diaryId: d.id, step: 'last', from: 'folio' }); }}>
+                      <span class="ico" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('pencil') }} />
+                      <span>일기 고치기</span>
+                    </button>
                   </div>
                 </div>`;
               }), '일기');
