@@ -283,12 +283,13 @@
                              draft.picKind, draft.photoIds && draft.photoIds.length,
                              draft.title, draft.activityId, moveS[0]]);
     var fitBox = fit[0], fitInner = fit[1];
-    /* 지금 고른 일기 단계가 **무엇을 하는 것인지** 한 줄 설명.
-       질문 줄 오른쪽에 늘 같은 자리로 나갑니다 (options.js 의 note). */
-    var lvNote = (function () {
-      var lv = (App.DATA.diaryLevels || []).filter(function (x) { return x.id === level; })[0];
-      return lv ? (lv.id + '단계 · ' + lv.note) : null;
-    })();
+    /* ⛔ 단계 설명(「1단계 · 그림을 골라 문장을 만들어요」)을 **없앴습니다**
+         (2026-08-26 · 선생님 말씀 — 「1,2,3단계에서 단계에서의 설명과 ~~가지
+          말은 삭제. 투머치 정보. 간략하게 만들고 싶어」).
+       ▸ 단계는 맨 위 줄에 이미 「일기 단계 1 2 3」 으로 나와 있습니다.
+         질문 옆에 또 적으면 정작 **질문**보다 설명이 눈에 띕니다.
+       ⛔ 되살리지 마세요. 선생님용 안내가 필요하면 사용설명서에 적습니다. */
+    var lvNote = null;
     var moods = App.moodsFor(student);
     var partners = App.partnersFor(student);
     var act = App.act(draft.activityId);
@@ -564,7 +565,7 @@
         var whPage = Math.min(whoPageS[0], whPages - 1);
         var whShown = partners.slice(whPage * WHO_PER, whPage * WHO_PER + WHO_PER);
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} hint=${'모두 ' + partners.length + '명'}
+          <${C.Question} bar=${true} note=${lvNote}
             speakText="누구와 했나요? 여러 명을 골라도 돼요.">누구와 했나요?<//>
           ${boneWrite(1)}
           <${C.PickGrid} cols=${3}>
@@ -643,7 +644,7 @@
         var mdPage = Math.min(moodPageS[0], mdPages - 1);
         var mdShown = moods.slice(mdPage * MOOD_PER, mdPage * MOOD_PER + MOOD_PER);
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} hint=${'모두 ' + moods.length + '가지'}
+          <${C.Question} bar=${true} note=${lvNote}
             speakText="기분이 어땠나요? 여러 개 골라도 좋아요.">기분이 어땠나요?<//>
           ${boneWrite(4)}
           <${C.PickGrid} cols=${3}>
@@ -1350,7 +1351,7 @@
            칸이 두 개라 헷갈렸습니다. 카드를 고르면 이 칸에 들어오고,
            칸을 눌러 바로 고치거나 새로 쓸 수도 있습니다. */
       return html`<${React.Fragment}>
-        <div class="frame-line"><b>제목 :</b>
+        <div class="frame-line title-line"><b>제목 :</b>
           <input class=${'blank wide title-input' + (draft.title ? ' on' : '')}
             value=${draft.title || ''} placeholder="제목을 고르거나 여기에 써요"
             aria-label="일기 제목"

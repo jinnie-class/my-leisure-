@@ -2554,6 +2554,26 @@ input.title-input{
   border:0; outline-offset:2px; text-align:left;
   min-height:2.4rem; flex:1 1 12em; max-width:26em;
 }
+/* ★ 제목 줄은 **글자 길이에 맞춰** 줄이고 가운데에 놓습니다
+     (2026-08-26 · 선생님 말씀 — 「제목의 바의 폭이 너무 넓어. 가운데
+      정렬로 하되 글자 앞뒤 여백이 20%정도 되게」).
+   ⛔ `width:100%` 로 두지 마세요 — 짧은 제목에도 띠가 화면 끝까지 뻗어
+      허전하고, 정작 글자는 왼쪽에만 몰립니다.
+   ▸ 계획표의 노란 바와 **같은 방식**입니다 (거기도 margin 으로 줄입니다). */
+/* ⛔ `.frame-top` 안이라고 넘겨짚지 마세요 — 제목 줄은 **고르는 칸
+      (.stage-track) 안**에 있습니다. 그 조건으로 걸었더니 규칙이
+      아예 안 먹어 폭이 97% 그대로였습니다 (2026-08-26 · 재어서 확인). */
+.frame-line.title-line{
+  width:auto; max-width:min(100%, 62em);
+  margin-inline:auto; padding:1.1rem 2.4rem;
+  justify-content:center;
+}
+/* ⛔ 제목 줄 안의 입력칸이 **늘어나지 않게** 막아야 합니다 — `flex:1 1 12em`
+      이라 남는 자리를 다 먹어서, 줄을 줄여 놓아도 다시 97% 로 벌어집니다.
+    ▸ 글자 수에 맞춰 자라되(ch), 아주 짧아도 쓸 자리는 되게 12em 을 바닥으로. */
+.title-line input.title-input{
+  flex:0 1 auto; width:22ch; min-width:12em; max-width:26em;
+}
 
 /* 흰 칸 맨 위 두 줄 — 빈칸이 채워지는 문장 (2·3단계).
    ★ 1줄은 세 단계가 똑같은 뼈대, 2줄은 그 단계에서 더 고르는 것.

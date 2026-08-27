@@ -591,7 +591,7 @@
 
       if (key === 'what') {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} hint=${'모두 ' + cards.length + '가지'} speakText="무엇을 할까요?">무엇을 할까요?<//>
+          <${C.Question} bar=${true} speakText="무엇을 할까요?">무엇을 할까요?<//>
           <${C.PickGrid} cols=${3} label="활동 목록">
             ${pageCards.map(function (c) {
               var kids = App.visibleChildren(student, c);
@@ -626,7 +626,7 @@
         var wp = Math.min(whoPageS[0], whoPages - 1);
         var whoShow = partners.slice(wp * WHO_SIZE, wp * WHO_SIZE + WHO_SIZE);
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} hint=${'모두 ' + partners.length + '명'}
+          <${C.Question} bar=${true}
             speakText="누구와 할까요? 여러 명을 골라도 돼요.">누구와 할까요?<//>
           <${C.PickGrid} cols=${3} label="함께하는 사람">
             ${whoShow.map(function (pt) {
