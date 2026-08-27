@@ -287,12 +287,12 @@
          `퍼즐` 아이콘은 icons.js 에 없어서 `blocks` 를 씁니다 (조각 맞추기라
          결이 가장 가깝습니다). 그림 파일(퍼즐놀이.png)이 있으므로 화면에는
          그 그림이 나옵니다.
-       ⚠ 준비물도 `images/준비물/퍼즐.png` 가 아직 없어 **놀잇감**을 씁니다.
-         퍼즐 그림을 넣으시면 `defaultSupplies: ['퍼즐']` 로 바꾸면 됩니다. */
+       ▸ 준비물 `퍼즐` — 선생님이 images/준비물/퍼즐.png 를 넣어 주셨습니다
+         (2026-08-28). 그 전에는 놀잇감을 대신 썼습니다. */
     A({ id: 'puzzle', area: 'indoor', name: '퍼즐놀이', icon: 'blocks', imageKey: '퍼즐놀이',
         speechName: '퍼즐놀이',
         planText: '퍼즐놀이를 할 거예요', diaryText: '퍼즐놀이를 했어요',
-        defaultPlace: '교실', defaultSupplies: ['놀잇감'] }),
+        defaultPlace: '교실', defaultSupplies: ['퍼즐'] }),
     A({ id: 'game', area: 'indoor', name: '게임하기', icon: 'gamepad', imageKey: '게임하기',
         planText: '게임을 할 거예요', diaryText: '게임을 했어요',
         defaultPlace: '집', defaultSupplies: [] }),
