@@ -532,13 +532,19 @@
 
     /* --------------- 내가 세운 계획 모음 ---------------
        이 기간의 계획표를 **한 장씩 이어** 인쇄합니다. 일기장 인쇄와 같은 방식이라
-       (`.book-page` 가 쪽을 나눕니다) 묶으면 그대로 계획 모음집이 됩니다. */
+       (`.book-page` 가 쪽을 나눕니다) 묶으면 그대로 계획 모음집이 됩니다.
+       ★ 계획표마다 **쓰기 학습지**가 함께 나옵니다 (2026-08-26 · 선생님 말씀 —
+         「여가포트폴리오에서도 내가 세운 계획이 학습지 형태로 만들어진
+          상태로 연결되어 출력되도록」). 계획하기 화면에서 뽑는 것과 같은
+         것이라, 한 곳에서 고치면 두 곳이 함께 바뀝니다 (C.PlanWorksheet).
+       ⛔ 학습지를 여기에 따로 만들지 마세요 — 언젠가 둘이 어긋납니다. */
     function printPlans() {
       if (!data.plans.length) { App.ui.toast('이 기간에 세운 계획이 없어요.'); return; }
       App.printNode(html`<div>
         ${data.plans.map(function (pl) {
           return html`<div key=${pl.id} class="book-page">
             <${C.PlanSheet} plan=${pl} student=${student} />
+            <${C.PlanWorksheet} plan=${pl} student=${student} />
           </div>`;
         })}
       </div>`);
@@ -551,7 +557,11 @@
         onClose=${function () { planOpenS[1](null); }}
         actions=${html`<${React.Fragment}>
           <${C.Btn} icon="print" onClick=${function () {
-            App.printNode(html`<${C.PlanSheet} plan=${openPlan} student=${student} />`);
+            /* 계획표 + 쓰기 학습지 — 다른 곳에서 뽑는 것과 **같은 한 장**입니다 */
+            App.printNode(html`<${React.Fragment}>
+              <${C.PlanSheet} plan=${openPlan} student=${student} />
+              <${C.PlanWorksheet} plan=${openPlan} student=${student} />
+            <//>`);
           }}>이 계획표 인쇄하기<//>
           <${C.Btn} kind="ok" onClick=${function () { planOpenS[1](null); }}>닫기<//>
         <//>`}>
@@ -1232,9 +1242,13 @@
           </div>
         </div>
 
+        <!-- 책자 안의 계획표에도 **쓰기 학습지**가 함께 붙습니다
+             (2026-08-26). 세 곳(계획하기 · 포트폴리오 계획 모음 · 이 책자)이
+             모두 C.PlanWorksheet 하나를 씁니다. -->
         ${data.plans.map(function (pl) {
           return html`<div key=${'p' + pl.id} class="book-page">
             <${C.PlanSheet} plan=${pl} student=${student} />
+            <${C.PlanWorksheet} plan=${pl} student=${student} />
           </div>`;
         })}
 

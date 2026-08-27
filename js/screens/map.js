@@ -786,7 +786,13 @@
   C.MapCardPanel = function (p) {
     var st = p.status;
     var q = '이 활동은 나에게 어떤 여가인가요?';
-    return html`<${C.Modal} title=${q} onClose=${p.onClose}
+    /* ★ 넓은 창을 씁니다 (2026-08-26 · 선생님 말씀 — 「안의 글자들이 한 줄로
+         나열되도록 창 폭을 넓히기」). 760px 에서는 네 칸 가운데 두 개
+         (「도전하고 싶어요」 · 「잘 모르겠어요」)가 두 줄로 접혀, 칸마다
+         글자 줄 수가 달라 들쭉날쭉해 보였습니다.
+       ⛔ 칸 수(4)를 줄여 해결하지 마세요 — 네 표시는 **늘 한 줄에 넷**이
+          나란히 있어야 서로 견주어 고릅니다. */
+    return html`<${C.Modal} title=${q} onClose=${p.onClose} wide=${true}
       speakText=${p.card.name + '. ' + q}
       actions=${html`<${C.Btn} kind="ok" icon="check" onClick=${p.onClose}>다 골랐어요<//>`}>
       <div class="row" style=${{ marginBottom: '.5rem' }}>
