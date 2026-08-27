@@ -281,10 +281,18 @@
     A({ id: 'tv', area: 'indoor', name: 'TV 보기', icon: 'tv', imageKey: 'TV 보기', speechName: '티브이 보기',
         planText: 'TV를 볼 거예요', diaryText: 'TV를 봤어요',
         defaultPlace: '집', defaultSupplies: [] }),
-    A({ id: 'youtube', area: 'indoor', name: '유튜브 보기', icon: 'tv', imageKey: '유튜브 보기',
-        speechName: '유튜브 보기',
-        planText: '유튜브를 볼 거예요', diaryText: '유튜브를 봤어요',
-        defaultPlace: '집', defaultSupplies: [] }),
+    /* ★ 유튜브 보기를 **퍼즐놀이**로 바꾸었습니다 (2026-08-28 · 선생님 말씀).
+         예전 기록은 아래 ALIAS 가 `puzzle` 로 이어 줍니다. */
+    /* ⚠ icon 은 **그림 파일이 없을 때만** 쓰는 대신 그림입니다.
+         `퍼즐` 아이콘은 icons.js 에 없어서 `blocks` 를 씁니다 (조각 맞추기라
+         결이 가장 가깝습니다). 그림 파일(퍼즐놀이.png)이 있으므로 화면에는
+         그 그림이 나옵니다.
+       ⚠ 준비물도 `images/준비물/퍼즐.png` 가 아직 없어 **놀잇감**을 씁니다.
+         퍼즐 그림을 넣으시면 `defaultSupplies: ['퍼즐']` 로 바꾸면 됩니다. */
+    A({ id: 'puzzle', area: 'indoor', name: '퍼즐놀이', icon: 'blocks', imageKey: '퍼즐놀이',
+        speechName: '퍼즐놀이',
+        planText: '퍼즐놀이를 할 거예요', diaryText: '퍼즐놀이를 했어요',
+        defaultPlace: '교실', defaultSupplies: ['놀잇감'] }),
     A({ id: 'game', area: 'indoor', name: '게임하기', icon: 'gamepad', imageKey: '게임하기',
         planText: '게임을 할 거예요', diaryText: '게임을 했어요',
         defaultPlace: '집', defaultSupplies: [] }),
@@ -411,7 +419,8 @@
    ▸ 그래서 지울 때는 여기에 **새 자리를 적어 둡니다.** 한 줄이면 됩니다.
    ⛔ 줄을 지우지 마세요 — 지우면 그 기록이 그때 빕니다. */
   var ALIAS = {
-    magnet: 'block-magnet'      // 자석놀이 → 블록놀이 안의 자석 블록놀이 (2026-08-28)
+    magnet: 'block-magnet',     // 자석놀이 → 블록놀이 안의 자석 블록놀이 (2026-08-28)
+    youtube: 'puzzle'           // 유튜브 보기 → 퍼즐놀이 (2026-08-28)
   };
   function realId(id) { return (BY_ID[id] ? id : ALIAS[id]) || id; }
 
