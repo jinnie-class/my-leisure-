@@ -181,6 +181,12 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 /* 설명이 함께 있는 화면(그림일기)에서는 두 줄이 되므로 조금 작게 */
 .topbar-title:has(.sub) .title{ font-size:1.3rem; }
+/* ⛔ 맨 위 줄 단추의 글자는 **한 줄**로 둡니다 (2026-08-26 · 선생님 말씀 —
+      「글자가 한줄로 나오게 정렬」). 두 줄로 접히면 알약이 세로로 부풀어
+      맨 위 줄이 두 배로 높아지고, 옆으로도 넓어져 **제목을 밀어내 잘랐습니다**
+      (「나의 여가지도」가 「나의 …」로 잘렸습니다 — 지도 화면 인쇄 알약 셋).
+    ▸ 글자가 한 줄이면 알약이 납작해져 넷이 나란히 들어갑니다. */
+.topbar .btn{ white-space:nowrap; }
 .topbar .sub{
   font-size:.85rem; font-weight:800; color:var(--ink-soft);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -4177,10 +4183,21 @@ textarea.sentence-edit,
 
 /* ══════════ 나만의 여가 지도 — A3 인쇄 ══════════
    자리는 화면과 같은 % 라서 학생이 놓은 그대로 나옵니다. */
-.map-print{ width:100%; display:flex; flex-direction:column; gap:8px; color:#2f2318; }
-.map-print-head{ display:flex; align-items:baseline; gap:12px; }
-.map-print-title{ font-size:30px; font-weight:900; letter-spacing:-.03em; }
-.map-print-who{ font-size:15px; font-weight:800; color:#6b6b78; }
+.map-print{ width:100%; display:flex; flex-direction:column; gap:10px; color:#2f2318; }
+/* ★ 제목은 **가운데**, 이름은 **오른쪽 끝** (2026-08-26 · 선생님 말씀 —
+     「그림의 구성이 가운데 정렬로 위 아래 좌우 간격이 맞으면 좋겠어」).
+   ⛔ 왼쪽에 제목과 이름을 나란히 붙이지 마세요 — 종이 왼쪽만 무거워
+      보이고, 아래 지도는 가운데라 축이 어긋납니다.
+   ▸ 세 칸 격자(빈 칸 · 제목 · 이름)로 두면 제목이 **종이 한가운데**에
+     오면서 이름은 오른쪽에 놓입니다. 제목 길이가 바뀌어도 안 흔들립니다. */
+.map-print-head{
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:baseline; gap:12px;
+}
+.map-print-title{ grid-column:2; font-size:30px; font-weight:900; letter-spacing:-.03em; }
+.map-print-who{
+  grid-column:3; justify-self:end;
+  font-size:15px; font-weight:800; color:#6b6b78; white-space:nowrap;
+}
 .map-print-board{
   position:relative; width:100%; aspect-ratio:1671 / 941;
   border:3px solid #8a6a4e; border-radius:14px; overflow:hidden; background:#dff0fb;
@@ -4233,6 +4250,14 @@ textarea.sentence-edit,
 /* 실내 · 실외를 색으로도 가릅니다 — 떼어 붙일 때 섬을 헷갈리지 않게 */
 .lb-cell.in  .lb-nm{ color:#8a4a12; }
 .lb-cell.out .lb-nm{ color:#14526f; }
+/* ★ 라벨 세 벌 (2026-08-26 · 선생님 말씀) — 그림만 · 그림+글자 · 글자만.
+     칸 크기는 라벨지에 맞춰 그대로 두고, **속만 다르게** 채웁니다.
+   ▸ 그림만 : 글자가 없으니 그림이 칸을 더 씁니다.
+   ▸ 글자만 : 그림이 없으니 글자를 키워 칸을 채웁니다 — 작게 두면
+     한가운데 조그맣게 떠 있어 라벨이 비어 보입니다.
+   ⛔ 칸 크기(--w · --h)는 건드리지 마세요 — 라벨지 칸에 맞춰 잰 값입니다. */
+.lb-sheet.only-art .lb-art{ width:22mm; height:22mm; }
+.lb-sheet.only-name .lb-nm{ font-size:4.6mm; line-height:1.25; }
 
 /* 계획 칸의 그림 — 두 줄(여섯 장)이라 지도(한 줄)보다 조금 작게.
    그래도 예전 넓적한 칸(그림 88px)보다 큽니다. */

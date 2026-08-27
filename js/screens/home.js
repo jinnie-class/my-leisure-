@@ -80,8 +80,15 @@
        모든 화면에 똑같이 그립니다 (2026-08-26 · 인수인계 20-1). */
     return html`<div class="app" data-corner="home">
       <${C.TopBar}>
-        <${C.Speak} text=${'나의 여가. 내가 좋아하는 여가를 찾아보아요. ' +
-          App.DATA.corners.map(function (c) { return c.name + ' ' + c.guide; }).join(' ')} />
+        <!-- ⛔ 읽어주기는 **화면에 보이는 말**을 읽어야 합니다 (2026-08-26 ·
+               선생님 말씀 — 「스피커 말 내용이 화면과 맞지 않아」).
+               「c.name」(계획하GO!)은 **화면에서 숨겨져 있습니다**
+               (「.corner .name{display:none}」 — B안에서 GO! 부제를 걷어냈습니다).
+               그런데 읽어주기만 그 말을 계속 읽어서, 학생이 「계획하GO!」를
+               찾아도 화면에 없었습니다.
+             ▸ 이제 카드에 **보이는 말**(「c.desc」)과 안내(「c.guide」)를 읽습니다. -->
+        <${C.Speak} text=${'나의 여가를 만들어볼까요? ' +
+          App.DATA.corners.map(function (c) { return c.desc + '. ' + c.guide; }).join(' ')} />
       <//>
 
       <!-- tall : 흰 칸이 화면 높이를 다 씁니다 (2026-08-26 — 아래가 비어 보여서).
@@ -101,7 +108,7 @@
                  — 카드마다 세 줄이면 첫 화면이 글자로 빽빽해지기 때문입니다. */
               return html`<button key=${c.id} type="button" class="corner" style=${{ '--c': c.color }}
                   onClick=${function () { p.nav(c.route); }}
-                  aria-label=${c.name + '. ' + c.desc + '. ' + c.guide}>
+                  aria-label=${c.desc + '. ' + c.guide}>
                 <!-- 코너 그림 : images/코너명/<큰 제목>.png (없으면 코드로 그린 SVG) -->
                 <span class="art" aria-hidden="true">
                   <${C.PickArt} kind="corner" word=${c.desc} iconKey=${c.icon} />

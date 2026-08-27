@@ -1039,6 +1039,23 @@
     }
 
     /* 활동 라벨 한 장 — 실내 15 + 실외 15, 남는 칸은 빈 칸으로 둡니다 */
+    /* ★ 라벨은 **세 벌**이 이어서 나옵니다 (2026-08-26 · 선생님 말씀 —
+         「그림만 있는것 1장, 두번째 장에 그림+글자 1장, 세번째 장에 글자만
+          1장짜리로 구성해서 3장으로 이어지게」).
+       ▸ 학생마다 붙일 수 있는 것이 다릅니다 —
+           그림만   글을 아직 못 읽는 학생 (그림으로 알아봅니다)
+           그림+글자 그림을 보며 글자를 익히는 학생
+           글자만   글을 읽는 학생 (그림이 없어야 스스로 읽습니다)
+       ⛔ 세 벌을 **한 장에 섞지** 마세요 — 라벨지는 한 장이 통째로 떼어져
+          나가므로, 한 벌이 한 장을 다 차지해야 골라 쓸 수 있습니다.
+       ⚠ 활동이 라벨 한 장 칸 수를 넘으면 각 벌이 여러 장이 됩니다.
+          그때도 **벌 차례(그림 → 그림+글자 → 글자)** 는 그대로입니다. */
+    var LABEL_FACES = [
+      { id: 'art',  cls: 'only-art',  art: true,  name: false },
+      { id: 'both', cls: '',          art: true,  name: true },
+      { id: 'name', cls: 'only-name', art: false, name: true }
+    ];
+
     function printLabels() {
       var K = labelKind();
       var list = App.topCards('indoor').slice(0, 15)
@@ -1046,22 +1063,24 @@
       var per = K.cols * K.rows;
       var sheets = Math.max(1, Math.ceil(list.length / per));
       var pages = [];
-      for (var s = 0; s < sheets; s++) {
-        var cells = [];
-        for (var i = 0; i < per; i++) cells.push(list[s * per + i] || null);
-        pages.push(cells);
-      }
+      LABEL_FACES.forEach(function (kind) {
+        for (var s = 0; s < sheets; s++) {
+          var cells = [];
+          for (var i = 0; i < per; i++) cells.push(list[s * per + i] || null);
+          pages.push({ kind: kind, cells: cells, key: kind.id + s });
+        }
+      });
       return html`<${React.Fragment}>
-        ${pages.map(function (cells, s) {
-          return html`<div key=${'s' + s} class="lb-sheet" style=${{
+        ${pages.map(function (pg) {
+          return html`<div key=${pg.key} class=${'lb-sheet ' + pg.kind.cls} style=${{
               paddingTop: K.my + 'mm', paddingLeft: K.mx + 'mm',
               gridTemplateColumns: 'repeat(' + K.cols + ', ' + K.w + 'mm)',
               gridAutoRows: K.h + 'mm' }}>
-            ${cells.map(function (c, i) {
+            ${pg.cells.map(function (c, i) {
               if (!c) return html`<span key=${'e' + i} class="lb-cell empty"></span>`;
               return html`<span key=${c.id} class=${'lb-cell ' + (c.area === 'indoor' ? 'in' : 'out')}>
-                <span class="lb-art"><${C.ActivityArt} activity=${c} /></span>
-                <span class="lb-nm">${c.name}</span>
+                ${pg.kind.art && html`<span class="lb-art"><${C.ActivityArt} activity=${c} /></span>`}
+                ${pg.kind.name && html`<span class="lb-nm">${c.name}</span>`}
               </span>`;
             })}
           </div>`;
@@ -1563,9 +1582,52 @@
         }}
         backLabel=${(view === 'pick' && folioTab[0]) ? '포트폴리오 첫 화면으로' : '앞 화면으로'}
         onTitle=${function () { p.nav("home"); }}>
-        <${C.Speak} text=${'나의 여가 포트폴리오. 내가 전시하고 싶은 일기를 골라 보세요. ' +
-          App.fmtDateShort(data.from) + '부터 ' + App.fmtDateShort(data.to) + '까지, 일기 ' +
-          data.diaries.length + '개 가운데 ' + data.exhibited.length + '개를 골랐어요.'} />
+        <!-- ⛔ 읽어주기는 **지금 보이는 화면**을 말해야 합니다 (2026-08-26 ·
+               선생님 말씀 — 「스피커 말 내용이 화면과 맞지 않아」).
+               예전에는 어느 화면에서나 「전시하고 싶은 일기를 골라 보세요」를
+               읽었습니다. 첫 화면은 **네 칸을 고르는 곳**이고 전시 고르기는
+               「나의 일기장」 안에 있어서, 학생이 시키는 대로 해도 그런 것이
+               화면에 없었습니다.
+             ▸ 창 안에 들어가 있으면 그 창 이름을, 첫 화면이면 네 칸을 말합니다. -->
+        <${C.Speak} text=${(function () {
+          var 기간 = App.fmtDateShort(data.from) + '부터 ' + App.fmtDateShort(data.to) + '까지';
+          /* 인쇄 판형을 보는 중 */
+          if (view === 'book') return '책자형이에요. 종이를 넘기며 보는 모양으로 인쇄해요.';
+          if (view === 'board') return '전시판형이에요. 교실에 붙이는 모양으로 인쇄해요.';
+          /* 첫 화면 — 네 칸 고르기 */
+          if (!folioTab[0]) {
+            return '나의 여가 포트폴리오. ' + 기간 + '의 기록이에요. '
+              + '내가 세운 계획, 나의 여가지도, 나의 일기장, 나의 한마디 가운데 '
+              + '보고 싶은 것을 눌러 보세요.';
+          }
+          /* 창 안 */
+          if (folioTab[0] === 'plan') {
+            return data.plans.length
+              ? '내가 세운 계획이에요. ' + 기간 + ' 계획 ' + data.plans.length + '장이 있어요. '
+                + '누르면 계획표를 볼 수 있어요.'
+              : '내가 세운 계획이에요. 아직 세운 계획이 없어요. 여가 계획하기에서 계획을 세워 보세요.';
+          }
+          if (folioTab[0] === 'map') {
+            if (mapViewS[0] === 'board') {
+              return '나만의 여가 지도를 만들어요. 아래 활동을 잡아서 섬 위로 끌어다 놓아 보세요.';
+            }
+            return '나의 여가지도예요. 해봤어요 ' + data.tried.length + '가지, '
+              + '좋아해요 ' + data.likes.length + '가지, '
+              + '도전하고 싶어요 ' + data.challenges.length + '가지를 표시했어요.';
+          }
+          if (folioTab[0] === 'diary') {
+            return data.diaries.length
+              ? '나의 일기장이에요. 일기 ' + data.diaries.length + '개가 있어요. '
+                + '전시하고 싶은 일기를 골라 보세요. 지금 ' + data.exhibited.length + '개를 골랐어요.'
+              : '나의 일기장이에요. 아직 쓴 일기가 없어요. 여가 일기에서 일기를 써 보세요.';
+          }
+          if (folioTab[0] === 'me') {
+            return mePartS[0] === 'done'
+              ? '나의 한마디를 다 썼어요. 인쇄해서 붙여 보세요.'
+              : '나의 한마디예요. 여가를 하고 나서 든 생각을 한 문장으로 남겨 보세요.';
+          }
+          return '나의 여가 포트폴리오. ' + 기간 + '의 기록이에요.';
+        })()} />
         <!-- 창 안에 있거나 판형을 보는 중일 때만 돌아갈 길을 둡니다.
              첫 화면에는 나갈 길이 파란 화살표 하나뿐이라야 헷갈리지 않습니다. -->
         ${folioTools && tab[0] !== 'pick' && html`<${C.Btn} size="small" icon="back"
@@ -1582,12 +1644,16 @@
                손으로 붙이는 종이입니다. -->
         ${tab[0] === 'pick' && folioTab[0] === 'map' && mapViewS[0] === 'board'
           && html`<${React.Fragment}>
+            <!-- ⛔ 종이 크기(· A3 · A4)를 단추에 적지 마세요 (2026-08-26).
+                   알약 셋이 넓어져 **제목을 밀어내 잘랐습니다**
+                   (「나의 여가지도」 → 「나의 …」). 종이 크기는 인쇄 창이
+                   알려 주고, 아래 「종이로 하기」 칸에도 적혀 있습니다. -->
             <${C.Btn} size="small" icon="print" className="pastel-yellow"
-              onClick=${function () { App.printNode(printMapBoard()); }}>내 지도 · A3<//>
+              onClick=${function () { App.printNode(printMapBoard()); }}>내 지도<//>
             <${C.Btn} size="small" icon="print" className="pastel-blue"
-              onClick=${function () { App.printNode(printEmptyMap()); }}>빈 지도 · A3<//>
+              onClick=${function () { App.printNode(printEmptyMap()); }}>빈 지도<//>
             <${C.Btn} size="small" icon="print" className="pastel-blue"
-              onClick=${function () { App.printNode(printLabels()); }}>활동 라벨 · A4<//>
+              onClick=${function () { App.printNode(printLabels()); }}>활동 라벨<//>
           <//>`}
         <!-- ⛔ **나가는 알약은 folioTools 로 가리지 마세요.**
                「학생 화면에 도구 보이기」 는 **선생님 도구**를 숨기는 스위치입니다.
