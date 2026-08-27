@@ -177,12 +177,14 @@
       parts.push({ t: '나는' });
       if (when) parts.push({ t: when, blank: true });           // 시간
       if (pp) parts.push({ t: pp });                            // 누구와 — 조사 때문에 그대로
-      if (plan.place) { parts.push({ t: plan.place, blank: true }); parts.push({ t: '에서' }); }
+      /* `tight` = 앞엣것에 **붙여** 찍습니다. 조사는 띄면 안 됩니다
+         (「빈칸 에서」가 아니라 「빈칸에서」). */
+      if (plan.place) { parts.push({ t: plan.place, blank: true }); parts.push({ t: '에서', tight: true }); }
       parts.push({ t: actWord, blank: true });                  // 활동
       /* App.josa 는 「낱말+조사」를 함께 돌려주므로, 낱말 길이만큼 잘라
          **조사만** 남깁니다 (빈칸 뒤에 붙일 것이라서입니다). */
       var jo2 = App.josa(actWord, '을/를').slice(actWord.length);
-      parts.push({ t: jo2 + ' 할 거예요.' });
+      parts.push({ t: jo2 + ' 할 거예요.', tight: true });
       return parts;
     }
 
@@ -197,11 +199,18 @@
               학생이 「저 문장을 그대로 덧쓴다」는 것을 바로 압니다. */
         ? html`<div class="sentence sentence-center ws-trace">${say}</div>`
         : (lv === 2
+          /* ⛔ 낱말 사이에 **띄어쓰기를 직접 넣습니다.** inline 으로 흐르게 두면
+                태그 사이의 줄바꿈이 공백으로 안 남아 「나는친구와」로 붙습니다.
+             ⛔ 빈칸 폭을 글자 수에 딱 맞추지 마세요 — 답의 길이가 그대로
+                드러나 학생이 세어 맞힙니다. 어느 빈칸이나 **같은 폭**입니다. */
           ? html`<div class="ws-fill">
               ${blanks().map(function (x, i) {
-                return x.blank
-                  ? html`<span key=${i} class="ws-blank" style=${{ minWidth: Math.max(4, x.t.length) + 'em' }}></span>`
-                  : html`<span key=${i} class="ws-word">${x.t}</span>`;
+                return html`<${React.Fragment} key=${i}>
+                  ${i > 0 && !x.tight && ' '}
+                  ${x.blank
+                    ? html`<span class="ws-blank"></span>`
+                    : html`<span class="ws-word">${x.t}</span>`}
+                <//>`;
               })}
             </div>`
           : html`<div class="ws-lines">
