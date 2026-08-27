@@ -166,8 +166,11 @@ html,body{
 /* ⛔ 빈칸 좌우에 여백을 주지 마세요 — 조사(에서 · 를)가 빈칸에 **붙어야**
       하는데 여백이 그 사이를 벌립니다. 낱말 사이 띄어쓰기는 plan.js 가
       글자로 직접 넣습니다. */
+/* ⛔ 여기에 `min-width` 를 못박지 마세요 — 밑줄 길이는 **들어갈 낱말
+      길이에 맞춰** plan.js 가 인라인으로 넣습니다 (글자 수 + 1 em).
+      여기서 고정하면 「내일」과 「놀이 기구 타기」가 같은 폭이 됩니다. */
 .print-area .ws-blank{
-  display:inline-block; min-width:26mm; height:1.4em;
+  display:inline-block; height:1.4em;
   vertical-align:-.35em;
   border-bottom:.5mm solid #6b6b78;
 }

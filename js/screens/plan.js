@@ -204,14 +204,19 @@
         : (lv === 2
           /* ⛔ 낱말 사이에 **띄어쓰기를 직접 넣습니다.** inline 으로 흐르게 두면
                 태그 사이의 줄바꿈이 공백으로 안 남아 「나는친구와」로 붙습니다.
-             ⛔ 빈칸 폭을 글자 수에 딱 맞추지 마세요 — 답의 길이가 그대로
-                드러나 학생이 세어 맞힙니다. 어느 빈칸이나 **같은 폭**입니다. */
+             ★ 밑줄 길이는 **들어갈 낱말 길이에 맞춥니다** (2026-08-26 ·
+               선생님 말씀 — 「밑줄의 길이가 들어갈 낱말 상자의 비율과
+               동일하게」). 「내일」과 「놀이 기구 타기」가 같은 폭이면
+               긴 낱말은 칸이 모자라고 짧은 낱말은 허전합니다.
+             ▸ 한글 한 글자가 대략 1em 이므로 **글자 수 + 1** em 으로 잡고,
+               아주 짧은 낱말도 쓸 자리는 되게 4em 을 바닥으로 둡니다. */
           ? html`<div class="ws-fill">
               ${blanks().map(function (x, i) {
                 return html`<${React.Fragment} key=${i}>
                   ${i > 0 && !x.tight && ' '}
                   ${x.blank
-                    ? html`<span class="ws-blank"></span>`
+                    ? html`<span class="ws-blank"
+                        style=${{ minWidth: Math.max(4, x.t.length + 1) + 'em' }}></span>`
                     : html`<span class="ws-word">${x.t}</span>`}
                 <//>`;
               })}
