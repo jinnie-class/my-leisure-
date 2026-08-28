@@ -501,9 +501,21 @@
 
     var dt = App.parseKey(d.date);
     var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
-    /* 단계에 없는 모양이 넘어오면 그 단계의 기본 모양으로 되돌립니다 */
+    /* ⛔⛔ **모양을 「그 일기의 단계」로 다시 걸러내지 않습니다** (2026-08-28).
+         예전에는 `modesFor(lv)` 에 없는 모양이면 그 단계의 기본값으로
+         되돌렸습니다. 그런데 일기 모음을 **책으로** 뽑을 때 탈이 났습니다 :
+
+           학생은 지금 2단계 → 단추는 「따라 쓰기 · 힌트 보고 쓰기」
+           그런데 지난 일기는 level 1 로 저장돼 있음
+           → 1단계에 `empty` 가 없으니 **말없이 `text` 로 바뀌어** 인쇄됨
+              (고른 것과 정반대로, 글이 다 채워진 종이가 나왔습니다)
+
+       ▸ **무엇을 내놓을지는 화면이 정하고**(단계별 단추 — modesFor),
+         **종이는 시킨 대로 그립니다.** 세 모양은 어느 단계에서나 그릴 수
+         있습니다 (칸이든 줄이든 `t-text·t-trace·t-empty` 규칙이 다 있습니다).
+       ⚠ 아는 모양이 아닐 때만 그 단계의 기본값으로 되돌립니다 (안전장치). */
     var mode = p.trace || defaultModeFor(lv);
-    if (!modesFor(lv).some(function (m) { return m.id === mode; })) mode = defaultModeFor(lv);
+    if (['text', 'trace', 'empty'].indexOf(mode) < 0) mode = defaultModeFor(lv);
     /* ★ 원고지에 **손으로 따라 쓴 것** (1·2단계). 있으면 칸 대신 이것을 넣습니다.
        ⛔ `글자` 로 낼 때에만 씁니다. 따라 쓰기 · 힌트 · 빈 칸으로 인쇄할 때는
           학생이 **새로 쓸 자리**를 내주어야 하므로 원래 칸을 그립니다.
@@ -1555,16 +1567,25 @@
     var list = (App.store.diaries(student.id) || []).slice().sort(function (a, b) {
       return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0);
     });
+    /* 인쇄 모양은 **이 학생의 단계**를 따릅니다 (아래 printBook 주석).
+       ⚠ 일기 한 장이 아니라 **모음 전체**를 뽑는 화면이라, 일기마다의
+         단계가 아니라 지금 학생의 단계를 씁니다 — 포트폴리오의
+         「일기장 모두 인쇄」와 같은 방식입니다. */
+    var lv = levelOf(null, student);
 
     /* ★ 책 인쇄를 **두 가지**로 나눴습니다 (2026-08-28 · 선생님 말씀 —
-         「일기 모음 책 인쇄하기를 두가지로 하나는 **글자 있는 그대로**
-         하나는 **따라쓰기**로」).
-           mode 'text'  : 쓴 글 그대로 — 읽고 보관하는 책
-           mode 'trace' : 흐린 글자 — 그 위에 덧쓰는 학습지 책
-       ▸ 포트폴리오의 「일기장 모두 인쇄」와 **같은 방식**입니다 — 두 곳이
-         다르면 선생님이 어디서 무엇을 뽑았는지 헷갈립니다.
-       ▸ `trace` 는 `C.PicDiarySheet` 가 이미 아는 모양이라, 넘겨 주기만
-         하면 됩니다 (css 의 `.pd-sheet.t-trace`). */
+         「일기 모음 책 인쇄하기를 두가지로 하나는 글자 있는 그대로 하나는
+         따라쓰기로」).
+       ⛔⛔ 두 가지가 **무엇인지는 단계마다 다릅니다** (선생님 말씀 —
+            「이게 단계별로 가능한가? 1단계는 내가 쓴 글, 따라쓰기가 맞지만,
+            **2단계는 따라 쓰기, 힌트 보고 쓰기**」).
+              1단계  글자 · 따라 쓰기
+              2단계  따라 쓰기 · 힌트 보고 쓰기
+              3단계  내가 쓴 글 · 빈 줄
+          제가 처음에 `text` · `trace` 로 **못박아** 두어서 2단계 학생에게
+          맞지 않는 두 가지가 나왔습니다. 목록은 위 `MODES_BY_LEVEL` 한 곳에서만
+          정합니다 (`modesFor`) — 화면마다 적으면 언젠가 둘이 어긋납니다.
+       ▸ 포트폴리오의 「일기장 모두 인쇄」도 같은 목록을 씁니다. */
     function printBook(mode) {
       if (!list.length) { App.ui.toast('아직 모인 일기가 없어요.'); return; }
       App.printNode(html`<div class="pd-book">
@@ -1593,13 +1614,18 @@
              계획하GO! 의 마지막 화면 · 나의 여가 모아보기와 **같은 모양**입니다. -->
       <${C.Stage}
         action=${html`<div class="fix-acts">
-          <!-- ★ 두 가지로 뽑습니다 (선생님 말씀 · 위 printBook 주석).
-                 ⛔ onClick 에 함수를 **그대로** 넘기지 마세요 — 그러면 클릭
-                    이벤트가 첫 인자로 들어가 mode 자리에 앉습니다. -->
-          <${C.Btn} kind="primary" icon="print" disabled=${!list.length}
-            onClick=${function () { printBook('text'); }}>책으로 인쇄 · 내가 쓴 글<//>
-          <${C.Btn} icon="print" disabled=${!list.length}
-            onClick=${function () { printBook('trace'); }}>책으로 인쇄 · 따라 쓰기<//>
+          <!-- ★ 이 학생의 **단계에 있는 두 가지**만 나옵니다 (위 printBook 주석).
+                 이름도 그 단계의 말로 나옵니다 (2단계는 「힌트 보고 쓰기」).
+               ⛔ 여기에 모양을 손으로 적지 마세요 — modesFor 한 곳에서만 정합니다.
+               ⛔ onClick 에 함수를 **그대로** 넘기지 마세요 — 그러면 클릭
+                  이벤트가 첫 인자로 들어가 mode 자리에 앉습니다. -->
+          ${modesFor(lv).map(function (m, i) {
+            return html`<${C.Btn} key=${m.id} icon="print" title=${m.desc}
+              kind=${i === 0 ? 'primary' : null}
+              className=${i === 0 ? null : 'pastel-blue'}
+              disabled=${!list.length}
+              onClick=${function () { printBook(m.id); }}>책으로 인쇄 · ${m.name}<//>`;
+          })}
         </div>`}>
         <${C.Question} bar=${true}
           speakText=${'나의 일기 모음. 모두 ' + list.length + '장이에요.'}>
