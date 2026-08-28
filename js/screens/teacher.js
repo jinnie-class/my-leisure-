@@ -499,6 +499,16 @@
               <h1 class="grow" style=${{ fontSize: '1.6rem', fontWeight: 900 }}>선생님 설정</h1>
               <${C.Btn} size="small" icon="print"
                 onClick=${function () { App.printNode(html`<${C.AllRecordsSheet} />`); }}>기록 인쇄<//>
+              <!-- ★ 표지로 가는 길 (2026-08-28 · 선생님 말씀 — 「넣어줘」).
+                     맨 위 줄의 「나의 여가」 글자를 뺐더니(§40-32) 표지로
+                     돌아갈 길이 없어져서, **선생님 설정 안**에 둡니다.
+                     학생 화면은 그대로 깔끔하게 두고, 필요할 때만 여기서 갑니다.
+                   ▸ 화면을 옮기는 단추끼리 모아 둡니다 (설정 완료 옆).
+                   ⛔ 「전체 초기화」 옆에 두지 마세요 — 지우는 단추와 섞이면
+                      잘못 누르기 쉽습니다.
+                   ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+              <${C.Btn} size="small" icon="home"
+                onClick=${function () { p.nav('cover'); }}>처음 화면(표지)으로<//>
               <${C.Btn} size="small" kind="primary" icon="check"
                 onClick=${function () { p.nav(students.length ? 'profiles' : 'cover'); }}>설정 완료<//>
             </div>
