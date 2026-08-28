@@ -859,13 +859,19 @@
                제 기록으로 보이지 않습니다.
              ▸ 2·3단계는 글자만 냅니다 — 위 한마디와 같은 규칙입니다. -->
         <div class="sheet-title" style=${{ marginTop: '20px' }}>돌아보기</div>
-        <div class="stack">
+        <!-- ★ 돌아보기 네 줄을 **한 상자** 안에 넣습니다 (2026-08-28 ·
+               선생님 말씀 — 「너무 박스가 많아. 돌아보기를 한박스로 두고
+               그 안에서 문장들이 나오게하고 문장들 간격을 두었으면 해」).
+               예전에는 줄마다 점선 상자라 한 장에 상자가 다섯이었습니다.
+             ▸ 상자는 하나, 안에서 문장끼리만 사이를 띄웁니다.
+             ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+        <div class="sentence me-review">
           ${App.reviewFramesFor(student.diaryLevel, rv).map(function (f) {
             var txt = App.reviewLine(f, rv[f.id]);
             var lv1 = ((student && student.diaryLevel) || 1) === 1;
             var got = lv1 ? (actByName(rv[f.id])
               || App.act((student.reviewPick || {})[f.id])) : null;
-            return html`<div key=${f.id} class="sentence me-print-say">
+            return html`<div key=${f.id} class="me-review-ln">
               ${got && html`<span class="me-print-art">
                 <span class="me-print-pic"><${C.ActivityArt} activity=${got} /></span>
               </span>`}

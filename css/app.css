@@ -4789,6 +4789,36 @@ textarea.sentence-edit,
 .me-print-pic > *{ max-width:100%; max-height:100%; }
 .me-print-txt{ flex:1 1 auto; min-width:0; }
 
+/* ★ 돌아보기 — **상자 하나** 안에 네 줄 (2026-08-28 · 선생님 말씀 —
+     「너무 박스가 많아. 돌아보기를 한박스로 두고 그 안에서 문장들이
+     나오게하고 **문장들 간격을 두었으면** 해」).
+     예전에는 줄마다 점선 상자여서 한 장에 상자가 다섯이었습니다. */
+.me-review{ display:flex; flex-direction:column; gap:18px; }
+.me-review-ln{
+  display:flex; align-items:center; gap:14px;
+  font-weight:900; min-height:2.2em;
+}
+
+/* ★ 상자 폭을 **글에 맞춥니다** (2026-08-28 · 선생님 말씀 — 「바의 크기가
+     너무 커, 제일 긴 문장을 기준으로 긴 문장의 앞과 뒤에 20% 간격을 두도록」).
+   ▸ `width:fit-content` 가 **가장 긴 줄**에 폭을 맞춥니다.
+   ▸ 종이 폭을 넘지 않게 `max-width:100%` 로 막습니다.
+
+   ⛔⛔ 여백을 `%` 로 주지 마세요. `padding:20%` 는 **글이 아니라 부모(종이)
+        폭**을 기준으로 잡힙니다. 실제로 20% 로 두었더니 한쪽 여백이 151px
+        (글폭의 **46%**) 이 되어 상자가 되레 커졌습니다.
+      ▸ CSS 에는 「제 글 길이의 20%」를 나타내는 단위가 없습니다. 그래서
+        **글자 크기(em)** 로 줍니다 — 글자가 커지면 여백도 함께 커집니다.
+      ▸ 3.4em ≒ 65px (글자 19px). 가장 긴 줄 327px 의 20% 입니다.
+      ⚠ 짧은 줄만 있는 종이에서는 그 비율이 조금 더 커 보입니다 — 여백은
+        **가장 긴 줄**을 기준으로 잡는 것이 선생님 말씀이었습니다. */
+.me-sheet .sentence{
+  --say-pad:3.4em;
+  width:fit-content; max-width:100%;
+  margin-left:auto; margin-right:auto;
+  padding-left:var(--say-pad); padding-right:var(--say-pad);
+}
+
 /* ★ 문장 틀 — **한 줄에 한 문장**, 왼쪽부터 나란히 (2026-08-24 · 선생님 말씀).
      가운데 정렬이면 줄이 접혔을 때 뒷말만 한가운데 덩그러니 남아
      어디까지가 한 문장인지 알아보기 어려웠습니다.
