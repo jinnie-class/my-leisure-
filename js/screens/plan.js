@@ -97,8 +97,19 @@
           <//>`;
         })}
       </div>` : null}
+      <!-- ★ 문장을 **구(句)마다 묶어** 놓습니다 (2026-08-28 · 선생님 말씀 —
+             「이렇게 깔끔하게 구와 어절이 끊어지게 표시되게 나오면 좋겠어」).
+             그냥 한 덩어리로 두면 자리가 모자랄 때 아무 데서나 끊겨,
+             「친구와 / 함께」 나 「할 / 거예요.」 처럼 한 구가 두 줄로
+             갈라졌습니다.
+           ▸ 묶음 하나가 통째로 다음 줄로 넘어가므로 **구 사이에서만** 끊깁니다.
+           ⛔ 글자에 줄바꿈 없는 빈칸을 끼워 넣는 식으로 하지 마세요 —
+              읽어주기·원고지·검색이 모두 그 글자에 걸립니다.
+           ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
       <div class="sentence sentence-center" style=${{ marginTop: '.6rem' }}>
-        ${App.sentences.plan(plan)}</div>
+        ${App.sentences.planParts(plan).map(function (t, i) {
+          return html`<${React.Fragment} key=${i}>${i > 0 && ' '}<span class="ph">${t}</span><//>`;
+        })}</div>
       <!-- ★ 오른쪽 활동 그림은 **위 그림 줄이 있을 때 빼 둡니다**
              (2026-08-26 · 선생님 말씀 — 「이제 그림이 커져서 아래에
               활동그림이 안들어가도 될 것 같아」).
@@ -184,7 +195,12 @@
              덧쓰기를 할 수 있게」).
            ⛔ 줄글 밑줄로 바꾸지 마세요. 위 계획표와 **같은 모양**이라야
               학생이 「저 문장을 그대로 덧쓴다」는 것을 바로 압니다. */
-        ? html`<div class="sentence sentence-center ws-trace">${say}</div>`
+        /* 위 계획표 바와 **똑같이** 구마다 묶습니다 — 덧쓰는 종이라
+           줄이 갈라지는 자리까지 같아야 학생이 그대로 베낍니다. */
+        ? html`<div class="sentence sentence-center ws-trace">
+            ${App.sentences.planParts(plan).map(function (t, i) {
+              return html`<${React.Fragment} key=${i}>${i > 0 && ' '}<span class="ph">${t}</span><//>`;
+            })}</div>`
         : (lv === 2
           /* ⛔ 낱말 사이에 **띄어쓰기를 직접 넣습니다.** inline 으로 흐르게 두면
                 태그 사이의 줄바꿈이 공백으로 안 남아 「나는친구와」로 붙습니다.
@@ -345,7 +361,9 @@
          맨 앞에 놓아 주는** 일만 합니다 (고르기 쉽게 하는 단서). */
     function chooseCard(card) {
       var kids = App.visibleChildren(student, card);
-      if (kids.length) { subS[1](card); App.speakFor(student, card.speechName); return; }
+      /* ⚠ 쪽 번호를 **0 으로 되돌립니다** — 대표 활동과 하위 활동이 같은
+           pageS 를 쓰므로, 3쪽에서 들어가면 하위 활동이 빈 쪽부터 보입니다. */
+      if (kids.length) { subS[1](card); pageS[1](0); App.speakFor(student, card.speechName); return; }
       pick(function () {
         patch({ cardId: card.id, activityId: card.id,
                 supplies: draft.supplies.length ? draft.supplies : card.defaultSupplies.slice() });
@@ -594,17 +612,25 @@
         else if (subCard.id === 'make') subQ = '무엇을 만들까요?';
         else if (subCard.id === 'collect') subQ = '무엇을 모을까요?';
         else if (subCard.id === 'toy') subQ = '어떤 놀잇감으로 놀까요?';
+        /* ★ 하위 활동도 **한 쪽에 셋**입니다 (2026-08-28 · 선생님 말씀 —
+             「6개가 나오네? 이것도 3개씩 나오게」). 블록놀이처럼 여섯 가지가
+             있으면 두 줄로 늘어서서 카드가 눌립니다.
+             대표 활동 고르기(PLAN_PER)와 **같은 수**를 씁니다. */
+        var kPages = Math.max(1, Math.ceil(kids.length / PLAN_PER));
+        var kPage = Math.min(pageS[0], kPages - 1);
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} speakText=${subQ}>${subQ}<//>
-          <${C.PickGrid} cols=${kids.length > 4 ? 3 : 2} label="세부 활동">
-            ${kids.map(function (ch) {
+          <${C.PickGrid} cols=${3} label="세부 활동">
+            ${kids.slice(kPage * PLAN_PER, kPage * PLAN_PER + PLAN_PER).map(function (ch) {
               return html`<${C.ActivityPick} key=${ch.id} activity=${ch}
                 selected=${draft.activityId === ch.id}
-                onClick=${function () { chooseChild(subCard, ch); }} />`;
+                onClick=${function () { pageS[1](0); chooseChild(subCard, ch); }} />`;
             })}
           <//>
+          ${arrowPager(kPage, kPages, function (n) { pageS[1](n); }, '활동')}
           <div class="wrap" style=${{ marginTop: '.7rem' }}>
-            <${C.Btn} icon="back" onClick=${function () { subS[1](null); }}>다른 활동 고르기<//>
+            <${C.Btn} icon="back"
+              onClick=${function () { subS[1](null); pageS[1](0); }}>다른 활동 고르기<//>
           </div>
         <//>`;
       }

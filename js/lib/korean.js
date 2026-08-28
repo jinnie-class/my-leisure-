@@ -204,7 +204,27 @@
     return pt.phrase + ' 함께 했어요';          // 엄마와 함께 했어요
   };
 
-  /* 계획 문장 : "나는 오늘 친구와 슬라임 놀이를 할 거예요." */
+  /* 계획 문장 : "나는 오늘 친구와 슬라임 놀이를 할 거예요."
+     ★ `S.planParts` 는 **같은 문장을 구(句)마다 잘라** 돌려줍니다
+       (2026-08-28 · 선생님 말씀 — 「이렇게 깔끔하게 구와 어절이 끊어지게
+       표시되게 나오면 좋겠어」).
+       화면이 그 조각을 한 덩어리씩 묶어 놓으면, 줄바꿈이 **구 사이에서만**
+       일어납니다. 「친구와 / 함께」 나 「할 / 거예요.」 처럼 한 구가
+       두 줄로 갈라지지 않습니다.
+     ⛔ 글자에 손대지 않습니다 (줄바꿈 없는 빈칸을 끼워 넣는 식으로 하면
+        읽어주기·원고지·검색이 모두 그 글자에 걸립니다). */
+  S.planParts = function (plan) {
+    if (!plan) return [];
+    var a = App.act(plan.activityId);
+    var bits = ['나는'];
+    var when = App.whenPhrase(plan.date, plan.time);
+    if (when) bits.push(when);
+    var pp = partnerPhrase(plan.partnerId, plan.partnerIds);
+    if (pp) bits.push(pp);
+    if (plan.place) bits.push(plan.place + '에서');
+    bits.push((a ? a.planText : '여가활동을 할 거예요') + '.');
+    return bits;
+  };
   S.plan = function (plan) {
     if (!plan) return '';
     var a = App.act(plan.activityId);

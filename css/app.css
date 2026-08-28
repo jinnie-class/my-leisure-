@@ -2591,6 +2591,21 @@ input.title-input{
     ⛔ `.frame-line` 의 gap 을 0 으로 만들지 마세요 — 「나는오늘」 이 됩니다. */
 .frame-line .tie{ display:inline-flex; align-items:center; min-width:0; }
 
+/* ★ **구(句) 묶음** — 한 구가 두 줄로 갈라지지 않게 (2026-08-28 · 선생님 말씀 —
+     「이렇게 깔끔하게 구와 어절이 끊어지게 표시되게 나오면 좋겠어」).
+     계획 문장은 `나는 / 내일 낮에 / 선생님과 친구와 함께 / 교실에서 /
+     보드게임을 할 거예요.` 다섯 구입니다. 묶어 두지 않으면 자리가 모자랄 때
+     아무 데서나 끊겨 「친구와 / 함께」 처럼 갈라졌습니다.
+   ▸ 묶음 하나가 통째로 다음 줄로 넘어가므로 **구 사이에서만** 끊깁니다.
+   ⚠ `inline-block` 이 아니라 `nowrap` 만 씁니다 — inline-block 으로 두면
+     줄 높이와 밑줄(따라 쓰기)이 구마다 따로 놀아 들쭉날쭉해집니다.
+   ⚠ 구 하나가 한 줄보다 길면 그때는 그 안에서 끊깁니다 (안 끊으면 잘리니까요). */
+.sentence .ph{ white-space:nowrap; }
+@media screen and (max-width: 560px){
+  /* 아주 좁은 화면에서는 묶음을 풀어 줍니다 — 안 풀면 긴 구가 칸을 넘칩니다 */
+  .sentence .ph{ white-space:normal; }
+}
+
 .frame-line.title-line{
   width:auto; max-width:min(100%, 62em);
   margin-inline:auto; padding:.55rem 2.4rem;

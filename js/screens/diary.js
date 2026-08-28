@@ -139,17 +139,25 @@
     }
     if (subS[0]) {
       var kids = App.visibleChildren(student, subS[0]);
+      /* ★ 하위 활동도 **한 쪽에 셋**입니다 (2026-08-28 · 선생님 말씀 —
+           「6개가 나오네? 이것도 3개씩 나오게」).
+           블록놀이처럼 여섯 가지가 있으면 두 줄로 늘어서서 카드가 눌리고,
+           위 문장 틀까지 밀려 올라갑니다. 대표 활동 고르기와 **같은 방식**이라
+           학생이 두 화면에서 같은 일을 겪습니다. */
+      var kPages = Math.max(1, Math.ceil(kids.length / PAGE_SIZE));
+      var kPage = Math.min(pageS[0], kPages - 1);
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} note=${p.note} speakText=${'무엇을 했나요? ' + subS[0].name}>무엇을 했나요? — ${subS[0].name}<//>
-        <${C.PickGrid} cols=${kids.length > 4 ? 3 : 2}>
-          ${kids.map(function (ch) {
+        <${C.PickGrid} cols=${3}>
+          ${kids.slice(kPage * PAGE_SIZE, kPage * PAGE_SIZE + PAGE_SIZE).map(function (ch) {
             return html`<${C.ActivityPick} key=${ch.id} activity=${ch} selected=${p.value === ch.id}
-              onClick=${function () { p.onPick(ch.id); subS[1](null); App.speakFor(student, ch.speechName); }} />`;
+              onClick=${function () { p.onPick(ch.id); subS[1](null); pageS[1](0); App.speakFor(student, ch.speechName); }} />`;
           })}
         <//>
+        ${App.arrowPager(kPage, kPages, function (n) { pageS[1](n); }, '활동')}
         <div class="wrap" style=${{ marginTop: '.7rem' }}>
           <${C.Btn} size="small" icon="back" className="pastel-yellow"
-            onClick=${function () { subS[1](null); }}>다른 활동 고르기<//>
+            onClick=${function () { subS[1](null); pageS[1](0); }}>다른 활동 고르기<//>
         </div>
       <//>`;
     }
@@ -166,7 +174,10 @@
           return html`<${C.ActivityPick} key=${c.id} activity=${c} childCount=${kids.length}
             selected=${App.cardIdOf(p.value) === c.id}
             onClick=${function () {
-              if (kids.length) { subS[1](c); return; }
+              /* ⚠ 쪽 번호를 **0 으로 되돌립니다** — 대표 활동과 하위 활동이
+                   같은 pageS 를 쓰므로, 3쪽에서 들어가면 하위 활동이 빈 쪽부터
+                   보입니다 (블록놀이 6가지 = 2쪽뿐). */
+              if (kids.length) { subS[1](c); pageS[1](0); return; }
               p.onPick(c.id); App.speakFor(student, c.speechName);
             }} />`;
         })}
