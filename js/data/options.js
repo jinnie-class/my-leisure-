@@ -383,6 +383,10 @@
         /* `가족과` 처럼 조사까지 붙인 꼴. 혼자 같은 예외는 기본 목록에만 있습니다 */
         phrase: o.phrase || (App.waGwa ? App.waGwa(name) : name + '와'),
         icon: o.icon || 'pFriend',
+        /* ★ 선생님이 직접 넣은 그림 (2026-08-28) — 활동과 같은 방식입니다.
+             앱 폴더가 아니라 기기 안 사진 보관소에 담기므로 **어느 컴퓨터
+             에서나** 됩니다. 자세한 까닭은 인수인계 §40-19. */
+        photoId: o.photoId || null,
         imageKey: o.imageKey || name,      // images/avatars/<이름>.png 가 있으면 씁니다
         custom: true
       };
@@ -403,6 +407,7 @@
         stem: o.stem || name,
         pre: o.pre || name,
         icon: o.icon || 'moodFun',
+        photoId: o.photoId || null,       // 선생님이 직접 넣은 그림 (인수인계 §40-19)
         imageKey: o.imageKey || past,     // images/얼굴표정/<일기에 쓸 말>.png
         custom: true
       };

@@ -1482,6 +1482,84 @@
                    'store', 'mic', 'park', 'tent', 'food', 'shoe', 'bike', 'marble',
                    'film', 'bag', 'leaf', 'nature', 'box', 'frame'];
 
+  /* ═══════ 「내 그림 넣기」 칸 — 활동 · 사람 · 기분이 **함께 씁니다** ═══════
+     (2026-08-28 · 선생님 말씀 — 「다른 컴에서도 일반화해서 쓸 수 있도록 …
+      사진 넣기 처럼」 · 「같이 해줘」)
+
+     ⛔ 예전에는 세 창 모두 「images/…/이름.png 파일을 넣어 두면」 이라고
+        적어 두었습니다. 그건 **앱 폴더를 고칠 수 있는 사람만** 할 수 있는
+        일이라, 다른 선생님 컴퓨터에서는 아무 소용이 없었습니다.
+     ▸ 이제 기기 안 사진 보관소(App.photos)에 담습니다 — 학생 사진과 같은 곳.
+     ⛔ 이 칸을 세 창에 각각 베껴 쓰지 마세요. 한 곳만 고치면 나머지 둘이
+        어긋납니다 (같은 이름을 두 번 만들어 겪은 §39-4 와 같은 결).
+
+     쓰는 법 : `var pic = usePicPick();` 하고
+               `${pic.ui(icons, iconS)}` 로 그리고, 저장할 때 `pic.id` 를 넘깁니다.
+               창을 그만둘 때는 `pic.drop()` 을 부릅니다. */
+  function usePicPick() {
+    var photoS = useState(null);
+    var busyS = useState(false);
+    var fileRef = useRef(null);
+
+    function pick(e) {
+      var f = e.target.files && e.target.files[0];
+      e.target.value = '';                     // 같은 파일을 다시 골라도 열리게
+      if (!f) return;
+      busyS[1](true);
+      /* studentId 는 **비웁니다** — 우리 반 것은 한 학생 것이 아니라 학급이 씁니다
+         (photos.js 의 exportRecords 주석 참고). */
+      App.photos.addFile(f, null, 'custom').then(function (id) {
+        if (photoS[0]) App.photos.remove(photoS[0]);
+        photoS[1](id); busyS[1](false);
+      })['catch'](function (err) {
+        busyS[1](false);
+        App.ui.toast(err && err.message ? err.message : '그림을 넣지 못했어요.');
+      });
+    }
+    function clear() {
+      if (photoS[0]) App.photos.remove(photoS[0]);
+      photoS[1](null);
+    }
+    return {
+      get id() { return photoS[0]; },
+      drop: clear,
+      /* icons : 고를 수 있는 코드 그림 목록 · iconS : 그 상태 */
+      ui: function (icons, iconS) {
+        return html`<div>
+          <span class="lab">그림</span>
+          <div class="wrap" style=${{ alignItems: 'center' }}>
+            <${C.Btn} icon="camera" disabled=${busyS[0]}
+              onClick=${function () { if (fileRef.current) fileRef.current.click(); }}>
+              ${busyS[0] ? '넣는 중…' : (photoS[0] ? '다른 그림으로 바꾸기' : '내 그림 넣기')}<//>
+            <input ref=${fileRef} type="file" accept="image/*"
+              style=${{ display: 'none' }} onChange=${pick} />
+            ${photoS[0] && html`<${C.Btn} size="small" icon="back" onClick=${clear}>넣은 그림 빼기<//>`}
+          </div>
+          ${photoS[0]
+            ? html`<div class="wrap" style=${{ marginTop: '.45rem', alignItems: 'center' }}>
+                <span class="addact-pic"><${C.PhotoBox} photoId=${photoS[0]} /></span>
+                <span class="small muted">이 그림으로 나와요. 그림은 이 기기에 저장돼요.</span>
+              </div>`
+            : html`<${React.Fragment}>
+                <div class="icon-pick" style=${{ marginTop: '.4rem' }}>
+                  ${icons.map(function (k) {
+                    var on = iconS[0] === k;
+                    return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
+                      aria-pressed=${on} aria-label=${'그림 ' + k}
+                      onClick=${function () { iconS[1](k); }}>
+                      <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
+                    </button>`;
+                  })}
+                </div>
+                <p class="small muted" style=${{ marginTop: '.3rem' }}>
+                  그림 파일이 있으면 <b>내 그림 넣기</b> 로 넣어요. 안 넣으면 위에서 고른 그림이 나와요.
+                </p>
+              <//>`}
+        </div>`;
+      }
+    };
+  }
+
   C.AddActivityModal = function (p) {
     var nameS = useState('');
     var areaS = useState(p.area || 'indoor');
@@ -1495,46 +1573,21 @@
           있는 일이라, 다른 선생님 컴퓨터에서는 아무 소용이 없었습니다.
        ▸ 이제 기기 안 사진 보관소(App.photos)에 담습니다 — 학생 사진과 같은 곳,
          같은 방식입니다. 백업에도 함께 담겨 다른 컴퓨터로 옮겨집니다. */
-    var photoS = useState(null);      // 넣은 그림의 id
-    var busyS = useState(false);
-    var fileRef = useRef(null);
+    var pic = usePicPick();           // 내 그림 넣기 (사람·기분과 같은 칸)
     var name = nameS[0].trim();
-
-    function pickPic(e) {
-      var f = e.target.files && e.target.files[0];
-      e.target.value = '';                       // 같은 파일을 다시 골라도 열리게
-      if (!f) return;
-      busyS[1](true);
-      /* studentId 는 **비웁니다** — 우리 반 활동은 한 학생 것이 아니라
-         학급 전체가 씁니다 (photos.js 의 exportRecords 주석 참고). */
-      App.photos.addFile(f, null, 'activity').then(function (id) {
-        if (photoS[0]) App.photos.remove(photoS[0]);   // 앞서 넣은 것은 버립니다
-        photoS[1](id); busyS[1](false);
-      })['catch'](function (err) {
-        busyS[1](false);
-        App.ui.toast(err && err.message ? err.message : '그림을 넣지 못했어요.');
-      });
-    }
-    function dropPic() {
-      if (photoS[0]) App.photos.remove(photoS[0]);
-      photoS[1](null);
-    }
 
     function save() {
       if (!name) { App.ui.toast('활동 이름을 써 주세요.'); return; }
       var id = App.store.addActivity({
         area: areaS[0], name: name, icon: iconS[0], defaultPlace: placeS[0].trim(),
-        photoId: photoS[0] || null
+        photoId: pic.id || null
       });
       App.ui.toast('「' + name + '」 활동을 더했어요.');
       if (p.onAdded) p.onAdded(id);
       p.onClose();
     }
     /* 그만두면 방금 넣은 그림은 버립니다 (안 그러면 아무도 안 쓰는 사진이 남습니다) */
-    function cancel() {
-      if (photoS[0]) App.photos.remove(photoS[0]);
-      p.onClose();
-    }
+    function cancel() { pic.drop(); p.onClose(); }
 
     return html`<${C.Modal} title="우리 반 활동 더하기" onClose=${cancel}
       actions=${html`<${React.Fragment}>
@@ -1618,42 +1671,29 @@
   C.AddPartnerModal = function (p) {
     var nameS = useState('');
     var iconS = useState('pFriend');
+    var pic = usePicPick();                 // 내 그림 넣기 (활동·기분과 같은 칸)
     var name = nameS[0].trim();
 
     function save() {
       if (!name) { App.ui.toast('누구인지 이름을 써 주세요.'); return; }
       var dup = (App.DATA.partners || []).some(function (x) { return x.name === name; });
       if (dup) { App.ui.toast('같은 이름이 이미 있어요.'); return; }
-      App.store.addPartner({ name: name, icon: iconS[0] });
+      App.store.addPartner({ name: name, icon: iconS[0], photoId: pic.id || null });
       App.ui.toast('「' + name + '」 을(를) 더했어요.');
       p.onClose();
     }
+    function cancel() { pic.drop(); p.onClose(); }
 
-    return html`<${C.Modal} title="함께하는 사람 더하기" onClose=${p.onClose}
+    return html`<${C.Modal} title="함께하는 사람 더하기" onClose=${cancel}
       actions=${html`<${React.Fragment}>
-        <${C.Btn} onClick=${p.onClose}>그만두기<//>
+        <${C.Btn} onClick=${cancel}>그만두기<//>
         <${C.Btn} kind="ok" icon="check" disabled=${!name} onClick=${save}>이 사람 더하기<//>
       <//>`}>
       <div class="stack">
         <${C.Field} label="누구인가요?" value=${nameS[0]}
           placeholder="예) 사촌 · 이웃 · 활동보조 선생님"
           onChange=${function (v) { nameS[1](v); }} />
-        <div>
-          <span class="lab">그림 고르기</span>
-          <div class="icon-pick">
-            ${PARTNER_ICONS.map(function (k) {
-              var on = iconS[0] === k;
-              return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
-                aria-pressed=${on} aria-label=${'그림 ' + k}
-                onClick=${function () { iconS[1](k); }}>
-                <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
-              </button>`;
-            })}
-          </div>
-          <p class="small muted" style=${{ marginTop: '.3rem' }}>
-            <b>images/avatars/${name || '이름'}.png</b> 파일을 넣어 두면 그 그림이 대신 나와요.
-          </p>
-        </div>
+        ${pic.ui(PARTNER_ICONS, iconS)}
         ${name && html`<${C.Banner} icon="check">
           <div class="small">문장은 이렇게 만들어져요.</div>
           <div><b>${'나는 오늘 ' + App.withPhrase(name) + ' 놀이를 했어요.'}</b></div>
@@ -1673,6 +1713,7 @@
     var nameS = useState('');
     var pastS = useState('');
     var iconS = useState('moodFun');
+    var pic = usePicPick();                 // 내 그림 넣기 (활동·사람과 같은 칸)
     var name = nameS[0].trim();
     var past = pastS[0].trim() || name;
 
@@ -1680,14 +1721,16 @@
       if (!name) { App.ui.toast('기분 이름을 써 주세요.'); return; }
       var dup = (App.DATA.moods || []).some(function (x) { return x.name === name; });
       if (dup) { App.ui.toast('같은 기분이 이미 있어요.'); return; }
-      App.store.addMood({ name: name, past: past, conn: past, stem: name, pre: name, icon: iconS[0] });
+      App.store.addMood({ name: name, past: past, conn: past, stem: name, pre: name,
+        icon: iconS[0], photoId: pic.id || null });
       App.ui.toast('「' + name + '」 기분을 더했어요.');
       p.onClose();
     }
+    function cancel() { pic.drop(); p.onClose(); }
 
-    return html`<${C.Modal} title="기분 더하기" onClose=${p.onClose}
+    return html`<${C.Modal} title="기분 더하기" onClose=${cancel}
       actions=${html`<${React.Fragment}>
-        <${C.Btn} onClick=${p.onClose}>그만두기<//>
+        <${C.Btn} onClick=${cancel}>그만두기<//>
         <${C.Btn} kind="ok" icon="check" disabled=${!name} onClick=${save}>이 기분 더하기<//>
       <//>`}>
       <div class="stack">
@@ -1697,22 +1740,7 @@
         <${C.Field} label="일기에 쓸 말 (안 써도 돼요)" value=${pastS[0]}
           placeholder=${name ? '예) ' + name.replace(/요$/, '었어요') : '예) 설렜어요'}
           onChange=${function (v) { pastS[1](v); }} />
-        <div>
-          <span class="lab">그림 고르기</span>
-          <div class="icon-pick">
-            ${MOOD_ICONS.map(function (k) {
-              var on = iconS[0] === k;
-              return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
-                aria-pressed=${on} aria-label=${'그림 ' + k}
-                onClick=${function () { iconS[1](k); }}>
-                <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
-              </button>`;
-            })}
-          </div>
-          <p class="small muted" style=${{ marginTop: '.3rem' }}>
-            <b>images/얼굴표정/${past || '일기에쓸말'}.png</b> 파일을 넣어 두면 그 그림이 대신 나와요.
-          </p>
-        </div>
+        ${pic.ui(MOOD_ICONS, iconS)}
         ${name && html`<${C.Banner} icon="check">
           <div class="small">일기 문장은 이렇게 만들어져요.</div>
           <div><b>${'기분이 ' + past + '.'}</b></div>

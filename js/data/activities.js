@@ -557,6 +557,11 @@
      파일이 없으면 코드로 그린 SVG 얼굴이 대신 나옵니다. */
   App.moodImage = function (m) {
     if (!m) return null;
+    /* 선생님이 직접 넣은 그림이 **먼저** (2026-08-28 · §40-19 와 같은 규칙) */
+    if (m.photoId && App.photos) {
+      var mu = App.photos.url(m.photoId);
+      if (mu) return mu;
+    }
     return imgUrl(App.IMAGE_BASE.mood + (m.imageKey || m.past || m.name) + App.IMAGE_BASE.ext);
   };
   /* 함께하는 사람 그림.
@@ -595,6 +600,13 @@
 
   App.partnerImage = function (p, student) {
     if (!p) return null;
+    /* ★ 선생님이 직접 넣은 그림이 **먼저**입니다 (2026-08-28 · §40-19 와 같은 규칙).
+       ⚠ 남녀 그림 고르기(variants)는 기본 목록에만 있습니다. 직접 넣은 그림은
+         한 장이므로, 있으면 그것을 그대로 씁니다. */
+    if (p.photoId && App.photos) {
+      var pu = App.photos.url(p.photoId);
+      if (pu) return pu;
+    }
     var v = App.partnerVariant(p, student);
     var key = v ? v.imageKey : p.imageKey;
     if (!key) return null;

@@ -296,11 +296,15 @@
     /* --------------- 우리 반 사람 · 기분 (선생님이 더한 것) ---------------
        활동과 **같은 방식**입니다. 지우면 학생마다 켜 둔 목록에서도 함께 지웁니다. */
     addPartner: function (o) {
-      var a = Object.assign({ id: uid('px'), name: '', icon: 'pFriend', createdAt: Date.now() }, o);
+      var a = Object.assign({ id: uid('px'), name: '', icon: 'pFriend',
+        photoId: null, createdAt: Date.now() }, o);
       set(function (x) { x.customPartners = (x.customPartners || []).concat([a]); });
       return a.id;
     },
     removePartner: function (id) {
+      /* 직접 넣은 그림도 함께 지웁니다 (활동과 같은 규칙 · 인수인계 §40-19) */
+      var goneP = (Store.get().customPartners || []).filter(function (a) { return a.id === id; })[0];
+      if (goneP && goneP.photoId && App.photos) App.photos.remove(goneP.photoId);
       set(function (x) {
         x.customPartners = (x.customPartners || []).filter(function (a) { return a.id !== id; });
         x.students = x.students.map(function (s) {
@@ -310,11 +314,15 @@
       });
     },
     addMood: function (o) {
-      var a = Object.assign({ id: uid('mx'), name: '', icon: 'moodFun', createdAt: Date.now() }, o);
+      var a = Object.assign({ id: uid('mx'), name: '', icon: 'moodFun',
+        photoId: null, createdAt: Date.now() }, o);
       set(function (x) { x.customMoods = (x.customMoods || []).concat([a]); });
       return a.id;
     },
     removeMood: function (id) {
+      /* 직접 넣은 그림도 함께 지웁니다 (활동·사람과 같은 규칙 · 인수인계 §40-19) */
+      var goneM = (Store.get().customMoods || []).filter(function (a) { return a.id === id; })[0];
+      if (goneM && goneM.photoId && App.photos) App.photos.remove(goneM.photoId);
       set(function (x) {
         x.customMoods = (x.customMoods || []).filter(function (a) { return a.id !== id; });
         x.students = x.students.map(function (s) {

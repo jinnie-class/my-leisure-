@@ -1972,8 +1972,10 @@
       var q3 = '이 일기를 전시하고 싶어요?';
       return html`<${C.Modal} title=${q3}
           speakText=${'내가 전시하고 싶은 일기를 골라 보세요. ' + q3}>
-        <p class="small muted center">전시하기로 고른 일기에는 책갈피가 붙고,
-          교실에 전시해요.</p>
+        <!-- ⚠ 「전시하기로 고른 일기에는 책갈피가 붙고, 교실에 전시해요.」
+               설명 줄을 뺐습니다 (2026-08-28 · 선생님 말씀 — 「설명삭제」).
+               아래 두 칸에 그림과 말이 다 있어 같은 말이 두 번이었습니다
+               (규칙 7 — 중복 금지 · 투머치 정보). -->
         <${C.PickGrid} cols=${2} label=${q3}>
           <${C.Pick} label="전시할래요" speakText="전시할래요" selected=${!!d.exhibit}
             onClick=${function () { setExhibit(true); }}
@@ -1984,8 +1986,9 @@
         <//>
       <//>`;
     }
-    /* 마무리 */
-    var stNow = App.store.statusOf(p.student.id, d.cardId);
+    /* 마무리
+       ※ `stNow`(지도 표시)를 여기서 읽던 것도 함께 걷어냈습니다 — 보여 줄
+          곳이 없어졌으니 셈할 까닭도 없습니다. */
     /* ★ 마지막 창에는 **다음에 할 일 하나만** 둡니다.
          예전에는 그림일기·지도·포트폴리오·일기 고치기·홈 다섯 개가 늘어서 있어
          학생이 무엇을 눌러야 할지 몰랐습니다.
@@ -1994,14 +1997,11 @@
     return html`<${C.Modal} title="모두 마쳤어요" speakText="일기를 다 썼어요. 완성한 그림일기를 볼까요?"
       actions=${html`<${C.Btn} kind="primary" size="big" icon="book"
         onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'diary' }); }}>완성한 그림일기 보기<//>`}>
-      <${C.Banner} tone="ok" icon="check">
-        <!-- 가운데로 모읍니다 — 마지막 창은 알림 한 덩어리라 가운데가 읽기 편합니다 -->
-        <div style=${{ textAlign: 'center' }}>
-          <b>${name + '의'}</b><span>${' 지금 표시예요.'}</span>
-        </div>
-        <div class="wrap" style=${{ marginTop: '.4rem', justifyContent: 'center' }}>
-          <${C.StateChips} status=${stNow} /></div>
-      <//>
+      <!-- ⚠ 「○○의 지금 표시예요」 + 표시 알약 셋을 뺐습니다
+             (2026-08-28 · 선생님 말씀 — 「표시부분 삭제 간단히하기!」).
+             일기를 다 쓴 자리에서 지도의 표시를 알려 줄 까닭이 없고,
+             다음에 할 일(그림일기 보기)만 남는 편이 한눈에 들어옵니다.
+           ⛔ 되살리지 마세요 — 지도 표시는 여가지도에서 봅니다. -->
     <//>`;
   };
 })();

@@ -1537,12 +1537,21 @@
       return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0);
     });
 
-    function printBook() {
+    /* ★ 책 인쇄를 **두 가지**로 나눴습니다 (2026-08-28 · 선생님 말씀 —
+         「일기 모음 책 인쇄하기를 두가지로 하나는 **글자 있는 그대로**
+         하나는 **따라쓰기**로」).
+           mode 'text'  : 쓴 글 그대로 — 읽고 보관하는 책
+           mode 'trace' : 흐린 글자 — 그 위에 덧쓰는 학습지 책
+       ▸ 포트폴리오의 「일기장 모두 인쇄」와 **같은 방식**입니다 — 두 곳이
+         다르면 선생님이 어디서 무엇을 뽑았는지 헷갈립니다.
+       ▸ `trace` 는 `C.PicDiarySheet` 가 이미 아는 모양이라, 넘겨 주기만
+         하면 됩니다 (css 의 `.pd-sheet.t-trace`). */
+    function printBook(mode) {
       if (!list.length) { App.ui.toast('아직 모인 일기가 없어요.'); return; }
       App.printNode(html`<div class="pd-book">
         ${list.map(function (x) {
           return html`<div key=${x.id} class="pd-page">
-            <${C.PicDiarySheet} diary=${x} student=${student} trace="text" />
+            <${C.PicDiarySheet} diary=${x} student=${student} trace=${mode || 'text'} />
           </div>`;
         })}
       </div>`);
@@ -1565,8 +1574,13 @@
              계획하GO! 의 마지막 화면 · 나의 여가 모아보기와 **같은 모양**입니다. -->
       <${C.Stage}
         action=${html`<div class="fix-acts">
+          <!-- ★ 두 가지로 뽑습니다 (선생님 말씀 · 위 printBook 주석).
+                 ⛔ onClick 에 함수를 **그대로** 넘기지 마세요 — 그러면 클릭
+                    이벤트가 첫 인자로 들어가 mode 자리에 앉습니다. -->
           <${C.Btn} kind="primary" icon="print" disabled=${!list.length}
-            onClick=${printBook}>일기 모음을 책으로 인쇄하기<//>
+            onClick=${function () { printBook('text'); }}>책으로 인쇄 · 내가 쓴 글<//>
+          <${C.Btn} icon="print" disabled=${!list.length}
+            onClick=${function () { printBook('trace'); }}>책으로 인쇄 · 따라 쓰기<//>
         </div>`}>
         <${C.Question} bar=${true}
           speakText=${'나의 일기 모음. 모두 ' + list.length + '장이에요.'}>
