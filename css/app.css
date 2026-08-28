@@ -4855,10 +4855,23 @@ textarea.field.diary-write,
      「너무 박스가 많아. 돌아보기를 한박스로 두고 그 안에서 문장들이
      나오게하고 **문장들 간격을 두었으면** 해」).
      예전에는 줄마다 점선 상자여서 한 장에 상자가 다섯이었습니다. */
-.me-review{ display:flex; flex-direction:column; gap:18px; }
+/* 문장 사이는 **한 줄쯤**만 (2026-08-28 · 선생님 말씀 — 「돌아보기 문장간
+   줄간격이 너무 넓은것 같아. 한줄 간격을 띄우는게 좋을듯」).
+   `1em` 은 글자 한 줄 높이라, 글자 크기를 바꿔도 늘 한 줄만큼입니다. */
+.me-review{
+  display:flex; flex-direction:column; gap:1em;
+  padding-top:4px; padding-bottom:4px;
+}
+/* ⛔ `min-height` 를 주지 마세요 (2026-08-28 · 선생님 짐작이 맞았습니다 —
+     「그림이 없으니 줄간격이 넓어보이는건가?」).
+     2.2em 은 **그림 자리를 미리 잡아 두는** 값이었습니다. 그림이 없는 줄도
+     42px 을 차지해, 글(29px)보다 13px 이 빈 자리로 남았습니다.
+     네 줄이면 52px — 그래서 줄 사이가 실제보다 넓어 보였습니다.
+   ▸ 이제 줄 높이는 **속에 든 것**을 따릅니다. 그림이 있으면 그 크기,
+     없으면 글 높이 그대로입니다. 사이(gap)만 고르게 남습니다. */
 .me-review-ln{
   display:flex; align-items:center; gap:14px;
-  font-weight:900; min-height:2.2em;
+  font-weight:900;
 }
 
 /* ★ 상자 폭을 **글에 맞춥니다** (2026-08-28 · 선생님 말씀 — 「바의 크기가
@@ -4899,8 +4912,9 @@ textarea.field.diary-write,
 .me-sheet .sheet-title{ margin-top:34px; }
 .me-sheet .sheet-meta + .sheet-title{ margin-top:16px; }
 .me-sheet .sentence{ margin-top:20px; }
-/* 돌아보기 상자 **안**의 문장 사이도 함께 넓힙니다 (18px → 26px) */
-.me-review{ gap:26px; padding-top:6px; padding-bottom:6px; }
+/* ※ 돌아보기 상자(.me-review) 규칙은 **위 한 곳**에 모았습니다.
+     여기에 또 적으면 뒤엣것이 이겨서, 위만 고치고 「화면이 그대로다」 하며
+     헤매게 됩니다 (`.plan-sofar` 로 실제로 겪었습니다 — 인수인계 §37). */
 
 /* ★ 문장 틀 — **한 줄에 한 문장**, 왼쪽부터 나란히 (2026-08-24 · 선생님 말씀).
      가운데 정렬이면 줄이 접혔을 때 뒷말만 한가운데 덩그러니 남아

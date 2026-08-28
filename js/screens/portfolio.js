@@ -1347,9 +1347,15 @@
         <!-- ★ 학생이 **직접 붙인 지도**가 있으면 그것을 책에 넣습니다.
                제 손으로 놓은 지도가 목록보다 훨씬 제 것 같습니다.
              ▸ 아직 안 붙였으면 목록 쪽(bookMapSheet)을 그대로 냅니다. -->
+        <!-- ⛔ **테두리는 하나만** (2026-08-28 · 선생님 말씀 — 「쓸데없이 겹두줄
+               테두리 하나만 테두리하기」). 계획표에서 이미 겪은 것과 같습니다.
+               속에 든 것(지도 · 한마디 종이)이 **이미 제 테두리**를 가지고
+               있어서, 쪽 테두리까지 그리면 두 겹으로 보입니다.
+             ▸ 「plain」 은 쪽 나누기는 그대로 두고 **선만** 뺍니다.
+             ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
         ${Object.keys(boardLayout()).length
-          ? html`<div class="book-page">${printMapBoard()}</div>`
-          : (mapSheet && html`<div class="book-page">${mapSheet}</div>`)}
+          ? html`<div class="book-page plain">${printMapBoard()}</div>`
+          : (mapSheet && html`<div class="book-page plain">${mapSheet}</div>`)}
 
         ${data.diaries.map(function (d) {
           return html`<div key=${'d' + d.id} class="pd-page">
@@ -1357,7 +1363,7 @@
           </div>`;
         })}
 
-        <div class="book-page">${printMe()}</div>
+        <div class="book-page plain">${printMe()}</div>
       </div>`;
     }
 
