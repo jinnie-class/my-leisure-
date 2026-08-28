@@ -522,6 +522,16 @@ ul{ margin:0; padding:0; list-style:none; }
 .pick .thumb{
   width:clamp(72px,19vh,230px); height:clamp(72px,19vh,230px);
   display:grid; place-items:center;
+  /* ⛔⛔ **안전장치 — 지우지 마세요** (2026-08-28 · 선생님 말씀 —
+       「준비물이 나오는 칸의 이미지들이 각자의 상자를 넘쳐서 나와」).
+     위의 크기는 모두 **화면 높이(vh)** 로 잽니다. 그런데 칸의 넓이는
+     **한 줄에 몇 칸이냐**로 정해집니다. 둘은 아무 상관이 없어서, 칸이 많은
+     화면에서는 그림이 칸을 뚫고 나옵니다.
+       실제로 준비물(한 줄 8칸) : 칸 143px 인데 그림칸 187px
+                                 → 좌우로 22px 씩 삐져나옴
+     `max-width:100%` 하나면 **어떤 칸에서도** 넘치지 않습니다.
+     칸이 좁으면 그림이 알아서 작아집니다 (속 그림은 object-fit:contain). */
+  max-width:100%;
 }
 /* ★ 그림 파일마다 **속에 그려진 글자 크기**가 다릅니다 (2026-08-26 · 선생님
      말씀 — 「오늘이라는 글자가 어제에 비해 크게 나오는데」).
@@ -548,6 +558,19 @@ ul{ margin:0; padding:0; list-style:none; }
 [data-corner="plan"] .pick .thumb.portrait,
 [data-corner="diary"] .pick .thumb.portrait{
   width:auto; height:clamp(110px,26vh,300px);
+}
+/* ★ 준비물은 **한 줄에 여덟 칸**이라 칸이 좁습니다 (2026-08-28).
+     위의 26vh 는 「한 줄에 셋」을 보고 잰 값이라 여기서는 칸을 넘칩니다.
+   ▸ 넓이는 **칸에 맞추고**(100%), 높이는 그 넓이를 따라오게 합니다
+     (`aspect-ratio:1`). 그래야 그림칸이 세로로 길쭉해지지 않고 네모입니다.
+   ⚠ 위 `max-width:100%` 만으로는 넓이만 줄고 **높이는 그대로**라
+     143x187 짜리 길쭉한 칸이 됩니다 — 이 규칙이 함께 있어야 합니다.
+   ⛔ 8칸은 준비물 한 곳뿐입니다. 다른 화면(셋·여섯 칸)은 건드리지 않습니다. */
+.pick-grid.cols-8 .pick .thumb,
+[data-corner="plan"] .pick-grid.cols-8 .pick .thumb,
+[data-corner="diary"] .pick-grid.cols-8 .pick .thumb{
+  width:min(clamp(72px,19vh,230px), 100%);
+  height:auto; aspect-ratio:1;
 }
 /* 사람 그림처럼 위아래로 긴 그림을 담는 자리.
    ※ 그림 원본이 512×800(=0.64) 이므로 칸도 0.64 로 두어야
