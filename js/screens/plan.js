@@ -219,16 +219,36 @@
              ⚠ `em` 이라 **글자 크기를 키우면 밑줄도 같이 늘어납니다** —
                따로 맞출 것이 없습니다. */
           ? html`<div class="ws-fill">
-              ${blanks().map(function (x, i) {
-                return html`<${React.Fragment} key=${i}>
-                  ${i > 0 && !x.tight && ' '}
-                  ${x.blank
-                    ? html`<span class="ws-blank"
-                        style=${{ minWidth:
-                          (Math.round(Math.max(4, x.t.length + 1) * 1.2 * 10) / 10) + 'em' }}></span>`
-                    : html`<span class="ws-word">${x.t}</span>`}
-                <//>`;
-              })}
+              <!-- ★ 토막을 **구(句)마다 묶어** 그립니다 (2026-08-28 · 선생님 말씀 —
+                     「빠진낱말 찾아쓰기에서도 구어절 끊기하면 좋겠다」).
+                     그냥 늘어놓으면 자리가 모자랄 때 「…를 할 / 거예요.」 처럼
+                     한 구가 두 줄로 갈라졌습니다.
+                   ▸ 한 묶음 = **빈칸(또는 낱말) + 뒤에 붙는 조사들**(tight).
+                     묶음이 통째로 넘어가므로 구 사이에서만 끊깁니다.
+                   ▸ 위 계획표 문장(.sentence .ph)과 **같은 규칙**입니다.
+                   ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+              ${(function () {
+                /* 붙는 토막(tight)을 앞엣것에 모아 **구 묶음**을 만듭니다 */
+                var 묶음 = [];
+                blanks().forEach(function (x) {
+                  if (x.tight && 묶음.length) 묶음[묶음.length - 1].push(x);
+                  else 묶음.push([x]);
+                });
+                return 묶음.map(function (grp, gi) {
+                  return html`<${React.Fragment} key=${gi}>
+                    ${gi > 0 && ' '}
+                    <span class="ws-ph">
+                      ${grp.map(function (x, i) {
+                        return x.blank
+                          ? html`<span key=${i} class="ws-blank"
+                              style=${{ minWidth:
+                                (Math.round(Math.max(4, x.t.length + 1) * 1.2 * 10) / 10) + 'em' }}></span>`
+                          : html`<span key=${i} class="ws-word">${x.t}</span>`;
+                      })}
+                    </span>
+                  <//>`;
+                });
+              })()}
             </div>`
           : html`<div class="ws-lines">
               <i></i><i></i><i></i>
