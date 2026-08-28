@@ -2041,16 +2041,18 @@
                          먼저 눈에 들어와야 합니다.
                        ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
                   <div class="dcard-in">
-                    <!-- ★ **왼쪽에 날짜·제목·그림(가운데), 오른쪽에 단추 셋**
-                           (2026-08-28 · 선생님이 보내 주신 그림대로).
-                           읽을 것(날짜·제목·그림)과 누를 것(단추 셋)을
-                           좌우로 갈라 두면, 학생이 어디를 보고 어디를 누를지
-                           한눈에 압니다.
+                    <!-- ★ **날짜는 머리글 · 아래에 [제목+그림 | 단추 셋]**
+                           (2026-08-28 · 선생님이 보내 주신 둘째 그림 —
+                           「이게 더 나으려나?」 · 제 생각에도 이쪽이 낫습니다).
+                         ▸ 날짜가 **카드 머리글**이 되어, 여러 장을 훑을 때
+                           왼쪽 위만 따라가면 날짜가 죽 읽힙니다.
+                         ▸ 제목과 그림이 **한 덩어리**가 됩니다 — 학생이
+                           알아보는 것은 이 둘입니다.
                          ▸ 단추 셋은 세로로 쌓습니다 — 가로로 두면 카드가
                            낮아져 그림 자리가 안 나옵니다. -->
+                    <div class="small muted dcard-date">${App.fmtDateLong(d.date)}</div>
                     <div class="dcard-head">
                       <div class="dcard-txt">
-                        <div class="small muted">${App.fmtDateLong(d.date)}</div>
                         <b class="dcard-title">${d.title || (a ? a.name : '여가 일기')}</b>
                         <span class="dcard-art"><${C.ActivityArt} activity=${a} /></span>
                       </div>
