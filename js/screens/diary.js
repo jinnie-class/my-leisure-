@@ -630,10 +630,13 @@
       if (step === 3) {
         return html`<${React.Fragment}>
           ${boneWrite(3)}
+          <!-- ⛔ 활동을 골라도 **장소를 미리 채우지 않습니다**
+                 (2026-08-28 · 선생님 말씀 — 「장소 미리 정하기 기능 삭제」).
+                 계획하기의 chooseCard 와 같은 규칙입니다 — 두 화면이 다르면
+                 학생이 계획과 일기에서 다른 일을 겪습니다. -->
           <${C.ActivityChooser} student=${student} value=${draft.activityId}
             area=${act ? act.area : null} note=${lvNote}
-            onPick=${function (id) { var a = App.act(id); patch({ activityId: id, cardId: App.cardIdOf(id),
-              place: draft.place || (a ? a.defaultPlace : '') }); }} />
+            onPick=${function (id) { patch({ activityId: id, cardId: App.cardIdOf(id) }); }} />
         <//>`;
       }
 

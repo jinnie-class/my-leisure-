@@ -248,7 +248,9 @@
       activityId: fromChallenge ? fromChallenge.id : null,
       partnerId: null,
       date: App.todayKey(), time: '',
-      place: fromChallenge ? (fromChallenge.defaultPlace || '') : '',
+      /* ⛔ 오늘의 도전으로 들어와도 **장소는 비워 둡니다** — 위 chooseCard 와
+           같은 까닭입니다 (장소 미리 정하기 없앰 · 2026-08-28). */
+      place: '',
       supplies: fromChallenge ? (fromChallenge.defaultSupplies || []).slice() : [],
       memo: ''
     };
@@ -330,18 +332,29 @@
     var page = Math.min(pageS[0], pageCount - 1);
     var pageCards = cards.slice(page * PLAN_PER, page * PLAN_PER + PLAN_PER);
 
+    /* ⛔⛔ **장소를 미리 채우지 않습니다** (2026-08-28 · 선생님 말씀 —
+         「장소 미리 정하기 기능 삭제」).
+         예전에는 활동을 고르는 순간 그 활동의 `defaultPlace` 가 장소 칸에
+         **저절로 들어갔습니다.** 그러면 「어느 곳에서 할까요?」 는 이미
+         답이 정해진 채로 열려, 학생이 고르는 것이 아니라 **지우고 다시
+         고르는** 화면이 됩니다. 집에서 책을 읽는 날, 부엌에서 요리하지
+         않는 날마다 그렇습니다.
+       ▸ 장소는 학생이 **직접** 고릅니다. 준비물은 그대로 채워 줍니다 —
+         준비물은 여러 개를 더하고 빼는 칸이라 밑그림이 있는 편이 낫습니다.
+       ⚠ `defaultPlace` 자체는 남겨 둡니다. 이제는 **장소 칸에서 그곳을
+         맨 앞에 놓아 주는** 일만 합니다 (고르기 쉽게 하는 단서). */
     function chooseCard(card) {
       var kids = App.visibleChildren(student, card);
       if (kids.length) { subS[1](card); App.speakFor(student, card.speechName); return; }
       pick(function () {
-        patch({ cardId: card.id, activityId: card.id, place: draft.place || card.defaultPlace,
+        patch({ cardId: card.id, activityId: card.id,
                 supplies: draft.supplies.length ? draft.supplies : card.defaultSupplies.slice() });
         App.speakFor(student, card.speechName);
       });
     }
     function chooseChild(card, child) {
       pick(function () {
-        patch({ cardId: card.id, activityId: child.id, place: draft.place || child.defaultPlace,
+        patch({ cardId: card.id, activityId: child.id,
                 supplies: draft.supplies.length ? draft.supplies : child.defaultSupplies.slice() });
         App.speakFor(student, child.speechName);
         subS[1](null);
