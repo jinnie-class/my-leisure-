@@ -303,6 +303,18 @@
          이름을 다르게 하면 학생이 다른 활동으로 봅니다
          (활동 이름에 장소를 넣지 않는 규칙 8-18).
 
+       ⛔⛔ **이 둘은 `defaultPlace` 를 비워 둡니다** (2026-08-28 · 선생님 말씀 —
+         「도서관, 노래방 장소는 바꾸지말고 **활동만** 넣어줘. 왜냐하면
+         **교실에서 책읽기, 집에서 책읽기, 교실에서 노래하기가 가능하도록**」).
+         `defaultPlace` 는 그냥 적어 두는 메모가 아닙니다. 두 가지 일을 합니다 :
+           ① 활동을 고르는 순간 **장소 칸을 미리 채웁니다**
+              (`place: draft.place || card.defaultPlace`)
+           ② 장소 고르는 칸에서 그곳을 **맨 앞으로 끌어옵니다**
+         그래서 `교실` 을 적어 두면 교실이 먼저 정해져 버려, 집에서 읽는
+         날에도 학생이 굳이 지우고 다시 골라야 합니다.
+       ▸ 비워 두면 학생이 **교실이든 집이든** 똑같이 고릅니다.
+         실외 짝(`library` · `karaoke`)의 도서관·노래방은 **그대로 둡니다.**
+
        ⚠⚠ **그림이 아직 실내 것이 아닙니다.**
          지금은 실외 짝의 그림(도서관.png · 노래방.png)을 그대로 씁니다.
          그림에 도서관과 노래방이 그려져 있어서, 교실에서 하는 일로는
@@ -314,11 +326,11 @@
     A({ id: 'library-in', area: 'indoor', name: '책 읽기', icon: 'library', imageKey: '도서관',
         speechName: '책 읽기',
         planText: '책을 읽을 거예요', diaryText: '책을 읽었어요',
-        defaultPlace: '교실', defaultSupplies: ['책'] }),
+        defaultPlace: '', defaultSupplies: ['책'] }),
     A({ id: 'karaoke-in', area: 'indoor', name: '노래 부르기', icon: 'mic', imageKey: '노래방',
         speechName: '노래 부르기',
         planText: '노래를 부를 거예요', diaryText: '노래를 불렀어요',
-        defaultPlace: '교실', defaultSupplies: [] }),
+        defaultPlace: '', defaultSupplies: [] }),
     A({ id: 'game', area: 'indoor', name: '게임하기', icon: 'gamepad', imageKey: '게임하기',
         planText: '게임을 할 거예요', diaryText: '게임을 했어요',
         defaultPlace: '집', defaultSupplies: [] }),
