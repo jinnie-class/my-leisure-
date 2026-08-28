@@ -239,7 +239,10 @@
       ? App.act(p.params.activityId) : null;
 
     var fresh = {
-      level: (student && student.planLevel) || 'easy',
+      /* ⚠ 학생에게 정해진 값이 없을 때의 기본은 **자세한 계획**입니다
+           (2026-08-28 · 선생님 말씀). store.js 의 새 학생 기본값과 같아야
+           합니다 — 한쪽만 고치면 설정 화면과 실제 화면이 어긋납니다. */
+      level: (student && student.planLevel) || 'detail',
       area: fromChallenge ? fromChallenge.area : null,
       cardId: fromChallenge ? App.cardIdOf(fromChallenge.id) : null,
       activityId: fromChallenge ? fromChallenge.id : null,
