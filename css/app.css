@@ -4055,6 +4055,25 @@ textarea.sentence-edit,
   margin:0; font-size:30px; font-weight:800; line-height:1.5;
   text-indent:1em; color:#4a4a55;
 }
+/* ★ 힌트 안의 **제목 줄** (2026-08-28 · 선생님 말씀 — 「제목 힌트가 없어」).
+     아래 종이의 제목 줄과 같은 차림(제목 딱지 + 글)이라, 학생이 「이건 제목에
+     쓰는 것」임을 바로 압니다.
+   ⛔ 높이를 고치면 picdiary.js 의 `HINT_TITLE_H`(48) 도 같이 고치세요 —
+      안 맞추면 힌트 원고지가 상자를 넘쳐 아래 줄이 잘립니다. */
+.pd-hintbig-title{
+  align-self:center; display:flex; align-items:center; gap:.6em;
+  max-width:100%; box-sizing:border-box;
+  padding:3px 14px; border:2px solid #c9a227; border-radius:8px;
+  background:#fff;
+}
+.pd-hintbig-titlelab{
+  flex:0 0 auto; font-size:18px; font-weight:800; color:#8a6a1e; letter-spacing:.1em;
+}
+.pd-hintbig-titletext{
+  flex:1 1 auto; min-width:0; font-size:34px; font-weight:800; line-height:1.2;
+  letter-spacing:.06em; color:#4a4a55;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 /* ★ 1·2단계 힌트는 **아래 원고지와 같은 칸 모양**으로 보여 줍니다.
    글자만 줄글로 보여 주면 학생이 어느 칸에 무엇을 쓸지 스스로 옮겨야 합니다.
    띄어쓰기 한 칸과 문장부호 자리까지 **눈으로 그대로 베낄 수 있어야** 합니다.

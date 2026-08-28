@@ -83,6 +83,11 @@
      ⚠ css 의 `.pd-hintbig` 여백·테두리를 고치면 이 값도 같이 고쳐야 합니다. */
   var HINT_INNER_W = ART_INNER_W - 22 * 2 - 3 * 2;   // 720
   var HINT_INNER_H = Math.round(ART_INNER_W / ART_RATIO) - 14 * 2 - 3 * 2 - 26 - 8;  // 445
+  /* 힌트 안의 **제목 줄**이 쓰는 높이 (2026-08-28 · 선생님 말씀 — 「제목 힌트가 없어」).
+     글자 34px + 위아래 여백 + 아래 사이 = 넉넉히 48px.
+     ⚠ css 의 `.pd-hintbig-title` 크기를 고치면 이 값도 같이 고치세요 —
+       안 맞추면 힌트 원고지가 상자를 넘쳐 아래 줄이 잘립니다. */
+  var HINT_TITLE_H = 48;
 
   /* 짧게 써도 서식이 비어 보이지 않게 최소 5줄.
      5줄은 10칸에서 5 x 79 = 395px 라 GRID_BUDGET(464) 안에 넉넉히 들어갑니다.
@@ -582,6 +587,17 @@
              ▸ 힌트를 끄면 다시 그림이 나옵니다. */
           ? html`<div class="pd-hintbig">
               <span class="pd-hintbig-lab">보고 써요</span>
+              <!-- ★ **제목도 힌트에 넣습니다** (2026-08-28 · 선생님 말씀 —
+                     「제목 힌트가 없어」). 아래 종이에는 제목 칸이 비어 있는데
+                     힌트에는 본문만 있어서, 학생이 **제목에 무엇을 쓸지 알
+                     길이 없었습니다.** 보고 쓰기는 볼 것이 다 있어야 합니다.
+                   ▸ 아래 종이의 제목 줄과 **같은 차림**(제목 딱지 + 글)입니다.
+                   ⛔ 이 줄이 자리를 먹으므로, 아래 칸 크기를 셈할 때
+                     그 높이(HINT_TITLE_H)를 **빼야** 합니다. -->
+              ${titleText && html`<div class="pd-hintbig-title">
+                <span class="pd-hintbig-titlelab">제목</span>
+                <span class="pd-hintbig-titletext">${titleText}</span>
+              </div>`}
               ${useLines
                 /* 3단계는 밑줄에 쓰므로 원고지가 없습니다 — 문장 그대로 보여 줍니다 */
                 ? hintLines.map(function (s, i) {
@@ -598,8 +614,11 @@
                       return r.some(function (ch) { return String(ch).trim() !== ''; });
                     });
                     if (!rows.length) rows = g.rows.slice(0, 1);
-                    /* 힌트 상자 속에 들어갈 칸 한 변 — 폭과 높이 가운데 작은 쪽에 맞춥니다 */
-                    var cell = Math.min(HINT_INNER_W / g.cols, HINT_INNER_H / rows.length);
+                    /* 힌트 상자 속에 들어갈 칸 한 변 — 폭과 높이 가운데 작은 쪽에 맞춥니다.
+                       ⛔ 제목 줄이 있으면 그 높이를 **빼고** 셈해야 합니다.
+                          안 빼면 힌트가 상자를 넘쳐 아래 줄이 잘립니다. */
+                    var 남는높이 = HINT_INNER_H - (titleText ? HINT_TITLE_H : 0);
+                    var cell = Math.min(HINT_INNER_W / g.cols, 남는높이 / rows.length);
                     return html`<div class="pd-hintgrid"
                       style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', ' + cell + 'px)',
                                 fontSize: Math.round(cell * GLYPH_FILL) + 'px' }}>
