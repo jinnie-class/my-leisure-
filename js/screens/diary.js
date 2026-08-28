@@ -1564,10 +1564,14 @@
       if (key === '제목') {
         return html`<${React.Fragment}>
           <${C.Question} bar=${true} note=${lvNote} speakText="일기 제목을 써요">일기 제목을 써요<//>
-          <div class="row">
+          <!-- ★ 제목 줄도 **폭을 줄이고 가운데로** (2026-08-28 · 선생님 말씀 —
+                 「일기 제목도 일기쓰기처럼 폭을 줄이고 가운데 정렬」).
+                 화면 폭을 다 쓰면 제목 칸이 한 줄짜리 글에 비해 너무 넓어
+                 어디에 쓰는 칸인지 눈에 안 들어옵니다. -->
+          <div class="row title-row">
             <div class="grow"><${C.Field} label="일기 제목" value=${draft.title}
               placeholder="예) 친구와 슬라임 놀이" onChange=${function (v) { patch({ title: v }); }} /></div>
-            <div style=${{ width: '13rem' }}><${C.Field} label="날짜" type="date" value=${draft.date}
+            <div style=${{ width: '11rem' }}><${C.Field} label="날짜" type="date" value=${draft.date}
               onChange=${function (v) { patch({ date: v || App.todayKey() }); }} /></div>
           </div>
           ${weatherPicker()}
@@ -1615,7 +1619,15 @@
                ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). 실제로 여기에
                   백틱을 썼다가 화면이 통째로 안 떴습니다. -->
           ${(draft.writeWay !== 'hand') && html`<${React.Fragment}>
-            <${C.Area} rows=${6} value=${draft.text}
+            <!-- ★ **위 문장 틀만큼 크게, 나눔바른펜으로** (2026-08-28 · 선생님 말씀 —
+                   「일기칸이 너무 길고 글자가 작아서 잘 안보여. 글자크기 위의
+                   글자만큼 크게 하고 나눔바른펜으로 … 눈에 잘 띄게 수정도
+                   편하게」).
+                   예전에는 작은 회색 칸이 화면 폭을 다 써서, 학생이 자기가 쓴
+                   글을 읽기 어려웠습니다. 노란 미리보기 창은 잘 보였는데
+                   정작 **쓰는 칸**이 안 보였습니다.
+                 ▸ 완성 화면의 문장 칸(sentence-edit)과 **같은 차림**을 씁니다. -->
+            <${C.Area} rows=${5} className="diary-write" value=${draft.text}
               placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
               onChange=${function (v) { patch({ text: v }); }} />
             <div class="wrap" style=${{ marginTop: '.45rem' }}>

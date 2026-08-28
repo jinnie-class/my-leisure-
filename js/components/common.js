@@ -1197,10 +1197,13 @@
     </label>`;
   };
 
+  /* `className` — 칸 모양을 바꿔 끼울 때 씁니다
+     (예 : 3단계 일기 쓰기 칸의 `diary-write` — 노란 바탕에 큰 글씨). */
   C.Area = function (p) {
     return html`<label style=${{ display: 'block' }}>
       ${p.label && html`<span class="lab">${p.label}</span>`}
-      <textarea class="field" rows=${p.rows || 6} value=${p.value || ''} placeholder=${p.placeholder || ''}
+      <textarea class=${'field' + (p.className ? ' ' + p.className : '')}
+        rows=${p.rows || 6} value=${p.value || ''} placeholder=${p.placeholder || ''}
         onChange=${function (e) { p.onChange(e.target.value); }}></textarea>
     </label>`;
   };
