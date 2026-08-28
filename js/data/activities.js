@@ -293,6 +293,32 @@
         speechName: '퍼즐놀이',
         planText: '퍼즐놀이를 할 거예요', diaryText: '퍼즐놀이를 했어요',
         defaultPlace: '교실', defaultSupplies: ['퍼즐'] }),
+    /* ★ **책 읽기 · 노래 부르기는 실내에도 둡니다** (2026-08-28 · 선생님 말씀 —
+         「노래 부르기와 책 읽기는 실내활동에도 넣어줘」).
+         도서관·노래방에 가야만 할 수 있는 일이 아니라, 교실에서도 늘 합니다.
+       ▸ 실외 짝(`library` · `karaoke`)은 **그대로 둡니다.** 지우면 그 활동으로
+         쓴 지난 기록이 실외 섬에서 사라집니다. 두 섬에 하나씩 있는 것은
+         `pet` / `pet-in`(반려동물과 놀기)에서 이미 쓰던 방식입니다.
+       ▸ 이름은 실외 짝과 **똑같이** 둡니다 — 장소가 다를 뿐 같은 일이라,
+         이름을 다르게 하면 학생이 다른 활동으로 봅니다
+         (활동 이름에 장소를 넣지 않는 규칙 8-18).
+
+       ⚠⚠ **그림이 아직 실내 것이 아닙니다.**
+         지금은 실외 짝의 그림(도서관.png · 노래방.png)을 그대로 씁니다.
+         그림에 도서관과 노래방이 그려져 있어서, 교실에서 하는 일로는
+         결이 어긋납니다. 글자를 못 읽는 학생은 **그림으로 고릅니다.**
+       ▸ `images/activities/` 에 아래 두 장을 넣어 주시면 바로 바뀝니다 :
+             책 읽기.png       (교실·집에서 책 읽는 그림)
+             노래 부르기.png   (교실에서 노래 부르는 그림)
+         넣으신 뒤 imageKey 를 그 이름으로 바꾸면 됩니다. */
+    A({ id: 'library-in', area: 'indoor', name: '책 읽기', icon: 'library', imageKey: '도서관',
+        speechName: '책 읽기',
+        planText: '책을 읽을 거예요', diaryText: '책을 읽었어요',
+        defaultPlace: '교실', defaultSupplies: ['책'] }),
+    A({ id: 'karaoke-in', area: 'indoor', name: '노래 부르기', icon: 'mic', imageKey: '노래방',
+        speechName: '노래 부르기',
+        planText: '노래를 부를 거예요', diaryText: '노래를 불렀어요',
+        defaultPlace: '교실', defaultSupplies: [] }),
     A({ id: 'game', area: 'indoor', name: '게임하기', icon: 'gamepad', imageKey: '게임하기',
         planText: '게임을 할 거예요', diaryText: '게임을 했어요',
         defaultPlace: '집', defaultSupplies: [] }),
