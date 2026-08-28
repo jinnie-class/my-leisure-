@@ -390,6 +390,43 @@
         defaultPlace: '텃밭', defaultSupplies: ['모종삽', '물뿌리개', '장갑'] })
   ];
 
+  /* ═══════════════ 화면에 놓이는 **차례** (2026-08-28) ═══════════════
+     선생님 : 「활동들이 조금 **계열성 있게** 나열되어 있으면 좋겠는데
+               지금 보니 중구난방 같아」
+
+     ★ 차례를 **여기 한 곳**에서 정합니다. 위 목록(ACTIVITIES)은 활동을
+       **적어 두는 곳**이고, 놓이는 차례는 이 표가 정합니다.
+       그래야 차례를 바꿀 때 여러 줄짜리 덩어리를 오려 붙이지 않아도 되고,
+       옮기다 한 활동을 통째로 날리는 일이 없습니다.
+
+     ▸ 묶음이 보이게 줄을 나눠 두었습니다. 줄을 옮기면 그대로 바뀝니다.
+     ⛔ 활동을 새로 더하면 **여기에도 id 를 적으세요.** 안 적으면 맨 뒤로
+        갑니다 (사라지지는 않습니다 — 아래 byOrder 참고).
+     ※ 「우리 반 활동」(선생님이 더한 것)은 늘 맨 뒤입니다. */
+  var ORDER = {
+    indoor: [
+      'make', 'block', 'puzzle', 'toy', 'marble',      // 손으로 만들고 조작하기
+      'music', 'karaoke-in', 'library-in',             // 듣고 부르고 읽기
+      'collect', 'cook', 'insect', 'pet-in',           // 모으고 기르고 만들어 먹기
+      'tv', 'game', 'boardgame',                       // 보고 겨루기
+      'yoga', 'gymnastics'                             // 몸 움직이기
+    ],
+    outdoor: [
+      'playground', 'stationery', 'karaoke',           // 가까운 곳에서
+      'park', 'bike', 'walk', 'garden', 'pet-out',     // 바깥에서 몸 쓰고 돌보기
+      'restaurant', 'cafe', 'camping',                 // 먹고 쉬기
+      'library', 'cinema', 'artmuseum', 'museum'       // 문화 시설에서
+    ]
+  };
+  /* 차례표에 없는 것(우리 반 활동 · 적기를 빠뜨린 것)은 **맨 뒤로** 보냅니다.
+     ⛔ 빼 버리지 마세요 — 화면에서 사라지면 그 활동으로 쓴 지난 기록을
+        학생이 찾을 수 없습니다. */
+  function orderOf(a) {
+    var list = ORDER[a.area] || [];
+    var i = list.indexOf(a.id);
+    return i < 0 ? 9999 : i;
+  }
+
   /* ------------------------- 우리 반 활동 -------------------------
      선생님 설정에서 학급 특성에 맞게 더한 활동입니다.
      `App.store` 에 저장되어 있고, 앱이 켜질 때·바뀔 때 여기로 넘겨 줍니다.
@@ -454,8 +491,14 @@
   App.cardIdOf = function (id) { id = realId(id); return CARD_OF[id] || id; };
   App.cardOf = function (id) { return BY_ID[App.cardIdOf(id)] || null; };
   App.allActivities = function () { return Object.keys(BY_ID).map(function (k) { return BY_ID[k]; }); };
+  /* ★ 위 `ORDER` 표가 정한 차례로 내어 줍니다 (2026-08-28).
+     ▸ 계획하기 · 일기 · 여가지도 · 선생님 설정이 모두 이 함수를 거치므로,
+       **차례가 한 번에 다 같아집니다.**
+     ⚠ `sort` 는 차례가 같은 것들끼리는 **원래 순서를 지킵니다**(안정 정렬).
+       그래서 표에 없는 것(우리 반 활동)끼리는 더한 차례대로 뒤에 붙습니다. */
   App.topCards = function (area) {
-    return ALL.filter(function (a) { return !area || a.area === area; });
+    return ALL.filter(function (a) { return !area || a.area === area; })
+              .sort(function (x, y) { return orderOf(x) - orderOf(y); });
   };
   /* 학생 설정에서 숨긴 활동을 제외한 대표 카드.
      ⛔ **하나도 안 남는 일은 없어야 합니다.**
