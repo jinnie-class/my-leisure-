@@ -416,8 +416,13 @@
          한글 한 글자는 대략 글자 크기만큼 폭을 씁니다.
        ▸ 18px 아래로는 안 줄입니다. 그보다 긴 제목은 학생이 읽기 어렵습니다. */
     var titleText = String(d.title || (a ? a.name : '') || '');
+    /* ⛔ 700 → **636** (2026-08-28). 제목 줄에 자간 `.1em` 을 주었기 때문입니다
+         (css 의 `.pd-titletext`). 한 글자가 이제 1em 이 아니라 **1.1em** 을
+         쓰므로, 쓸 수 있는 폭을 1.1 로 나눠 두어야 합니다 (700 / 1.1 ≒ 636).
+       ⚠ 자간을 고치면 **이 숫자도 같이** 고치세요. 안 고치면 긴 제목의
+         뒤가 「…」로 잘립니다 (원고지 규칙 13 — 글자 누락 금지). */
     var titleFsFit = titleText.length
-      ? Math.max(18, Math.min(titleFs, Math.floor(700 / titleText.length)))
+      ? Math.max(18, Math.min(titleFs, Math.floor(636 / titleText.length)))
       : titleFs;
     /* ★ 가르는 자리 — 「제목」 딱지가 앞 두 칸을 쓰므로 **칸수-2** 글자까지만
          칸에 담깁니다. 한 글자라도 넘치면 줄글로 갑니다 (잘리지 않게).

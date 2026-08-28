@@ -4532,8 +4532,19 @@ textarea.sentence-edit,
   flex:0 0 auto; font-size:.6em; color:#4a4a55; letter-spacing:.1em; font-weight:800;
   margin-right:.8em;
 }
+/* ★ 제목 글자 사이를 **조금 벌립니다** (2026-08-28 · 선생님 말씀 —
+     「제목에 글자가 너무 다닥다닥 붙어있는것 같은데 … 자간을 넓히는건」).
+     맞습니다 — 글자체(나눔바른펜)가 획이 얇고 폭이 좁습니다. 게다가
+     **본문은 원고지 칸마다 글자가 벌어져 있어서**, 붙어 있는 제목이
+     한 장 안에서 유난히 빽빽해 보입니다.
+   ▸ `.1em` 은 한 글자 폭의 10분의 1입니다. 칸 글자만큼 벌리면 되레
+     낱말이 흩어져 보이므로, 눈에 띄되 한 낱말로 읽히는 만큼만 줍니다.
+   ⛔ 자간을 키우면 제목이 그만큼 **길어집니다.** picdiary.js 의
+     `titleFsFit` 에 있는 나눗셈(700 → 636)도 **함께** 고쳐야 합니다.
+     안 고치면 긴 제목의 뒤가 「…」로 잘립니다 (원고지 규칙 13 — 글자 누락 금지). */
 .pd-titletext{
   flex:1 1 auto; min-width:0; font-weight:800; line-height:1.2;
+  letter-spacing:.1em;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 
