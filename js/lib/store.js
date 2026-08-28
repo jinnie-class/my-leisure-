@@ -30,13 +30,14 @@
       avatarChosen: false,          // 학생이 직접 골랐는지
       facePhotoId: null,            // '내 얼굴로 만들기' 로 넣은 사진 (있으면 캐릭터 대신 씁니다)
       diaryLevel: 1,
-      /* ★ 새 학생의 계획 수준은 **자세한 계획**입니다 (2026-08-28 · 선생님
-           말씀 — 「설정에서 자세한 계획을 기본설정으로!」).
-           시간 · 준비물 · 메모까지 묻습니다. 줄이고 싶으면 선생님 설정에서
-           학생마다 「쉬운 계획」으로 바꿉니다.
+      /* ★ 새 학생의 계획 수준은 **쉬운 계획**입니다.
+         ※ 2026-08-28 에 잠깐 `detail` 로 두었다가 같은 날 되돌렸습니다
+           (선생님 말씀 — 「계획방식은 **쉬운 계획이 디폴트**가 맞는것 같아」).
+           처음 쓰는 학생에게 시간·준비물·메모까지 여덟 걸음은 깁니다.
+           자세히 쓸 학생만 선생님 설정에서 「자세한 계획」으로 바꿉니다.
          ⚠ **이미 만들어 둔 학생은 그대로입니다** — 저장된 값이 있으니
            여기를 고쳐도 바뀌지 않습니다. 그 학생들은 설정에서 바꾸세요. */
-      planLevel: 'detail',
+      planLevel: 'easy',
       hiddenActivityIds: [],
       partnerIds: allIds(D.partners),
       partnerVariants: {},          // 예) { friend:'f', teacher:'m' } — 학생마다 그림 고르기
@@ -83,7 +84,7 @@
       name: '학생 1',
       avatarId: 'bear',
       diaryLevel: 1,
-      planLevel: 'detail',
+      planLevel: 'easy',
       isSample: true
     });
     st.students = [s];
