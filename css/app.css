@@ -2332,9 +2332,15 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .pd-rules{
   position:absolute; inset:0 16px; display:block; pointer-events:none;
 }
+/* ⛔ 굵기는 **2px** — 종이의 다른 선과 같은 값입니다 (2026-08-28 · 선생님 말씀
+     — 「굵은 선이 없이 그냥 통일되는게 더 깔끔」).
+     예전에는 3px 이라 이 줄만 유난히 굵어, 날짜 줄·제목 칸(둘 다 2px)과
+     한 장에서 결이 어긋났습니다. 재어서 확인한 값입니다 :
+       pd-line 2px · pd-titleline 2px · pd-foot 2px · pd-draw 2px
+   ⛔ 여기만 굵게 바꾸지 마세요 — 바꾸려면 종이의 선을 **다 함께** 바꿉니다. */
 .pd-rules i{
   display:block; height:var(--lh); box-sizing:border-box;
-  border-bottom:3px solid #333;
+  border-bottom:2px solid #333;
 }
 .pd-ln{
   margin:0; font-size:var(--fs); font-weight:800; line-height:var(--lh);
@@ -4052,18 +4058,20 @@ textarea.field.diary-write,
      세 줄 높이를 통째로 써서 카드에서 가장 먼저 보입니다.
    ⚠ 그림 칸은 `auto` 가 아니라 **clamp 로 못박습니다.** auto 로 두면 일기마다
      그림 크기가 달라져 카드가 들쭉날쭉해집니다. */
-/* ★ 그림을 **날짜·제목 줄의 오른쪽**으로 (2026-08-28 · 선생님 말씀 —
-     「그림을 년월일요일 과 제목줄 뒤쪽에 배치하고 가운데 정렬」).
-   ▸ 위 : 글(가운데 정렬) | 그림      아래 : 단추 바가 폭을 다 씀
-   ⚠ 단추 바를 그림 옆에 끼우지 마세요 — 단추가 좁아져 글자가 줄어듭니다. */
-.dcard-in{ display:flex; flex-direction:column; gap:.35rem; }
+/* ★ **왼쪽 = 날짜·제목·그림(가운데) · 오른쪽 = 단추 셋**
+     (2026-08-28 · 선생님이 보내 주신 그림대로).
+     읽을 것과 누를 것을 좌우로 갈라 두면, 학생이 어디를 보고 어디를
+     누를지 한눈에 압니다. */
+.dcard-in{ display:block; }
 .dcard-head{
   display:grid; grid-template-columns:minmax(0,1fr) auto;
-  gap:.75rem; align-items:center;
+  gap:.7rem; align-items:center;
 }
+/* ★ 그림은 날짜·제목 **아래**, 가운데. 조금 크게 (선생님 말씀 — 「그림을
+     조금 크게하고」 : 96 → 116px). */
 .dcard-art{
-  width:clamp(64px, 7.5vw, 96px); aspect-ratio:1;
-  display:block; align-self:center;
+  width:clamp(76px, 9vw, 116px); aspect-ratio:1;
+  display:block; margin:.2rem auto 0;
 }
 /* ⚠ 속 그림이 칸을 넘지 않게 눌러 둡니다 — 캐릭터가 머리만 보이던 고장과
      같은 까닭입니다 (인수인계 36-1). */
@@ -4084,20 +4092,23 @@ textarea.field.diary-write,
    ▸ 흰 바 **하나**만 그리고, 안에서 칸막이 선으로 셋을 나눕니다.
    ⚠ `.btn` 을 쓰지 않습니다 — `.panel-action .btn{width:100%}` 같은
      바깥 규칙이 끼어들어 단추가 세로로 쌓인 적이 있습니다 (인수인계 33-4). */
+/* ★ 단추 셋은 **세로로** 쌓습니다 (선생님이 보내 주신 그림대로).
+     가로로 두면 카드가 낮아져 그림 자리가 안 나옵니다.
+   ▸ 흰 바 하나 안에 칸막이 선으로 나눕니다 (상자가 셋으로 보이지 않게). */
 .dcard-bar{
-  display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
-  margin-top:.15rem; background:#fff;
-  border:2px solid var(--line, #d8dce6); border-radius:999px;
+  display:grid; grid-template-rows:repeat(3, auto);
+  align-self:stretch; background:#fff;
+  border:2px solid var(--line, #d8dce6); border-radius:16px;
   overflow:hidden;
 }
 .dcard-act{
-  display:flex; align-items:center; justify-content:center; gap:.3rem;
-  min-width:0; padding:.42rem .3rem;
-  background:none; border:0; border-left:2px solid var(--line, #d8dce6);
+  display:flex; align-items:center; gap:.35rem;
+  min-width:0; padding:.42rem .7rem;
+  background:none; border:0; border-top:2px solid var(--line, #d8dce6);
   font:inherit; font-size:.9rem; font-weight:700; color:inherit;
   cursor:pointer; white-space:nowrap;
 }
-.dcard-act:first-child{ border-left:0; }
+.dcard-act:first-child{ border-top:0; }
 .dcard-act:hover{ background:#f1f4fb; }
 .dcard-act .ico{ flex:0 0 auto; width:18px; height:18px; display:flex; }
 .dcard-act .ico svg{ width:100%; height:100%; }
