@@ -1626,45 +1626,13 @@
         <${C.Field} label="장소 (안 써도 돼요)" value=${placeS[0]}
           placeholder="예) 교실 · 텃밭" onChange=${function (v) { placeS[1](v); }} />
 
-        <!-- ★ 그림은 **두 갈래**입니다 (2026-08-28).
-               ① 내 그림 넣기 — 이 컴퓨터에 있는 그림 파일을 그대로 씁니다.
-                  넣으면 그것이 나오므로 아래 칸은 고를 필요가 없습니다.
-               ② 그림 고르기 — 안 넣었을 때 쓰는 코드 그림 서른 가지.
-             ⛔ 「폴더에 파일을 넣어 두면」 안내를 되살리지 마세요 — 앱 폴더를
-                고칠 수 있는 사람만 할 수 있는 일이라, 다른 선생님 컴퓨터에서는
-                아무 소용이 없었습니다 (선생님 말씀).
-             ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
-        <div>
-          <span class="lab">그림</span>
-          <div class="wrap" style=${{ alignItems: 'center' }}>
-            <${C.Btn} icon="camera" disabled=${busyS[0]}
-              onClick=${function () { if (fileRef.current) fileRef.current.click(); }}>
-              ${busyS[0] ? '넣는 중…' : (photoS[0] ? '다른 그림으로 바꾸기' : '내 그림 넣기')}<//>
-            <input ref=${fileRef} type="file" accept="image/*"
-              style=${{ display: 'none' }} onChange=${pickPic} />
-            ${photoS[0] && html`<${C.Btn} size="small" icon="back" onClick=${dropPic}>넣은 그림 빼기<//>`}
-          </div>
-          ${photoS[0]
-            ? html`<div class="wrap" style=${{ marginTop: '.45rem', alignItems: 'center' }}>
-                <span class="addact-pic"><${C.PhotoBox} photoId=${photoS[0]} /></span>
-                <span class="small muted">이 그림으로 나와요. 그림은 이 기기에 저장돼요.</span>
-              </div>`
-            : html`<${React.Fragment}>
-                <div class="icon-pick" style=${{ marginTop: '.4rem' }}>
-                  ${ADD_ICONS.map(function (k) {
-                    var on = iconS[0] === k;
-                    return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
-                      aria-pressed=${on} aria-label=${'그림 ' + k}
-                      onClick=${function () { iconS[1](k); }}>
-                      <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
-                    </button>`;
-                  })}
-                </div>
-                <p class="small muted" style=${{ marginTop: '.3rem' }}>
-                  그림 파일이 있으면 <b>내 그림 넣기</b> 로 넣어요. 안 넣으면 위에서 고른 그림이 나와요.
-                </p>
-              <//>`}
-        </div>
+        <!-- ⛔⛔ 그림 칸은 **usePicPick 하나**를 씁니다 (활동·사람·기분 공용).
+               2026-08-29 에 여기에 **옛 칸이 통째로 남아** 있어서
+               「busyS is not defined」 로 화면이 통째로 죽었습니다
+               (선생님 — 「실내외 더하기 활동을 눌렀더니 이래」).
+               부품으로 바꿀 때 **바꿔 끼우기만 하고 옛것을 안 지운** 탓입니다.
+             ⛔ 여기에 그림 고르는 칸을 다시 적지 마세요 (인수인계 §40-20). -->
+        ${pic.ui(ADD_ICONS, iconS)}
 
         ${name && html`<${C.Banner} icon="check">
           <div class="small">문장은 이렇게 만들어져요.</div>
