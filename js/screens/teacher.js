@@ -405,6 +405,9 @@
               <div class="stack" style=${{ gap: '.3rem' }}>
                 ${mine.map(function (a) {
                   return html`<div key=${a.id} class="row" style=${{ gap: '.4rem' }}>
+                    <!-- 그림을 함께 보여 줍니다 — 어느 활동에 어떤 그림을
+                         넣었는지 목록에서 바로 알아볼 수 있어야 합니다. -->
+                    <span class="addact-pic sm"><${C.ActivityArt} activity=${App.act(a.id)} /></span>
                     <b class="grow small">${a.name}</b>
                     ${a.defaultPlace && html`<span class="chip">${a.defaultPlace}</span>`}
                     <button type="button" class="tchoice sm danger"

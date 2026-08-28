@@ -1487,21 +1487,58 @@
     var areaS = useState(p.area || 'indoor');
     var placeS = useState('');
     var iconS = useState('star');
+    /* ★ 선생님이 **직접 넣은 그림** (2026-08-28 · 선생님 말씀 — 「다른 컴에서도
+         일반화해서 쓸 수 있도록 … 컴 안에 저장하면 그 사진을 넣으면 되는 식으로,
+         사진 넣기 처럼」).
+       ⛔ 예전에는 「images/activities/이름.png 파일을 넣어 두면」 이라고
+          적어 두었습니다. 그건 **이 앱 폴더를 고칠 수 있는 사람만** 할 수
+          있는 일이라, 다른 선생님 컴퓨터에서는 아무 소용이 없었습니다.
+       ▸ 이제 기기 안 사진 보관소(App.photos)에 담습니다 — 학생 사진과 같은 곳,
+         같은 방식입니다. 백업에도 함께 담겨 다른 컴퓨터로 옮겨집니다. */
+    var photoS = useState(null);      // 넣은 그림의 id
+    var busyS = useState(false);
+    var fileRef = useRef(null);
     var name = nameS[0].trim();
+
+    function pickPic(e) {
+      var f = e.target.files && e.target.files[0];
+      e.target.value = '';                       // 같은 파일을 다시 골라도 열리게
+      if (!f) return;
+      busyS[1](true);
+      /* studentId 는 **비웁니다** — 우리 반 활동은 한 학생 것이 아니라
+         학급 전체가 씁니다 (photos.js 의 exportRecords 주석 참고). */
+      App.photos.addFile(f, null, 'activity').then(function (id) {
+        if (photoS[0]) App.photos.remove(photoS[0]);   // 앞서 넣은 것은 버립니다
+        photoS[1](id); busyS[1](false);
+      })['catch'](function (err) {
+        busyS[1](false);
+        App.ui.toast(err && err.message ? err.message : '그림을 넣지 못했어요.');
+      });
+    }
+    function dropPic() {
+      if (photoS[0]) App.photos.remove(photoS[0]);
+      photoS[1](null);
+    }
 
     function save() {
       if (!name) { App.ui.toast('활동 이름을 써 주세요.'); return; }
       var id = App.store.addActivity({
-        area: areaS[0], name: name, icon: iconS[0], defaultPlace: placeS[0].trim()
+        area: areaS[0], name: name, icon: iconS[0], defaultPlace: placeS[0].trim(),
+        photoId: photoS[0] || null
       });
       App.ui.toast('「' + name + '」 활동을 더했어요.');
       if (p.onAdded) p.onAdded(id);
       p.onClose();
     }
+    /* 그만두면 방금 넣은 그림은 버립니다 (안 그러면 아무도 안 쓰는 사진이 남습니다) */
+    function cancel() {
+      if (photoS[0]) App.photos.remove(photoS[0]);
+      p.onClose();
+    }
 
-    return html`<${C.Modal} title="우리 반 활동 더하기" onClose=${p.onClose}
+    return html`<${C.Modal} title="우리 반 활동 더하기" onClose=${cancel}
       actions=${html`<${React.Fragment}>
-        <${C.Btn} onClick=${p.onClose}>그만두기<//>
+        <${C.Btn} onClick=${cancel}>그만두기<//>
         <${C.Btn} kind="ok" icon="check" disabled=${!name} onClick=${save}>이 활동 더하기<//>
       <//>`}>
       <div class="stack">
@@ -1524,21 +1561,44 @@
         <${C.Field} label="장소 (안 써도 돼요)" value=${placeS[0]}
           placeholder="예) 교실 · 텃밭" onChange=${function (v) { placeS[1](v); }} />
 
+        <!-- ★ 그림은 **두 갈래**입니다 (2026-08-28).
+               ① 내 그림 넣기 — 이 컴퓨터에 있는 그림 파일을 그대로 씁니다.
+                  넣으면 그것이 나오므로 아래 칸은 고를 필요가 없습니다.
+               ② 그림 고르기 — 안 넣었을 때 쓰는 코드 그림 서른 가지.
+             ⛔ 「폴더에 파일을 넣어 두면」 안내를 되살리지 마세요 — 앱 폴더를
+                고칠 수 있는 사람만 할 수 있는 일이라, 다른 선생님 컴퓨터에서는
+                아무 소용이 없었습니다 (선생님 말씀).
+             ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
         <div>
-          <span class="lab">그림 고르기</span>
-          <div class="icon-pick">
-            ${ADD_ICONS.map(function (k) {
-              var on = iconS[0] === k;
-              return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
-                aria-pressed=${on} aria-label=${'그림 ' + k}
-                onClick=${function () { iconS[1](k); }}>
-                <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
-              </button>`;
-            })}
+          <span class="lab">그림</span>
+          <div class="wrap" style=${{ alignItems: 'center' }}>
+            <${C.Btn} icon="camera" disabled=${busyS[0]}
+              onClick=${function () { if (fileRef.current) fileRef.current.click(); }}>
+              ${busyS[0] ? '넣는 중…' : (photoS[0] ? '다른 그림으로 바꾸기' : '내 그림 넣기')}<//>
+            <input ref=${fileRef} type="file" accept="image/*"
+              style=${{ display: 'none' }} onChange=${pickPic} />
+            ${photoS[0] && html`<${C.Btn} size="small" icon="back" onClick=${dropPic}>넣은 그림 빼기<//>`}
           </div>
-          <p class="small muted" style=${{ marginTop: '.3rem' }}>
-            <b>images/activities/${name || '활동이름'}.png</b> 파일을 넣어 두면 그 그림이 대신 나와요.
-          </p>
+          ${photoS[0]
+            ? html`<div class="wrap" style=${{ marginTop: '.45rem', alignItems: 'center' }}>
+                <span class="addact-pic"><${C.PhotoBox} photoId=${photoS[0]} /></span>
+                <span class="small muted">이 그림으로 나와요. 그림은 이 기기에 저장돼요.</span>
+              </div>`
+            : html`<${React.Fragment}>
+                <div class="icon-pick" style=${{ marginTop: '.4rem' }}>
+                  ${ADD_ICONS.map(function (k) {
+                    var on = iconS[0] === k;
+                    return html`<button key=${k} type="button" class=${'icon-cell' + (on ? ' on' : '')}
+                      aria-pressed=${on} aria-label=${'그림 ' + k}
+                      onClick=${function () { iconS[1](k); }}>
+                      <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon(k) }} />
+                    </button>`;
+                  })}
+                </div>
+                <p class="small muted" style=${{ marginTop: '.3rem' }}>
+                  그림 파일이 있으면 <b>내 그림 넣기</b> 로 넣어요. 안 넣으면 위에서 고른 그림이 나와요.
+                </p>
+              <//>`}
         </div>
 
         ${name && html`<${C.Banner} icon="check">

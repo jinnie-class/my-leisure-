@@ -148,9 +148,15 @@
     },
 
     /* 내보내기 / 불러오기 */
+    /* ★ 학생 한 명만 백업할 때에도 **학급 그림은 늘 담습니다** (2026-08-28).
+         `우리 반 활동` 에 직접 넣은 그림은 어느 한 학생 것이 아니라
+         `studentId` 가 비어 있습니다. 학생으로만 걸러 내면 그 그림이
+         빠져서, 다른 컴퓨터에서 불러왔을 때 **활동은 있는데 그림만
+         사라집니다** (활동 자체는 customActivities 로 늘 함께 갑니다).
+       ⛔ 이 `!r.studentId` 조건을 빼지 마세요. */
     exportRecords: function (studentId) {
       return Object.keys(cache).map(function (k) { return cache[k]; })
-        .filter(function (r) { return !studentId || r.studentId === studentId; });
+        .filter(function (r) { return !studentId || !r.studentId || r.studentId === studentId; });
     },
     importRecords: function (records, idMap) {
       var jobs = (records || []).map(function (r) {

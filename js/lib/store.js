@@ -286,6 +286,8 @@
     addActivity: function (o) {
       var a = Object.assign({
         id: uid('cx'), area: 'indoor', name: '', icon: 'star',
+        /* 선생님이 직접 넣은 그림 (사진 보관소의 id). 없으면 코드 그림을 씁니다. */
+        photoId: null,
         defaultPlace: '', createdAt: Date.now()
       }, o);
       set(function (x) { x.customActivities = (x.customActivities || []).concat([a]); });
@@ -323,6 +325,10 @@
     },
 
     removeActivity: function (id) {
+      /* 직접 넣은 그림도 함께 지웁니다 — 안 지우면 아무도 안 쓰는 사진이
+         보관소에 계속 쌓여 백업 파일만 커집니다. */
+      var gone = (Store.get().customActivities || []).filter(function (a) { return a.id === id; })[0];
+      if (gone && gone.photoId && App.photos) App.photos.remove(gone.photoId);
       set(function (x) {
         x.customActivities = (x.customActivities || []).filter(function (a) { return a.id !== id; });
         /* 학생마다 숨김 목록에 남아 있던 흔적도 지웁니다 */

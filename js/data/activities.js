@@ -154,7 +154,8 @@
       defaultPlace: o.defaultPlace || '',            // 기본 장소
       defaultSupplies: o.defaultSupplies || [],      // 기본 준비물
       hidden: !!o.hidden,                            // 숨김 여부
-      custom: !!o.custom                             // 선생님이 더한 '우리 반 활동'
+      custom: !!o.custom,                            // 선생님이 더한 '우리 반 활동'
+      photoId: o.photoId || null                     // 직접 넣은 그림 (사진 보관소)
     };
   }
 
@@ -461,6 +462,12 @@
       return A({
         id: o.id, area: o.area === 'outdoor' ? 'outdoor' : 'indoor', name: name,
         icon: o.icon || 'star',
+        /* ★ 선생님이 **직접 넣은 그림**입니다 (2026-08-28 · 선생님 말씀 —
+             「다른 컴에서도 일반화해서 쓸 수 있도록 … 사진 넣기 처럼」).
+             기기 안 사진 보관소(App.photos)에 담기므로, 앱 폴더에 파일을
+             넣을 수 없는 다른 선생님 컴퓨터에서도 그대로 됩니다.
+           ▸ 백업(내보내기)에 함께 담겨 다른 컴퓨터로 옮겨집니다. */
+        photoId: o.photoId || null,
         imageKey: o.imageKey || name,          // images/activities/<이름>.png 가 있으면 씁니다
         /* 문장은 선생님이 따로 안 쓰면 이름에서 자동으로 만듭니다 */
         planText: o.planText || (App.eulReul ? App.eulReul(name) + ' 할 거예요' : name + ' 할 거예요'),
@@ -529,7 +536,17 @@
   /* 그림 파일 경로 (PNG 로 교체할 때 사용)
      한글·띄어쓰기가 있는 파일 이름도 안전하게 처리합니다. */
   App.activityImage = function (a) {
-    if (!a || !a.imageKey) return null;
+    if (!a) return null;
+    /* ★ 선생님이 직접 넣은 그림이 **먼저**입니다 (2026-08-28).
+         앱 폴더의 PNG 는 이 앱을 만든 컴퓨터에만 있습니다. 직접 넣은 그림은
+         기기 안 사진 보관소에 있어 **어느 컴퓨터에서나** 나옵니다.
+       ⚠ 사진 보관소가 아직 안 열렸으면 잠깐 null 이 나옵니다. 그러면 아래
+         파일 그림 → 코드 그림 차례로 대신 나오므로 빈칸이 되지는 않습니다. */
+    if (a.photoId && App.photos) {
+      var u = App.photos.url(a.photoId);
+      if (u) return u;
+    }
+    if (!a.imageKey) return null;
     return imgUrl(App.IMAGE_BASE.activity + a.imageKey + App.IMAGE_BASE.ext);
   };
   App.avatarImage = function (av) {
