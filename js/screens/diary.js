@@ -98,14 +98,20 @@
    ⛔ App.PAGE_SIZE(여섯)로 되돌리지 마세요 — 지도·모아보기만 여섯입니다. */
   var PAGE_SIZE = 3;
 
-  /* 3단계가 일기를 쓰는 세 가지 방법.
+  /* 3단계가 일기를 쓰는 **두 가지** 방법.
      ★ 학생마다 쓰기 수단이 다릅니다. 키보드를 못 치는 학생도 3단계일 수 있어서
-       손글씨와 종이 길을 함께 열어 두었습니다.
-       `종이` 는 새로 만들 것이 없습니다 — 그림일기의 `빈 줄` 인쇄가 그 길입니다. */
+       손글씨 길을 함께 열어 둡니다.
+     ⛔ 「종이에 쓰기」를 되살리지 마세요 (2026-08-28 · 선생님 말씀 —
+        「뼈대 칸 없애고 **종이에 쓰기 없애자**」).
+        그것은 **여기서 하는 일이 아니었습니다** — 누르면 「저장한 뒤
+        그림일기 보기 → 빈 줄 로 인쇄하세요」 라는 **안내만** 떴습니다.
+        화면에서는 아무 일도 일어나지 않는데 자리만 차지했고, 학생은
+        눌러 놓고 무엇을 해야 할지 몰랐습니다.
+      ▸ 종이에 쓰는 길은 그대로 있습니다 — 그림일기에서 **빈 줄**로 인쇄하면
+        됩니다. 그 길은 인쇄하는 자리에 있는 것이 맞습니다. */
   var WRITE_WAYS = [
     { id: 'key',   name: '키보드로 쓰기', desc: '글자판으로 씁니다' },
-    { id: 'hand',  name: '손글씨로 쓰기', desc: '전자칠판·태블릿에 손가락이나 펜으로 씁니다' },
-    { id: 'paper', name: '종이에 쓰기',   desc: '빈 줄로 인쇄해서 연필로 씁니다' }
+    { id: 'hand',  name: '손글씨로 쓰기', desc: '전자칠판·태블릿에 손가락이나 펜으로 씁니다' }
   ];
 
   /* ------------------------- 활동 고르기 (일기용) ------------------------- */
@@ -274,6 +280,28 @@
         stepS[1](0);
       });
     }, []);
+    /* ★ 3단계 「일기 쓰기」 칸에 **뼈대를 미리 넣어 둡니다** (2026-08-28).
+         예전에는 「글쓰기 칸에 넣기」 단추를 눌러야 옮겨졌고, 그 단추가 든
+         「내가 만든 뼈대」 칸이 화면 자리를 크게 먹었습니다 (선생님 말씀으로
+         그 칸을 없앴습니다 — 아래 level3Body 주석).
+       ▸ 이 칸에 **처음 들어올 때 한 번만** 넣습니다. 학생이 지운 뒤 다시
+         들어와도 또 채워 넣지 않습니다 (지운 것은 지운 대로 두어야 합니다).
+       ⛔ 이미 쓴 글이 있으면 건드리지 않습니다.
+       ⛔ 그리기 판이 열려 있는 동안에는 넣지 않습니다 — 화면이 바뀌는 중에
+          글이 늘어나면 학생이 자기가 안 한 일로 봅니다. */
+    var bonesFilledS = useRef(false);
+    useEffect(function () {
+      if (level !== 3) return;
+      if (L3[stepS[0]] !== '일기 쓰기') return;
+      if (bonesFilledS.current) return;
+      bonesFilledS.current = true;
+      if (draft.text && draft.text.trim()) return;      // 이미 쓴 글이 있으면 그대로
+      var bf = frames();
+      var bones = sixLines();
+      if (bf.f3) bones = bones.concat(['가장 기억에 남는 것은 ' + App.iEyo(bf.f3) + '.']);
+      if (bf.f4) bones = bones.concat(['다음에는 ' + bf.f4 + ' 하고 싶어요.']);
+      if (bones.length) patch({ text: bones.join(' ') });
+    });
     var placePageS = useState(0);      // 장소 20곳을 6곳씩 넘겨 볼 때 쓰는 쪽 번호
     var whoPageS = useState(0);        // 사람 16명을 6명씩 넘겨 볼 때 쓰는 쪽 번호
     var moodPageS = useState(0);       // 기분 10가지를 6가지씩 넘겨 볼 때 쓰는 쪽 번호
@@ -1532,25 +1560,20 @@
       if (key === '그림') return picStep();
       if (key === '완성') return confirmStep(bodyText3());
 
-      /* 일기 쓰기 (뼈대에 살을 붙이는 단계입니다) */
-      /* 「내가 만든 뼈대」에는 **앞에서 고른 것을 모두** 보여 줍니다.
-         뼈대 여섯 줄에 「기억 · 다음에」까지 — 그래야 「글쓰기 칸에 넣기」
-         한 번으로 재료가 다 옮겨집니다. */
-      var bf = frames();
-      var bones = sixLines();
-      if (bf.f3) bones = bones.concat(['가장 기억에 남는 것은 ' + App.iEyo(bf.f3) + '.']);
-      if (bf.f4) bones = bones.concat(['다음에는 ' + bf.f4 + ' 하고 싶어요.']);
+      /* 일기 쓰기 (뼈대에 살을 붙이는 단계입니다)
+         ⛔⛔ 「내가 만든 뼈대」 칸을 **없앴습니다** (2026-08-28 · 선생님 말씀 —
+              「뼈대 칸 없애고 종이에 쓰기 없애자」).
+              같은 글이 한 화면에 **세 번** 있었습니다 :
+                ① 맨 위 빨간 문장 틀   ② 내가 만든 뼈대   ③ 쓰기 칸
+              그 사이에 「글쓰기 칸에 넣기」 단추까지 끼어, 정작 학생이 쓰는
+              칸이 화면 아래로 밀렸습니다 (선생님 — 「너무 퍼져있어서 쓴
+              내용이 눈에 들어오지 않아」).
+            ▸ ② 를 없애는 대신, 뼈대를 **처음부터 쓰기 칸에 넣어 둡니다**
+              (아래 useEffect). 「글쓰기 칸에 넣기」 단추가 하던 일을 학생이
+              누르지 않아도 되게 한 것입니다.
+            ⛔ 되살리지 마세요 — 위 문장 틀이 같은 내용을 더 크게 보여 줍니다. */
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} note=${lvNote} speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
-        ${bones.length ? html`<div class="bones">
-          <span class="bones-lab">내가 만든 뼈대</span>
-          <span class="bones-txt">${bones.join(' ')}</span>
-          <${C.Btn} size="small" className="pastel-blue" icon="plus"
-            onClick=${function () {
-              var add = bones.join(' ');
-              patch({ text: draft.text ? draft.text + '\n' + add : add });
-            }}>글쓰기 칸에 넣기<//>
-        </div>` : null}
         <${C.Sec}>
           <div class="row" style=${{ marginBottom: '.3rem' }}>
             <span class="lab grow">오늘 있었던 일을 써 보아요</span>
@@ -1560,14 +1583,21 @@
           <!-- 3단계는 쓰는 방법을 고릅니다 : 키보드 · 손글씨 · 종이 -->
           <div class="wrap" style=${{ marginBottom: '.5rem' }}>
             ${WRITE_WAYS.map(function (wy) {
-              var on = (draft.writeWay || 'key') === wy.id;
+              /* 없어진 「종이에 쓰기」가 저장돼 있으면 키보드로 봅니다 */
+              var on = (draft.writeWay === 'hand') ? (wy.id === 'hand') : (wy.id === 'key');
               return html`<button key=${wy.id} type="button" class=${'tab' + (on ? ' on' : '')}
                 aria-pressed=${on ? 'true' : 'false'} title=${wy.desc}
                 onClick=${function () { patch({ writeWay: wy.id }); }}>${wy.name}<//>`;
             })}
           </div>
 
-          ${(draft.writeWay || 'key') === 'key' && html`<${React.Fragment}>
+          <!-- ⚠ 없어진 「종이에 쓰기」로 저장해 둔 학생이 **빈 화면**을 보지
+                 않게, 아는 두 가지가 아니면 키보드로 봅니다 (2026-08-28).
+                 예전 기록을 고치지 않고 이어 주는 방식입니다 — 활동의
+                 ALIAS 와 같은 결입니다 (인수인계 40-4).
+               ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). 실제로 여기에
+                  백틱을 썼다가 화면이 통째로 안 떴습니다. -->
+          ${(draft.writeWay !== 'hand') && html`<${React.Fragment}>
             <${C.Area} rows=${6} value=${draft.text}
               placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
               onChange=${function (v) { patch({ text: v }); }} />
@@ -1596,14 +1626,8 @@
               줄이 그려진 종이에 쓰는 것처럼 나옵니다.</p>
           </div>`}
 
-          ${(draft.writeWay || 'key') === 'paper' && html`<${C.Banner} tone="info" icon="print">
-            <b>종이에 손으로 씁니다.</b>
-            <div class="small" style=${{ marginTop: '.3rem' }}>
-              저장한 뒤 <b>그림일기 보기 → 빈 줄</b> 로 인쇄하면
-              줄만 있는 종이가 나옵니다. 거기에 직접 쓰세요.
-              생각 질문도 줄 위에 함께 나옵니다.
-            </div>
-          <//>`}
+          <!-- ⚠ 「종이에 쓰기」 안내 칸을 뺐습니다 (위 WRITE_WAYS 주석).
+                 종이에 쓰는 길은 그림일기의 **빈 줄** 인쇄에 그대로 있습니다. -->
         <//>
       <//>`;
     }
