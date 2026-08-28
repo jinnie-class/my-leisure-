@@ -4860,6 +4860,10 @@ textarea.field.diary-write,
   margin-left:auto; margin-right:auto;
   padding-left:var(--say-pad); padding-right:var(--say-pad);
 }
+/* 이름 · 기간 줄도 **가운데로** (2026-08-28 · 선생님 말씀 — 「이름과 날짜는
+   가운데 정렬」). 위 제목(나의 한마디)과 아래 상자가 모두 가운데인데
+   이 줄만 왼쪽에 붙어 있어 혼자 어긋나 보였습니다. */
+.me-sheet .sheet-meta{ text-align:center; }
 
 /* ★ 문장 틀 — **한 줄에 한 문장**, 왼쪽부터 나란히 (2026-08-24 · 선생님 말씀).
      가운데 정렬이면 줄이 접혔을 때 뒷말만 한가운데 덩그러니 남아
