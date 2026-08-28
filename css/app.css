@@ -2317,6 +2317,13 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .modal.wide{ width:min(1100px, 100%); }
 /* 단추 한둘뿐인 창 — 속은 작은데 창만 넓으면 쓸데없이 옆으로 길어 보입니다 */
 .modal.narrow{ width:min(460px, 100%); }
+/* ★ 알림 창은 **가운데로** (2026-08-28 · 선생님 말씀 — 「가운데 정렬하면서
+     창 폭도 줄이기」). 속이 단추 하나뿐인데 제목이 왼쪽에 붙어 있으면
+     오른쪽이 비어 보입니다.
+   ⚠ 읽어주기 단추는 제목 **오른쪽 끝**에 그대로 둡니다 — 자리가 늘 같아야
+     학생이 눈으로 찾습니다 (규칙 4). 그래서 `.grow` 를 풀고 글자만 가운데로. */
+.modal.center .q > h2{ flex:1 1 auto; text-align:center; }
+.modal.center > *{ text-align:center; }
 .dp{ display:flex; flex-direction:column; gap:.55rem; }
 .dp-tools{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
 .dp-gap{ width:.6rem; }

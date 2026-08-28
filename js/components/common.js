@@ -116,7 +116,13 @@
            ⚠ 속은 단추 하나인데 wide 를 주면 화면 폭을 통째로 먹어
              쓸데없이 옆으로 긴 창이 됩니다.
            ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 끊깁니다 (인수인계 2-3). -->
-      <div class=${'modal' + (p.wide ? ' wide' : '') + (p.narrow ? ' narrow' : '')}
+      <!-- center : 제목과 속을 **가운데로** 모읍니다 (2026-08-28 · 선생님 말씀 —
+             「가운데 정렬하면서 창 폭도 줄이기」). 속이 단추 하나뿐인 알림 창은
+             왼쪽에 붙여 두면 오른쪽이 비어 보입니다.
+           ⚠ 목록·격자가 든 창에는 주지 마세요 — 줄마다 시작 자리가 달라져
+             훑기 어려워집니다. -->
+      <div class=${'modal' + (p.wide ? ' wide' : '') + (p.narrow ? ' narrow' : '')
+            + (p.center ? ' center' : '')}
           ref=${ref} role="dialog" aria-modal="true"
           aria-label=${p.title || ''} style=${p.style}>
         ${p.title && html`<div class="q" style=${{ marginBottom: '.4rem' }}>

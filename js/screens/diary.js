@@ -1994,7 +1994,11 @@
          학생이 무엇을 눌러야 할지 몰랐습니다.
          일기를 썼으면 이제 볼 것은 **완성한 그림일기**입니다.
          지도·포트폴리오·홈은 그림일기 화면에서 이어서 갈 수 있습니다. */
-    return html`<${C.Modal} title="모두 마쳤어요" speakText="일기를 다 썼어요. 완성한 그림일기를 볼까요?"
+    /* ★ 속이 **단추 하나뿐**이라 좁은 창(narrow)으로 두고 가운데로 모읍니다
+         (2026-08-28 · 선생님 말씀 — 「가운데 정렬하면서 창 폭도 줄이기」).
+         표시 줄을 걷어내고 나니 넓은 창에 단추 하나만 덩그러니 남았습니다. */
+    return html`<${C.Modal} title="모두 마쳤어요" narrow=${true} center=${true}
+      speakText="일기를 다 썼어요. 완성한 그림일기를 볼까요?"
       actions=${html`<${C.Btn} kind="primary" size="big" icon="book"
         onClick=${function () { p.nav('picdiary', { diaryId: d.id, from: 'diary' }); }}>완성한 그림일기 보기<//>`}>
       <!-- ⚠ 「○○의 지금 표시예요」 + 표시 알약 셋을 뺐습니다
