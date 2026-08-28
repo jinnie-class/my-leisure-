@@ -308,6 +308,7 @@
     var afterS = useState(null);       // 저장 후 물어보는 순서
     var savedIdS = useState(null);
     var helpS = useState(false);
+    var memoOpenS = useState(false);   // 기억 「직접 쓰기」 창이 열려 있는지
     var editMetaS = useState(false);   // 바꾸기 창 : false 면 닫힘, 숫자면 그 쪽
     var drawS = useState(false);       // 직접 그리기 판이 열려 있는지
     var photoS = useState(false);      // 사진 고르기 팝업이 열려 있는지
@@ -954,11 +955,25 @@
        ▸ 카드에는 이미 그림이 붙어 있어(wordCards) 1단계 학생도 고를 수 있습니다. */
     function memoryBody() {
       var f = frames();
+      /* ★ **직접 쓰기 칸**을 다섯째로 붙입니다 (2026-08-28 · 선생님 말씀 —
+           「여기에도 더하기 활동을 넣어서 기억에 남는것을 직접 적고 사진도
+           넣을 수 있게해줘」).
+           고른 넷은 자주 있는 일이지만, 그날 가장 기억에 남는 것은
+           **그 학생만 아는 것**일 때가 많습니다.
+         ▸ 누르면 창이 열려 **글을 쓰고 사진도 넣습니다.**
+           쓴 글은 고른 낱말과 **같은 자리**(frames.f3)에 들어가므로
+           문장·원고지·인쇄가 모두 그대로 이어집니다.
+         ⛔ 새 자리를 만들지 마세요 — 그러면 문장 만드는 곳을 다 고쳐야 합니다. */
       return html`<${React.Fragment}>
         <!-- 만들어지는 문장은 흰 칸 맨 위 두 줄(frameBar)에 있습니다.
              여기에 또 두면 같은 말이 두 번 나옵니다. -->
         <${C.Question} bar=${true} note=${lvNote} speakText="가장 기억에 남는 것은 무엇인가요?">가장 기억에 남는 것은 무엇인가요?<//>
-        ${wordCards(F3_WORDS, 'f3', f.f3, 4)}
+        ${wordCards(F3_WORDS, 'f3', f.f3, 5, null, html`<${C.Pick}
+          key="f3-own" label="직접 쓰기" speakText="직접 쓰기"
+          note="글을 쓰고 사진도 넣어요"
+          selected=${!!f.f3 && !F3_WORDS.some(function (w) { return w.name === f.f3; })}
+          onClick=${function () { memoOpenS[1](true); }}
+          art=${html`<${C.Art} src=${App.pickImage('word', '사진 넣기')} iconKey="camera" />`} />`)}
       <//>`;
     }
     function nextBody() {
@@ -1309,7 +1324,8 @@
 
     /* 낱말 카드 — 활동 카드처럼 크게, 그림을 붙여서 고릅니다.
        (작은 글자 단추는 읽기 어려운 학생이 고르기 힘듭니다) */
-    function wordCards(list, k, cur, cols, extraOf) {
+    /* `tail` — 목록 뒤에 **한 칸 더** 붙일 때 씁니다 (예 : 기억의 「직접 쓰기」) */
+    function wordCards(list, k, cur, cols, extraOf, tail) {
       return html`<${C.PickGrid} cols=${cols || 4}>
         ${list.map(function (w) {
           var on = cur === w.name;
@@ -1322,6 +1338,7 @@
               ? html`<${C.MoodArt} mood=${w.mood} />`
               : html`<${C.Art} src=${wordImage(w)} iconKey=${w.icon} />`} />`;
         })}
+        ${tail || null}
       <//>`;
     }
 
@@ -1791,6 +1808,43 @@
              한 쪽에 셋밖에 안 들어갔습니다 (한 쪽에 여섯 규칙이 깨짐).
            ⛔ isConfirm 일 때만으로 되돌리지 마세요. -->
       <${C.Stage} top=${backBtn} action=${action} onePage=${isConfirm} tall=${true}>${body}<//>
+
+      <!-- ★ 기억 「직접 쓰기」 — 글을 쓰고 사진도 넣습니다 (2026-08-28 ·
+             선생님 말씀). 쓴 글은 고른 낱말과 **같은 자리**(frames.f3)에
+             들어가므로 문장·원고지·인쇄가 모두 그대로 이어집니다.
+           ▸ 사진은 일기 사진(draft.photoIds)에 함께 담깁니다 — 그림일기
+             그림칸에서 고를 수 있는 사진과 같은 곳입니다.
+           ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+      ${memoOpenS[0] && html`<${C.Modal} title="기억에 남는 것을 직접 써요"
+        speakText="기억에 남는 것을 직접 써요. 글을 쓰고 사진도 넣을 수 있어요."
+        onClose=${function () { memoOpenS[1](false); }}
+        actions=${html`<${C.Btn} kind="ok" icon="check"
+          onClick=${function () { memoOpenS[1](false); }}>다 썼어요<//>`}>
+        <div class="stack">
+          <${C.Field} label="가장 기억에 남는 것"
+            value=${frames().f3 || ''}
+            placeholder="예) 친구가 도와준 것"
+            onChange=${function (v) { setF('f3', v); }} />
+          <!-- 문장이 어떻게 되는지 바로 보여 줍니다 — 쓰면서 확인합니다 -->
+          ${frames().f3 && html`<${C.Banner} icon="check">
+            <b>${'가장 기억에 남는 것은 ' + App.iEyo(frames().f3) + '.'}</b>
+          <//>`}
+          <span class="lab">사진 넣기 (안 넣어도 돼요)</span>
+          <${C.PhotoPicker} studentId=${student.id} photoIds=${draft.photoIds}
+            mainId=${draft.mainPhotoId}
+            onAdd=${function (ids) {
+              patch({ photoIds: (draft.photoIds || []).concat(ids),
+                      mainPhotoId: draft.mainPhotoId || ids[0] });
+            }}
+            onRemove=${function (id) {
+              /* ⛔ 여기서 App.photos.remove 를 부르지 마세요 — C.PhotoPicker 가
+                   물어보고 **이미 지운 뒤** 이 함수를 부릅니다. 또 부르면
+                   두 번 지우게 됩니다. 여기서는 목록만 정리합니다. */
+              patch({ photoIds: (draft.photoIds || []).filter(function (x) { return x !== id; }),
+                      mainPhotoId: draft.mainPhotoId === id ? null : draft.mainPhotoId });
+            }} />
+        </div>
+      <//>`}
 
       ${helpS[0] && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
         actions=${html`<${C.Btn} onClick=${function () { helpS[1](false); }}>닫기<//>`}>
