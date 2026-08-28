@@ -623,6 +623,17 @@
       for (var i = 0; i < all.length; i++) if (all[i].name === nm) return all[i];
       return null;
     }
+    /* 기분도 **쓴 말로 찾습니다** (2026-08-28) — 2단계 한마디는 낱말을 직접
+       써 넣는 단계라 고른 id 가 없습니다. 목록에 있는 말이면 그림이 붙고,
+       제 말로 썼으면 못 찾아 글자만 나옵니다 (그것도 맞는 모습입니다). */
+    function moodByName(nm) {
+      if (!nm) return null;
+      var all = App.DATA.moods || [];
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].name === nm || all[i].past === nm) return all[i];
+      }
+      return null;
+    }
 
     /* ★ **3단계는 고른 것을 칸에 써 주지 않습니다** (2026-08-24 · 선생님 말씀).
          3단계는 제 말로 쓰는 단계라, 위에서 고르면 **줄 왼쪽에 그림만** 띄우고
@@ -740,7 +751,14 @@
             <span>나는</span>
             <input class="field me-blank" value=${fill.act || ''} aria-label="무엇을 할 때"
               onChange=${function (e) { saveFill('act', e.target.value); }} />
-            <span>을 할 때</span>
+            <!-- ⛔⛔ 조사 「을」 을 글자에 박아 두지 마세요 (2026-08-28 · 선생님
+                   말씀 — 「조사 을/를」). 화면에 보이는 이 줄이 박혀 있어서,
+                   받침 없는 말을 쓰면 「노래 부르기 **을** 할 때」 가 됐습니다.
+                   저장되는 문장(saveFill)은 이미 고쳤는데 **보이는 줄만**
+                   남아 있었습니다 — 같은 고장이 두 곳에 있었던 셈입니다.
+                 ▸ 빈칸일 때에는 「을」 로 둡니다 (무엇이 올지 모르니까요).
+                 ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+            <span>${(fill.act ? App.josa(fill.act, '을/를').slice(String(fill.act).length) : '을') + ' 할 때'}</span>
             <input class="field me-blank" value=${fill.mood || ''} aria-label="어떤 기분인가요"
               onChange=${function (e) { saveFill('mood', e.target.value); }} />
             <span>.</span>
@@ -830,20 +848,41 @@
        둘은 하나의 마무리 글이라, 따로 내면 종이가 둘로 갈라집니다. */
     function printMe() {
       var rv = student.review || {};
+      /* ★ **이름·날짜가 맨 위** (2026-08-28 · 선생님이 보내 주신 차례대로).
+           이름과 기간은 **종이 한 장 전체**의 것이고, 「나의 한마디」는
+           「돌아보기」와 나란한 **한 묶음의 이름표**입니다. 차례가 뒤바뀌어
+           있으면 「나의 한마디」가 종이 제목처럼 보여, 아래 「돌아보기」와
+           층이 어긋납니다.
+         ▸ 이름·날짜 → [나의 한마디] 상자 → [돌아보기] 상자 */
       return html`<div class="sheet me-sheet">
-        <div class="sheet-title">나의 한마디</div>
         <div class="sheet-meta">${student.name} · ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)}</div>
-        <!-- ★ **1단계는 노란 바 안에 그림도 함께** (2026-08-24 · 선생님 말씀).
-               글을 못 읽는 학생에게 글자만 있는 종이는 제 것으로 보이지 않습니다.
-               고른 활동 · 기분 그림을 문장 옆에 나란히 두면, 집에 가져가서도
-               제 한마디를 그림으로 알아봅니다.
-             ▸ 2·3단계는 글자만 냅니다 — 그 단계는 스스로 읽고 쓰는 단계입니다. -->
+        <div class="sheet-title">나의 한마디</div>
+        <!-- ★ **노란 바 안에 그림도 함께** (2026-08-24 · 선생님 말씀).
+               글자만 있는 종이는 제 것으로 보이지 않습니다. 고른 활동 · 기분
+               그림을 문장 옆에 나란히 두면, 집에 가져가서도 제 한마디를
+               그림으로 알아봅니다.
+             ★ **2단계도 함께** (2026-08-28 · 선생님 말씀 — 「2단계도 그림과
+               같이 제시되기」). 2단계는 낱말을 **직접 써 넣는** 단계라
+               고른 id 가 없습니다. 그래서 **쓴 말로 그림을 찾습니다**
+               (actByName · moodByName) — 목록에 있는 말이면 그림이 붙고,
+               제 말로 썼으면 글자만 나옵니다.
+             ⛔ 3단계는 글자만 냅니다 — 문장을 통째로 제 말로 쓰는 단계라
+               낱말 자리가 없습니다.
+             ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
         <div class="sentence me-print-say">
           ${(function () {
-            if (((student && student.diaryLevel) || 1) !== 1) return null;
-            var wp = student.wordPick || {};
-            var a = wp.actId ? App.act(wp.actId) : null;
-            var mo = wp.moodId ? App.mood(wp.moodId) : null;
+            var lv = ((student && student.diaryLevel) || 1);
+            if (lv === 3) return null;
+            var a, mo;
+            if (lv === 1) {
+              var wp = student.wordPick || {};
+              a = wp.actId ? App.act(wp.actId) : null;
+              mo = wp.moodId ? App.mood(wp.moodId) : null;
+            } else {
+              var fl = student.wordFill || {};
+              a = actByName(fl.act);
+              mo = moodByName(fl.mood);
+            }
             if (!a && !mo) return null;
             return html`<span class="me-print-art">
               ${a && html`<span class="me-print-pic"><${C.ActivityArt} activity=${a} /></span>`}
@@ -857,8 +896,13 @@
                화면에서는 줄마다 그림이 있었는데 **인쇄에만 빠져 있어서**,
                집에 가져간 종이는 글자뿐이었습니다. 글을 못 읽는 학생에게는
                제 기록으로 보이지 않습니다.
-             ▸ 2·3단계는 글자만 냅니다 — 위 한마디와 같은 규칙입니다. -->
-        <div class="sheet-title" style=${{ marginTop: '20px' }}>돌아보기</div>
+             ★ **2단계도 함께** (2026-08-28 · 선생님 말씀 — 「2단계도 그림과
+               같이 제시되기」). 위 한마디와 **같은 규칙**입니다 — 쓴 말이
+               목록에 있으면 그림이 붙고, 제 말로 썼으면 글자만 나옵니다.
+             ⛔ 3단계는 글자만 냅니다 — 문장을 통째로 제 말로 쓰는 단계입니다. -->
+        <!-- ⚠ 여백은 CSS(.me-sheet .sheet-title)가 잡습니다 — 여기에 인라인으로
+               적어 두면 그 규칙을 이겨서, 한 장 안의 사이가 들쭉날쭉해집니다. -->
+        <div class="sheet-title">돌아보기</div>
         <!-- ★ 돌아보기 네 줄을 **한 상자** 안에 넣습니다 (2026-08-28 ·
                선생님 말씀 — 「너무 박스가 많아. 돌아보기를 한박스로 두고
                그 안에서 문장들이 나오게하고 문장들 간격을 두었으면 해」).
@@ -868,8 +912,13 @@
         <div class="sentence me-review">
           ${App.reviewFramesFor(student.diaryLevel, rv).map(function (f) {
             var txt = App.reviewLine(f, rv[f.id]);
-            var lv1 = ((student && student.diaryLevel) || 1) === 1;
-            var got = lv1 ? (actByName(rv[f.id])
+            /* ★ **1·2단계 모두** 그림을 붙입니다 (2026-08-28 · 선생님 말씀 —
+                 「2단계도 그림과 같이 제시되기」).
+                 쓴 말이 활동 목록에 있으면 그 그림이 붙고, 제 말로 썼으면
+                 못 찾아 글자만 나옵니다 — 그것도 맞는 모습입니다.
+               ⛔ 3단계는 글자만 냅니다 (문장을 통째로 제 말로 쓰는 단계). */
+            var lvN = ((student && student.diaryLevel) || 1);
+            var got = (lvN !== 3) ? (actByName(rv[f.id])
               || App.act((student.reviewPick || {})[f.id])) : null;
             return html`<div key=${f.id} class="me-review-ln">
               ${got && html`<span class="me-print-art">
