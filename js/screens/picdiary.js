@@ -727,6 +727,22 @@
             : html`<div class="pd-lines"
                  style=${{ '--lh': lineFit.lh + 'px', '--rows': lineFit.rows,
                            '--fs': lineFit.fs + 'px' }}>
+                <!-- ⛔⛔ 줄은 **진짜 선 하나하나**로 그립니다 (2026-08-28 ·
+                       선생님 말씀 — 「밑줄의 칸줄의 굵기가 달라. 수정」).
+                       예전에는 배경 무늬(repeating-linear-gradient)로 그렸는데,
+                       인쇄는 화면보다 촘촘해서 3px 짜리 줄이 **어떤 줄은 2px,
+                       어떤 줄은 3px** 로 반올림됐습니다. 줄마다 굵기가 달랐습니다.
+                     ▸ 선을 요소로 두면 브라우저가 **줄마다 같은 값**으로
+                       그려서 굵기가 고릅니다 (학습지의 ws-lines 와 같은 방식).
+                     ⛔ 배경 무늬로 되돌리지 마세요.
+                     ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+                <span class="pd-rules" aria-hidden="true">
+                  ${(function () {
+                    var out = [];
+                    for (var r = 0; r < lineFit.rows; r++) out.push(html`<i key=${r}></i>`);
+                    return out;
+                  })()}
+                </span>
                 ${lines.map(function (s, i) {
                   return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
                 })}

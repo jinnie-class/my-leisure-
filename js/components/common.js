@@ -402,7 +402,9 @@
         ${p.sub && html`<div class="sub">${p.sub}</div>`}
         <div class="title">${p.title}</div>
       </div>`;
-    var coverWord = App.uiImage('coverWord');
+    /* ※ `coverWord`(왼쪽 위 「나의 여가」 글자 그림)를 읽던 줄을 걷어냈습니다 —
+         그 단추를 뺐기 때문입니다 (아래 주석). 그림 파일과 IMAGE_BASE 의
+         `coverWord` 는 그대로 둡니다 — 표지 화면이 아직 씁니다. */
     return html`<header class=${'topbar pagepad' + (p.below ? ' two' : '')}>
       <div class="topbar-row">
         <!-- ★ backText 를 주면 화살표 **자리에 글자 단추**가 들어갑니다.
@@ -414,14 +416,15 @@
           : html`<${C.IconBtn} uiKey="back" icon="back" className="topbar-back"
               label=${p.backLabel || '앞 화면으로'} onClick=${p.onBack} />`)}
         ${p.left}
-        <!-- ★ 로고 = 처음 화면(표지)으로 · 오른쪽 집 = 나의 여가(코너 넷)로
-               (2026-08-26 · 선생님 말씀 — 두 길을 가릅니다) -->
-        <button type="button" class="cover-word"
-            onClick=${function () { App.goGuarded('cover'); }}
-            aria-label="나의 여가 — 누르면 처음 화면(표지)으로 가요" title="처음 화면으로">
-          ${coverWord ? html`<img src=${coverWord} alt="" />`
-                      : html`<span class="cover-word-text">나의 여가</span>`}
-        </button>
+        <!-- ⚠ 왼쪽 위 「나의 여가」 글자를 **뺐습니다** (2026-08-28 · 선생님 말씀).
+               맨 위 줄이 화면마다 단추로 빽빽했는데(지도는 인쇄 알약 셋 +
+               모아 보기로 + 집 + 전체화면 + 설정 + 학생), 그 가운데 로고만
+               **누를 일이 거의 없는 것**이었습니다.
+             ▸ 집 단추는 그대로 있습니다 — 나의 여가(코너 넷)로 갑니다.
+             ⚠ 표지로 돌아가는 길이 이 단추뿐이었습니다. 표지는 앱을 켤 때
+               나오는 화면이라, 지금은 **새로고침**으로 갑니다.
+               다시 필요하면 선생님 설정에 넣어 드리겠습니다.
+             ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
         ${title}
         <div class="spacer"></div>
         ${p.children}

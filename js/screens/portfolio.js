@@ -1986,14 +1986,23 @@
                          먼저 눈에 들어와야 합니다.
                        ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
                   <div class="dcard-in">
-                    <span class="dcard-art"><${C.ActivityArt} activity=${a} /></span>
-                    <div class="dcard-txt">
-                      <div class="small muted">${App.fmtDateLong(d.date)}</div>
-                      <b class="dcard-title">${d.title || (a ? a.name : '여가 일기')}</b>
-                      <!-- ★ 단추 셋을 **흰 바 하나** 안에 넣어 한 줄로 보이게 했습니다.
-                             낱개 알약이 셋이면 상자가 셋으로 보여 어수선했습니다.
-                           ▸ 칸막이 선은 CSS(.dcard-bar) 가 긋습니다. -->
-                      <div class="dcard-bar">
+                    <!-- ★ 그림은 **날짜·제목 줄의 오른쪽**입니다 (2026-08-28 ·
+                           선생님 말씀 — 「그림을 년월일요일 과 제목줄 뒤쪽에
+                           배치하고 가운데 정렬」).
+                           글이 먼저 오고 그림이 뒤를 받치는 차례입니다.
+                         ▸ 단추 바는 그 아래에서 카드 폭을 **다 씁니다** —
+                           그림 옆에 끼우면 단추가 좁아져 글자가 줄어듭니다. -->
+                    <div class="dcard-head">
+                      <div class="dcard-txt">
+                        <div class="small muted">${App.fmtDateLong(d.date)}</div>
+                        <b class="dcard-title">${d.title || (a ? a.name : '여가 일기')}</b>
+                      </div>
+                      <span class="dcard-art"><${C.ActivityArt} activity=${a} /></span>
+                    </div>
+                    <!-- ★ 단추 셋을 **흰 바 하나** 안에 넣어 한 줄로 보이게 했습니다.
+                           낱개 알약이 셋이면 상자가 셋으로 보여 어수선했습니다.
+                         ▸ 칸막이 선은 CSS(.dcard-bar) 가 긋습니다. -->
+                    <div class="dcard-bar">
                     <button type="button" class=${'dcard-act' + (d.exhibit ? ' on' : '')}
                       aria-pressed=${d.exhibit ? 'true' : 'false'}
                       onClick=${function () {
@@ -2021,7 +2030,6 @@
                       <span class="ico" aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('pencil') }} />
                       <span>일기 고치기</span>
                     </button>
-                      </div>
                     </div>
                   </div>
                 </div>`;

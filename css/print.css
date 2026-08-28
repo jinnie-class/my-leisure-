@@ -136,7 +136,21 @@ html,body{
    라벨지 칸에 그대로 맞으려면 **쪽 여백이 0** 이어야 합니다.
    칸 시작 자리는 .lb-sheet 의 padding(12.5mm · 20.5mm)이 잡습니다. */
 @page labelA4{ size:A4 portrait; margin:0; }
-.print-area .lb-sheet{ page:labelA4; }
+/* ⛔⛔ **한 장은 반드시 한 쪽에** (2026-08-28 · 선생님 말씀 — 「라벨이 잘려..」).
+      라벨은 세 벌(그림만 · 그림+글자 · 글자만)이 **이어서** 나옵니다.
+      쪽 나누는 표시가 없으면 둘째 장이 첫 장이 끝난 **그 자리에서** 이어져,
+      쪽 경계가 라벨 칸 한가운데를 지나며 **가로로 잘립니다.**
+      라벨지는 칸 자리가 정해져 있어서, 한 줄만 밀려도 전부 어긋납니다.
+    ▸ `break-before:page` 로 장마다 새 쪽에서 시작합니다.
+      첫 장만 빼야 맨 앞에 빈 쪽이 생기지 않습니다.
+    ▸ `break-inside:avoid` 는 **칸 하나**가 쪽을 넘어 갈라지는 것도 막습니다. */
+.print-area .lb-sheet{
+  page:labelA4;
+  break-before:page; page-break-before:always;
+  break-inside:avoid; page-break-inside:avoid;
+}
+.print-area .lb-sheet:first-child{ break-before:auto; page-break-before:auto; }
+.print-area .lb-cell{ break-inside:avoid; page-break-inside:avoid; }
 
 /* --------------- 계획표 학습지 (2026-08-26) ---------------
    ★ 선생님 말씀 : 「인쇄하면 계획표 아래에 쓰기 칸을 두어 학습자료로도」.
