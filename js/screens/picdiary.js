@@ -966,8 +966,20 @@
              **고치는 대상(그림일기)이 커야지 단추가 클 까닭이 없습니다.**
            ▸ 왼쪽에는 넉넉히 절반까지만 주고, 나머지는 그림일기가 씁니다. */
         var availW = Math.max(track.clientWidth - 330, track.clientWidth * 0.56);
+        /* ⚠ **띄워 둔 단추 줄 몫을 빼면 안 됩니다.**
+             `눌러서 크게 보기` 줄(.dv-bar)은 넓은 화면(900px 이상)에서는
+             `position:absolute` 로 **띄워 두어 자리를 먹지 않습니다.**
+             그런데 여기서는 늘 52px 을 빼고 있어서, 그만큼 종이가 작았습니다
+             (태블릿 1280x620 에서 종이 410 → 뺄 까닭 없는 52px 때문).
+           ▸ 좁은 화면에서는 그 줄이 **흐름 안에** 있으므로 그때만 뺍니다.
+           ▸ 8 은 딱 맞아떨어져 쪽이 갈라지는 것을 막는 여유입니다. */
+        var bar = col && col.querySelector('.dv-bar');
+        var barH = 8;
+        if (bar && window.getComputedStyle(bar).position !== 'absolute') {
+          barH += bar.getBoundingClientRect().height;
+        }
         return Math.max(0.16, Math.min(0.95,
-          (availH - 52) / A4_H,                           // 52 = 위 단추 줄(눌러서 크게 보기)
+          (availH - barH) / A4_H,
           availW / A4_W));
       }
       /* ⚠ 상한을 0.62 로 두었더니, 자리가 넉넉한 큰 화면에서도 **더 못 컸습니다.**

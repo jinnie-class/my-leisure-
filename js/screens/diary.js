@@ -49,6 +49,17 @@
              재고 나서 그림·글꼴이 마저 오면 높이가 조금 더 늘기 때문입니다
              (실제로 4px 넘쳐서 2쪽이 됐습니다). */
         남는 -= 24;
+        /* ⛔⛔ **재기 전에 줄인 것을 되돌립니다.**
+             선생님 : 「태블릿에서 … 오른쪽 그림일기가 작게 나와」 (2026-08-29)
+           까닭 — 창이 바뀌면 종이 배율(--dv)과 이 줄이기(zoom) 둘이 **따로**
+           다시 잽니다. 줄여 둔 상태에서 재면 「이미 들어간다」 고 보아
+           **줄인 채로 그대로 남습니다.** 그러면 종이가 두 번 줄어듭니다
+           (실제로 321px 종이가 201px 로 — 0.626배가 겹쳐서).
+           태블릿은 주소창이 접혔다 펴질 때마다 창이 바뀌므로 이 일이 잦습니다.
+         ▸ 늘 **원래 크기에서 새로 셈합니다.** 그러면 몇 번을 재도 같은 값이
+           나오고, 더 줄일 까닭이 없어지면 스스로 1 로 돌아옵니다.
+         ⚠ offsetHeight 를 읽으면 그 자리에서 다시 그려지므로 값이 정확합니다. */
+        if (box.style.zoom) box.style.zoom = '';
         var 필요 = inner.offsetHeight;
         if (!(남는 > 40) || !(필요 > 0)) return;
         var k = 1;
@@ -76,13 +87,32 @@
         if (tr) ro.observe(tr);
         if (innerRef.current) ro.observe(innerRef.current);
       }
-      window.addEventListener('resize', 재기);
+      /* ⛔⛔ **창이 바뀌면 한 번만 재서는 안 됩니다.**
+           종이 배율(--dv)과 이 줄이기는 **서로 다른 장치**라 차례가 엇갈립니다.
+           창을 줄이면 이 줄이기가 먼저 돌아 「옛 큰 높이」로 셈하고,
+           그 뒤에 --dv 가 작아집니다. 그러면 줄일 까닭이 없어졌는데도
+           줄인 값이 그대로 남아 **종이가 두 번 줄어듭니다**
+           (1600x900 → 1280x620 에서 종이 321 → 202px).
+         ▸ 그래서 창이 바뀌면 **곧바로 · 0.2초 뒤 · 0.5초 뒤** 세 번 잽니다.
+           --dv 가 자리를 잡은 뒤 한 번 더 재면 스스로 1 로 돌아옵니다.
+         ⚠ ResizeObserver 만 믿으면 안 됩니다 — 줄이기가 다시 크기를 바꾸므로
+           브라우저가 되돌이를 막으려고 알림을 **떨어뜨릴 때가 있습니다.** */
+      var reTimers = [];
+      function 다시재기() {
+        reTimers.forEach(clearTimeout); reTimers = [];
+        재기();
+        reTimers.push(setTimeout(재기, 200), setTimeout(재기, 500));
+      }
+      window.addEventListener('resize', 다시재기);
+      window.addEventListener('orientationchange', 다시재기);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(재기).catch(function () {});
       return function () {
         cancelAnimationFrame(raf);
         timers.forEach(clearTimeout);
+        reTimers.forEach(clearTimeout);
         if (ro) ro.disconnect();
-        window.removeEventListener('resize', 재기);
+        window.removeEventListener('resize', 다시재기);
+        window.removeEventListener('orientationchange', 다시재기);
       };
     }, deps);
     return [boxRef, innerRef];
