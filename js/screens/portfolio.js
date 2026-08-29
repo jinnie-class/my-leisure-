@@ -1773,7 +1773,7 @@
                                  둘은 하나의 마무리 글이라 한 장에 같이 냅니다.
                                  여기가 포트폴리오의 **마지막 칸**이라 나가는 길도 둡니다.
              · 그 밖         → 없음 (학생 것과 선생님 것을 섞지 않습니다) -->
-      <${C.Stage} action=${(folioTools && view !== 'pick')
+      <${C.Stage} bare=${true} action=${(folioTools && view !== 'pick')
         ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
             ${view === 'book' ? '책자형 인쇄하기' : '전시판형 인쇄하기'}<//>`
         /* ★ 나의 한마디 창은 **모음 칸에서만** 아래 단추를 둡니다.

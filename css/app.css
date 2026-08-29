@@ -228,6 +228,15 @@ ul{ margin:0; padding:0; list-style:none; }
   box-shadow:var(--shadow);
   overflow:hidden;
 }
+/* ★ 상자를 벗긴 흰 칸 (C.Stage 의 bare).
+     테두리·그림자·바탕을 지우고 **자리만** 남깁니다. 폭·높이 규칙은 그대로라
+     쪽 나누기와 넘침 막기가 예전처럼 돕니다.
+   ⚠ `overflow:hidden` 은 그대로 둡니다 — 지우면 쪽 나누기가 새어 나옵니다. */
+.panel.bare{
+  background:transparent; border-color:transparent;
+  box-shadow:none; border-radius:0;
+}
+
 .stage-track,
 .stage-fit{
   min-height:0;
@@ -3712,9 +3721,22 @@ textarea.field.diary-write,
 /* ★ 나의 여가지도 — 네 가지 표시를 눌러 고르는 줄.
      여가지도는 섬마다 따로 보는 곳이라, 실내·실외를 합쳐서 보는 자리가
      여기 말고는 없었습니다. */
+/* ★ **아래 실내·실외 창과 같은 폭으로** 모읍니다 (2026-08-29 · 선생님 말씀 —
+     「네가지 선택 알약은 폭을 줄여 아래 실내 실외 폭과 균형 맞추기」).
+   ⚠ 예전에는 `auto-fit` 이라 네 알약이 흰 칸 폭을 다 썼습니다(1199px).
+     바로 아래 실내·실외 창은 44rem(568px)이라, 위는 화면 끝까지 뻗고
+     아래는 가운데 모여 **두 덩어리가 따로 노는 것처럼** 보였습니다.
+   ▸ 폭을 44rem 으로 같이 묶고 **두 줄 두 칸**으로 놓습니다.
+     넷을 한 줄에 두면 이 폭에서 글자가 접힙니다. */
 .folio-marks{
   display:grid; gap:.6rem;
-  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  /* 폭은 흰 칸의 **60%** — 좌우로 20% 씩 여백이 남습니다 (선생님 말씀).
+     좁은 화면에서는 28rem 밑으로는 안 내려갑니다 (글자가 접힙니다). */
+  width:min(100%, max(28rem, 60%)); margin-left:auto; margin-right:auto;
+}
+@media screen and (max-width: 560px){
+  .folio-marks{ grid-template-columns:1fr; }
 }
 .folio-mark{
   display:flex; align-items:center; gap:.6rem; cursor:pointer; min-width:0;
@@ -3878,7 +3900,9 @@ textarea.field.diary-write,
      넓게 남아, 카드가 허전하게 떠 보입니다. **카드 셋 + 화살표** 만큼만. */
 .folio-half{
   min-width:0; padding:.35rem .5rem .45rem;
-  width:min(100%, 44rem); margin:0 auto;
+  /* 폭은 흰 칸의 **60%** — 좌우로 20% 씩 여백이 남습니다 (선생님 말씀).
+     좁은 화면에서는 28rem 밑으로는 안 내려갑니다 (글자가 접힙니다). */
+  width:min(100%, max(28rem, 60%)); margin:0 auto;
   border:3px solid var(--line); border-radius:18px; background:rgba(255,255,255,.55);
 }
 .folio-half.in{ border-color:#c96a1e; }
@@ -3928,15 +3952,26 @@ textarea.field.diary-write,
    ★ 고르는 일과 만들어진 말을 눈으로 갈라 두면, 지금 무엇을 하는
      중인지가 분명해집니다. */
 /* 왼쪽 「나」 칸을 넉넉히 — **나의 것 · 내가 했다**는 것이 이 화면의 뜻입니다 */
+/* ★ **상자를 벗기고 가운데로 모읍니다** (2026-08-29 · 선생님 말씀 —
+     「안의 위아래로 나눈 두 상자도 삭제, 너무 퍼져있음 시선분산 집중안되니
+      가운데로 보기좋게 폭 줄이고 가운데 정렬해줘 / 나카드와 나의한마디 사이
+      간격을 붙이고 그정도 폭으로 위의 무엇을할때 어떤기분인가요도 정렬」)
+
+   ⚠ 예전에는 두 바가 화면 폭을 다 써서(1217px) 나 캐릭터(123px)와
+     말 칸(904px) 사이가 휑하게 벌어졌습니다. 상자가 화면 끝까지 가면
+     아무것도 묶어 주지 못하고 테두리만 하나 더 그립니다.
+   ▸ 테두리·바탕을 지우고 **폭을 글에 맞춰 묶습니다**(58rem).
+     위 바와 아래 바가 **같은 폭·같은 자리**라 두 줄이 한 덩어리로 보입니다.
+   ▸ 왼쪽 칸을 19rem → 11rem 으로 줄여 나 캐릭터와 말 칸을 붙였습니다. */
 .me-bar{
-  display:grid; gap:clamp(.5rem,1.4vw,1.2rem);
-  grid-template-columns:minmax(0,19rem) minmax(0,1fr);
+  display:grid; gap:clamp(.4rem,1vw,.8rem);
+  grid-template-columns:minmax(0,11rem) minmax(0,1fr);
   align-items:center;
-  padding:clamp(.45rem,calc(1.2 * var(--vh, 1vh)),.9rem) clamp(.6rem,1.4vw,1.1rem);
-  border:3px solid var(--line); border-radius:22px;
-  background:rgba(255,255,255,.6);
+  width:min(100%, 58rem); margin-left:auto; margin-right:auto;
+  padding:clamp(.35rem,calc(.9 * var(--vh, 1vh)),.7rem) 0;
+  border:0; border-radius:0; background:transparent;
 }
-.me-bar + .me-bar{ margin-top:.5rem; }
+.me-bar + .me-bar{ margin-top:.2rem; }
 @media screen and (max-width: 860px){ .me-bar{ grid-template-columns:1fr; } }
 
 /* 위 바 왼쪽 — 채우는 자리 두 알약 */
@@ -4489,7 +4524,12 @@ textarea.field.diary-write,
        움직임을 싫어하는 설정(prefers-reduced-motion)에서는 멈춥니다. */
 .map-go{
   display:flex; align-items:center; gap:clamp(.5rem,1.4vw,1rem);
-  width:min(100%, 40rem); margin:.2rem auto .55rem;
+  /* ★ 아래 두 덩어리(네 알약 · 실내/실외)와 **같은 폭**입니다.
+       셋이 같은 자리에서 시작하고 끝나야 한 화면으로 보입니다.
+       1280 화면에서 좌우가 각각 20% 씩 남습니다 (선생님 말씀). */
+  /* 폭은 흰 칸의 **60%** — 좌우로 20% 씩 여백이 남습니다 (선생님 말씀).
+     좁은 화면에서는 28rem 밑으로는 안 내려갑니다 (글자가 접힙니다). */
+  width:min(100%, max(28rem, 60%)); margin:.2rem auto .55rem;
   padding:clamp(.45rem,calc(1.2 * var(--vh, 1vh)),.8rem) clamp(.8rem,1.6vw,1.3rem);
   cursor:pointer; text-align:left;
   background:#fffdf3; border:4px solid #e8bf3d; border-radius:999px;
