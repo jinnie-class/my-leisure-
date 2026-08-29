@@ -3475,6 +3475,14 @@ input.title-input{
    ⛔ 이름표·날짜·제목에는 붙이지 마세요 — 그것은 학생 글이 아닙니다. */
 .sentence,
 .say,
+/* ★ 계획표 표의 **값 칸**도 학생이 고른 것입니다 (2026-08-29 · 선생님 말씀 —
+     「책자에선 여전히 나눔바른펜 글씨가 안나와」).
+     `무엇을 / 누구와 / 언제 / 어디에서 / 준비물 / 메모` 의 **오른쪽 값**과
+     준비물 알약이 학생이 고르거나 쓴 것인데 기본 글꼴로 나왔습니다.
+   ⛔ 왼쪽 이름표(`.k`)에는 걸지 마세요 — 그것은 서식의 말입니다.
+     아래 `.sheet .rows .k` 가 다시 기본 글꼴로 되돌립니다. */
+.sheet .rows b,
+.sheet .rows .chip,
 .plan-sofar,
 textarea.sentence-edit,
 textarea.field.diary-write,
@@ -3490,6 +3498,14 @@ textarea.field.diary-write,
    그래서 문장 글자를 한 단계 키웠습니다 (1.6rem → 34px 상한).
    두께도 800 → 700 으로 낮춥니다 — 펜 글씨는 굵게 하면 뭉개집니다. */
 .sentence, .say, .plan-sofar, textarea.sentence-edit{ font-weight:700; }
+/* 계획표 표의 값 칸 — 나눔바른펜은 획이 얇아 두께를 낮춥니다 (위와 같은 까닭) */
+.sheet .rows b{ font-weight:700; }
+/* ⛔ 왼쪽 이름표(무엇을 · 누구와 …)는 **서식의 말**이라 기본 글꼴 그대로입니다.
+     학생이 쓴 것만 펜 글씨로 두어야 무엇이 제 글인지 눈에 들어옵니다. */
+.sheet .rows .k{
+  font-family:"한컴산뜻돋움","HancomSandeutDotum","학교안심 산뜻돋움",
+              "Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
+}
 
 /* ============ 맨 위 줄 : 뒤로 화살표 · 제목 단추 · 표지 글자 ============ */
 
