@@ -1602,12 +1602,20 @@
           맞지 않는 두 가지가 나왔습니다. 목록은 위 `MODES_BY_LEVEL` 한 곳에서만
           정합니다 (`modesFor`) — 화면마다 적으면 언젠가 둘이 어긋납니다.
        ▸ 포트폴리오의 「일기장 모두 인쇄」도 같은 목록을 씁니다. */
+    /* ⛔⛔ **힌트 보고 쓰기로 뽑을 때는 힌트도 함께 넘겨야 합니다.**
+         선생님 : 「힌트보고인쇄도 힌트창이 나오지 않고」 (2026-08-29 태블릿)
+       `trace` 만 넘기고 `showHint` 를 빠뜨려서, 「힌트 보고 쓰기」로 뽑아도
+       빈 칸만 나왔습니다. 화면에서는 힌트 보기 단추로 켜지지만 **인쇄에는
+       그 단추가 없으므로**, 인쇄에서는 늘 켜져 있어야 합니다 — 힌트를 보고
+       쓰라고 뽑는 종이인데 힌트가 없으면 아무 소용이 없습니다.
+     ▸ 같은 실수가 포트폴리오의 「일기장 모두 인쇄」에도 있었습니다. */
     function printBook(mode) {
       if (!list.length) { App.ui.toast('아직 모인 일기가 없어요.'); return; }
       App.printNode(html`<div class="pd-book">
         ${list.map(function (x) {
           return html`<div key=${x.id} class="pd-page">
-            <${C.PicDiarySheet} diary=${x} student=${student} trace=${mode || 'text'} />
+            <${C.PicDiarySheet} diary=${x} student=${student} trace=${mode || 'text'}
+              showHint=${mode === 'empty'} />
           </div>`;
         })}
       </div>`);

@@ -531,8 +531,12 @@
       if (!bookDiaries.length) { App.ui.toast('이 기간에 쓴 일기가 없어요.'); return; }
       App.printNode(html`<div class="pd-book">
         ${bookDiaries.map(function (d) {
+          /* ⛔ `showHint` 를 함께 넘깁니다 — 인쇄에는 힌트 보기 단추가 없으므로
+               「힌트 보고 쓰기」로 뽑을 때는 늘 켜져 있어야 합니다.
+               (picdiary.js 의 printBook 과 같은 규칙) */
           return html`<div key=${d.id} class="pd-page">
-            <${C.PicDiarySheet} diary=${d} student=${student} trace=${mode} />
+            <${C.PicDiarySheet} diary=${d} student=${student} trace=${mode}
+              showHint=${mode === 'empty'} />
           </div>`;
         })}
       </div>`);
