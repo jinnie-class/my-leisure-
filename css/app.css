@@ -4252,7 +4252,21 @@ textarea.field.diary-write,
    인쇄에 나가는 종이 그대로 보여 줍니다 (보는 것과 나오는 것이 같아야
    학생이 무엇을 인쇄하는지 압니다).
    ⚠ 종이가 흰 칸보다 크면 쪽이 갈라지므로, 폭을 묶고 가운데에 놓습니다. */
-.me-done{ display:flex; justify-content:center; margin-top:.4rem; }
+/* ⛔⛔ **제 칸 안에서 넘겨 봅니다** (2026-08-29 · 선생님 : 「나의한마디모음이
+     아예 뜨질않음, 인쇄하기 창은 잘뜸」 — 태블릿).
+   종이(.sheet)는 쪼갤 수 없는 덩어리라(break-inside:avoid), 흰 칸보다 조금이라도
+   크면 **통째로 다음 쪽으로 밀립니다.** 그러면 1쪽에는 위 알약 줄만 남고
+   아래가 텅 빕니다 — 학생 눈에는 「아무것도 안 뜬다」 로 보입니다.
+   태블릿은 주소창 때문에 흰 칸이 낮아 이 일이 납니다 (노트북에서는 안 납니다).
+   ▸ 포트폴리오 미리보기(.folio-preview)가 같은 탈을 같은 방법으로 풀었습니다.
+     제 칸 안에서 넘겨 보게 하면 **어느 기기에서도 반드시 보입니다.**
+   ⚠ 안쪽 것은 break-inside:auto 로 풀어 주어야 밀려나지 않습니다. */
+.me-done{
+  display:flex; justify-content:center; margin-top:.4rem;
+  max-height:calc(calc(100 * var(--vh, 1vh)) - 300px); min-height:180px; overflow:auto;
+  break-inside:auto;
+}
+.me-done > *{ break-inside:auto; }
 /* ⚠ 종이를 넓게 늘이지 마세요. 칸만 길어지고 글자는 왼쪽 끝에 조그맣게
      붙어 있어서 눈에 안 들어옵니다. **글줄 길이에 맞춰** 좁게 두고
      글자를 크게 하는 편이 훨씬 잘 읽힙니다. */
