@@ -11,16 +11,43 @@
 
   /* 인쇄 내용을 담아 두는 자리 (실제 그리기는 Root 가 맡습니다) */
   var setPrintContent = null;
+  /* ⛔⛔ **글꼴이 다 실린 뒤에 인쇄창을 엽니다** (2026-08-29 · 선생님 말씀 —
+       「아직 나눔바른펜이 안나와 **그래서 페이지도 넘어가고**」).
+       나눔바른펜 파일은 **5.27MB** 입니다. `font-display:swap` 이라 그동안은
+       기본 글꼴로 그려지는데, 그 글꼴이 **20% 쯤 넓습니다**
+       (같은 문장 : 펜 450px · 기본 539px). 그래서 —
+         · 글씨가 펜 글씨가 아니고
+         · 넓어진 만큼 **쪽이 넘어갑니다**
+       0.18초만 기다리다가 인쇄창을 열면, 글꼴이 아직 안 왔을 때 그대로 찍힙니다.
+     ▸ `document.fonts.ready` 는 글꼴이 다 실리면 알려 줍니다.
+     ⚠ 3초를 넘기면 그냥 엽니다 — 글꼴을 못 읽는 곳(파일로 열기 등)에서
+       인쇄가 아예 안 되면 더 곤란합니다. */
   App.printNode = function (node) {
     if (!setPrintContent) return;
     setPrintContent(node);
     document.body.classList.add('printing');
-    setTimeout(function () {
+    function 인쇄() {
       try { window.print(); } catch (e) {}
       setTimeout(function () {
         document.body.classList.remove('printing');
         if (setPrintContent) setPrintContent(null);
       }, 600);
+    }
+    setTimeout(function () {
+      var 열림 = false;
+      function 한번만() { if (!열림) { 열림 = true; 인쇄(); } }
+      setTimeout(한번만, 3000);                    // 안전장치
+      /* ⛔ `document.fonts.ready` 만으로는 **안 됩니다.**
+           그것은 **이미 부르고 있는** 글꼴만 기다립니다. 나눔바른펜은
+           `font-display:swap` 이라 **처음 쓰일 때** 부르기 시작하는데,
+           인쇄 종이는 방금 만들어져서 아직 안 불렀을 수 있습니다.
+           실제로 재어 보니 192ms 만에 인쇄창이 열려 기본 글꼴로 찍혔습니다.
+         ▸ `document.fonts.load` 로 **직접 불러** 놓고 기다립니다. */
+      if (document.fonts && document.fonts.load) {
+        document.fonts.load("40px 'NanumBarunpen'", '가나다')
+          .then(function () { return document.fonts.ready; })
+          .then(한번만)['catch'](한번만);
+      } else 한번만();
     }, 180);
   };
   App.printPlan = function (plan) {

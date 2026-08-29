@@ -5,7 +5,7 @@
    =========================================================== */
 (function () {
   var App = window.App, React = window.React, html = App.html, C = App.C;
-  var useState = React.useState, useRef = React.useRef;
+  var useState = React.useState, useRef = React.useRef, useEffect = React.useEffect;
 
   /* ------------------------- 전체 기록 인쇄용 ------------------------- */
   C.AllRecordsSheet = function () {
@@ -80,6 +80,30 @@
     var newPartnerS = useState(false);     // '함께하는 사람 더하기' 창
     var newMoodS = useState(false);        // '기분 더하기' 창
     var recListS = useState(false);        // 11번 '기록 모두 보기' 창
+    /* ★ 글씨체(나눔바른펜)가 실렸는지 (2026-08-29 · 선생님 말씀 —
+         「아직 나눔바른펜이 안나와 그래서 페이지도 넘어가고」).
+         파일이 5.27MB 라 **0.5초쯤 뒤에** 실립니다. 그래서 화면을 여는
+         순간에 재면 늘 「안 실림」 이 나옵니다.
+       ▸ 글꼴을 직접 불러 놓고, 실린 뒤에 다시 재어 보여 줍니다.
+       ⛔ 그리는 도중에 바로 재지 마세요 — 늦게 오는 것을 못 봅니다. */
+    var fontOkS = useState(null);          // null=살펴보는 중 · true/false
+    useEffect(function () {
+      var 살아있음 = true;
+      function 재기() {
+        try {
+          var c = document.createElement('canvas').getContext('2d');
+          var 글 = '나는 오늘 블록놀이를 했어요.';
+          c.font = "40px 'NanumBarunpen'"; var 펜 = c.measureText(글).width;
+          c.font = '40px sans-serif';      var 기본 = c.measureText(글).width;
+          if (살아있음) fontOkS[1](Math.abs(펜 - 기본) > 2);
+        } catch (e) { if (살아있음) fontOkS[1](false); }
+      }
+      if (document.fonts && document.fonts.load) {
+        document.fonts.load("40px 'NanumBarunpen'", '가나다').then(재기)['catch'](재기);
+      } else 재기();
+      var t = setTimeout(재기, 3000);      // 그래도 안 오면 그때 값으로
+      return function () { 살아있음 = false; clearTimeout(t); };
+    }, []);
     var current = App.store.current();
     var students = store.students;
     var customs = store.customActivities || [];
@@ -578,6 +602,17 @@
               <p class="muted small">
                 앱 판 : ${App.VERSION || '-'} · 사진 ${App.photos.count()}장
                 ${App.photos.isFallback() ? ' · 간단 저장소 사용 중' : ''}
+              </p>
+              <!-- ★ **글씨체가 실렸는지** 여기서 봅니다 (2026-08-29 · 선생님 말씀 —
+                     「아직 나눔바른펜이 안나와 그래서 페이지도 넘어가고」).
+                     나눔바른펜은 5.27MB 라, 여는 방법에 따라 안 실릴 때가 있습니다.
+                     안 실리면 기본 글꼴이 **20% 넓어** 인쇄가 쪽을 넘깁니다.
+                   ▸ 「안 실림」 이 보이면 인터넷 주소로 열어 주세요.
+                   ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
+              <p class="muted small">
+                글씨체(나눔바른펜) : ${fontOkS[0] === null ? '살펴보는 중…'
+                  : (fontOkS[0] ? '✓ 잘 실렸어요'
+                     : '✗ 안 실렸어요 — 인쇄가 기본 글씨로 나오고 쪽이 넘어갑니다')}
               </p>
               <!-- 지금 돌고 있는 판 번호. '고쳤는데 화면이 그대로' 일 때
                    여기를 보면 됩니다 (자세한 것은 인수인계 8-17). -->
