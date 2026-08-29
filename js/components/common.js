@@ -1759,7 +1759,8 @@
   };
 
   C.Sec = function (p) {
-    return html`<section class="sec">
+    /* className : 이 칸에만 주는 덧옷 (예: 카드 폭에 맞춰 가운데로 모으기) */
+    return html`<section class=${'sec' + (p.className ? ' ' + p.className : '')}>
       ${p.title && html`<h3>${p.title}${p.speakText && html`<${C.Speak} short=${true} text=${p.speakText} />`}</h3>`}
       ${p.children}
     </section>`;

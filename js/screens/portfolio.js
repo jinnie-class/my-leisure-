@@ -1664,7 +1664,18 @@
              60px 을 먹었는데, 그만큼 그림이 작아졌습니다.
              나가는 알약이 「여가 포트폴리오」 라고 적혀 있으므로
              제목은 **지금 어디에 있는지**를 알려 주는 편이 낫습니다. -->
-      <${C.TopBar} title=${(view === 'pick' && folioTab[0])
+      <!-- ⛔ **지도를 직접 붙이는 화면에서는 제목을 두지 않습니다**
+             (2026-08-29 · 선생님 말씀 — 「빨간부분 자리차지하고 다 나오지
+             않으니 삭제 / 더 키울수 있으면 좋겠어. 지도를」).
+           이 화면 맨 위 줄에는 인쇄 셋(내 지도 · 빈 지도 · 활동 라벨) ·
+           모아 보기로 · 홈 · 전체화면 · 설정 · 학생까지 여덟 개가 늘어섭니다.
+           제목까지 넣으면 자리가 없어 '나의 ⋯' 로 잘렸습니다 —
+           **잘린 제목은 알려 주는 것이 없으면서 자리만 먹습니다.**
+           ▸ 어느 화면인지는 왼쪽 '모아 보기로' 알약과 지도 그림 자체가 말해 줍니다.
+           ▸ 비운 자리는 그대로 **지도 몫**이 됩니다. -->
+      <${C.TopBar} title=${(folioTab[0] === 'map' && mapViewS[0] === 'board')
+          ? ''
+          : (view === 'pick' && folioTab[0])
           ? (FOLIO_TABS.filter(function (t) { return t.id === folioTab[0]; })[0] || {}).name
           : '여가 포트폴리오'}
         onBack=${function () {
@@ -1773,7 +1784,16 @@
                                  둘은 하나의 마무리 글이라 한 장에 같이 냅니다.
                                  여기가 포트폴리오의 **마지막 칸**이라 나가는 길도 둡니다.
              · 그 밖         → 없음 (학생 것과 선생님 것을 섞지 않습니다) -->
-      <${C.Stage} bare=${true} action=${(folioTools && view !== 'pick')
+      <!-- ★ **상자는 첫 화면에만** (2026-08-29 · 선생님 말씀 —
+           「여긴 큰 상자가 있으면 좋겠다」).
+         상자가 하는 일은 「여기까지가 한 묶음」이라고 말해 주는 것입니다.
+         ▸ 첫 화면 : 나 카드와 네 칸이 가운데 오밀조밀 모이고 둘레가 텅 빕니다.
+           상자가 다섯을 한 묶음으로 잡아 주어 허공에 뜬 것처럼 보이지 않습니다.
+         ▸ 칸에 들어간 뒤 : 내용이 이미 폭을 다 씁니다. 그때 상자는 아무것도
+           묶어 주지 못하고 테두리만 하나 더 그립니다 — 그래서 벗깁니다.
+         ⛔ 이것은 화면마다 취향으로 정하는 것이 아니라 **내용이 폭을 다 쓰는가**
+           로 정합니다. 새 칸을 더할 때도 그 잣대로 보세요. -->
+      <${C.Stage} bare=${!(view === 'pick' && !folioTab[0])} action=${(folioTools && view !== 'pick')
         ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
             ${view === 'book' ? '책자형 인쇄하기' : '전시판형 인쇄하기'}<//>`
         /* ★ 나의 한마디 창은 **모음 칸에서만** 아래 단추를 둡니다.
@@ -1886,7 +1906,8 @@
                ▸ 「계획 모음 인쇄하기」 는 이 기간의 계획표를 **한 장씩 이어** 냅니다
                  (일기장 인쇄와 같은 방식 — book-page 가 쪽을 나눕니다).
              ⛔ 이 주석 안에 백틱을 쓰면 템플릿이 거기서 끊깁니다 (인수인계 2-3). -->
-          ${folioTab[0] === 'plan' && html`<${C.Sec} title=${'내가 세운 계획 · ' + data.plans.length + '장'}
+          ${folioTab[0] === 'plan' && html`<${C.Sec} className="sec-fit"
+            title=${'내가 세운 계획 · ' + data.plans.length + '장'}
             speakText=${'내가 세운 여가계획 ' + data.plans.length + '장이에요. 누르면 계획표를 볼 수 있어요.'}>
             ${data.plans.length ? html`<${React.Fragment}>
               <!-- ★ 한 줄에 셋 · 두 줄까지(여섯 장)만 놓고, 넘치면 **양쪽 화살표**로
@@ -1895,7 +1916,10 @@
                    ▸ 칸은 **정사각형**이라 그림이 큽니다 — 가로로 긴 칸에
                      작은 그림이 떠 있으면 눈에 안 들어옵니다. -->
               ${(function () {
-                var info = pageOf(data.plans, planPageS[0], 6);
+                /* ★ 한 쪽에 **넷** (2026-08-29 · 선생님 말씀 — 「4개씩하면 화면이 커지지?」).
+     여섯이면 두 줄이라 한 줄에 쓸 수 있는 높이가 반으로 줄어, 칸이 작아집니다.
+     넷을 **한 줄**에 놓으면 그 높이를 통째로 써서 그림이 훨씬 큽니다. */
+                var info = pageOf(data.plans, planPageS[0], 4);
                 return flowBox(info, function (n) { planPageS[1](n); }, 'folio-grid wide folio-plans',
                   info.items.map(function (pl) {
                     var a = App.act(pl.activityId);
@@ -1987,7 +2011,7 @@
                       aria-pressed=${on ? 'true' : 'false'}
                       onClick=${function () { mapPick[1](m.id); mapPageS[1]({}); }}>
                     <span class="fm-art" aria-hidden="true"><${C.StateArt} state=${m} /></span>
-                    <span class="fm-txt"><b>${(lists[m.id] || []).length}</b>가지<br />${m.name}</span>
+                    <span class="fm-txt"><b>${(lists[m.id] || []).length}</b>가지 ${m.name}</span>
                   </button>`;
                 })}
               </div>
@@ -2037,7 +2061,12 @@
                  다단에서 제멋대로 쪼개져, 다 들어가는데도 4쪽이 되었습니다. -->
           ${folioTab[0] === 'diary' && html`<${C.Sec}>
             ${data.diaries.length ? (function () {
-              var info = pageOf(data.diaries, diaryPageS[0], 4);   /* 2칸 x 2줄 */
+              /* ★ 한 쪽에 **둘** (2026-08-29 · 선생님 말씀 — 「2개씩 배치하고 제목은
+     한줄로 나오게 해줘. 그리고 그림은 크게」).
+     넷이면 카드가 좁아 제목이 두 줄로 접히고 그림도 96px 뿐이었습니다.
+     둘로 줄이면 카드 폭이 곱절이라 **제목이 저절로 한 줄**에 들어가고,
+     남는 자리를 그림이 가져갑니다. 셋을 따로 손보지 않아도 함께 풀립니다. */
+                var info = pageOf(data.diaries, diaryPageS[0], 2);
               return flowBox(info, function (n) { diaryPageS[1](n); }, 'folio-diaries',
                 info.items.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);

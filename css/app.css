@@ -2040,7 +2040,11 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .dv-paper .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
 
 /* 포트폴리오 — 지금 보는 기간을 한 줄로만 (인쇄·판형·기간 고르기는 선생님 도구 창으로) */
-.folio-range{ text-align:center; margin:.1rem 0 .35rem; }
+/* ★ 기간 글은 **맨 위에 가운데로, 아래와 간격을 두고** (2026-08-29 · 선생님 말씀 —
+     「날짜기록도 맨위에 배치하되 아래와 간격두고 가운데 정렬」).
+     바로 아래 덩어리에 붙어 있으면 그 덩어리의 머리글처럼 보입니다.
+     이 글은 **화면 전체가 어느 기간의 것인지**를 말하므로 한 칸 떨어뜨립니다. */
+.folio-range{ text-align:center; margin:.1rem 0 1.1rem; }
 
 /* ═══════ 1단계 크게 보기 — 그림과 문장만 ═══════
    ★ 1단계 학생은 글자를 못 읽습니다. 그림이 핵심이고 문장은 읽어주기로 듣습니다.
@@ -3748,7 +3752,15 @@ textarea.field.diary-write,
 .folio-mark.on{ background:var(--sel-bg); border-color:var(--sel-line); border-width:4px; }
 .fm-art{ width:clamp(38px,calc(5.5 * var(--vh, 1vh)),52px); height:clamp(38px,calc(5.5 * var(--vh, 1vh)),52px); flex:0 0 auto; display:block; }
 .fm-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
-.fm-txt{ min-width:0; font-size:.88rem; font-weight:800; line-height:1.25; color:var(--ink-soft); }
+/* ★ **한 줄에 다 나오게** (2026-08-29 · 선생님 말씀 —
+     「글자가 한줄에 다 나오도록」). 예전에는 사이에 <br> 이 있어
+     `7가지` 와 `해봤어요` 가 두 줄로 끊겼습니다.
+   ▸ 줄바꿈을 막고, 좁아지면 글자만 조금 줄여 한 줄을 지킵니다. */
+.fm-txt{
+  min-width:0; font-weight:800; line-height:1.25; color:var(--ink-soft);
+  font-size:clamp(.74rem, 1.15vw, .95rem);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .fm-txt b{ font-size:1.35em; font-weight:900; color:var(--ink); }
 
 /* 카드마다 실내·실외 표시 — 합쳐 봐도 어느 섬 것인지 알 수 있게.
@@ -3922,8 +3934,25 @@ textarea.field.diary-write,
   padding:.35rem .3rem; gap:.1rem; border-width:2px;
   justify-content:center;
 }
-/* 계획은 두 줄이라 칸이 조금 작습니다 (지도는 한 줄) */
-.folio-plans .folio-card{ width:clamp(100px,calc(15 * var(--vh, 1vh)),200px); }
+/* ★ 내가 세운 계획 — **넷을 한 줄**에 (2026-08-29 · 선생님 말씀).
+     예전에는 여섯을 두 줄로 놓아 한 줄에 쓸 수 있는 높이가 반이었습니다.
+     한 줄로 두면 그 높이를 통째로 써서 칸이 훨씬 큽니다 (15vh → 24vh). */
+.folio-grid.folio-plans{ grid-template-columns:repeat(4, auto); }
+@media screen and (max-width: 900px){ .folio-grid.folio-plans{ grid-template-columns:repeat(3, auto); } }
+@media screen and (max-width: 640px){ .folio-grid.folio-plans{ grid-template-columns:repeat(2, auto); } }
+.folio-grid.folio-plans .folio-card{ width:clamp(110px,calc(24 * var(--vh, 1vh)),230px); }
+
+/* ★ **제목을 첫 그림 위에** 맞춥니다 (2026-08-29 · 선생님 말씀 —
+     「내가 세운계획 글자도 첫 그림이 시작되는 위치의 위에 간격을 두고 배치」).
+   ⚠ 카드는 가운데로 모이는데(justify-content:center) 제목만 흰 칸 왼쪽 끝에
+     붙어 있어서, 제목과 카드가 **딴 덩어리처럼** 보였습니다
+     (제목 왼43 · 첫 카드 왼563).
+   ▸ 칸 전체를 **카드 줄 폭만큼만** 잡고 가운데에 둡니다. 그러면 제목의
+     왼쪽 끝이 곧 첫 카드의 왼쪽 끝이 되고, 아래 인쇄 단추도 같은 폭 안에
+     들어옵니다. 셋이 한 덩어리로 보입니다.
+   ▸ `fit-content` 라 카드가 몇 장이든 저절로 맞습니다. */
+.sec-fit{ width:fit-content; max-width:100%; margin-left:auto; margin-right:auto; }
+.sec-fit > h3{ margin-bottom:.5rem; }
 /* ⚠ `vh` 를 더 키우지 마세요. 1366x768 에서 두 창이 흰 칸에 아슬아슬하게
      들어갑니다. 재어서 맞춘 값입니다. */
 .folio-two .folio-art{ width:clamp(66px,calc(15 * var(--vh, 1vh)),190px); height:clamp(66px,calc(15 * var(--vh, 1vh)),190px); }
@@ -4141,7 +4170,8 @@ textarea.field.diary-write,
    ⚠ 320px 아래로 내리지 마세요 — 오른쪽 단추 셋의 글자가 줄어듭니다. */
 .folio-diaries{
   display:grid; gap:.6rem;
-  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  /* ★ 한 줄에 **둘** — 카드가 넓어야 제목이 한 줄에 들어가고 그림도 큽니다 */
+  grid-template-columns:repeat(2, minmax(0, 1fr));
   /* ⚠ `start` 가 아니라 `stretch` 입니다 — 제목이 두 줄인 카드가 있어도
        **한 줄 안의 카드들이 같은 높이**가 됩니다 (2026-08-29).
        `start` 로 두면 카드마다 높이가 달라 줄이 들쭉날쭉해집니다. */
@@ -4185,7 +4215,9 @@ textarea.field.diary-write,
      그림이 87px 과 104px 로 갈렸고, 카드 높이도 166/183 으로 어긋났습니다.
    ▸ 못박아 두면 카드가 몇 장이든 **같은 크기 · 같은 높이**입니다. */
 .dcard-art{
-  width:96px; aspect-ratio:1; max-width:100%;
+  /* ★ 96px → 크게 (2026-08-29 · 선생님 말씀 — 「그림은 크게」).
+       한 쪽에 둘만 놓으니 카드가 넓어져 그림에 줄 자리가 생겼습니다. */
+  width:clamp(96px, calc(22 * var(--vh, 1vh)), 200px); aspect-ratio:1; max-width:100%;
   display:block; margin:0 auto;      /* 왼쪽 칸 안에서 가운데 */
 }
 /* ⚠ 속 그림이 칸을 넘지 않게 눌러 둡니다 — 캐릭터가 머리만 보이던 고장과
@@ -4202,10 +4234,15 @@ textarea.field.diary-write,
    ▸ 두 줄 자리를 늘 잡아 두어(`min-height`) 아래 그림이 카드마다
      같은 높이에 놓입니다.
    ⚠ 카드 높이는 아래 `align-items:stretch` 가 한 줄 안에서 맞춰 줍니다. */
+/* ★ **한 줄로** (2026-08-29 · 선생님 말씀 — 「제목은 한줄로 나오게」).
+   ⚠ 「제목을 줄여 자르지 마세요」 라던 규칙과 어긋나지 않습니다 —
+     카드를 넓혀서(한 쪽에 둘) **자를 일이 없어졌기** 때문입니다.
+     아주 긴 제목만 글자가 조금 줄어들며 한 줄을 지킵니다. */
 .dcard-title{
-  min-width:0; white-space:normal; word-break:keep-all;
-  line-height:1.25; min-height:2.5em;
+  min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  word-break:keep-all; line-height:1.35; min-height:1.6em;
   display:flex; align-items:center; justify-content:center;
+  font-size:clamp(.95rem, 1.5vw, 1.25rem);
 }
 
 /* ── 일기 카드 아래 **단추 한 줄** (2026-08-28) ────────────────────────
@@ -4475,11 +4512,28 @@ textarea.field.diary-write,
 .mb-tools{ display:flex; justify-content:center; gap:.4rem; margin:.5rem 0 .2rem; }
 .mb-tools.off{ visibility:hidden; }
 .mb-tools.off *{ pointer-events:none; }
+/* ⛔⛔ **낮은 화면에서는 빈 줄이 자리를 잡지 않습니다** (2026-08-29 · 선생님 말씀 —
+     「더 키울수 있으면 좋겠어. 지도를」).
+   이 줄은 카드를 골랐을 때만 쓰는 단추 줄인데, 안 골랐을 때도 38px 을 잡고
+   있었습니다. 흰 칸(458)보다 내용(530)이 커지면 **전체가 0.76배로 줄어**
+   정작 지도가 298 → 226px 이 됩니다. 빈 줄 38px 때문에 지도 72px 을
+   잃는 셈입니다.
+   ▸ `move-slot` 과 같은 규칙입니다 — 자리를 잡아 두는 편안함은 넉넉할 때만. */
+@media (max-height: 780px){
+  .mb-tools.off{ display:none; }
+}
 
 /* 아직 안 붙인 활동 서랍 */
 .mb-tray{
   margin-top:.2rem; padding:.45rem .6rem .55rem;
   border:3px solid var(--line); border-radius:18px; background:rgba(255,255,255,.6);
+}
+/* ★ 낮은 화면에서는 서랍을 조금 촘촘하게 — 아낀 높이가 그대로 지도 몫입니다.
+     서랍은 **고르는 곳**이라 조금 작아도 되지만, 지도는 이 화면의 주인공입니다. */
+@media (max-height: 780px){
+  .mb-tray{ padding:.3rem .5rem .35rem; }
+  .mb-tray-cap{ margin-bottom:.15rem; padding:.1rem .6rem; font-size:.82rem; }
+  .mb-tray-grid{ gap:.4rem; }
 }
 .mb-tray-cap{
   display:inline-block; margin-bottom:.3rem;
