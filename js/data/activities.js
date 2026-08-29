@@ -309,14 +309,22 @@
          (2026-08-28 · 선생님 말씀 — 「교실에서 책읽기, 집에서 책읽기,
          교실에서 노래하기가 가능하도록」)
 
-       ▸ **그림은 실외 짝의 것을 그대로 씁니다** — 도서관.png · 노래방.png
-         (2026-08-28 · 선생님 말씀 — 「그림은 그대로 써도 되지 않을까?」).
-         같은 일(책 읽기 · 노래 부르기)이라 그림도 같은 것이 맞습니다. */
-    A({ id: 'library-in', area: 'indoor', name: '책 읽기', icon: 'library', imageKey: '도서관',
+       ▸ ★ **그림은 실내용을 따로 씁니다** (2026-08-29 · 선생님 말씀 —
+         「실내에서 노래 부르기와 실내에서 책읽기는 실외와 구분이 되어야 할 것
+         같아서 그림을 새로 그려서 넣었어」).
+         처음에는 실외 짝의 것(도서관.png · 노래방.png)을 그대로 썼는데,
+         **두 섬에 똑같은 그림이 하나씩** 놓이니 학생이 어느 섬에서 고른 것인지
+         알 수 없었습니다. 이름이 같기 때문에 더 그렇습니다.
+         이제 집 안 풍경이 담긴 그림이라 한눈에 갈립니다.
+           책읽기(실내).png        소파와 등불이 있는 방, 펼쳐진 책
+           노래 부르기(실내).png   집 모양 안에 마이크와 스피커
+       ⚠ 이름은 실외 짝과 **똑같이** 둡니다 — 장소가 다를 뿐 같은 일입니다.
+         가르는 것은 **그림**이지 이름이 아닙니다. */
+    A({ id: 'library-in', area: 'indoor', name: '책 읽기', icon: 'library', imageKey: '책읽기(실내)',
         speechName: '책 읽기',
         planText: '책을 읽을 거예요', diaryText: '책을 읽었어요',
         defaultPlace: '', defaultSupplies: ['책'] }),
-    A({ id: 'karaoke-in', area: 'indoor', name: '노래 부르기', icon: 'mic', imageKey: '노래방',
+    A({ id: 'karaoke-in', area: 'indoor', name: '노래 부르기', icon: 'mic', imageKey: '노래 부르기(실내)',
         speechName: '노래 부르기',
         planText: '노래를 부를 거예요', diaryText: '노래를 불렀어요',
         defaultPlace: '', defaultSupplies: [] }),
@@ -341,6 +349,26 @@
     A({ id: 'music', area: 'indoor', name: '음악 듣기', icon: 'music', imageKey: '음악 듣기',
         planText: '음악을 들을 거예요', diaryText: '음악을 들었어요',
         defaultPlace: '교실', defaultSupplies: [] }),
+
+    /* ★ 실내 셋을 더해 20개로 (2026-08-29 · 선생님 말씀 — 실내·실외 20개씩).
+       ▸ `유튜브 보기` 는 **되살린 것**입니다. 2026-08-28 에 퍼즐놀이로 바꾸며
+         지웠는데, 다시 두기로 했습니다. 그림도 그대로 남아 있습니다.
+         ⛔ 되살렸으므로 아래 ALIAS 의 `youtube` 줄을 **지웠습니다** —
+           그대로 두면 예전 기록이 계속 퍼즐놀이를 가리킵니다.
+       ▸ `그림 그리기` : 준비물(색연필·종이) 그림이 이미 있고, 앱의
+         「내가 그리기」 그림판과 결이 같습니다.
+       ▸ `춤추기` : 음악 듣기는 있는데 **그 음악으로 무엇을 하는지**가
+         없었습니다. 요가·체조는 운동이라 결이 다릅니다.
+         강당은 지금 체조하기 하나만 쓰고 있어 그 장소도 살아납니다. */
+    A({ id: 'youtube', area: 'indoor', name: '유튜브 보기', icon: 'tv', imageKey: '유튜브 보기',
+        planText: '유튜브를 볼 거예요', diaryText: '유튜브를 봤어요',
+        defaultPlace: '집', defaultSupplies: [] }),
+    A({ id: 'draw', area: 'indoor', name: '그림 그리기', icon: 'pencil', imageKey: '그림 그리기',
+        planText: '그림을 그릴 거예요', diaryText: '그림을 그렸어요',
+        defaultPlace: '교실', defaultSupplies: ['색연필', '종이'] }),
+    A({ id: 'dance', area: 'indoor', name: '춤추기', icon: 'music', imageKey: '춤추기',
+        planText: '춤을 출 거예요', diaryText: '춤을 췄어요',
+        defaultPlace: '강당', defaultSupplies: ['편한 옷'] }),
 
     /* ------------------------------ 실외 ------------------------------ */
     A({ id: 'playground', area: 'outdoor', name: '놀이 기구 타기', icon: 'slide', imageKey: '놀이터',
@@ -388,7 +416,37 @@
         defaultPlace: '공원', defaultSupplies: ['자전거', '헬멧'] }),
     A({ id: 'garden', area: 'outdoor', name: '식물 돌보기', icon: 'leaf', imageKey: '텃밭 가꾸기',
         planText: '식물을 돌볼 거예요', diaryText: '식물을 돌봤어요',
-        defaultPlace: '텃밭', defaultSupplies: ['모종삽', '물뿌리개', '장갑'] })
+        defaultPlace: '텃밭', defaultSupplies: ['모종삽', '물뿌리개', '장갑'] }),
+
+    /* ★ 실외 다섯을 더해 20개로 (2026-08-29 · 선생님 말씀).
+       ▸ **장소를 하나도 늘리지 않았습니다.** 장소 목록에 있는데 아무 활동도
+         쓰지 않던 곳(운동장 · 학교 화단 · 동네)을 채웠습니다.
+       ▸ 준비물도 **그림이 이미 있는 것**만 씁니다
+         (운동화 · 물통 · 수건 · 돗자리 · 간식 · 사진기 · 가방 · 모자).
+       ▸ 결이 서로 다르게 골랐습니다 — 실외가 「어디 가기」로만 쏠려 있었습니다.
+           몸 쓰기   공놀이 · 줄넘기
+           함께 먹기 소풍
+           기록하기  사진 찍기
+           보고 느끼기 꽃 구경
+       ⚠ `소풍 가기` 가 아니라 **`소풍 즐기기`** 입니다. 이름에 `가기` 를
+         넣지 않는 것이 이 앱의 규칙입니다 (인수인계 13-8) — `가기` 는
+         가는 일이지 여가 활동이 아니고, 장소를 따로 묻기 때문입니다.
+         `공원에서 소풍을 즐길 거예요` 처럼 문장도 자연스러워집니다. */
+    A({ id: 'ball', area: 'outdoor', name: '공놀이하기', icon: 'gym', imageKey: '공놀이하기',
+        planText: '공놀이를 할 거예요', diaryText: '공놀이를 했어요',
+        defaultPlace: '운동장', defaultSupplies: ['운동화', '물통'] }),
+    A({ id: 'jumprope', area: 'outdoor', name: '줄넘기하기', icon: 'shoe', imageKey: '줄넘기하기',
+        planText: '줄넘기를 할 거예요', diaryText: '줄넘기를 했어요',
+        defaultPlace: '운동장', defaultSupplies: ['운동화', '수건', '물통'] }),
+    A({ id: 'picnic', area: 'outdoor', name: '소풍 즐기기', icon: 'food', imageKey: '소풍 즐기기',
+        planText: '소풍을 즐길 거예요', diaryText: '소풍을 즐겼어요',
+        defaultPlace: '공원', defaultSupplies: ['돗자리', '간식', '물통'] }),
+    A({ id: 'photo', area: 'outdoor', name: '사진 찍기', icon: 'camera', imageKey: '사진 찍기',
+        planText: '사진을 찍을 거예요', diaryText: '사진을 찍었어요',
+        defaultPlace: '동네', defaultSupplies: ['사진기', '가방'] }),
+    A({ id: 'flower', area: 'outdoor', name: '꽃 구경하기', icon: 'nature', imageKey: '꽃 구경하기',
+        planText: '꽃을 구경할 거예요', diaryText: '꽃을 구경했어요',
+        defaultPlace: '학교 화단', defaultSupplies: ['모자', '사진기'] })
   ];
 
   /* ═══════════════ 화면에 놓이는 **차례** (2026-08-28) ═══════════════
@@ -409,13 +467,16 @@
       'make', 'block', 'puzzle', 'toy', 'marble',      // 손으로 만들고 조작하기
       'music', 'karaoke-in', 'library-in',             // 듣고 부르고 읽기
       'collect', 'cook', 'insect', 'pet-in',           // 모으고 기르고 만들어 먹기
-      'tv', 'game', 'boardgame',                       // 보고 겨루기
-      'yoga', 'gymnastics'                             // 몸 움직이기
+      'tv', 'youtube', 'game', 'boardgame',            // 보고 겨루기
+      'draw',                                          // 그리기
+      'yoga', 'gymnastics', 'dance'                    // 몸 움직이기
     ],
     outdoor: [
       'playground', 'stationery', 'karaoke',           // 가까운 곳에서
+      'ball', 'jumprope',                              // 운동장에서 몸 쓰기
       'park', 'bike', 'walk', 'garden', 'pet-out',     // 바깥에서 몸 쓰고 돌보기
-      'restaurant', 'cafe', 'camping',                 // 먹고 쉬기
+      'flower', 'photo',                               // 보고 담기
+      'restaurant', 'cafe', 'picnic', 'camping',       // 먹고 쉬기
       'library', 'cinema', 'artmuseum', 'museum'       // 문화 시설에서
     ]
   };
@@ -489,8 +550,11 @@
    ▸ 그래서 지울 때는 여기에 **새 자리를 적어 둡니다.** 한 줄이면 됩니다.
    ⛔ 줄을 지우지 마세요 — 지우면 그 기록이 그때 빕니다. */
   var ALIAS = {
-    magnet: 'block-magnet',     // 자석놀이 → 블록놀이 안의 자석 블록놀이 (2026-08-28)
-    youtube: 'puzzle'           // 유튜브 보기 → 퍼즐놀이 (2026-08-28)
+    magnet: 'block-magnet'      // 자석놀이 → 블록놀이 안의 자석 블록놀이 (2026-08-28)
+    /* ⛔ `youtube: 'puzzle'` 을 지웠습니다 (2026-08-29).
+         유튜브 보기를 **되살렸으므로** 이어 줄 곳이 생겼습니다.
+         남겨 두면 예전 기록이 제 활동을 못 찾고 계속 퍼즐놀이를 가리킵니다.
+       ⚠ 활동을 되살릴 때는 ALIAS 에서 그 줄을 **반드시 지우세요.** */
   };
   function realId(id) { return (BY_ID[id] ? id : ALIAS[id]) || id; }
 
