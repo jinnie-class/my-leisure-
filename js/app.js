@@ -9,6 +9,39 @@
      선생님 설정 → 데이터 → 저장 상태 에서 볼 수 있습니다. */
   App.VERSION = '2026-08-26 · 세 기기판 (전자칠판·태블릿·노트북)';
 
+  /* ============ 화면 높이 재기 (`--vh`) — ⛔⛔ 태블릿에서 꼭 필요합니다 ============
+
+     안드로이드 브라우저(태블릿)에서 `1vh` 는 **주소창이 숨겨졌을 때의 큰 높이**를
+     가리킵니다. 지금 보이는 높이가 아닙니다.
+
+       껍데기(.app)  : `100dvh` — **지금 보이는** 높이 (620px)
+       안쪽 그림·글자 : `16vh` 등 — **주소창 숨긴** 높이 (720px) 기준
+
+     그래서 껍데기는 620px 인데 내용물이 720px 화면에 맞춰 커집니다.
+     16% 쯤 넘쳐서 다음 쪽으로 밀리고, **고르는 카드가 화면에서 사라집니다.**
+     선생님 : 「나의일기 쓰기를 위한 그림들이 처음부터 끝까지 보이지 않아서
+     선택할 수 없고 일기를 쓸 수 없는 상태」 (2026-08-29 태블릿)
+
+     전자칠판·노트북은 주소창이 접히지 않아 `vh` = `dvh` 라 멀쩡했습니다.
+     **한 기기에서만 나는 탈**이라 화면을 줄여 보는 것만으로는 못 찾습니다.
+
+     ▸ 고침 : 여기서 **실제 보이는 높이**를 재어 `--vh` 에 넣고,
+       css 의 `16vh` 를 `calc(16 * var(--vh))` 로 씁니다.
+       `dvh` 를 그냥 쓰지 않는 것은 오래된 전자칠판 브라우저가 `dvh` 를 모르면
+       그 줄이 통째로 버려져 크기가 0 이 되기 때문입니다. `--vh` 는 어디서나 돕니다.
+     ⚠ 주소창이 접히고 펴질 때마다 높이가 바뀌므로 `resize` 에서 다시 잽니다.
+       화면을 돌릴 때(orientationchange)는 조금 늦게 재야 새 높이가 나옵니다. */
+  function setVH() {
+    var h = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!h) return;
+    document.documentElement.style.setProperty('--vh', (h / 100) + 'px');
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', function () { setTimeout(setVH, 250); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', setVH);
+  App.setVH = setVH;
+
   /* 인쇄 내용을 담아 두는 자리 (실제 그리기는 Root 가 맡습니다) */
   var setPrintContent = null;
   /* ⛔⛔ **글꼴이 다 실린 뒤에 인쇄창을 엽니다** (2026-08-29 · 선생님 말씀 —

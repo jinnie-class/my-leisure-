@@ -5,7 +5,7 @@
 
 :root{
   /* 화면 크기에 따라 전체 글자 크기가 함께 커집니다 (전자칠판 대응) */
-  font-size: clamp(17px, calc(0.5vw + 1.15vh), 28px);
+  font-size: clamp(17px, calc(0.5vw + calc(1.15 * var(--vh, 1vh))), 28px);
 
   /* 색 자극을 줄인 바탕 — 면은 흰색, 선은 아주 연한 회색 */
   --ink:      #2f2f3d;   /* 본문 글자 */
@@ -66,10 +66,10 @@
      ▸ 기울기(vh 계수)를 단계마다 같은 비로 두어, 화면이 커져도
        단계 사이 크기 차례가 뒤집히지 않습니다.
        (제목 > 질문 > 큰단추 > 본문 > 보조 > 작게) */
-  --fs-title: clamp(1.30rem, .85rem + 1.30vh, 1.85rem);  /* 화면 제목 (topbar) */
-  --fs-q:     clamp(1.10rem, .72rem + 1.10vh, 1.57rem);  /* 질문 (제목의 85%) */
-  --fs-big:   clamp(1.20rem, .78rem + 1.20vh, 1.70rem);  /* 큰 단추 (지금 할 일) */
-  --fs-card:  clamp(1.05rem, .60rem + 1.30vh, 1.60rem);  /* 고르는 카드 이름 */
+  --fs-title: clamp(1.30rem, .85rem + calc(1.30 * var(--vh, 1vh)), 1.85rem);  /* 화면 제목 (topbar) */
+  --fs-q:     clamp(1.10rem, .72rem + calc(1.10 * var(--vh, 1vh)), 1.57rem);  /* 질문 (제목의 85%) */
+  --fs-big:   clamp(1.20rem, .78rem + calc(1.20 * var(--vh, 1vh)), 1.70rem);  /* 큰 단추 (지금 할 일) */
+  --fs-card:  clamp(1.05rem, .60rem + calc(1.30 * var(--vh, 1vh)), 1.60rem);  /* 고르는 카드 이름 */
   --fs-body:  1rem;                                      /* 본문 · 보통 단추 */
   --fs-sub:   .95rem;                                    /* 힌트 · 보조 글 */
   --fs-small: .86rem;                                    /* 작은 안내 */
@@ -129,7 +129,7 @@ ul{ margin:0; padding:0; list-style:none; }
 
 .app{
   position:relative;
-  height:100vh;
+  height:calc(100 * var(--vh, 1vh));
   height:100dvh;
   display:flex;
   flex-direction:column;
@@ -426,7 +426,7 @@ ul{ margin:0; padding:0; list-style:none; }
   display:grid;
   /* ★ 2×2 → **한 줄에 넷** (2026-08-26 · 선생님 말씀). 가로 화면 전용이라
      옆으로 넓게 펴는 편이 자리를 잘 씁니다. 카드는 26vh (800높이 208px). */
-  grid-template-columns:repeat(4, clamp(150px, 26vh, 320px));
+  grid-template-columns:repeat(4, clamp(150px, calc(26 * var(--vh, 1vh)), 320px));
   justify-content:center;
   gap:clamp(.6rem,1.1vw,1.1rem);
   break-inside:avoid;
@@ -434,7 +434,7 @@ ul{ margin:0; padding:0; list-style:none; }
 /* 코너 카드 — 흰 카드. 색은 그림이 놓인 동그라미에만 아주 옅게 씁니다 */
 .corner{
   display:flex; flex-direction:column; align-items:center; gap:.4rem;
-  padding:clamp(.8rem,1.6vh,1.3rem) .7rem;
+  padding:clamp(.8rem,calc(1.6 * var(--vh, 1vh)),1.3rem) .7rem;
   border:2px solid var(--line);
   border-radius:22px;
   background:#fff;
@@ -455,7 +455,7 @@ ul{ margin:0; padding:0; list-style:none; }
   /* ★ B안 (2026-08-26) : 색 동그라미를 걷어내고 **그림을 직접 크게** 보여 줍니다.
        코너별 색(--c)은 '작은 표시에만' 쓴다는 규칙과 어중간하게 겹쳐 있었고,
        동그라미 테가 그림을 12vh 안에 다시 가두고 있었습니다. */
-  width:clamp(72px,15vh,190px); height:clamp(72px,15vh,190px);
+  width:clamp(72px,calc(15 * var(--vh, 1vh)),190px); height:clamp(72px,calc(15 * var(--vh, 1vh)),190px);
   flex:0 0 auto;
   border-radius:0; padding:0;
   display:grid; place-items:center;
@@ -475,7 +475,7 @@ ul{ margin:0; padding:0; list-style:none; }
      카드 안쪽 228px 에 한 줄로 들어갑니다.
      `white-space:nowrap` 은 그래도 안 깨지게 하는 안전장치입니다. */
 .corner .desc{
-  display:block; font-size:clamp(1.05rem, 1.7vh + .5rem, 28px);
+  display:block; font-size:clamp(1.05rem, calc(1.7 * var(--vh, 1vh)) + .5rem, 28px);
   font-weight:900; letter-spacing:-.03em; color:var(--ink);
   white-space:nowrap;
 }
@@ -528,7 +528,7 @@ ul{ margin:0; padding:0; list-style:none; }
    ▸ 넘치면 Stage 줄이기가 받아 주지만, 19vh 는 3×2 여섯 장이
      800 높이에 줄이기 없이 들어가게 잰 값입니다. */
 .pick .thumb{
-  width:clamp(72px,19vh,230px); height:clamp(72px,19vh,230px);
+  width:clamp(72px,calc(19 * var(--vh, 1vh)),230px); height:clamp(72px,calc(19 * var(--vh, 1vh)),230px);
   display:grid; place-items:center;
   /* ⛔⛔ **안전장치 — 지우지 마세요** (2026-08-28 · 선생님 말씀 —
        「준비물이 나오는 칸의 이미지들이 각자의 상자를 넘쳐서 나와」).
@@ -557,7 +557,7 @@ ul{ margin:0; padding:0; list-style:none; }
    ⛔ 다른 화면(일기·지도)까지 키우지 마세요 — 거기는 여섯 장입니다. */
 [data-corner="plan"] .pick .thumb,
 [data-corner="diary"] .pick .thumb{
-  width:clamp(88px,26vh,300px); height:clamp(88px,26vh,300px);
+  width:clamp(88px,calc(26 * var(--vh, 1vh)),300px); height:clamp(88px,calc(26 * var(--vh, 1vh)),300px);
 }
 /* 사람처럼 위아래로 긴 그림도 함께 키웁니다.
    ⛔ 이 줄을 빠뜨리면 「누구와 할까요?」만 그림이 작습니다 — 사람 카드는
@@ -565,7 +565,7 @@ ul{ margin:0; padding:0; list-style:none; }
       활동 208px 인데 사람만 108px 이었습니다). */
 [data-corner="plan"] .pick .thumb.portrait,
 [data-corner="diary"] .pick .thumb.portrait{
-  width:auto; height:clamp(110px,26vh,300px);
+  width:auto; height:clamp(110px,calc(26 * var(--vh, 1vh)),300px);
 }
 /* ★ 준비물은 **한 줄에 여덟 칸**이라 칸이 좁습니다 (2026-08-28).
      위의 26vh 는 「한 줄에 셋」을 보고 잰 값이라 여기서는 칸을 넘칩니다.
@@ -577,7 +577,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .pick-grid.cols-8 .pick .thumb,
 [data-corner="plan"] .pick-grid.cols-8 .pick .thumb,
 [data-corner="diary"] .pick-grid.cols-8 .pick .thumb{
-  width:min(clamp(72px,19vh,230px), 100%);
+  width:min(clamp(72px,calc(19 * var(--vh, 1vh)),230px), 100%);
   height:auto; aspect-ratio:1;
 }
 /* 사람 그림처럼 위아래로 긴 그림을 담는 자리.
@@ -611,7 +611,7 @@ ul{ margin:0; padding:0; list-style:none; }
      얼굴과 몸통이 크게 나옵니다. `center 12%` 는 머리 위 여백을 조금만
      남기는 자리입니다 — 0% 면 머리카락이 칸에 딱 붙어 답답합니다. */
 .pick .thumb.portrait{
-  width:auto; height:clamp(96px,19vh,240px); aspect-ratio:4/3;
+  width:auto; height:clamp(96px,calc(19 * var(--vh, 1vh)),240px); aspect-ratio:4/3;
   overflow:hidden; border-radius:14px;
 }
 /* ⛔ 사람 카드(.portrait)는 **여기서 빼 둡니다.** 뒤에 `cover` 규칙을 더 구체적으로
@@ -645,7 +645,7 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 .pick.sel .check{ display:grid; }
 .pick.compact{ flex-direction:row; justify-content:flex-start; gap:.6rem; padding:.55rem .8rem; text-align:left; }
-.pick.compact .thumb{ width:clamp(38px,5vh,60px); height:clamp(38px,5vh,60px); }
+.pick.compact .thumb{ width:clamp(38px,calc(5 * var(--vh, 1vh)),60px); height:clamp(38px,calc(5 * var(--vh, 1vh)),60px); }
 
 /* 그림 자체가 장면인 카드 (실내에서 해요 / 실외에서 해요) —
    흰 카드 틀을 없애고 그림만 크게 보여 줍니다.
@@ -654,7 +654,7 @@ ul{ margin:0; padding:0; list-style:none; }
   background:transparent; border-color:transparent; box-shadow:none;
   padding:.3rem .3rem .5rem;
 }
-.pick.bare .thumb{ width:clamp(84px,20vh,240px); height:clamp(84px,20vh,240px); }
+.pick.bare .thumb{ width:clamp(84px,calc(20 * var(--vh, 1vh)),240px); height:clamp(84px,calc(20 * var(--vh, 1vh)),240px); }
 .pick.bare:hover{ background:rgba(0,0,0,.03); }
 .pick.bare.sel{
   background:var(--sel-bg); border-color:var(--sel-line);
@@ -706,7 +706,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .q-bar{
   position:relative; justify-content:flex-start;
   padding-right:4.4rem;              /* 오른쪽 끝 읽어주기와 겹치지 않게 */
-  margin-top:clamp(.2rem, .9vh, 12px);
+  margin-top:clamp(.2rem, calc(.9 * var(--vh, 1vh)), 12px);
 }
 /* 딸린 단추가 있으면 읽어주기가 질문 옆으로 오므로 오른쪽 자리를 비울 까닭이 없습니다.
    그대로 두면 단추가 오른쪽 끝까지 못 가고 4.4rem 안쪽에서 멈춥니다. */
@@ -804,7 +804,7 @@ ul{ margin:0; padding:0; list-style:none; }
 
 .sentence{
   background:#fff; border:3px dashed var(--line); border-radius:var(--radius);
-  padding:.8rem 1rem; font-size:clamp(1.3rem,.85rem + 1.5vh,34px);
+  padding:.8rem 1rem; font-size:clamp(1.3rem,.85rem + calc(1.5 * var(--vh, 1vh)),34px);
   font-weight:800; line-height:1.5; break-inside:avoid;
 }
 /* 완성된 문장 : 노란 칸에 한 줄에 한 문장씩, 가운데로.
@@ -825,7 +825,7 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 textarea.sentence-edit{
   width:100%; display:block; resize:none; overflow:hidden;
-  font-family:inherit; font-size:clamp(1.15rem,.7rem + 1.4vh,1.75rem);
+  font-family:inherit; font-size:clamp(1.15rem,.7rem + calc(1.4 * var(--vh, 1vh)),1.75rem);
   /* ★ 원고지처럼 **왼쪽 맞춤 + 문단 첫 칸 들여쓰기**.
        가운데 정렬은 글줄이 들쭉날쭉해서 어디가 한 문장인지 알기 어려웠고,
        오른쪽 원고지와 줄이 전혀 달라 견주기도 힘들었습니다.
@@ -867,7 +867,7 @@ textarea.sentence-edit:focus{
 .home-title{
   text-align:center;
   /* 지웠던 설명 한 줄(`내가 좋아하는 여가를 찾아보아요.`)이 차지하던 높이 */
-  --one-line:calc(clamp(.9rem, .55rem + .8vh, 20px) * 1.45);
+  --one-line:calc(clamp(.9rem, .55rem + calc(.8 * var(--vh, 1vh)), 20px) * 1.45);
   /* 아래를 위보다 훨씬 넉넉하게 (아래 1.5줄 · 위 0.6줄).
      큰 글자는 줄 상자 안에서 위쪽에 여유가 있어서, 위아래를 똑같은 숫자로
      주면 아래가 더 붙어 보입니다. 눈으로 맞춘 값입니다.
@@ -900,7 +900,7 @@ textarea.sentence-edit:focus{
 .stage:not(.tall):not(.full):not(.tstage){ flex:1 1 auto; align-items:center; }
 .stage:not(.tall):not(.full):not(.tstage) > .panel{ height:85%; }
 .home-title h1{
-  font-size:clamp(1.5rem, .7rem + 2.2vh, 42px);
+  font-size:clamp(1.5rem, .7rem + calc(2.2 * var(--vh, 1vh)), 42px);
   font-weight:900; letter-spacing:-.05em; line-height:1.15;
 }
 /* 창 안 작은 제목 (`오늘의 여가 계획` · `오늘의 도전` …).
@@ -916,7 +916,7 @@ textarea.sentence-edit:focus{
      1024×768 → 22 · 19 · 16 · 14px / 1400×1500 → 40 · 34 · 26 · 22px
    ▸ 맨 위 두 칸을 고치면 **여기 두 칸도 같은 비로** 고쳐야 순서가 지켜집니다. */
 .sec h3{
-  font-size:clamp(1rem, .62rem + .95vh, 26px);
+  font-size:clamp(1rem, .62rem + calc(.95 * var(--vh, 1vh)), 26px);
   font-weight:900; margin-bottom:.45rem;
   display:flex; align-items:center; gap:.4rem;
 }
@@ -924,7 +924,7 @@ textarea.sentence-edit:focus{
 /* ★ 오늘의 계획 문장 — 더 크게 · **늘 한 줄** (2026-08-26 · 선생님 말씀).
      길면 … 으로 줄입니다. 전체 문장은 계획 보기와 읽어주기가 보여 줍니다. */
 .card-say{
-  display:block; font-size:clamp(1.05rem, .6rem + 1.1vh, 26px); font-weight:900;
+  display:block; font-size:clamp(1.05rem, .6rem + calc(1.1 * var(--vh, 1vh)), 26px); font-weight:900;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
@@ -947,7 +947,7 @@ label.lab{ font-weight:900; font-size:.95rem; display:block; margin-bottom:.25re
      학생이 칸을 늘리거나 굴려 볼 수 있어야 합니다. */
 textarea.field.diary-write{
   width:min(100%, 44em); margin-left:auto; margin-right:auto; display:block;
-  font-size:clamp(1.15rem,.7rem + 1.4vh,1.75rem);
+  font-size:clamp(1.15rem,.7rem + calc(1.4 * var(--vh, 1vh)),1.75rem);
   font-weight:800; line-height:1.75; text-align:left; text-indent:1em;
   color:var(--ink); background:var(--note); border:3px solid var(--note-line);
   border-radius:var(--radius); padding:.9rem 1.2rem;
@@ -1004,12 +1004,12 @@ textarea.field.diary-write:focus{
   display:grid; place-items:center; padding:1rem;
 }
 .modal{
-  width:min(760px,100%); max-height:min(88vh, 100dvh - 2rem); overflow:auto;
+  width:min(760px,100%); max-height:min(calc(88 * var(--vh, 1vh)), 100dvh - 2rem); overflow:auto;
   background:#fff; border:2px solid var(--line); border-radius:26px;
   box-shadow:0 8px 0 rgba(74,51,35,.25);
   padding:1.1rem 1.2rem 1rem;
 }
-.modal h2{ font-size:clamp(1.25rem,.9rem + 1.3vh,1.9rem); font-weight:900; margin-bottom:.5rem; }
+.modal h2{ font-size:clamp(1.25rem,.9rem + calc(1.3 * var(--vh, 1vh)),1.9rem); font-weight:900; margin-bottom:.5rem; }
 /* 팝업 아래 단추는 가운데 정렬 */
 .modal .acts{
   display:flex; gap:.6rem; flex-wrap:wrap;
@@ -1089,9 +1089,9 @@ textarea.field.diary-write:focus{
      대신 `transform:translateY(-100%)` 로 **아래쪽 끝을 기준**으로 매답니다.
      그러면 알약이 얼마나 커지든 아랫변이 늘 카드에서 같은 만큼 떨어집니다. */
 /* 팝업 안 선택 카드는 작게 (스크롤이 생기지 않도록) */
-.modal .pick .thumb{ width:clamp(48px,7vh,84px); height:clamp(48px,7vh,84px); }
+.modal .pick .thumb{ width:clamp(48px,calc(7 * var(--vh, 1vh)),84px); height:clamp(48px,calc(7 * var(--vh, 1vh)),84px); }
 .modal .pick{ padding:.6rem .4rem .5rem; }
-.modal .pick .label{ font-size:clamp(.85rem,.5rem + .7vh,1.05rem); }
+.modal .pick .label{ font-size:clamp(.85rem,.5rem + calc(.7 * var(--vh, 1vh)),1.05rem); }
 
 /* 활동카드 : 그림과 이름만. 상태는 오른쪽 위에 그림표시로만 겹쳐 보입니다. */
 .mapcard{
@@ -1274,7 +1274,7 @@ textarea.field.diary-write:focus{
 .ws .sentence-center{
   text-align:center;
   margin-left:var(--sheet-inset); margin-right:var(--sheet-inset);
-  font-size:clamp(1.5rem,.9rem + 2vh,42px);
+  font-size:clamp(1.5rem,.9rem + calc(2 * var(--vh, 1vh)),42px);
 }
 .ws{ --sheet-inset:14%; }
 /* 표는 노란 바와 **같은 축에 가운데로** (2026-08-26 · 선생님 말씀).
@@ -1310,7 +1310,7 @@ textarea.field.diary-write:focus{
   gap:1.6rem; margin-top:.7rem; flex-wrap:wrap;
 }
 .sheet-art{
-  width:clamp(120px, 20vh, 200px); height:clamp(120px, 20vh, 200px);
+  width:clamp(120px, calc(20 * var(--vh, 1vh)), 200px); height:clamp(120px, calc(20 * var(--vh, 1vh)), 200px);
   justify-self:center;
 }
 .sheet-art img, .sheet-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
@@ -1349,7 +1349,7 @@ textarea.field.diary-write:focus{
 .folio-preview{
   /* 위 기간 바(56px) · 칸 제목 · 안내 글 · 여백까지 빼고 남는 만큼만 씁니다.
      넉넉히 잡지 않으면 30px 쯤 넘쳐서 화면이 두 쪽으로 갈라집니다. */
-  max-height:calc(100vh - 470px); min-height:200px; overflow:auto;
+  max-height:calc(calc(100 * var(--vh, 1vh)) - 470px); min-height:200px; overflow:auto;
   padding:.5rem; border:2px solid var(--line); border-radius:16px;
   background:var(--paper-2);
 }
@@ -1381,12 +1381,12 @@ textarea.field.diary-write:focus{
   background:var(--sel-bg); border-width:3px; border-color:var(--sel-line);
   box-shadow:0 0 0 3px rgba(43,125,233,.22), var(--shadow);
 }
-.stu-card-mark{ font-size:clamp(1.7rem,1rem + 1.4vh,40px); line-height:1; flex:0 0 auto; }
+.stu-card-mark{ font-size:clamp(1.7rem,1rem + calc(1.4 * var(--vh, 1vh)),40px); line-height:1; flex:0 0 auto; }
 /* `nowrap` 이 꼭 있어야 합니다. `min-width:0` 만 있고 `nowrap` 이 없으면
    칸이 좁아질 때 글자가 한 글자씩 줄바꿈됩니다. 이름은 잘리더라도
    한 줄로 두고 `…` 로 줄이는 편이 알아보기 쉽습니다. */
 .stu-card-name{
-  font-size:clamp(1.15rem,.7rem + 1.1vh,28px); font-weight:900;
+  font-size:clamp(1.15rem,.7rem + calc(1.1 * var(--vh, 1vh)),28px); font-weight:900;
   min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
@@ -1406,7 +1406,7 @@ textarea.field.diary-write:focus{
   background:var(--paper-2); border:2px solid var(--line); border-radius:20px; padding:1rem; min-width:0;
 }
 .cs-face{
-  width:min(84%, 40vh); aspect-ratio:1; border-radius:999px; overflow:hidden;
+  width:min(84%, calc(40 * var(--vh, 1vh))); aspect-ratio:1; border-radius:999px; overflow:hidden;
   border:4px solid var(--line); background:#fff; flex:0 0 auto;
 }
 .cs-name{
@@ -1460,7 +1460,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .cs-art > * > *{ width:100%; height:100%; object-fit:contain; display:block; }
 /* 이름은 **줄어들지 않습니다**(flex:0 0 auto). 그림이 남는 자리만 씁니다.
    낮은 화면에서는 글자도 함께 작아집니다 — 고정 크기로 두면 카드보다 커집니다. */
-.cs-label{ flex:0 0 auto; font-size:clamp(.68rem,.38rem + .5vh,.86rem); font-weight:800; }
+.cs-label{ flex:0 0 auto; font-size:clamp(.68rem,.38rem + calc(.5 * var(--vh, 1vh)),.86rem); font-weight:800; }
 @media screen and (max-width: 820px){
   .cs-cols{ flex-direction:column; }
   .cs-preview{ flex:0 0 auto; flex-direction:row; }
@@ -1623,7 +1623,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .cover-img{ display:block; width:100%; height:100%; object-fit:contain; }
 .cover-fallback{ padding:3rem 2.5rem 5rem; text-align:center; }
 .cover-fallback .cover-title{
-  font-size:clamp(2.4rem,1rem + 5vh,4.6rem); font-weight:900; letter-spacing:-.05em;
+  font-size:clamp(2.4rem,1rem + calc(5 * var(--vh, 1vh)),4.6rem); font-weight:900; letter-spacing:-.05em;
 }
 .cover-fallback p{ font-size:1.2rem; font-weight:800; color:var(--ink-soft); margin-top:.4rem; }
 
@@ -1714,7 +1714,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 /* 아주 납작한 화면 (전자칠판 16:9 등) */
 @media screen and (max-height: 560px){
   :root{ --tap:52px; }
-  .corner .art{ width:clamp(46px,9vh,72px); height:clamp(46px,9vh,72px); }
+  .corner .art{ width:clamp(46px,calc(9 * var(--vh, 1vh)),72px); height:clamp(46px,calc(9 * var(--vh, 1vh)),72px); }
 }
 
 /* ★ 낮은 화면(노트북 · 작은 창)에서 **내용 자리를 넓힙니다.**
@@ -2056,7 +2056,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 }
 .look-txt{
   min-width:0; text-align:center;
-  font-size:clamp(1.05rem, 2.2vh, 1.7rem); font-weight:800; line-height:1.5;
+  font-size:clamp(1.05rem, calc(2.2 * var(--vh, 1vh)), 1.7rem); font-weight:800; line-height:1.5;
   color:#4a3608; overflow:hidden;
 }
 /* 폭이 좁으면 문장이 **아래**로 내려갑니다 (그러면 그림이 폭을 통째로 씁니다).
@@ -2211,10 +2211,10 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      입력칸 테두리가 아래 카드에 닿아 겹쳐 보였습니다. */
 .six{
   display:flex; flex-direction:column; gap:.45rem;
-  margin-bottom:clamp(.8rem, 2vh, 28px);
+  margin-bottom:clamp(.8rem, calc(2 * var(--vh, 1vh)), 28px);
 }
 .q-bar + .six,
-.q + .six{ margin-top:clamp(.5rem, 1.2vh, 18px); }
+.q + .six{ margin-top:clamp(.5rem, calc(1.2 * var(--vh, 1vh)), 18px); }
 /* 글 칸이 이미 아래 여백을 주므로 격자가 또 띄우면 너무 벌어집니다 */
 .six + .pick-grid,
 .six + .stack{ margin-top:0; }
@@ -2262,7 +2262,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      이 단계가 통째로 다음 쪽으로 밀립니다 (`.sec` 는 break-inside:avoid).
      크게 보고 싶으면 마지막 `완성` 단계의 미리보기를 누르면 됩니다. */
 .hw-shot{
-  max-width:100%; max-height:min(34vh, 300px);
+  max-width:100%; max-height:min(calc(34 * var(--vh, 1vh)), 300px);
   width:auto; height:auto; display:block; margin:0 auto;
   object-fit:contain;
   border:2px solid var(--line); border-radius:14px; background:#fff;
@@ -2403,7 +2403,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      `44vh 높이일 때의 폭` = 44vh × 10/7. 이러면 칸이 늘 그림 비율과 같아
      빈 띠가 아예 생기지 않습니다. */
 .dp-canvas{
-  width:min(100%, calc(44vh * 10 / 7));
+  width:min(100%, calc(calc(44 * var(--vh, 1vh)) * 10 / 7));
   aspect-ratio:10 / 7; height:auto; display:block; margin:0 auto;
   /* 비율을 **테두리 안쪽**에 매깁니다. border-box 로 두면 테두리 6px 때문에
      안쪽 비율이 조금 어긋나서 아주 얇은 빈 띠가 남습니다. */
@@ -2470,7 +2470,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 
 /* 그림 완성 확인 창에서 보여 주는 그림 */
 .made-shot{
-  max-width:100%; max-height:46vh; width:auto; height:auto;
+  max-width:100%; max-height:calc(46 * var(--vh, 1vh)); width:auto; height:auto;
   display:block; margin:0 auto; object-fit:contain;
   border:3px solid var(--line); border-radius:16px; background:#fff;
 }
@@ -2484,7 +2484,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      앞에 두면 기본 규칙(34vh)이 더 뒤에 있어서 이겨 버립니다.
      한 번 그렇게 두어 손글씨 그림이 238px 로 남아 3쪽으로 갈라졌습니다. */
 @media screen and (max-height: 780px){
-  .hw-shot{ max-height:min(15vh, 110px); }
+  .hw-shot{ max-height:min(calc(15 * var(--vh, 1vh)), 110px); }
 }
 
 /* 사진 여러 장 가운데 그림일기에 넣을 한 장 고르기 */
@@ -2511,7 +2511,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .pick.add-card:hover{ background:#fff; border-color:var(--sel-line); }
 .add-plus{
   display:grid; place-items:center; width:100%; height:100%;
-  font-size:clamp(1.8rem,1rem + 3vh,3rem); font-weight:900; color:var(--line-strong);
+  font-size:clamp(1.8rem,1rem + calc(3 * var(--vh, 1vh)),3rem); font-weight:900; color:var(--line-strong);
 }
 .pick.add-card .label{ color:var(--ink-soft); }
 
@@ -2555,7 +2555,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   gap:.8rem; padding:.6rem 0 .9rem;
 }
 .cheer-face{
-  width:clamp(84px,14vh,132px); height:clamp(84px,14vh,132px);
+  width:clamp(84px,calc(14 * var(--vh, 1vh)),132px); height:clamp(84px,calc(14 * var(--vh, 1vh)),132px);
   border-radius:999px; overflow:hidden; background:#fff;
   border:3px solid var(--line); box-shadow:var(--shadow);
   animation:cheer-hop .9s ease-in-out 2;
@@ -2604,7 +2604,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   border:2px solid #f3d9a8; background:linear-gradient(180deg,#fffdf6,#fff);
 }
 .ch-art{
-  width:clamp(50px,6.5vh,84px); height:clamp(50px,6.5vh,84px); flex:0 0 auto;
+  width:clamp(50px,calc(6.5 * var(--vh, 1vh)),84px); height:clamp(50px,calc(6.5 * var(--vh, 1vh)),84px); flex:0 0 auto;
 }
 .ch-art img,.ch-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
 .ch-tag{
@@ -2612,7 +2612,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   background:#f6e2b6; color:#7a5c1e; font-size:.78rem; font-weight:900;
 }
 .ch-name{
-  display:block; font-size:clamp(.92rem, .55rem + .8vh, 22px); font-weight:900;
+  display:block; font-size:clamp(.92rem, .55rem + calc(.8 * var(--vh, 1vh)), 22px); font-weight:900;
   margin-top:.15rem;
 }
 .ch-say{ display:block; font-size:.92rem; font-weight:800; color:var(--ink-soft); }
@@ -2622,7 +2622,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   display:flex; align-items:center; justify-content:center; gap:.45rem; flex-wrap:wrap;
   padding:.5rem .8rem; margin-bottom:.5rem;
   background:var(--note); border:2px solid var(--note-line); border-radius:var(--radius);
-  font-size:clamp(1rem,.65rem + 1vh,1.35rem); font-weight:900;
+  font-size:clamp(1rem,.65rem + calc(1 * var(--vh, 1vh)),1.35rem); font-weight:900;
 }
 .frame-line .blank.on{ background:#fff; border-bottom-color:var(--ok); }
 .blank.wide{ min-width:10em; }
@@ -2702,7 +2702,7 @@ input.title-input{
       같은 여백, 빨간 낱말은 그대로입니다. */
 .frame-top .frame-line{
   background:none; border:0;
-  font-size:clamp(.92rem,.6rem + .85vh,1.15rem);
+  font-size:clamp(.92rem,.6rem + calc(.85 * var(--vh, 1vh)),1.15rem);
   padding:.55rem .8rem; line-height:1.6; row-gap:.5rem;
   justify-content:center;
 }
@@ -2743,7 +2743,7 @@ input.title-input{
   /* ★ 하늘 자리가 그림 위 20% 쯤까지 있는데 바는 10% 밖에 안 썼습니다.
        섬 그림(집·텐트)이 시작되기 전까지만 키웁니다. 상한 1.2 -> 1.9rem.
      ⚠ 더 키우면 지붕과 텐트 꼭대기에 닿습니다. */
-  font-size:clamp(1rem, .55rem + 1.5vh, 1.9rem); font-weight:900;
+  font-size:clamp(1rem, .55rem + calc(1.5 * var(--vh, 1vh)), 1.9rem); font-weight:900;
   box-shadow:0 3px 0 rgba(0,0,0,.12);
 }
 .island-gate.out .gate-name{ border-color:#5f8f57; color:#38612f; }
@@ -2751,7 +2751,7 @@ input.title-input{
   display:flex; align-items:center; gap:.3rem; white-space:nowrap;
   padding:.12rem .7rem; border-radius:999px;
   background:rgba(255,255,255,.92); border:2px solid #c9b78f;
-  font-size:clamp(.78rem,.5rem + .7vh,1.05rem); font-weight:800; color:#5a4230;
+  font-size:clamp(.78rem,.5rem + calc(.7 * var(--vh, 1vh)),1.05rem); font-weight:800; color:#5a4230;
   box-shadow:0 2px 0 rgba(0,0,0,.08);
 }
 .gate-count img{ width:1.3em; height:1.3em; object-fit:contain; display:block; }
@@ -2822,7 +2822,7 @@ input.title-input{
 }
 /* 아직 안 받은 칸은 발자국을 아주 연하게 (자리를 미리 보여 줍니다) */
 .stamp .stamp-ink{
-  width:clamp(34px,5vh,46px); height:clamp(34px,5vh,46px);
+  width:clamp(34px,calc(5 * var(--vh, 1vh)),46px); height:clamp(34px,calc(5 * var(--vh, 1vh)),46px);
   flex:0 0 auto; display:block; opacity:.14;
 }
 .stamp .stamp-ink img,.stamp .stamp-ink svg,.stamp .stamp-ink span{
@@ -2871,7 +2871,7 @@ input.title-input{
      이 auto 가 발자국을 가운데로 놓습니다. 도장 창의 좌우 2단에서는
      `.stamp-left` 가 flex 로 가운데를 맡으므로 auto 가 있어도 그대로입니다.
      (좌우 2단을 만들며 auto 를 지웠더니 축하 창에서 발자국이 왼쪽에 붙었습니다) */
-.stamp-big{ width:clamp(110px,16vh,160px); height:clamp(110px,16vh,160px);
+.stamp-big{ width:clamp(110px,calc(16 * var(--vh, 1vh)),160px); height:clamp(110px,calc(16 * var(--vh, 1vh)),160px);
   margin:0 auto; transform:rotate(-9deg); }
 /* 도장 창 안내 한 줄 — `small`(.86rem) 은 너무 작아 따로 둡니다 */
 .stamp-cap{
@@ -2917,10 +2917,10 @@ input.title-input{
   padding:.55rem .9rem; border:3px solid var(--line); border-radius:16px;
   background:#fff;
 }
-.hm-art{ width:clamp(40px,6vh,56px); height:clamp(40px,6vh,56px); flex:0 0 auto; display:block; }
+.hm-art{ width:clamp(40px,calc(6 * var(--vh, 1vh)),56px); height:clamp(40px,calc(6 * var(--vh, 1vh)),56px); flex:0 0 auto; display:block; }
 .hm-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .hm-txt{ display:flex; flex-direction:column; min-width:0; line-height:1.3; }
-.hm-txt b{ font-size:clamp(1.05rem,.7rem + .9vh,1.35rem); font-weight:900; }
+.hm-txt b{ font-size:clamp(1.05rem,.7rem + calc(.9 * var(--vh, 1vh)),1.35rem); font-weight:900; }
 .hm-help{ font-size:.92rem; font-weight:800; color:var(--ink-soft); }
 
 /* ===========================================================
@@ -2954,14 +2954,14 @@ input.title-input{
 .mymap-grid{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
   gap:.7rem; break-inside:avoid;
-  width:min(100%, calc(2 * clamp(150px, 26vh, 260px) + .7rem));
+  width:min(100%, calc(2 * clamp(150px, calc(26 * var(--vh, 1vh)), 260px) + .7rem));
   margin:0 auto;
 }
 /* ★ 네 칸을 **한 줄(4×1)** 로 + 칸을 15% 크게 (2026-08-26 · 선생님 말씀).
      26vh → 30vh (×1.15). 가로 공간이 남던 화면이라 옆으로 폅니다. */
 .mymap-grid.row4{
   grid-template-columns:repeat(4,minmax(0,1fr));
-  width:min(100%, calc(4 * clamp(170px, 30vh, 300px) + 2.1rem));
+  width:min(100%, calc(4 * clamp(170px, calc(30 * var(--vh, 1vh)), 300px) + 2.1rem));
 }
 .mymap-card{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -2972,7 +2972,7 @@ input.title-input{
 .mymap-card:hover{ border-color:var(--sel-line); box-shadow:var(--shadow-2); }
 .mymap-card.empty{ background:var(--paper-2); }
 /* 정사각 칸이라 그림을 크게 (44~72px -> 60~120px) */
-.mymap-art{ width:clamp(60px,11vh,120px); height:clamp(60px,11vh,120px); flex:0 0 auto; }
+.mymap-art{ width:clamp(60px,calc(11 * var(--vh, 1vh)),120px); height:clamp(60px,calc(11 * var(--vh, 1vh)),120px); flex:0 0 auto; }
 .mymap-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .mymap-txt{ display:flex; flex-direction:column; align-items:center; min-width:0; }
 .mymap-txt b{ font-size:1.1rem; font-weight:900; }
@@ -2991,7 +2991,7 @@ input.title-input{
   padding:1.6rem 1rem; text-align:center;
   border:3px dashed var(--line-strong); border-radius:20px; background:#fff;
 }
-.mymap-empty-art{ width:clamp(56px,9vh,96px); height:clamp(56px,9vh,96px); opacity:.5; }
+.mymap-empty-art{ width:clamp(56px,calc(9 * var(--vh, 1vh)),96px); height:clamp(56px,calc(9 * var(--vh, 1vh)),96px); opacity:.5; }
 .mymap-empty-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .mymap-empty b{ font-size:1.15rem; font-weight:900; }
 .mymap-empty span{ font-weight:800; color:var(--ink-soft); }
@@ -3093,7 +3093,7 @@ input.title-input{
    그림을 조금 줄이고, 카드마다 붙던 읽어주기는 뺍니다.
    (읽어주기는 화면마다 하나 — 질문 옆에 이미 있습니다. 규칙 4) */
 @media screen and (max-height: 900px){
-  .pick .thumb.portrait{ height:clamp(76px,13.5vh,150px); }
+  .pick .thumb.portrait{ height:clamp(76px,calc(13.5 * var(--vh, 1vh)),150px); }
   .pick-grid .pick .speak{ display:none; }
   .pick-grid .pick{ padding:.6rem .5rem .55rem; gap:.25rem; }
 }
@@ -3175,7 +3175,7 @@ input.title-input{
 /* 카드 안 읽어주기는 작게 — 화면 맨 위의 큰 읽어주기와 헷갈리지 않게 */
 .pick-name .speak,
 .pick-name .iconbtn{
-  width:clamp(26px,3.4vh,34px); height:clamp(26px,3.4vh,34px);
+  width:clamp(26px,calc(3.4 * var(--vh, 1vh)),34px); height:clamp(26px,calc(3.4 * var(--vh, 1vh)),34px);
   flex:0 0 auto; padding:0;
 }
 /* 그림을 키우는 것은 **부르는 화면에서만** 합니다 (`C.PickGrid` 의 `big`).
@@ -3189,14 +3189,14 @@ input.title-input{
      좌우 3쪽으로 갈라집니다 (1쪽 질문 · 2쪽 그림 · 3쪽 쪽넘기기).
    ※ 이 화면에는 `bigSpeak` 를 쓰지 마세요. 읽어주기를 글자 아래 크게 두면
      카드마다 54px 을 더 먹어서 역시 두 줄이 안 들어갑니다. */
-.pick-grid.big .thumb{ width:clamp(84px,16vh,200px); height:clamp(84px,16vh,200px); }
+.pick-grid.big .thumb{ width:clamp(84px,calc(16 * var(--vh, 1vh)),200px); height:clamp(84px,calc(16 * var(--vh, 1vh)),200px); }
 /* ⚠ 낮은 화면에서는 조금 더 줄입니다. 장소는 **두 줄**(3칸 × 2줄)이라
      그림이 조금만 커도 넘칩니다. 1280×720 에서 16vh(115px)면 24px 넘쳐
      화면이 2쪽으로 갈라졌습니다. 14vh(101px)면 들어갑니다.
    ※ 이 규칙은 위 기본 규칙 **뒤에** 두어야 이깁니다. 앞의
      `@media screen and (max-height:900px)` 묶음에 넣었다가 기본 규칙에 덮였습니다. */
 @media screen and (max-height: 820px){
-  .pick-grid.big .thumb{ width:clamp(84px,14vh,150px); height:clamp(84px,14vh,150px); }
+  .pick-grid.big .thumb{ width:clamp(84px,calc(14 * var(--vh, 1vh)),150px); height:clamp(84px,calc(14 * var(--vh, 1vh)),150px); }
 }
 
 /* 판 번호 — 학생 고르기 화면 맨 아래에 아주 작게.
@@ -3268,7 +3268,7 @@ input.title-input{
      문장의 자리입니다. 세 단계가 **같은 여백**이라야 화면이 고르게 보입니다.
      ⛔ 이 규칙은 **여기 한 곳뿐**입니다. 아래쪽에 같은 이름을 또 만들지 마세요. */
   padding:1.1rem 1.2rem;
-  font-size:clamp(1.3rem,.7rem + 2.6vh,42px); font-weight:900; color:var(--ink);
+  font-size:clamp(1.3rem,.7rem + calc(2.6 * var(--vh, 1vh)),42px); font-weight:900; color:var(--ink);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   text-align:center;
 }
@@ -3280,7 +3280,7 @@ input.title-input{
   display:flex; flex-wrap:wrap; gap:.35rem; justify-content:center;
   margin-bottom:.6rem;
 }
-.meta-page{ min-height:min(52vh, 460px); }
+.meta-page{ min-height:min(calc(52 * var(--vh, 1vh)), 460px); }
 /* 창 안에서는 질문 바를 한 번 더 보여 줄 까닭이 없습니다 — 창 제목이 곧 질문입니다 */
 .meta-page .q-bar{ display:none; }
 /* ★ 네 쪽의 그림칸을 **같은 크기**로 못박습니다.
@@ -3289,7 +3289,7 @@ input.title-input{
      여기서는 어느 쪽이든 같은 크기라, 넘겨도 화면이 흔들리지 않습니다. */
 .meta-page .pick-grid .thumb,
 .meta-page .pick-grid.big .thumb{
-  width:clamp(84px, 12vh, 124px); height:clamp(84px, 12vh, 124px);
+  width:clamp(84px, calc(12 * var(--vh, 1vh)), 124px); height:clamp(84px, calc(12 * var(--vh, 1vh)), 124px);
 }
 /* 3단계 글 칸은 바꾸기 창에 넣지 않습니다 — 여기는 그림을 바꾸는 곳입니다 */
 .meta-page .six{ display:none; }
@@ -3305,7 +3305,7 @@ input.title-input{
   padding:.2rem .6rem;
 }
 .pic-sofar-item{
-  width:clamp(76px,21vh,210px); height:clamp(76px,21vh,210px);
+  width:clamp(76px,calc(21 * var(--vh, 1vh)),210px); height:clamp(76px,calc(21 * var(--vh, 1vh)),210px);
   flex:0 0 auto; display:block;
 }
 .pic-sofar-item img,.pic-sofar-item svg{
@@ -3336,11 +3336,11 @@ input.title-input{
      상자를 걷어내면서 여백까지 함께 지웠더니 글자가 위아래에 딱 붙어
      답답해 보였습니다. 상자는 없애되 **숨 쉴 자리는 남깁니다.** */
   padding:1.1rem .8rem;
-  font-size:clamp(1.3rem,.7rem + 2.6vh,42px);
+  font-size:clamp(1.3rem,.7rem + calc(2.6 * var(--vh, 1vh)),42px);
   line-height:1.5; row-gap:.7rem;
 }
 .plan-l1-say{
-  max-width:100%; font-size:clamp(1.25rem,.7rem + 2.4vh,40px); font-weight:900;
+  max-width:100%; font-size:clamp(1.25rem,.7rem + calc(2.4 * var(--vh, 1vh)),40px); font-weight:900;
   color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 /* 계획하기 2단계 — 고른 낱말을 눈에 띄게.
@@ -3359,7 +3359,7 @@ input.title-input{
 }
 /* ⛔ 계획표 그림은 **크게** (2026-08-26 · 선생님 말씀). 44~72px 은 계획표
    한 장에서 장식처럼 보였습니다. 그림이 곧 계획의 내용입니다. */
-.sheet-pics-item{ width:clamp(64px,12vh,132px); height:clamp(64px,12vh,132px); flex:0 0 auto; display:block; }
+.sheet-pics-item{ width:clamp(64px,calc(12 * var(--vh, 1vh)),132px); height:clamp(64px,calc(12 * var(--vh, 1vh)),132px); flex:0 0 auto; display:block; }
 .sheet-pics-item img,.sheet-pics-item svg{ width:100%; height:100%; object-fit:contain; display:block; }
 .sheet-pics-sep{ font-weight:900; color:#b09a55; }
 
@@ -3370,7 +3370,7 @@ input.title-input{
 .pick-grid.big-speak .pick-name{ flex-direction:column; gap:.25rem; }
 .pick-grid.big-speak .pick-name .speak,
 .pick-grid.big-speak .pick-name .iconbtn{
-  width:clamp(40px,5.4vh,56px); height:clamp(40px,5.4vh,56px);
+  width:clamp(40px,calc(5.4 * var(--vh, 1vh)),56px); height:clamp(40px,calc(5.4 * var(--vh, 1vh)),56px);
 }
 
 /* 계획표 점선 칸 안을 **파스텔 노랑**으로.
@@ -3393,7 +3393,7 @@ input.title-input{
 .q-bar + .pick-grid,
 .q + .pick-grid,
 .q + .stack,
-.q + .six{ margin-top:clamp(.7rem, 1.8vh, 26px); }
+.q + .six{ margin-top:clamp(.7rem, calc(1.8 * var(--vh, 1vh)), 26px); }
 
 /* 실내 · 실외처럼 그림이 카드를 꽉 채우는 장면 카드에서도
    읽어주기를 글자 아래 크게 (bigSpeak). */
@@ -3513,7 +3513,7 @@ textarea.field.diary-write,
    동그란 틀 없이 그림만 둡니다 (97번과 같은 까닭). */
 .topbar-back{
   flex:0 0 auto; background:none; border:none; box-shadow:none; padding:0;
-  width:clamp(40px,5.4vh,60px); height:clamp(40px,5.4vh,60px);
+  width:clamp(40px,calc(5.4 * var(--vh, 1vh)),60px); height:clamp(40px,calc(5.4 * var(--vh, 1vh)),60px);
 }
 .topbar-back img{ width:100%; height:100%; object-fit:contain; }
 .topbar-back:hover{ background:none; transform:translateX(-2px); }
@@ -3521,8 +3521,8 @@ textarea.field.diary-write,
    화살표만으로는 어디로 가는지 몰라 학생이 누르지 못한 화면에 씁니다.
    ★ 자리와 키를 화살표와 맞춥니다 — 다른 화면과 줄이 어긋나면 안 됩니다. */
 .btn.topbar-backbtn{
-  flex:0 0 auto; min-height:clamp(40px,5.4vh,60px);
-  padding:.2rem 1rem; font-size:clamp(.9rem,.5rem + .75vh,1.1rem);
+  flex:0 0 auto; min-height:clamp(40px,calc(5.4 * var(--vh, 1vh)),60px);
+  padding:.2rem 1rem; font-size:clamp(.9rem,.5rem + calc(.75 * var(--vh, 1vh)),1.1rem);
   border-width:3px;
 }
 
@@ -3536,11 +3536,11 @@ textarea.field.diary-write,
        를 그림 키로 둡니다.
        ⚠ 크기를 정하는 것은 **여기 CSS** 이므로, 그림 파일을 작게 다시 그려도
          화면에서는 안 작아집니다. 크기는 이 줄을 고쳐야 바뀝니다. */
-  height:calc(clamp(1.05rem, 1.7vh + .5rem, 28px) * 1.2); display:block;
+  height:calc(clamp(1.05rem, calc(1.7 * var(--vh, 1vh)) + .5rem, 28px) * 1.2); display:block;
 }
 .cover-word img{ height:100%; width:auto; display:block; object-fit:contain; }
 .cover-word:hover{ transform:translateY(-2px); }
-.cover-word-text{ font-size:clamp(1.2rem,1.6vh + .5rem,30px); font-weight:900; letter-spacing:-.03em; }
+.cover-word-text{ font-size:clamp(1.2rem,calc(1.6 * var(--vh, 1vh)) + .5rem,30px); font-weight:900; letter-spacing:-.03em; }
 
 /* ※ 여기 있던 두 번째 `.plan-sofar` 는 2026-08-26 에 **위(§ 계획하기 문장)로
      합쳤습니다.** 같은 이름이 두 곳에 있으면 뒤엣것이 이겨서, 위만 고치고
@@ -3559,7 +3559,7 @@ textarea.field.diary-write,
 /* ★ 칸 크기를 **네 칸 화면과 똑같이** 못박습니다 (2026-08-26 · 선생님 말씀).
      활동이 한 개뿐이어도 같은 크기 · 같은 세로 길이로, 줄은 가운데 정렬. */
 .mymap-cards{
-  display:grid; grid-template-columns:repeat(4, clamp(170px, 30vh, 300px));
+  display:grid; grid-template-columns:repeat(4, clamp(170px, calc(30 * var(--vh, 1vh)), 300px));
   gap:clamp(.55rem,1.1vw,1rem);
   justify-content:center;
 }
@@ -3577,10 +3577,10 @@ textarea.field.diary-write,
   background:#fff8e2; border:2px solid #e6bf4a; color:#6b5410;
   font-weight:900; font-size:.85rem;
 }
-.mymap-art{ width:clamp(76px,14vh,150px); height:clamp(76px,14vh,150px); display:block; }
+.mymap-art{ width:clamp(76px,calc(14 * var(--vh, 1vh)),150px); height:clamp(76px,calc(14 * var(--vh, 1vh)),150px); display:block; }
 .mymap-art img, .mymap-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
 .mymap-name{
-  font-size:clamp(.95rem,.6rem + .9vh,24px); font-weight:900; text-align:center;
+  font-size:clamp(.95rem,.6rem + calc(.9 * var(--vh, 1vh)),24px); font-weight:900; text-align:center;
   line-height:1.25; min-width:0;
 }
 .mymap-item .mymap-date{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
@@ -3668,7 +3668,7 @@ textarea.field.diary-write,
 
 .folio-grid{
   display:grid; gap:.6rem;
-  grid-template-columns:repeat(auto-fill, minmax(clamp(110px,14vh,160px), 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(clamp(110px,calc(14 * var(--vh, 1vh)),160px), 1fr));
 }
 .folio-card{
   display:flex; flex-direction:column; align-items:center; gap:.2rem;
@@ -3678,10 +3678,10 @@ textarea.field.diary-write,
 }
 .folio-card.as-view{ cursor:default; }
 .folio-card:not(.as-view):hover{ border-color:var(--sel-line); transform:translateY(-2px); }
-.folio-art{ width:clamp(56px,8vh,88px); height:clamp(56px,8vh,88px); display:block; }
+.folio-art{ width:clamp(56px,calc(8 * var(--vh, 1vh)),88px); height:clamp(56px,calc(8 * var(--vh, 1vh)),88px); display:block; }
 .folio-art svg,.folio-art img{ width:100%; height:100%; object-fit:contain; display:block; }
 .folio-name{
-  font-size:clamp(.85rem,.5rem + .7vh,1.05rem); font-weight:800; text-align:center;
+  font-size:clamp(.85rem,.5rem + calc(.7 * var(--vh, 1vh)),1.05rem); font-weight:800; text-align:center;
   line-height:1.2; overflow:hidden; text-overflow:ellipsis; max-width:100%;
 }
 .folio-date{ font-size:.78rem; font-weight:800; color:var(--ink-soft); }
@@ -3700,7 +3700,7 @@ textarea.field.diary-write,
 }
 .folio-mark:hover{ border-color:var(--sel-line); transform:translateY(-2px); }
 .folio-mark.on{ background:var(--sel-bg); border-color:var(--sel-line); border-width:4px; }
-.fm-art{ width:clamp(38px,5.5vh,52px); height:clamp(38px,5.5vh,52px); flex:0 0 auto; display:block; }
+.fm-art{ width:clamp(38px,calc(5.5 * var(--vh, 1vh)),52px); height:clamp(38px,calc(5.5 * var(--vh, 1vh)),52px); flex:0 0 auto; display:block; }
 .fm-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .fm-txt{ min-width:0; font-size:.88rem; font-weight:800; line-height:1.25; color:var(--ink-soft); }
 .fm-txt b{ font-size:1.35em; font-weight:900; color:var(--ink); }
@@ -3730,7 +3730,7 @@ textarea.field.diary-write,
 }
 .folio-who{
   flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:.25rem;
-  padding:clamp(.7rem,1.8vh,1.3rem) clamp(.9rem,2vw,1.6rem);
+  padding:clamp(.7rem,calc(1.8 * var(--vh, 1vh)),1.3rem) clamp(.9rem,2vw,1.6rem);
   background:#fff; border:3px solid var(--line); border-radius:24px;
   box-shadow:var(--shadow); text-align:center; max-width:100%;
 }
@@ -3758,24 +3758,24 @@ textarea.field.diary-write,
   background:rgba(255,255,255,.82);
 }
 .folio-who-face{
-  width:clamp(84px,18vh,220px); height:clamp(84px,18vh,220px);
+  width:clamp(84px,calc(18 * var(--vh, 1vh)),220px); height:clamp(84px,calc(18 * var(--vh, 1vh)),220px);
   display:block; border-radius:999px; overflow:hidden;
   border:3px solid var(--line); background:var(--paper-2);
 }
 .folio-who-face > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .folio-who-nm{
-  font-size:clamp(1.15rem,1.9vh + .55rem, 30px); font-weight:900;
+  font-size:clamp(1.15rem,calc(1.9 * var(--vh, 1vh)) + .55rem, 30px); font-weight:900;
   letter-spacing:-.03em; white-space:nowrap;
 }
 .folio-who-say{
-  font-size:clamp(.85rem,.9vh + .35rem, 17px); font-weight:800; color:var(--ink-soft);
+  font-size:clamp(.85rem,calc(.9 * var(--vh, 1vh)) + .35rem, 17px); font-weight:800; color:var(--ink-soft);
   white-space:nowrap;
 }
 .folio-who-range{ font-size:.82rem; font-weight:700; color:var(--ink-soft); }
 /* 좁은 화면에서는 「나」 를 위로 눕혀서 가로로 놓습니다 — 세로 자리를 아낍니다 */
 @media screen and (max-width: 820px){
   .folio-who{ flex-direction:row; align-items:center; gap:.7rem; text-align:left; }
-  .folio-who-face{ width:clamp(56px,9vh,84px); height:clamp(56px,9vh,84px); flex:0 0 auto; }
+  .folio-who-face{ width:clamp(56px,calc(9 * var(--vh, 1vh)),84px); height:clamp(56px,calc(9 * var(--vh, 1vh)),84px); flex:0 0 auto; }
 }
 
 /* ★ 창 넷은 홈보다 **크게** 놓습니다. 홈은 네 코너 말고도 아래에 「오늘의 도전」
@@ -3784,7 +3784,7 @@ textarea.field.diary-write,
    ⚠ `vh` 로 잡습니다 — 세로가 모자라면 쪽이 갈라지지만 가로는 남습니다. */
 .folio-home{
   margin-top:0; flex:0 0 auto;
-  grid-template-columns:repeat(2, clamp(150px, 27vh, 300px));
+  grid-template-columns:repeat(2, clamp(150px, calc(27 * var(--vh, 1vh)), 300px));
 }
 .folio-corner .art{ background:transparent; border-radius:14px; }
 .folio-corner .art img,
@@ -3793,7 +3793,7 @@ textarea.field.diary-write,
      `.art.two` 규칙이 있었습니다. 이제 그림 한 장(images/나의 한마디.png)을
      쓰므로 지웠습니다 — 안 쓰는 정의를 남겨 두면 나중에 덮어써서 고장 납니다. */
 /* 창 이름은 홈보다 조금 작게 — `내가 세운 계획` 이 홈의 `여가 계획하기` 보다 깁니다 */
-.folio-corner .desc{ font-size:clamp(1rem,1.55vh + .45rem, 25px); }
+.folio-corner .desc{ font-size:clamp(1rem,calc(1.55 * var(--vh, 1vh)) + .45rem, 25px); }
 
 /* ★ 한 줄에 **넷씩** 고정 (계획 모음 · 여가지도 실내/실외 칸).
      남는 폭에 맞춰 저절로 채우면(auto-fill) 화면마다 줄 수가 달라져서,
@@ -3812,7 +3812,7 @@ textarea.field.diary-write,
 .flow-mid{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:.2rem; }
 .flow-arrow{
   flex:0 0 auto;
-  width:clamp(34px,5vh,58px); height:clamp(34px,5vh,58px);
+  width:clamp(34px,calc(5 * var(--vh, 1vh)),58px); height:clamp(34px,calc(5 * var(--vh, 1vh)),58px);
   border-radius:999px; border:2px solid var(--line); background:#fff;
   box-shadow:var(--shadow); display:grid; place-items:center; padding:0;
 }
@@ -3870,19 +3870,19 @@ textarea.field.diary-write,
 /* 칸은 **정사각형**입니다 — 가로로 긴 칸에 작은 그림이 떠 있으면
    눈에 안 들어옵니다. 여가지도 · 내가 세운 계획이 함께 씁니다. */
 .folio-grid.wide .folio-card{
-  width:clamp(112px,21vh,250px); aspect-ratio:1;
+  width:clamp(112px,calc(21 * var(--vh, 1vh)),250px); aspect-ratio:1;
   padding:.35rem .3rem; gap:.1rem; border-width:2px;
   justify-content:center;
 }
 /* 계획은 두 줄이라 칸이 조금 작습니다 (지도는 한 줄) */
-.folio-plans .folio-card{ width:clamp(100px,15vh,200px); }
+.folio-plans .folio-card{ width:clamp(100px,calc(15 * var(--vh, 1vh)),200px); }
 /* ⚠ `vh` 를 더 키우지 마세요. 1366x768 에서 두 창이 흰 칸에 아슬아슬하게
      들어갑니다. 재어서 맞춘 값입니다. */
-.folio-two .folio-art{ width:clamp(66px,15vh,190px); height:clamp(66px,15vh,190px); }
+.folio-two .folio-art{ width:clamp(66px,calc(15 * var(--vh, 1vh)),190px); height:clamp(66px,calc(15 * var(--vh, 1vh)),190px); }
 /* 네 가지 표시 줄도 조금 낮춥니다 — 그만큼 그림에 돌아갑니다 */
 .folio-mark{ padding:.4rem .6rem; }
 .folio-two .folio-name{
-  font-size:clamp(.72rem,.45rem + .5vh,.9rem); line-height:1.15;
+  font-size:clamp(.72rem,.45rem + calc(.5 * var(--vh, 1vh)),.9rem); line-height:1.15;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
   overflow:hidden; text-overflow:clip;
 }
@@ -3908,7 +3908,7 @@ textarea.field.diary-write,
   display:grid; gap:clamp(.5rem,1.4vw,1.2rem);
   grid-template-columns:minmax(0,19rem) minmax(0,1fr);
   align-items:center;
-  padding:clamp(.45rem,1.2vh,.9rem) clamp(.6rem,1.4vw,1.1rem);
+  padding:clamp(.45rem,calc(1.2 * var(--vh, 1vh)),.9rem) clamp(.6rem,1.4vw,1.1rem);
   border:3px solid var(--line); border-radius:22px;
   background:rgba(255,255,255,.6);
 }
@@ -3924,7 +3924,7 @@ textarea.field.diary-write,
   display:flex; flex-direction:column; gap:.05rem; min-width:0;
 }
 .me-slot .me-slot-nm{
-  font-size:clamp(1rem,.6rem + .9vh,1.3rem); font-weight:900; color:var(--ink-soft);
+  font-size:clamp(1rem,.6rem + calc(.9 * var(--vh, 1vh)),1.3rem); font-weight:900; color:var(--ink-soft);
 }
 .me-slot .me-slot-got{
   font-size:.85rem; font-weight:800; color:var(--ok);
@@ -3935,7 +3935,7 @@ textarea.field.diary-write,
 .me-slot.on .me-slot-nm{ color:var(--ink); }
 /* 돌아보기에서는 고를 자리가 없으므로 한 줄 안내만 둡니다 */
 .me-hint{
-  font-size:clamp(.85rem,.5rem + .7vh,1.02rem); font-weight:800;
+  font-size:clamp(.85rem,.5rem + calc(.7 * var(--vh, 1vh)),1.02rem); font-weight:800;
   color:var(--ink-soft); line-height:1.35;
 }
 .me-pickarea{ min-width:0; }
@@ -3958,13 +3958,13 @@ textarea.field.diary-write,
 }
 /* 나 캐릭터는 크게 — 여기가 **누구의 것인지**를 알려 주는 자리입니다 */
 .me-who-face{
-  width:clamp(96px,18vh,220px); height:clamp(96px,18vh,220px);
+  width:clamp(96px,calc(18 * var(--vh, 1vh)),220px); height:clamp(96px,calc(18 * var(--vh, 1vh)),220px);
   display:block; border-radius:999px; overflow:hidden;
   border:2px solid var(--line); background:var(--paper-2);
 }
 .me-who-face > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .me-who-nm{
-  font-size:clamp(1.1rem,.6rem + 1.05vh,1.6rem); font-weight:900; white-space:nowrap;
+  font-size:clamp(1.1rem,.6rem + calc(1.05 * var(--vh, 1vh)),1.6rem); font-weight:900; white-space:nowrap;
 }
 
 /* 아래 바 오른쪽 — 만들어지는 말. **가운데 정렬** */
@@ -3985,7 +3985,7 @@ textarea.field.diary-write,
   padding:.3rem 1.1rem; border-radius:999px;
   background:var(--apricot); border:2px solid var(--apricot-line, #e0954f); color:var(--ink);
   box-shadow:var(--shadow);
-  font-size:clamp(1rem,.6rem + .9vh,1.25rem); font-weight:900; white-space:nowrap;
+  font-size:clamp(1rem,.6rem + calc(.9 * var(--vh, 1vh)),1.25rem); font-weight:900; white-space:nowrap;
 }
 /* ⚠ 문장 바를 칸 끝까지 늘이지 마세요. 글줄보다 훨씬 긴 노란 띠가 되면
      글자가 왼쪽에 조그맣게 붙어 보여 눈에 안 들어옵니다. */
@@ -4002,17 +4002,17 @@ textarea.field.diary-write,
 @media screen and (max-width: 560px){ .me-picks{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 /* 그림 카드는 이 화면에서만 조금 줄입니다 (팝업 안 카드와 같은 방법) */
 .me-picks .pick{ padding:.4rem .3rem .35rem; gap:.15rem; }
-.me-picks .pick .thumb{ width:clamp(44px,7.5vh,110px); height:clamp(44px,7.5vh,110px); }
-.me-picks .pick .label{ font-size:clamp(.78rem,.46rem + .6vh,1rem); }
+.me-picks .pick .thumb{ width:clamp(44px,calc(7.5 * var(--vh, 1vh)),110px); height:clamp(44px,calc(7.5 * var(--vh, 1vh)),110px); }
+.me-picks .pick .label{ font-size:clamp(.78rem,.46rem + calc(.6 * var(--vh, 1vh)),1rem); }
 /* 낱말 알약 (2·3단계) — 그림 카드와 같은 자리에 놓입니다 */
 /* 글자 크기는 **아래 노란 문장 바(.me-say)와 같게**.
    고를 낱말이 문장에 그대로 들어가는 말이라, 작게 두면 무엇을 고르는지
    눈에 안 들어옵니다. */
 .me-word{
   display:flex; align-items:center; justify-content:center; text-align:center;
-  min-height:clamp(48px,7vh,74px); padding:.3rem .7rem; cursor:pointer;
+  min-height:clamp(48px,calc(7 * var(--vh, 1vh)),74px); padding:.3rem .7rem; cursor:pointer;
   background:#fff; border:2px solid var(--line); border-radius:999px;
-  font-size:clamp(1rem,.62rem + .9vh,1.4rem); font-weight:800; line-height:1.15;
+  font-size:clamp(1rem,.62rem + calc(.9 * var(--vh, 1vh)),1.4rem); font-weight:800; line-height:1.15;
 }
 .me-word:hover{ border-color:var(--sel-line); }
 /* 고른 낱말 — 이 앱에서 **고른 것은 늘 파랑**입니다 (.pick.sel · .tab.on 과 같음).
@@ -4028,10 +4028,10 @@ textarea.field.diary-write,
 .me-saybar{ display:flex; align-items:center; gap:.4rem; }
 .me-say{
   flex:1 1 auto; min-width:0; margin:0; padding:.4rem .9rem; text-align:center;
-  font-size:clamp(1rem,.62rem + .9vh,1.4rem); font-weight:900;
+  font-size:clamp(1rem,.62rem + calc(.9 * var(--vh, 1vh)),1.4rem); font-weight:900;
   background:var(--note-bg,#fffdf3); border:2px solid var(--note-line,#efdb92); border-radius:14px;
 }
-.me-saybar > .iconbtn{ flex:0 0 auto; width:clamp(34px,4.4vh,46px); height:clamp(34px,4.4vh,46px); padding:0; }
+.me-saybar > .iconbtn{ flex:0 0 auto; width:clamp(34px,calc(4.4 * var(--vh, 1vh)),46px); height:clamp(34px,calc(4.4 * var(--vh, 1vh)),46px); padding:0; }
 
 /* 돌아보기 네 줄 — 줄 하나 = 문장 + 읽어주기.
    ★ 읽어주기를 문장 **밖**에 두어야 문장을 누를 때 소리가 겹치지 않습니다. */
@@ -4053,7 +4053,7 @@ textarea.field.diary-write,
   flex:1 1 auto; min-width:0;
   display:flex; align-items:center; gap:.25rem; flex-wrap:wrap;
   padding:.25rem .45rem; cursor:pointer; text-align:left;
-  font-size:clamp(.88rem,.52rem + .7vh,1.1rem); font-weight:800;
+  font-size:clamp(.88rem,.52rem + calc(.7 * var(--vh, 1vh)),1.1rem); font-weight:800;
   background:transparent; border:0; border-radius:11px;
 }
 /* ⚠ 쓰는 칸을 늘이지 마세요(`flex:1 1`). 칸이 늘어나면 앞말과 뒷말이
@@ -4062,7 +4062,7 @@ textarea.field.diary-write,
   flex:0 1 9rem; min-width:5rem; min-height:2.3rem;
   padding:.2rem .6rem; font-size:1em;
 }
-.me-row > .iconbtn{ flex:0 0 auto; width:clamp(30px,3.8vh,40px); height:clamp(30px,3.8vh,40px); padding:0; }
+.me-row > .iconbtn{ flex:0 0 auto; width:clamp(30px,calc(3.8 * var(--vh, 1vh)),40px); height:clamp(30px,calc(3.8 * var(--vh, 1vh)),40px); padding:0; }
 
 /* 인쇄한 종이의 한마디 줄.
    ⚠ 「나의 한마디」 와 「돌아보기」 는 **글자 크기가 같아야** 합니다.
@@ -4257,13 +4257,13 @@ textarea.field.diary-write,
      붙어 있어서 눈에 안 들어옵니다. **글줄 길이에 맞춰** 좁게 두고
      글자를 크게 하는 편이 훨씬 잘 읽힙니다. */
 .me-done > .sheet{ width:min(100%, 33rem); }
-.me-done .sentence{ font-size:clamp(1.05rem,.6rem + .95vh,1.45rem); }
+.me-done .sentence{ font-size:clamp(1.05rem,.6rem + calc(.95 * var(--vh, 1vh)),1.45rem); }
 
 /* 1단계 그림 고르기 — **4개씩 한 줄**. 줄이 하나뿐이라 그림을 크게 담습니다.
    1단계 학생에게는 그림이 크고 한 번에 보이는 개수가 적어야 합니다. */
 .me-picks.four{ grid-template-columns:repeat(4, minmax(0,1fr)); }
-.me-picks.four .pick .thumb{ width:clamp(56px,12vh,150px); height:clamp(56px,12vh,150px); }
-.me-picks.four .pick .label{ font-size:clamp(.85rem,.5rem + .7vh,1.15rem); }
+.me-picks.four .pick .thumb{ width:clamp(56px,calc(12 * var(--vh, 1vh)),150px); height:clamp(56px,calc(12 * var(--vh, 1vh)),150px); }
+.me-picks.four .pick .label{ font-size:clamp(.85rem,.5rem + calc(.7 * var(--vh, 1vh)),1.15rem); }
 @media screen and (max-width: 640px){ .me-picks.four{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 
 /* 돌아보기 줄 **맨 왼쪽**의 활동 그림 — 채워 넣은 말의 짝입니다.
@@ -4272,7 +4272,7 @@ textarea.field.diary-write,
    ▸ 아직 안 채운 줄에도 **빈 자리를 남겨** 두어야 네 줄의 글 시작점이 맞습니다. */
 .me-row-art{
   flex:0 0 auto; display:block;
-  width:clamp(40px,7vh,76px); height:clamp(40px,7vh,76px);
+  width:clamp(40px,calc(7 * var(--vh, 1vh)),76px); height:clamp(40px,calc(7 * var(--vh, 1vh)),76px);
 }
 .me-row-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .me-row-art.none{ visibility:hidden; }
@@ -4296,7 +4296,7 @@ textarea.field.diary-write,
 /* 나 칸 아래에 붙는 단추 — 칸과 같은 폭으로 두어 한 덩어리로 보이게 */
 .folio-left{ display:flex; flex-direction:column; align-items:center; gap:.5rem; flex:0 0 auto; }
 .btn.folio-book{
-  width:100%; min-height:52px; font-size:clamp(.9rem,.5rem + .8vh,1.08rem);
+  width:100%; min-height:52px; font-size:clamp(.9rem,.5rem + calc(.8 * var(--vh, 1vh)),1.08rem);
   background:#fdf1c9; border-color:#efdb92; color:#6b5410; border-width:3px;
 }
 .btn.folio-book:hover{ background:#fbe9ac; }
@@ -4359,7 +4359,7 @@ textarea.field.diary-write,
      좌우 3쪽으로 갈라집니다 (재어서 확인).
    → **높이 기준**으로 잡고 폭은 비율이 따라오게 합니다. */
 .mb-board{
-  position:relative; height:clamp(200px, 48vh, 640px);
+  position:relative; height:clamp(200px, calc(48 * var(--vh, 1vh)), 640px);
   aspect-ratio:1671 / 941; max-width:100%;
   border:3px solid var(--line); border-radius:18px; overflow:hidden;
   background:#dff0fb; touch-action:none;
@@ -4420,7 +4420,7 @@ textarea.field.diary-write,
 }
 .mb-pick{
   display:flex; flex-direction:column; align-items:center; gap:.1rem;
-  width:clamp(84px,13vh,140px); padding:.35rem .3rem; cursor:pointer;
+  width:clamp(84px,calc(13 * var(--vh, 1vh)),140px); padding:.35rem .3rem; cursor:pointer;
   background:#fff; border:3px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
 }
 .mb-pick:hover{ transform:translateY(-2px); }
@@ -4430,14 +4430,14 @@ textarea.field.diary-write,
    그만큼 지도가 작아지고, 안내가 가리키는 곳과도 멀어집니다. */
 .mb-say{
   margin-left:.5rem;
-  font-size:clamp(.85rem,.5rem + .72vh,1.05rem); font-weight:800; color:var(--ink-soft);
+  font-size:clamp(.85rem,.5rem + calc(.72 * var(--vh, 1vh)),1.05rem); font-weight:800; color:var(--ink-soft);
 }
 /* 섬 이름표 — **하늘 자리**에 둡니다 (섬 그림을 가리지 않게).
    색은 앱이 이미 쓰는 실내=주황 · 실외=파랑 그대로. */
 .mb-isle{
   position:absolute; top:5%; transform:translateX(-50%);
   padding:.15rem .9rem; border-radius:999px; border:2px solid;
-  font-size:clamp(.78rem,.45rem + .7vh,1.05rem); font-weight:900; white-space:nowrap;
+  font-size:clamp(.78rem,.45rem + calc(.7 * var(--vh, 1vh)),1.05rem); font-weight:900; white-space:nowrap;
   box-shadow:0 1px 0 rgba(0,0,0,.06);
 }
 .mb-isle.in { left:23%; background:#ffe9cc; border-color:#c96a1e; color:#8a4a12; }
@@ -4452,7 +4452,7 @@ textarea.field.diary-write,
 .map-go{
   display:flex; align-items:center; gap:clamp(.5rem,1.4vw,1rem);
   width:min(100%, 40rem); margin:.2rem auto .55rem;
-  padding:clamp(.45rem,1.2vh,.8rem) clamp(.8rem,1.6vw,1.3rem);
+  padding:clamp(.45rem,calc(1.2 * var(--vh, 1vh)),.8rem) clamp(.8rem,1.6vw,1.3rem);
   cursor:pointer; text-align:left;
   background:#fffdf3; border:4px solid #e8bf3d; border-radius:999px;
   box-shadow:var(--shadow);
@@ -4460,15 +4460,15 @@ textarea.field.diary-write,
 }
 .map-go:hover{ background:#fff8e0; transform:translateY(-2px); }
 .map-go:active{ transform:translateY(0); }
-.map-go-art{ flex:0 0 auto; width:clamp(38px,5.6vh,60px); height:clamp(38px,5.6vh,60px); display:block; }
+.map-go-art{ flex:0 0 auto; width:clamp(38px,calc(5.6 * var(--vh, 1vh)),60px); height:clamp(38px,calc(5.6 * var(--vh, 1vh)),60px); display:block; }
 .map-go-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
 .map-go-txt{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px; }
 .map-go-nm{
-  font-size:clamp(1rem,.58rem + .95vh,1.35rem); font-weight:900; letter-spacing:-.02em;
+  font-size:clamp(1rem,.58rem + calc(.95 * var(--vh, 1vh)),1.35rem); font-weight:900; letter-spacing:-.02em;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.map-go-sub{ font-size:clamp(.78rem,.45rem + .6vh,.98rem); font-weight:800; color:var(--ink-soft); }
-.map-go-arrow{ flex:0 0 auto; width:clamp(26px,3.6vh,38px); height:clamp(26px,3.6vh,38px); display:block; }
+.map-go-sub{ font-size:clamp(.78rem,.45rem + calc(.6 * var(--vh, 1vh)),.98rem); font-weight:800; color:var(--ink-soft); }
+.map-go-arrow{ flex:0 0 auto; width:clamp(26px,calc(3.6 * var(--vh, 1vh)),38px); height:clamp(26px,calc(3.6 * var(--vh, 1vh)),38px); display:block; }
 .map-go-arrow svg{ width:100%; height:100%; display:block; }
 @keyframes 눌러보아요{
   0%,100%{ box-shadow:0 0 0 0 rgba(232,191,61,.55), var(--shadow); }
@@ -4558,9 +4558,9 @@ textarea.field.diary-write,
 
 /* 계획 칸의 그림 — 두 줄(여섯 장)이라 지도(한 줄)보다 조금 작게.
    그래도 예전 넓적한 칸(그림 88px)보다 큽니다. */
-.folio-plans .folio-art{ width:clamp(52px,9.5vh,120px); height:clamp(52px,9.5vh,120px); }
+.folio-plans .folio-art{ width:clamp(52px,calc(9.5 * var(--vh, 1vh)),120px); height:clamp(52px,calc(9.5 * var(--vh, 1vh)),120px); }
 .folio-plans .folio-name{
-  font-size:clamp(.8rem,.48rem + .62vh,1rem); line-height:1.15;
+  font-size:clamp(.8rem,.48rem + calc(.62 * var(--vh, 1vh)),1rem); line-height:1.15;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 .folio-plans .folio-date{ font-size:.74rem; }
@@ -4609,7 +4609,7 @@ textarea.field.diary-write,
   max-width:min(92%, 40rem); text-align:center;
   padding:.35rem 1rem; border-radius:999px;
   background:rgba(255,255,255,.92); border:2px solid var(--line);
-  font-size:clamp(.86rem,.5rem + .75vh,1.08rem); font-weight:800;
+  font-size:clamp(.86rem,.5rem + calc(.75 * var(--vh, 1vh)),1.08rem); font-weight:800;
   color:var(--ink-soft); box-shadow:0 2px 0 rgba(0,0,0,.06);
   pointer-events:none;
 }
@@ -4781,11 +4781,11 @@ textarea.field.diary-write,
 }
 .me-sayart-one{ display:flex; flex-direction:column; align-items:center; gap:.15rem; }
 .me-sayart-pic{
-  width:clamp(56px,9vh,110px); height:clamp(56px,9vh,110px);
+  width:clamp(56px,calc(9 * var(--vh, 1vh)),110px); height:clamp(56px,calc(9 * var(--vh, 1vh)),110px);
   display:grid; place-items:center;
 }
 .me-sayart-pic > *{ max-width:100%; max-height:100%; }
-.me-sayart-one b{ font-size:clamp(.8rem,.5rem + .6vh,1rem); font-weight:900; }
+.me-sayart-one b{ font-size:clamp(.8rem,.5rem + calc(.6 * var(--vh, 1vh)),1rem); font-weight:900; }
 
 /* ============ 일기 확인 화면 · 그림일기 — 글자 크기 고르게 ============
    (2026-08-24 · 선생님 말씀)
@@ -4840,7 +4840,7 @@ textarea.field.diary-write,
 .me-hintpill{
   padding:.45rem 1.2rem; border-radius:999px;
   background:var(--sel-bg,#eaf6fd); border:2px solid var(--sel-line,#7fc9ea);
-  font-weight:900; font-size:clamp(.95rem,.6rem + .8vh,1.2rem);
+  font-weight:900; font-size:clamp(.95rem,.6rem + calc(.8 * var(--vh, 1vh)),1.2rem);
 }
 /* 흰 긴 바 — 화면 폭을 넉넉히 쓰고 이름표는 가운데 */
 .me-write.wide{ width:min(100%, 46rem); }
@@ -4856,7 +4856,7 @@ textarea.field.diary-write,
   gap:.4rem; padding:.7rem 1rem; line-height:1.5;
 }
 .me-inart{
-  width:clamp(38px,5.2vh,62px); height:clamp(38px,5.2vh,62px);
+  width:clamp(38px,calc(5.2 * var(--vh, 1vh)),62px); height:clamp(38px,calc(5.2 * var(--vh, 1vh)),62px);
   display:inline-grid; place-items:center; flex:0 0 auto;
   background:#fff; border:2px solid var(--note-line,#efdb92); border-radius:12px;
   padding:2px;
@@ -4990,6 +4990,6 @@ textarea.field.diary-write,
 /* 앱이 뜨기 전(사진 보관소 여는 2.5초까지) 빈 화면 대신 보이는 글 —
    index.html 의 #root 안에 있다가 첫 그리기 때 사라집니다. */
 .boot-wait{
-  height:100vh; display:flex; align-items:center; justify-content:center;
+  height:calc(100 * var(--vh, 1vh)); display:flex; align-items:center; justify-content:center;
   font-weight:900; font-size:1.2rem; color:var(--ink-soft);
 }
