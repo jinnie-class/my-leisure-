@@ -515,11 +515,35 @@
     var folioTools = !(student && student.folioTools === false);
     var view = folioTools ? tab[0] : 'pick';
 
-    var printable = view === 'book'
-      ? html`<${C.BookSheets} student=${student} data=${data} />`
-      : html`<${C.BoardSheet} student=${student} data=${data} />`;
+    /* ★ **전시판형에도 지도를 가로 한 장으로 덧붙입니다** (2026-08-29 · 선생님 말씀 —
+         「전시판형에서 나의 여가 탐험지도가 … 작아서 안 보임 … 책자 안의
+          구성과 동일하게 따로 가로로 하는 건 어때?」)
+       전시판형 오른쪽 칸의 작은 지도(MiniMap 0.52배)는 **어디에 무엇이 있는지
+       읽히지 않습니다.** 지도는 가로로 넓어서(1671:941) 세로 쪽 한 귀퉁이에
+       넣으면 늘 작아집니다.
+     ▸ 그래서 전시판형 한 장 **뒤에 가로 한 장**을 더 냅니다. 벽에 나란히
+       붙이면 왼쪽은 요약, 오른쪽은 지도가 됩니다.
+     ▸ 붙인 활동이 하나도 없으면 덧붙이지 않습니다 — 빈 종이가 나가면 안 됩니다.
+     ⛔ 쪽 크기는 print.css 의 `@page mapA4L` 이 정합니다 (A4 가로).
+       낱장으로 뽑는 `내 지도`·`빈 지도` 는 그대로 A3 가로입니다. */
+    /* ⚠ **함수로 둡니다 — 여기서 바로 셈하면 안 됩니다.**
+         `printMapBoard()` 는 아래쪽에서 `var` 로 정하는 것들(MARK_ORDER 등)을
+         씁니다. 여기서 곧바로 부르면 그 값이 아직 `undefined` 라
+         **화면이 통째로 죽습니다** (「잠깐 쉬었다 할게요」 창).
+       ▸ 함수로 두면 실제로 그릴 때 불리므로, 그때는 모두 정해져 있습니다.
+       ⛔ 이 파일에서 위쪽에 무언가를 더할 때는 **아래 var 를 쓰는지** 보세요.
+         function 선언은 끌어올려지지만 **var 의 값은 끌어올려지지 않습니다.** */
+    function printableNode() {
+      if (view === 'book') return html`<${C.BookSheets} student=${student} data=${data} />`;
+      var boardMap = Object.keys(boardLayout()).length
+        ? html`<div class="board-map">${printMapBoard()}</div>` : null;
+      return html`<${React.Fragment}>
+        <${C.BoardSheet} student=${student} data=${data} />
+        ${boardMap}
+      <//>`;
+    }
 
-    function doPrint() { App.printNode(printable); }
+    function doPrint() { App.printNode(printableNode()); }
 
     /* --------------- 나의 여가 일기장 ---------------
        기간 안의 그림일기를 A4 여러 쪽으로 한꺼번에 인쇄합니다.
@@ -2178,7 +2202,7 @@
                  ※ 학생 화면에는 스크롤을 만들지 않는 것이 규칙이지만,
                    여기는 **선생님이 인쇄 전에 확인하는 곳**이라 넘겨 보는
                    편이 자연스럽습니다. -->
-            <div class="folio-preview">${printable}</div>
+            <div class="folio-preview">${printableNode()}</div>
           <//>
         <//>`}
       <//>
