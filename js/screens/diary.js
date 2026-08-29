@@ -925,19 +925,38 @@
                어디까지가 한 문장인지 알아보기 어려웠습니다.
              ▸ 줄이 늘어 자리를 더 먹지만, 넘치면 화면이 저절로 줄어듭니다
                (App.guardFit · Stage 의 줄이기). -->
-        <div class="frame-line">
-          ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
-          ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
-        </div>
-        ${level === 2 && html`<${React.Fragment}>
-          <div class="frame-line">
-            <b>기억에 남는 것은</b>
-            ${tie(blank(f.f3), html`<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>`)}
-          </div>
-          <div class="frame-line">
-            <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
-          </div>
-        <//>`}
+        <!-- ★ **2단계는 「기분」과 「기억」을 한 줄에 나란히** (2026-08-29 ·
+               선생님 말씀 — 「기분과 기억에 남는것은 한줄에 나란히 배치하고
+               총 3줄이 되도록하기」). 태블릿에서 네 줄은 자리를 너무 먹어
+               아래 고르는 칸이 밀렸습니다.
+             ⚠ 2026-08-24 의 ⛔ 규칙(문장 하나에 줄 하나)과 어긋나지 않습니다.
+               그때 탈이 난 것은 **셋을 한 줄에 몰아** 넣어서, 줄이 접히며
+               「하고 싶어요.」 만 다음 줄에 덩그러니 남았기 때문입니다.
+             ▸ 지금은 **둘만** 나란히 두고, 좁아지면 **문장 통째로** 다음 줄로
+               내려갑니다 (.frame-row 의 flex-wrap · 자식은 안 쪼개짐).
+               문장이 가운데서 잘리는 일은 생기지 않습니다.
+             ▸ 1·3단계는 그대로 한 줄씩입니다 — 2단계만 문장이 넷이라 깁니다.
+             ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+        ${level === 2
+          ? html`<${React.Fragment}>
+              <div class="frame-row">
+                <div class="frame-line">
+                  ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+                  ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
+                </div>
+                <div class="frame-line">
+                  <b>기억에 남는 것은</b>
+                  ${tie(blank(f.f3), html`<b>${josaOf(f.f3, '이에요/예요') + '.'}</b>`)}
+                </div>
+              </div>
+              <div class="frame-line">
+                <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
+              </div>
+            <//>`
+          : html`<div class="frame-line">
+              ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+              ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
+            </div>`}
         ${level === 3 && html`<div class="frame-line">
           <b>왜냐하면</b> ${tie(blank(say('why', ''), true), html`<b>${dotOf(say('why', ''))}</b>`)}
         </div>`}
