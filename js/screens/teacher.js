@@ -284,6 +284,45 @@
             <${C.Switch} label="사진 첨부" on=${current.photo !== false}
               onChange=${function (v) { upd(current.id, { photo: v }); }} />
           </div>
+          <!-- ★ **읽어 주는 목소리 고르기** (2026-08-29 · 선생님 말씀 —
+                 「스피커로 말하는 목소리를 … 읽어주는 목소리와 동일했으면해」)
+               기기에 한국어 목소리가 여럿 깔려 있으면(삼성 · 구글 · 마이크로소프트)
+               예전에는 **맨 처음 찾은 것**을 그냥 써서, 같은 앱인데 태블릿과
+               노트북의 목소리가 달랐습니다.
+             ▸ 고른 것은 **학생이 아니라 기기**에 남습니다 — 한 태블릿을 여러
+               학생이 돌려 쓰기 때문입니다.
+             ▸ 목록이 비어 있으면 그 기기에 한국어 목소리가 없는 것입니다.
+               (안드로이드 : 설정 → 접근성 → TTS 에서 받을 수 있습니다)
+             ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+          ${(function () {
+            if (!App.speech.supported || !App.speech.supported()) return null;
+            var list = App.speech.voices ? App.speech.voices() : [];
+            var now = App.speech.voiceName ? App.speech.voiceName() : null;
+            return html`<div style=${{ marginTop: '.5rem' }}>
+              <p class="muted small" style=${{ marginBottom: '.3rem' }}>
+                읽어 주는 목소리 — 눌러서 골라 보세요 (이 기기에만 적용됩니다)</p>
+              <div class="wrap">
+                <button type="button" class=${'tchoice' + (!list.length || !now ? ' on' : '')}
+                  onClick=${function () {
+                    App.speech.setVoice(null);
+                    App.speech.speak('안녕하세요. 나의 여가입니다.');
+                    upd(current.id, {});
+                  }}>저절로 고르기</button>
+                ${list.map(function (v) {
+                  var on = (now === v.name);
+                  return html`<button key=${v.name} type="button" class=${'tchoice' + (on ? ' on' : '')}
+                    aria-pressed=${on ? 'true' : 'false'}
+                    onClick=${function () {
+                      App.speech.setVoice(v.name);
+                      App.speech.speak('안녕하세요. 나의 여가입니다.');
+                      upd(current.id, {});
+                    }}>${on ? '✓ ' : ''}${v.name}</button>`;
+                })}
+              </div>
+              ${!list.length && html`<p class="muted small" style=${{ marginTop: '.3rem' }}>
+                이 기기에 한국어 목소리가 없어요. 기기 설정에서 한국어 음성을 받아 주세요.</p>`}
+            </div>`;
+          })()}
         </div>
 
         <div class="tsec">

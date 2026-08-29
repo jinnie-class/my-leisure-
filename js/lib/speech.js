@@ -12,15 +12,48 @@
   var picked = null;
   var listeners = [];
 
+  /* 어떤 목소리로 읽을지 (선생님 설정에서 고릅니다). 비어 있으면 저절로 고릅니다. */
+  var wantName = null;
+  try { wantName = window.localStorage.getItem('naui-yeoga.voice') || null; } catch (e) {}
+
+  /* ★ **한국어 목소리가 여럿일 때 무엇을 고르나** (2026-08-29 · 선생님 말씀 —
+       「스피커로 말하는 목소리를 … 읽어주는 목소리와 동일했으면해」).
+     ⚠ 예전에는 **맨 처음 찾은 것**을 그냥 썼습니다. 그런데 기기에 한국어
+       목소리가 여럿 깔려 있으면(삼성 TTS · 구글 TTS · 마이크로소프트 …)
+       **그 차례가 기기마다·판마다 다릅니다.** 그래서 같은 앱인데 태블릿과
+       노트북의 목소리가 달랐습니다.
+     ▸ 이제 셋을 차례로 봅니다 :
+         ① 선생님이 고른 목소리 (이름이 정확히 맞는 것)
+         ② 그 이름이 없으면 **구글 목소리**를 먼저 (기기마다 가장 고르게 들립니다)
+         ③ 그것도 없으면 아무 한국어 목소리
+     ▸ 고른 이름은 기기에 남겨 둡니다 — 학생마다가 아니라 **기기마다**입니다.
+       한 태블릿을 여러 학생이 돌려 쓰므로 기기에 두는 것이 맞습니다. */
   function refresh() {
     if (!synth) return;
     try { voices = synth.getVoices() || []; } catch (e) { voices = []; }
-    picked = null;
-    for (var i = 0; i < voices.length; i++) {
-      var v = voices[i];
+    var ko = voices.filter(function (v) {
       var lang = (v.lang || '').toLowerCase().replace('_', '-');
-      if (lang === 'ko-kr' || lang.indexOf('ko') === 0) { picked = v; break; }
+      return lang === 'ko-kr' || lang.indexOf('ko') === 0;
+    });
+    picked = null;
+    if (wantName) {
+      for (var i = 0; i < ko.length; i++) if (ko[i].name === wantName) { picked = ko[i]; break; }
     }
+    if (!picked) {
+      for (var j = 0; j < ko.length; j++) {
+        if (/google/i.test(ko[j].name || '')) { picked = ko[j]; break; }
+      }
+    }
+    if (!picked && ko.length) picked = ko[0];
+    emit();
+  }
+
+  /* 이 기기에서 쓸 수 있는 한국어 목소리 목록 (선생님 설정에서 보여 줍니다) */
+  function koVoices() {
+    return voices.filter(function (v) {
+      var lang = (v.lang || '').toLowerCase().replace('_', '-');
+      return lang === 'ko-kr' || lang.indexOf('ko') === 0;
+    });
   }
   if (synth) {
     refresh();
@@ -55,6 +88,19 @@
       if (!synth) return;
       try { synth.cancel(); } catch (e) {}
       Speech.speaking = false; emit();
+    },
+    /* 이 기기에서 쓸 수 있는 한국어 목소리 */
+    voices: function () { return koVoices(); },
+    /* 지금 쓰는 목소리 이름 */
+    voiceName: function () { return picked ? picked.name : null; },
+    /* 목소리 고르기 (null 이면 저절로 고르기로 되돌림) */
+    setVoice: function (name) {
+      wantName = name || null;
+      try {
+        if (wantName) window.localStorage.setItem('naui-yeoga.voice', wantName);
+        else window.localStorage.removeItem('naui-yeoga.voice');
+      } catch (e) {}
+      refresh();
     },
     onChange: function (fn) {
       listeners.push(fn);
