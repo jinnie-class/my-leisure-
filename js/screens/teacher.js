@@ -300,7 +300,17 @@
             var now = App.speech.voiceName ? App.speech.voiceName() : null;
             return html`<div style=${{ marginTop: '.5rem' }}>
               <p class="muted small" style=${{ marginBottom: '.3rem' }}>
-                읽어 주는 목소리 — 눌러서 골라 보세요 (이 기기에만 적용됩니다)</p>
+                읽어 주는 목소리 — 눌러서 골라 보세요. 누르면 바로 들려 줍니다.</p>
+              <!-- ★ **기기마다 따로 고릅니다.** 한 태블릿을 여러 학생이 돌려 쓰므로
+                     학생이 아니라 기기에 남깁니다. 그래서 전자칠판 · 태블릿 · 노트북
+                     **셋 다** 한 번씩 골라 주셔야 목소리가 같아집니다.
+                   ▸ 기기마다 깔려 있는 목소리가 다른데, 'Google' 로 시작하는 것은
+                     보통 셋 다에 있습니다. 그것을 고르면 어디서나 같은 목소리입니다.
+                   ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
+              <p class="muted small" style=${{ marginBottom: '.4rem' }}>
+                <b>이 기기에만 적용됩니다.</b> 전자칠판 · 태블릿 · 노트북에서
+                <b>같은 이름</b>을 고르면 어디서나 같은 목소리가 됩니다 —
+                <b>Google</b> 로 시작하는 것이 보통 모든 기기에 있습니다.</p>
               <div class="wrap">
                 <button type="button" class=${'tchoice' + (!list.length || !now ? ' on' : '')}
                   onClick=${function () {
