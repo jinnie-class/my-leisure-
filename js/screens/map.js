@@ -340,9 +340,9 @@
     var shownCount = placed.filter(function (q) { return matches(q.card.id); }).length;
 
     /* ================= 나의 여가 도장판 =================
-       ★ 예전에는 진행 막대 하나뿐이라 **30곳을 다 가야** 뭔가 되는 구조였습니다.
+       ★ 예전에는 진행 막대 하나뿐이라 **40개를 다 해야** 뭔가 되는 구조였습니다.
          너무 멀어서 학생이 목표를 느끼지 못했습니다.
-         이제 **5곳마다 도장 1개**를 찍습니다 (30곳 = 도장 6개).
+         이제 **5개마다 도장 1개**를 찍습니다 (40개 = 도장 8개).
          가까운 목표가 눈앞에 계속 보입니다.
 
        도장을 누르면 **그때까지 해본 활동과 날짜**가 나옵니다.
@@ -372,7 +372,7 @@
     })();
 
     var triedCount = triedList.length;
-    var stampTotal = Math.ceil(cards.length / PER_STAMP);       // 30곳 → 6칸
+    var stampTotal = Math.ceil(cards.length / PER_STAMP);       // 40개 → 8칸
     var stamps = [];
     for (var si = 0; si < stampTotal; si++) {
       var need = Math.min((si + 1) * PER_STAMP, cards.length);
@@ -388,7 +388,7 @@
     var stampS = useState(null);      // 눌러서 열어 본 도장
 
     /* ---------- 도장 하나를 다 채우면 폭죽을 터뜨립니다 ----------
-       5곳을 채운 그 순간을 그냥 지나가게 두면 도장판이 그저 표가 됩니다.
+       5개를 채운 그 순간을 그냥 지나가게 두면 도장판이 그저 표가 됩니다.
        **몇 번째 도장까지 축하했는지**를 학생 기록에 적어 두고
        (`stampCheered`), 그보다 도장이 늘어나 있으면 축하합니다.
        ▸ 축하는 **한 번만** : 지도를 다시 열어도 또 터지지 않습니다.
@@ -402,7 +402,7 @@
         var got = stamps.filter(function (s) { return s.done; })[doneStamps - 1];
         cheerS[1](got);
         App.store.updateStudent(student.id, { stampCheered: doneStamps });
-        App.speakFor(student, got.need + '곳을 다녀왔어요. 도장을 받았어요. 축하해요!');
+        App.speakFor(student, got.need + '개를 해봤어요. 도장을 받았어요. 축하해요!');
       }
     }, [doneStamps, student.id]);
 
@@ -472,21 +472,21 @@
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
         <div class="stage-fit" style=${{ display: 'flex', flexDirection: 'column', gap: '.45rem' }}>
 
-          <!-- 나의 여가 도장판 : 5곳마다 발자국 도장 하나.
+          <!-- 나의 여가 도장판 : 5개마다 발자국 도장 하나.
                ★ **섬 고르기 화면에서만** 보여 줍니다. 섬 안에서는 활동에만
                  마음을 쓰게 두는 것이 좋습니다 (한꺼번에 보이는 것 줄이기). -->
           ${!L.focus && html`
           <div class="stampcard"
-              role="group" aria-label=${'나의 여가 도장판. 모두 ' + cards.length + '곳 가운데 ' + triedCount + '곳 다녀왔어요.'}>
+              role="group" aria-label=${'나의 여가 도장판. 모두 ' + cards.length + '개 가운데 ' + triedCount + '개를 해봤어요.'}>
             <span class="stampcard-lab">나의 여가 도장판
-              <b>${triedCount} / ${cards.length}곳</b></span>
+              <b>${triedCount} / ${cards.length}개</b></span>
             <div class="stamps">
               ${stamps.map(function (s) {
                 var cls = 'stamp' + (s.done ? ' on' : '') + (s.next ? ' next' : '');
                 return html`<button key=${s.no} type="button" class=${cls}
                     disabled=${!s.done}
-                    aria-label=${s.need + '곳 도장' + (s.done ? ' 받았어요' : ' 아직이에요')}
-                    title=${s.done ? '눌러서 해본 활동 보기' : s.need + '곳을 가면 도장을 받아요'}
+                    aria-label=${s.need + '개 도장' + (s.done ? ' 받았어요' : ' 아직이에요')}
+                    title=${s.done ? '눌러서 해본 활동 보기' : s.need + '개를 해보면 도장을 받아요'}
                     onClick=${function () { if (s.done) stampS[1](s); }}>
                   <span class="stamp-ink" aria-hidden="true">
                     ${footImg ? html`<img src=${footImg} alt="" />`
@@ -494,8 +494,8 @@
                   </span>
                   <!-- 오른쪽 : 몇 곳인지 · 완성했는지 (발자국 옆에 두 줄로) -->
                   <span class="stamp-txt">
-                    <span class="stamp-need">${s.need}곳</span>
-                    <span class="stamp-date">${s.done ? (s.date ? App.fmtDateShort(s.date) : '완성') : ''}</span>
+                    <span class="stamp-need">${s.need}개</span>
+                    <span class="stamp-date">${s.done ? (s.date ? App.fmtDateShort(s.date) : '성공') : ''}</span>
                   </span>
                 </button>`;
               })}
@@ -596,7 +596,7 @@
                     class=${'island-gate ' + is.key}
                     style=${{ left: r.x + 'px', top: gy + 'px', width: r.w + 'px', height: gh + 'px' }}
                     onClick=${function () { islandS[1](is.key); App.speakFor(student, is.label + '에 가요'); }}
-                    aria-label=${is.label + '. ' + list.length + '곳 가운데 ' + done + '곳을 해봤어요. 눌러서 들어가요.'}>
+                    aria-label=${is.label + '. ' + list.length + '개 가운데 ' + done + '개를 해봤어요. 눌러서 들어가요.'}>
                   <!-- 위 : 섬 이름 (섬 꼭대기 하늘 자리) -->
                   <span class="gate-name">${is.label}</span>
                   <!-- 아래 : 발자국 수 + 들어가기 (탐험의 시작 팻말 옆 자리).
@@ -608,7 +608,7 @@
                   <span class="gate-foot">
                     <span class="gate-count">
                       ${footImg ? html`<img src=${footImg} alt="" />` : null}
-                      <b>${done}</b> / ${list.length} 곳
+                      <b>${done}</b> / ${list.length} 개
                     </span>
                   </span>
                 </button>`;
@@ -741,7 +741,7 @@
              넓어서 글자와 날짜 사이가 텅 비고, 한눈에 들어오지 않았습니다.
              폭을 반으로 줄이면 발자국 · 이름 · 날짜가 한 덩어리로 보입니다. -->
       ${stampS[0] && html`<${C.Modal}
-        title=${stampS[0].need + '곳 도장' + (stampS[0].date ? ' · ' + App.fmtDateShort(stampS[0].date) : '')}
+        title=${stampS[0].need + '개 도장' + (stampS[0].date ? ' · ' + App.fmtDateShort(stampS[0].date) : '')}
         speakText=${'도장을 받은 활동이에요. ' + stampS[0].group.map(function (g) { return g.name; }).join(', ')}
         onClose=${function () { stampS[1](null); }}
         style=${{ width: 'auto', maxWidth: 'min(560px, 100%)' }}
@@ -773,8 +773,8 @@
            '어떤 활동인지 보기' 를 누르면 방금 받은 도장 속 활동 목록으로 이어집니다. -->
       ${cheerS[0] && html`<${React.Fragment}>
         <${C.Fireworks} />
-        <${C.Modal} title=${'축하해요! ' + cheerS[0].need + '곳 도장을 받았어요'}
-          speakText=${cheerS[0].need + '곳을 다녀왔어요. 도장을 받았어요. 축하해요!'}
+        <${C.Modal} title=${'축하해요! ' + cheerS[0].need + '개 도장을 받았어요'}
+          speakText=${cheerS[0].need + '개를 해봤어요. 도장을 받았어요. 축하해요!'}
           onClose=${function () { cheerS[1](null); }}
           actions=${html`<${React.Fragment}>
             <${C.Btn} kind="ok" onClick=${function () {
@@ -785,7 +785,7 @@
             ${footImg ? html`<img src=${footImg} alt="" />`
                       : html`<span dangerouslySetInnerHTML=${{ __html: App.icon('foot') }} />`}
           </div>
-          <p class="stamp-cap">${cards.length}곳 가운데 ${triedCount}곳을 다녀왔어요</p>
+          <p class="stamp-cap">${cards.length}개 가운데 ${triedCount}개를 해봤어요</p>
         <//>
       <//>`}
 
