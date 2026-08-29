@@ -309,8 +309,17 @@
                    ※ 이 주석은 html 템플릿 안이라 홑따옴표만 씁니다 (백틱 금지). -->
               <p class="muted small" style=${{ marginBottom: '.4rem' }}>
                 <b>이 기기에만 적용됩니다.</b> 전자칠판 · 태블릿 · 노트북에서
-                <b>같은 이름</b>을 고르면 어디서나 같은 목소리가 됩니다 —
-                <b>Google</b> 로 시작하는 것이 보통 모든 기기에 있습니다.</p>
+                <b>같은 이름</b>을 고르면 어디서나 같은 목소리가 됩니다.
+                아무것도 안 고르면 <b>맨 처음 한국어 목소리</b>를 씁니다 —
+                다른 앱들과 같은 방식이라 목소리가 서로 맞습니다.</p>
+              ${(function () {
+                var c = App.speech.voiceCount ? App.speech.voiceCount() : null;
+                var now = App.speech.voiceName ? App.speech.voiceName() : null;
+                if (!c) return null;
+                return html`<p class="muted small" style=${{ marginBottom: '.4rem' }}>
+                  이 기기의 목소리 : 전체 <b>${c.all}개</b> · 한국어 <b>${c.ko}개</b>
+                  ${' · 지금 말하는 목소리 : '}<b>${now || '(없음)'}</b></p>`;
+              })()}
               <div class="wrap">
                 <button type="button" class=${'tchoice' + (!list.length || !now ? ' on' : '')}
                   onClick=${function () {
