@@ -3465,8 +3465,16 @@ input.title-input{
   font-weight:400 700;
   font-display:swap;
 }
-/* 글로 읽는 문장 — 나눔바른펜으로, 그리고 조금 더 크게 */
+/* 글로 읽는 문장 — 나눔바른펜으로, 그리고 조금 더 크게.
+   ★ `say` 는 **학생이 쓴 글**에 붙이는 표시입니다 (2026-08-29 · 선생님 말씀 —
+     「나눔바른펜이 설정된 부분은 나눔바른펜으로 인쇄 다 되도록, 다른
+     인쇄창과 동일하게」).
+     전시판형의 일기 글이 그냥 `small` 이라 혼자 기본 글꼴로 나왔습니다.
+   ▸ 새로 만드는 곳에서 **학생이 쓴 글**을 낼 때는 `.sentence` 를 쓰거나,
+     크기를 따로 두어야 하면 `say` 를 붙이세요.
+   ⛔ 이름표·날짜·제목에는 붙이지 마세요 — 그것은 학생 글이 아닙니다. */
 .sentence,
+.say,
 .plan-sofar,
 textarea.sentence-edit,
 textarea.field.diary-write,
@@ -3481,7 +3489,7 @@ textarea.field.diary-write,
 /* 나눔바른펜은 획이 얇아서, 같은 크기라도 기본 글꼴보다 작아 보입니다.
    그래서 문장 글자를 한 단계 키웠습니다 (1.6rem → 34px 상한).
    두께도 800 → 700 으로 낮춥니다 — 펜 글씨는 굵게 하면 뭉개집니다. */
-.sentence, .plan-sofar, textarea.sentence-edit{ font-weight:700; }
+.sentence, .say, .plan-sofar, textarea.sentence-edit{ font-weight:700; }
 
 /* ============ 맨 위 줄 : 뒤로 화살표 · 제목 단추 · 표지 글자 ============ */
 

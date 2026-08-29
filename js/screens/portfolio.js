@@ -265,10 +265,18 @@
           </div>
           <div>
             <h3 style=${{ fontSize: '1rem', fontWeight: 900, marginBottom: '.3rem' }}>나의 일기 · 한마디</h3>
+            <!-- ★ **학생이 쓴 글은 나눔바른펜** (2026-08-29 · 선생님 말씀 —
+                   「전시판형에서 출력할 때도 나눔바른펜이 설정된 부분은
+                   나눔바른펜으로 인쇄 다 되도록, 다른 인쇄창과 동일하게」).
+                   여기만 그냥 「small」 이라 기본 글꼴로 나왔습니다.
+                 ▸ 「say」 를 붙이면 다른 인쇄와 같은 글꼴이 됩니다
+                   (css 의 나눔바른펜 규칙에 이 이름이 함께 걸려 있습니다).
+                 ⛔ 날짜·활동 이름(굵은 줄)에는 붙이지 마세요 — 그것은
+                   **이름표**이지 학생이 쓴 글이 아닙니다. -->
             ${d.exhibited.slice(0, 2).map(function (dy) {
               return html`<div key=${dy.id} class="banner" style=${{ marginBottom: '.4rem' }}>
                 <b>${App.fmtDateShort(dy.date)} · ${(App.act(dy.activityId) || {}).name || ''}</b>
-                <div class="small" style=${{ marginTop: '.2rem' }}>${App.sentences.diaryBody(dy)}</div>
+                <div class="small say" style=${{ marginTop: '.2rem' }}>${App.sentences.diaryBody(dy)}</div>
               </div>`;
             })}
             ${!d.exhibited.length && html`<div class="banner small">전시할 일기를 골라 주세요.</div>`}
