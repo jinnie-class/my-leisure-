@@ -51,6 +51,33 @@ html,body{
 .book-page{ break-after:page; page-break-after:always; }
 .book-page:last-child{ break-after:auto; page-break-after:auto; }
 
+/* ══════════ 책자형 — **자리가 남으면 다음 것이 올라옵니다** ══════════
+   ★ 선생님 말씀 (2026-08-30) — 「한장에 한 표가 아니고 공간이 있으면
+     앞의 빈칸으로 가서 채워지고」.
+   ⚠ 예전에는 칸마다 `break-after:page` 라 **한 장에 한 칸**이었습니다.
+     「학생 소개」 다섯 줄이 종이 한 장을, 일기 카드 하나가 또 한 장을
+     썼습니다. 아래가 텅 빈 종이가 일곱 장 나와, 묶으면 두꺼운데 든 것은
+     적었습니다.
+   ▸ 강제 쪽 나누기를 풀면 칸들이 **이어서 채워집니다.** 자리가 모자랄 때만
+     다음 장으로 넘어갑니다.
+   ⛔ `break-inside:avoid`(위 .book-page 규칙)는 **그대로 둡니다** — 한 칸이
+      쪽 경계에서 반으로 갈리면 테두리가 잘려 더 나빠집니다.
+   ▸ 칸과 칸 사이는 여백으로만 갈라 둡니다. 테두리가 이미 경계를 그립니다. */
+.print-area .book-flow .book-page{
+  break-after:auto; page-break-after:auto;
+  margin-bottom:7mm;
+}
+/* ★ 표지도 같이 흐릅니다 — 선생님이 보내 주신 그림에서 **표지와 학생 소개가
+     한 장**에 나란히 있습니다. 표지는 테두리와 큰 글씨가 이미 표지 노릇을
+     하므로, 한 장을 통째로 쓰지 않아도 표지로 읽힙니다. */
+
+/* 책자형 안의 지도는 **A4 가로 한 장** (책이 A4 이므로).
+   전시판형의 지도(.board-map 만 붙은 것)는 A3 가로입니다 — 앞 장과 짝이 맞아야 합니다. */
+.print-area .book-map .map-print{
+  page:mapA4L;
+  min-height:180mm;
+}
+
 .print-area img{ max-width:100%; }
 .print-area .btn,.print-area .speak{ display:none !important; }
 
@@ -145,14 +172,31 @@ html,body{
    ⛔ `vh` 로 잡지 마세요 — 인쇄에서 vh 는 브라우저마다 다릅니다. mm 로 못박습니다.
      (A4 가로 속 높이 = 210 - 위아래 여백 20 = 190mm) */
 @page mapA4L{ size:A4 landscape; margin:10mm; }
-.print-area .book-page .map-print,
-.print-area .board-map .map-print{
+/* ⛔⛔ **190mm(쪽 속 높이)를 그대로 주지 마세요** (2026-08-30 · 선생님 :
+     「여가지도 다음 화면이 밀려서 두 장으로 가로가 생성됨」).
+     쪽 속 높이와 **딱 같으면** 소수점 반올림만으로도 몇 px 이 넘쳐,
+     그 넘친 만큼이 **빈 가로 한 장**으로 더 나옵니다.
+   ▸ 지도 내용의 실제 높이는 180mm 안팎(제목 10 + 판 156 + 표시 설명 9 +
+     사이 5)입니다. 180mm 로 두면 가운데 가까이 서면서도 넉넉히 들어갑니다.
+   ⚠ @page 의 margin 을 고치면 이 값도 함께 내려 주세요. */
+.print-area .book-page .map-print{
   page:mapA4L;
-  min-height:190mm;
+  min-height:180mm;
 }
-/* 전시판형 한 장이 끝난 **다음 쪽**에서 지도가 시작합니다.
+/* ★ **전시판형 뒤의 지도는 A3 가로**입니다 — 앞 장(전시판형)이 A3 가로라
+     같은 크기여야 벽에 나란히 붙습니다. 위의 기본값(page:mapA3 · 277mm)을
+     그대로 쓰므로 여기서 따로 덮지 않습니다.
+   전시판형 한 장이 끝난 **다음 쪽**에서 지도가 시작합니다.
    그러지 않으면 요약 아래에 이어 붙어 반쪽씩 잘립니다. */
 .print-area .board-map{ break-before:page; page-break-before:always; }
+
+/* --------------- 전시판형 : A3 **가로** 한 장 ---------------
+   ★ 선생님 말씀 (2026-08-30) — 「전시판형은 A3 사이즈로 가로로 출력되게
+     기본 구성해줘」. 교실 벽에 붙이는 종이라 멀리서도 읽혀야 합니다.
+   ▸ 뒤따라 나오는 지도 한 장도 A3 가로라, 둘을 나란히 붙이면
+     왼쪽은 요약 · 오른쪽은 지도가 됩니다. */
+@page boardA3{ size:A3 landscape; margin:10mm; }
+.print-area .board-sheet{ page:boardA3; }
 
 /* --------------- 활동 라벨 : A4 세로 한 장 ---------------
    라벨지 칸에 그대로 맞으려면 **쪽 여백이 0** 이어야 합니다.

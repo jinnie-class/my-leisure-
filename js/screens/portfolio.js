@@ -241,7 +241,9 @@
   /* ------------------------- 전시판형 ------------------------- */
   C.BoardSheet = function (p) {
     var s = p.student, d = p.data;
-    return html`<div class="sheet" style=${{ padding: '20px 22px' }}>
+    /* board-sheet : 전시판형은 **A3 가로 한 장**입니다 (print.css 의 @page boardA3).
+       교실 벽에 붙이는 종이라 멀리서도 보여야 합니다. */
+    return html`<div class="sheet board-sheet" style=${{ padding: '20px 22px' }}>
       <div class="row" style=${{ alignItems: 'flex-start' }}>
         <div style=${{ width: 62, height: 62, borderRadius: '999px', border: '3px solid #8a6a4e', overflow: 'hidden', flex: '0 0 auto' }}>
           <${C.AvatarArt} student=${s} /></div>
@@ -303,10 +305,15 @@
               }) : html`<span class="chip none">아직 없어요</span>`}
             </div>
           </div>
-          <div>
-            <h3 style=${{ fontSize: '1rem', fontWeight: 900, marginBottom: '.3rem' }}>나의 여가 탐험 지도</h3>
-            <${C.MiniMap} student=${s} scale=${0.52} />
-          </div>
+          <!-- ⛔ 여기에 **작은 탐험 지도를 두지 않습니다** (2026-08-30 · 선생님 :
+                 「뒤에 여가지도로 붙으니 삭제해도 될듯」).
+               전시판형은 **뒤에 지도 한 장이 통째로** 따라 나옵니다
+               (printableNode 의 .board-map). 앞 장 귀퉁이에 0.52배짜리 작은
+               지도를 또 두면 **같은 것이 두 번** 나오는데, 작은 쪽은 무엇이
+               어디 있는지 읽히지도 않습니다.
+             ▸ 지도는 뒤의 가로 한 장에 맡기고 여기서는 뺍니다.
+             ⚠ 책자형(C.BookSheets)의 작은 지도는 **그대로 둡니다** — 거기에는
+               뒤따라오는 지도 장이 없어서, 빼면 지도가 아예 사라집니다. -->
         </div>
       </div>
     </div>`;
@@ -411,8 +418,14 @@
           return html`<span key=${c.id} class="chip challenge">
             <span aria-hidden="true" dangerouslySetInnerHTML=${{ __html: App.icon('star') }} />${c.name}</span>`;
         }) : html`<span class="chip none">아직 없어요</span>`}</div>
-        <h3 style=${{ marginTop: '.8rem', fontSize: '1.05rem', fontWeight: 900 }}>나의 여가 탐험 지도</h3>
-        <${C.MiniMap} student=${s} scale=${0.72} />
+        <!-- ⛔ 여기에 **작은 탐험 지도를 두지 않습니다** (2026-08-30 · 선생님 :
+               「나의여가는 동그라미 다닥다닥은 삭제하고 실제 학생의 여가지도
+                가로형을 붙이고」).
+             0.72배짜리 작은 지도는 활동이 **동그라미로 다닥다닥** 붙어 있어
+             무엇이 어디 있는지 읽히지 않습니다. 지도는 가로로 넓어서
+             (1671:941) 세로 쪽 아래 귀퉁이에 넣으면 늘 그렇게 됩니다.
+           ▸ 대신 **학생이 직접 붙인 지도**를 가로 한 장으로 뒤에 붙입니다
+             (printableNode 의 book-map). -->
       </div>
 
       <div class="book-page">
@@ -534,8 +547,20 @@
        ⛔ 이 파일에서 위쪽에 무언가를 더할 때는 **아래 var 를 쓰는지** 보세요.
          function 선언은 끌어올려지지만 **var 의 값은 끌어올려지지 않습니다.** */
     function printableNode() {
-      if (view === 'book') return html`<${C.BookSheets} student=${student} data=${data} />`;
-      var boardMap = Object.keys(boardLayout()).length
+      var hasBoard = Object.keys(boardLayout()).length;
+      /* ★ **책자형에도 지도를 가로 한 장으로 붙입니다** (2026-08-30 · 선생님 :
+           「나의여가는 동그라미 다닥다닥은 삭제하고 실제 학생의 여가지도
+            가로형을 붙이고」). 안에 있던 작은 지도(MiniMap)는 뺐습니다.
+         ⚠ 책은 A4 이므로 지도도 **A4 가로**입니다 — 그래서 book-map 을 함께
+           붙입니다. 전시판형은 A3 가로라 board-map 만 붙습니다.
+         ▸ 붙인 활동이 하나도 없으면 붙이지 않습니다 — 빈 종이가 나가면 안 됩니다. */
+      if (view === 'book') {
+        return html`<div class="book-flow">
+          <${C.BookSheets} student=${student} data=${data} />
+          ${hasBoard ? html`<div class="board-map book-map">${printMapBoard()}</div>` : null}
+        </div>`;
+      }
+      var boardMap = hasBoard
         ? html`<div class="board-map">${printMapBoard()}</div>` : null;
       return html`<${React.Fragment}>
         <${C.BoardSheet} student=${student} data=${data} />
@@ -770,13 +795,17 @@
           </div>`}
         </div>`;
       }
-      /* ★ 2단계는 이 그림 줄을 **여기 안에 두지 않습니다** (2026-08-30 · 선생님 :
-           「나의 한마디 뒤에 선택한 것들이 뒤에 나란히 배열되게」).
-           그림 줄이 노란 상자와 한 묶음(.me-saybar)이면 이름표 아래로 내려갑니다.
-           2단계에서는 밖으로 꺼내어 **이름표 옆에** 세웁니다 (meArtRow).
-         ⛔ 1단계는 그대로 둡니다 — 거기는 노란 바 안에도 그림이 들어가서
-            위아래로 잇는 편이 읽힙니다. */
-      var artRow = (lv === 2) ? null : meArtRow();
+      /* ★ 1·2단계 모두 이 그림 줄을 **여기 안에 두지 않습니다** (2026-08-30 ·
+           선생님 : 「나의 한마디 뒤에 선택한 것들이 나란히 배열되도록」).
+           그림 줄이 노란 상자와 한 묶음(.me-saybar)이면 이름표 **아래**로
+           내려가고, 이름표만 덩그러니 한 줄을 차지합니다. 그러면 나 카드와
+           노란 칸 사이가 휑하게 벌어집니다.
+         ▸ 밖으로 꺼내어 **이름표 옆에** 세웁니다 (meArtRow · css 의 has-art).
+         ★ 1단계도 2·3단계와 **같은 짜임**입니다 (2026-08-30 선생님 결정).
+           세 단계가 같은 일을 하는데 생김새가 다르면 다른 화면으로 보입니다.
+         ⚠ 노란 바 **안쪽** 그림(me-inart)은 그대로 둡니다 — 그것은 글을 못 읽는
+            학생이 **문장과 그림을 잇는** 자리라, 이 그림 줄과 하는 일이 다릅니다. */
+      var artRow = null;
 
       /* ★ **2단계는 「빈칸을 채워 문장을 완성해요」** 입니다 (2026-08-24).
            그래서 문장을 대신 완성해 주지 않습니다. 위 그림을 보고 학생이
@@ -1576,14 +1605,31 @@
                  (2026-08-30 · 선생님 : 「상자 길이의 폭을 넓히고」).
                ⛔ 이 표시가 없으면 위 .me-bar 규칙(내용만큼만 잡기)이
                   칸을 **글자만큼만** 잡아 쓰는 칸이 216px 로 쪼그라듭니다. -->
-          <div class=${'me-bar' + (meLv === 3 ? ' has-write' : '') + (meLv === 2 ? ' has-art' : '')}>
+          <!-- has-art : 이름표 옆에 고른 것을 나란히 세우는 짜임 (1·2단계)
+               lv1 : 1단계는 문장이 **골라져서 완성된 채로** 옵니다. 길이가
+                     활동 이름에 따라 달라지므로 칸을 **내용만큼만** 잡아야
+                     나 카드가 노란 칸 옆에 붙습니다 (2단계는 빈칸을 채우는
+                     자리라 폭이 늘 같아서 33rem 으로 못박습니다). -->
+          <div class=${'me-bar' + (meLv === 3 ? ' has-write' : '') + (meLv <= 2 ? ' has-art' : '') + (meLv === 1 ? ' lv1' : '')}>
             <div class="me-who">
               <span class="me-who-face"><${C.AvatarArt} student=${student} /></span>
               <b class="me-who-nm">${student.name}</b>
             </div>
             <div class="me-saycol">
-              <span class="me-cap">나의 한마디</span>
-              ${meLv === 2 && meArtRow()}
+              <!-- ⛔ 이름표와 그림 줄은 **한 묶음**(.me-caprow)이어야 합니다.
+                     둘을 .me-saycol 의 낱개 자식으로 두면, 줄바꿈 flex 의
+                     max-content 폭이 「이름표 + 그림줄 + 노란바를 **한 줄에**
+                     늘어놓은 폭」(재어 보니 723px)이 되어, 칸을 내용만큼만
+                     잡으려 해도 되레 넓어집니다 (2026-08-30 재어 확인).
+                   ▸ 한 묶음으로 싸 두면 칸 폭 = max(이름표줄, 노란바) 입니다.
+                   ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3) — 태그 템플릿이
+                      거기서 끊겨 화면이 통째로 죽습니다. -->
+              ${meLv <= 2
+                ? html`<div class="me-caprow">
+                    <span class="me-cap">나의 한마디</span>
+                    ${meArtRow()}
+                  </div>`
+                : html`<span class="me-cap">나의 한마디</span>`}
               ${meSayBar()}
               <!-- ⛔ 2단계에는 이 칸을 두지 마세요. 위 노란 바가 이미
                      **빈칸을 채우는 자리**라, 같은 일을 두 번 하게 됩니다

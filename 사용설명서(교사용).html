@@ -6,10 +6,10 @@
 <style>
 /* ===========================================================
    「나의 여가」 사용 설명서 (교사용)
-   ▸ 브라우저에서 열고 Ctrl+P → 대상을 'PDF로 저장' 하면 배포용 PDF가 됩니다.
+   ▸ 브라우저에서 열고 Ctrl+P → 대상을 'PDF로 저장'
    ▸ 「배경 그래픽」을 켜야 표 머리와 색 상자가 나옵니다.
    =========================================================== */
-@page { size: A4; margin: 16mm 14mm 14mm; }
+@page { size: A4; margin: 12mm 11mm 10mm; }
 
 :root{
   --ink:#22242c;        --muted:#6b6b78;
@@ -20,102 +20,77 @@
   --note-b:#eef4fb;     --note-b-bar:#4a86c8;
   --note-o:#fdf3ea;     --note-o-bar:#e08b3c;
 }
-*{ box-sizing:border-box; }
+*{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 body{
-  margin:0; padding:22px 26px 40px;
+  margin:0; padding:0;
   font-family:"맑은 고딕","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-  font-size:10.5pt; line-height:1.6; color:var(--ink); background:#fff;
+  font-size:8.8pt; line-height:1.38; color:var(--ink); background:#fff;
 }
-.wrap{ max-width:186mm; margin:0 auto; }
+.wrap{ max-width:188mm; margin:0 auto; }
 
 h1{
-  font-size:23pt; font-weight:800; letter-spacing:-.03em; margin:0 0 4px;
-  padding-bottom:10px; border-bottom:3px solid var(--note-o-bar);
+  font-size:17pt; font-weight:800; letter-spacing:-.03em; margin:0 0 3px;
+  padding-bottom:6px; border-bottom:3px solid var(--note-o-bar);
 }
-h1 .sub{ display:block; font-size:11pt; font-weight:700; color:var(--muted); letter-spacing:0; margin-top:6px; }
+h1 .sub{ display:block; font-size:9pt; font-weight:700; color:var(--muted); letter-spacing:0; margin-top:3px; }
 
-/* 머리 소개 상자 */
 .lead{
-  margin:16px 0 26px; padding:13px 16px;
+  margin:8px 0 11px; padding:8px 11px;
   background:var(--note-o); border-left:5px solid var(--note-o-bar); border-radius:3px;
-  font-size:10pt; line-height:1.65;
+  font-size:8.7pt; line-height:1.45;
 }
 .lead b{ color:#8a4a12; }
 
-/* 번호 붙은 큰 제목 */
 h2{
-  font-size:13.5pt; font-weight:800; margin:26px 0 10px;
-  padding:7px 12px; background:var(--blue-bg); border-left:5px solid var(--blue);
+  font-size:10.8pt; font-weight:800; margin:11px 0 5px;
+  padding:4px 9px; background:var(--blue-bg); border-left:5px solid var(--blue);
   border-radius:2px; break-after:avoid;
 }
-h3{
-  font-size:11pt; font-weight:800; color:var(--blue); margin:16px 0 7px;
-  break-after:avoid;
-}
-p{ margin:6px 0 10px; }
-p.intro{ margin:0 0 12px; padding-left:2px; }
+h3{ font-size:9.3pt; font-weight:800; color:var(--blue); margin:8px 0 3px; break-after:avoid; }
+p{ margin:3px 0 5px; }
+p.intro{ margin:0 0 5px; }
 .muted{ color:var(--muted); }
-.small{ font-size:9pt; }
+.small{ font-size:8pt; }
 
-/* 표 */
-table{
-  width:100%; border-collapse:collapse; margin:8px 0 12px;
-  font-size:9.5pt; break-inside:auto;
-}
+table{ width:100%; border-collapse:collapse; margin:4px 0 6px; font-size:8.4pt; }
 th{
   background:var(--blue-bg); color:var(--blue); font-weight:700; text-align:left;
-  padding:7px 10px; border-bottom:2px solid var(--blue-line); font-size:9pt;
+  padding:4px 7px; border-bottom:2px solid var(--blue-line); font-size:8.1pt;
 }
-td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+td{ padding:4px 7px; border-bottom:1px solid var(--line); vertical-align:top; }
 tr{ break-inside:avoid; }
 td:first-child{ font-weight:700; text-align:center; color:var(--blue); white-space:nowrap; }
 td.l:first-child{ text-align:left; }
-table.plain td:first-child{ color:var(--ink); }
+td.n{ font-weight:400; text-align:left; color:var(--ink); white-space:normal; }
 
-/* 색 상자 */
 .box{
-  margin:10px 0 14px; padding:10px 14px; border-radius:3px;
-  font-size:9.5pt; line-height:1.6; break-inside:avoid;
+  margin:5px 0 7px; padding:7px 10px; border-radius:3px;
+  font-size:8.4pt; line-height:1.45; break-inside:avoid;
 }
-.box b:first-child{ display:inline; }
 .box.y{ background:var(--note-y); border-left:4px solid var(--note-y-bar); }
 .box.g{ background:var(--note-g); border-left:4px solid var(--note-g-bar); }
 .box.b{ background:var(--note-b); border-left:4px solid var(--note-b-bar); }
-.box ol,.box ul{ margin:5px 0 0; padding-left:18px; }
-.box li{ margin:2px 0; }
+.box ol,.box ul{ margin:3px 0 0; padding-left:15px; }
+.box li{ margin:1px 0; }
 
-/* 두 칸 나누기 */
-.two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0 14px; }
-.card{
-  border:1px solid var(--line); border-radius:4px; padding:11px 13px;
-  break-inside:avoid; font-size:9.5pt;
-}
-.card h4{ margin:0 0 6px; font-size:10pt; font-weight:800; color:var(--blue); }
-.card p{ margin:0; }
-.card ul{ margin:4px 0 0; padding-left:16px; }
-.card li{ margin:3px 0; }
+.two{ display:grid; grid-template-columns:1fr 1fr; gap:9px; align-items:start; }
 
-/* 자주 묻는 질문 */
-.faq{ display:grid; grid-template-columns:1fr 1fr; gap:11px; margin:10px 0; }
+.faq{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:5px 0; }
 .faq .q{
-  border:1px solid var(--line); border-radius:4px; padding:10px 12px;
-  break-inside:avoid; font-size:9.3pt;
+  border:1px solid var(--line); border-radius:4px; padding:6px 9px;
+  break-inside:avoid; font-size:8.2pt; line-height:1.4;
 }
-.faq .q b{ display:block; color:var(--blue); font-size:10pt; margin-bottom:5px; }
+.faq .q b{ display:block; color:var(--blue); font-size:8.8pt; margin-bottom:2px; }
 
 .key{
-  display:inline-block; padding:0 5px; border:1px solid #c8ccd6; border-radius:3px;
-  background:#f4f5f8; font-size:9pt; font-weight:700;
+  display:inline-block; padding:0 4px; border:1px solid #c8ccd6; border-radius:3px;
+  background:#f4f5f8; font-size:8pt; font-weight:700;
 }
 .foot{
-  margin-top:26px; padding-top:10px; border-top:1px solid var(--line);
-  font-size:9pt; color:var(--muted); text-align:center;
+  margin-top:12px; padding-top:6px; border-top:1px solid var(--line);
+  font-size:8pt; color:var(--muted); text-align:center;
 }
-.pagebreak{ break-before:page; }
-@media print{
-  body{ padding:0; }
-  a{ color:inherit; text-decoration:none; }
-}
+@media print{ a{ color:inherit; text-decoration:none; } }
 </style>
 </head>
 <body>
@@ -126,341 +101,158 @@ table.plain td:first-child{ color:var(--ink); }
 </h1>
 
 <div class="lead">
-  <b>「나의 여가」</b>는 학생이 여가를 <b>스스로 고르고, 계획하고, 해 보고, 기록하고, 모아 두는</b>
-  한 바퀴를 경험하도록 만든 웹앱입니다. 잘 만든 결과물보다 <b>내가 골랐다·내가 했다</b>는 경험이 목적입니다.
-  실내 20가지 · 실외 20가지 활동을 담았으며, 학생마다 <b>일기 수준(3단계)</b>과 <b>계획 방식</b>을 따로 정할 수 있습니다.
-  설치할 것은 없고, 인터넷 주소만 열면 바로 쓸 수 있습니다.
+  <b>「나의 여가」</b>는 학생이 여가를 <b>스스로 고르고 · 계획하고 · 해 보고 · 기록하고 · 모아 두는</b>
+  한 바퀴를 경험하도록 만든 웹앱입니다. 잘 만든 결과물보다 <b>내가 골랐다 · 내가 했다</b>는 경험이 목적입니다.
+  실내 20가지 · 실외 20가지 활동을 담았고, 학생마다 <b>일기 수준(3단계)</b>과 <b>계획 방식</b>을 따로 정할 수 있습니다.
+  설치할 것은 없고 인터넷 주소만 열면 바로 씁니다.
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>1. 시작하기</h2>
-<p class="intro">설치나 회원가입이 필요 없습니다. 브라우저에서 주소만 열면 됩니다.</p>
 
 <table>
-  <tr><th style="width:26%">항목</th><th>내용</th></tr>
-  <tr><td class="l">여는 방법</td><td>브라우저 주소창에 안내받은 <b>웹 주소</b>를 입력합니다. 설치·로그인은 없습니다.</td></tr>
-  <tr><td class="l">권장 브라우저</td><td><b>크롬(Chrome)</b> 또는 <b>엣지(Edge)</b>를 권장합니다.</td></tr>
-  <tr><td class="l">기기</td><td><b>전자칠판 · 태블릿 · 노트북</b> 세 기기에서 모두 확인했습니다.
-    화면 크기에 맞춰 저절로 조정됩니다.<br />
-    <b>태블릿은 가로로 눕혀 주세요.</b> 이 앱은 가로 화면에 맞춰 만들었습니다.
-    <div class="muted" style="margin-top:.4em">
-      확인한 크기 — 전자칠판 1920×1080 · 노트북 1366×768 · 태블릿(가로) 1280×800.
-      세 크기에서 열두 화면을 모두 재어, 잘리거나 빈 화면이 나오지 않는 것을 확인했습니다.
-    </div></td></tr>
+  <tr><th style="width:16%">항목</th><th>내용</th></tr>
+  <tr><td class="l">여는 방법</td><td>브라우저 주소창에 안내받은 <b>웹 주소</b>를 입력합니다. 설치·로그인은 없습니다.
+    <b>크롬</b>이나 <b>엣지</b>를 권장합니다.</td></tr>
+  <tr><td class="l">기기</td><td><b>전자칠판 · 태블릿 · 노트북</b> 모두 됩니다. 화면 크기에 맞춰 저절로 조정됩니다.
+    <b>태블릿은 가로로 눕혀 주세요</b> — 가로 화면에 맞춰 만든 앱입니다.</td></tr>
   <tr><td class="l">인터넷</td><td>처음 열 때만 필요합니다. 학생 기록은 인터넷 없이 <b>그 기기 안에</b> 저장됩니다.</td></tr>
-  <tr><td class="l">전달</td><td>검색으로는 찾기 어려우므로 <b>웹 주소를 직접</b> 전달해 주세요. 즐겨찾기에 추가해 두면 편합니다.</td></tr>
 </table>
 
-<div class="box g">
-  <b>활용 팁</b> 화면 오른쪽 위의 <b>전체 화면</b>을 누르면 수업 화면을 넓게 볼 수 있습니다.
-  전자칠판에서는 전체 화면을 권장합니다.
-</div>
-
-<div class="box b">
-  <b>화면 방향 — 가로로 쓰는 앱입니다</b> (2026-08-25 바뀜)<br />
-  이 앱은 <b>가로 화면 전용</b>입니다. 전자칠판과 가로로 눕힌 태블릿에 맞춰
-  카드와 그림을 크게 배치했습니다. 세로로 세우면 오히려 좁아 보일 수 있습니다.
-  <div style="margin-top:.5em">
-  또한 계획·일기를 <b>쓰다가 중간에 나가면</b> 「여기까지 저장할까요?」 를 묻습니다.
-  「여기까지 저장」을 누르면 다음에 그 코너에 들어올 때 <b>이어서</b> 할 수 있습니다.
-  홈 오른쪽 위 <b>학생 이름표</b>를 누르면 화면을 떠나지 않고 다른 학생으로 바꿉니다.</div>
-</div>
-
 <div class="box y">
-  <b>가장 먼저 하실 일</b>
+  <b>가장 먼저 하실 일</b> — 표지 오른쪽 위 <b>톱니바퀴(선생님 설정)</b>를 누르고 순서대로 하시면 됩니다.
   <ol>
-    <li>표지 오른쪽 위 <b>톱니바퀴(선생님 설정)</b>를 누릅니다.</li>
-    <li><b>13. 예시 자료 · 초기화</b>에서 <b>「예시 자료 모두 지우기」</b>를 누릅니다.
-      <span class="muted">처음 열면 맛보기용 「학생 1」과 예시 기록이 들어 있습니다.
-      먼저 눌러 보며 익히신 뒤 지우셔도 됩니다.</span></li>
-    <li><b>1. 우리 반 학생</b>에서 학생을 추가합니다.</li>
-    <li>학생마다 <b>3. 일기 쓰기 수준</b>과 <b>4. 계획 방식</b>을 정합니다.</li>
-    <li><b>7. 함께하는 사람 선택지</b>에서 그 학생이 쓸 사람만 켭니다.
-      <span class="muted">언니·누나·형·오빠가 모두 있으니 학생에게 맞는 것만 남기시면 됩니다.</span></li>
+    <li><b>13. 예시 자료 · 초기화</b>에서 <b>「예시 자료 모두 지우기」</b>
+      <span class="muted">— 처음 열면 맛보기용 「학생 1」과 예시 기록이 들어 있습니다. 눌러 보며 익히신 뒤 지우셔도 됩니다.</span></li>
+    <li><b>1. 우리 반 학생</b>에서 학생을 추가하고 캐릭터를 정합니다.</li>
+    <li><b>2번에서 학생을 고른 다음</b> <b>3. 일기 쓰기 수준</b>과 <b>4. 계획 방식</b>을 정합니다 (학생마다 따로 저장됩니다).</li>
+    <li><b>7. 함께하는 사람 선택지</b>에서 그 학생이 쓸 사람만 켭니다
+      <span class="muted">— 언니·누나·형·오빠가 모두 있으니 맞는 것만 남기시면 됩니다.</span></li>
   </ol>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>2. 화면 둘러보기</h2>
-<p class="intro">표지 → 학생 고르기 → <b>나의 여가</b>(네 코너) 순서로 들어갑니다.</p>
+<p class="intro">표지 → 학생 고르기 → 캐릭터 고르기 → <b>나의 여가</b>(네 코너) 순서로 들어갑니다.
+  네 코너가 한 줄에 넷으로 놓이며, 여기가 모든 활동의 출발점입니다.</p>
 
 <table>
-  <tr><th style="width:26%">화면</th><th>내용</th></tr>
-  <tr><td class="l">표지</td>
-      <td>가운데 아래 <b>시작하기</b>를 누르면 들어갑니다.<br />
-          오른쪽 위에 <b>소리 끄기 · 전체 화면 · 선생님 설정(톱니바퀴)</b>이 있습니다.</td></tr>
-  <tr><td class="l">학생 고르기</td>
-      <td>누구의 기록인지 고릅니다. 학생마다 기록이 따로 쌓입니다.</td></tr>
-  <tr><td class="l">캐릭터 고르기</td>
-      <td>학생이 자기 캐릭터를 고릅니다. <b>아홉 칸이 한 화면</b>에 다 보여
-          넘길 것이 없습니다 — 남자아이 · 여자아이 · 동물 여섯(강아지 · 고양이 ·
-          토끼 · 곰 · 사자 · 코끼리) · <b>사진 넣기</b>.<br />
-          왼쪽에 <b>지금 고른 내 모습</b>이 크게 보입니다. 그 아래 칸을 누르면
-          이름도 바로 고칠 수 있습니다.</td></tr>
-  <tr><td class="l">나의 여가</td>
-      <td>네 코너가 <b>한 줄에 넷</b>으로 놓입니다. 여기가 모든 활동의 출발점입니다.</td></tr>
-</table>
-
-<h3>네 코너</h3>
-<table>
-  <tr><th style="width:24%">코너</th><th style="width:22%">이름</th><th>하는 일</th></tr>
+  <tr><th style="width:14%">코너</th><th style="width:18%">이름</th><th>하는 일</th></tr>
   <tr><td>계획하GO!</td><td class="l">여가 계획하기</td><td>오늘 하고 싶은 여가를 고르고 계획표를 만듭니다.</td></tr>
   <tr><td>알아보GO!</td><td class="l">여가 지도</td><td>실내·실외 섬을 다니며 활동에 표시를 합니다.</td></tr>
   <tr><td>기록하GO!</td><td class="l">여가 일기</td><td>한 일과 기분을 기록하고 그림일기를 만듭니다.</td></tr>
   <tr><td>모아보GO!</td><td class="l">여가 포트폴리오</td><td>네 가지를 한곳에 모아 보고 인쇄·전시합니다.</td></tr>
 </table>
+<p class="small muted" style="margin-top:-2px">
+  ※ 「○○하GO!」는 <b>선생님이 부르는 이름</b>입니다. 학생 화면에는 하는 일(여가 계획하기)만 나옵니다.
+  「오늘은 계획하GO! 해 볼까?」처럼 말로 부르시면 활동이 이어집니다.
+</p>
 
 <div class="box b">
-  <b>「○○하GO!」는 어떤 뜻인가요</b><br />
-  네 코너의 이름은 <b>「해 보자」는 권유</b>를 담은 말입니다.
-  「계획하GO!」는 <b>계획하고(go) 가자</b> — 한글 <b>「~하고」</b>와 영어 <b>「GO(가자)」</b>를 겹쳐 놓았습니다.
-  <div style="margin-top:.5em">
-    <b>계획하GO!</b> 무엇을 할지 정하GO → <b>알아보GO!</b> 어떤 활동이 있는지 알아보GO →
-    <b>기록하GO!</b> 한 일을 기록하GO → <b>모아보GO!</b> 모아서 보GO
-  </div>
-  <div style="margin-top:.5em">네 이름이 <b>계획 → 탐색 → 기록 → 정리</b>라는
-    여가 교육의 한 바퀴를 그대로 따라갑니다.
-    학생에게 <b>「오늘은 계획하GO! 해 볼까?」</b> 처럼 말로 부르면 활동이 이어집니다.</div>
-  <div class="small muted" style="margin-top:.5em">
-    ※ 이 이름은 <b>학생 화면에는 나오지 않습니다.</b> 한 카드에 「여가 계획하기」와
-    「계획하GO!」가 함께 있으면 읽을 것이 두 배가 되기 때문입니다.
-    화면에는 <b>하는 일</b>(여가 계획하기)만 크게 두고, 이름은 <b>선생님이 부르는 말</b>로 씁니다.
-  </div>
-</div>
-
-<div class="box b">
-  <b>어디서나 같은 규칙</b> (2026-08-26 맨 위 줄 통일)
+  <b>어디서나 같은 규칙</b>
   <ul>
-    <li>왼쪽 위 <b>파란 화살표</b> — 바로 앞 단계로 돌아갑니다.</li>
-    <li>오른쪽 위에는 늘 <b>홈 · 전체 화면 · 선생님 설정 · 학생 이름표</b>가 있습니다.
-      <b>홈(집 그림)</b>을 누르면 어느 화면에서든 나의 여가(네 코너)로 갑니다.
-      학생 이름표를 누르면 <b>어디서든</b> 다른 학생으로 바꿀 수 있습니다.</li>
-    <li>일기 위쪽 <b>단계 띠</b>의 ✓ 칸을 누르면 그 단계로 돌아가 고칠 수 있습니다.</li>
-    <li><b>스피커 그림</b> — 그 화면의 말을 소리로 읽어 줍니다. 글을 못 읽는 학생도 혼자 할 수 있습니다.</li>
-    <li><b>고른 것은 진한 파란색</b>, <b>묻는 자리는 연한 파란색</b> 알약으로 나타납니다. (2026-08-26 부터 색은 파랑 한 가지만 씁니다)</li>
+    <li>왼쪽 위 <b>파란 화살표</b>는 앞 단계로. 오른쪽 위에는 늘 <b>홈 · 전체 화면 · 선생님 설정 · 학생 이름표</b>가 있습니다
+      — <b>홈</b>은 어느 화면에서든 네 코너로, <b>학생 이름표</b>는 어디서든 다른 학생으로 바꿉니다.</li>
+    <li><b>스피커 그림</b>은 그 화면의 말을 읽어 줍니다. 글을 못 읽는 학생도 혼자 할 수 있습니다.</li>
+    <li><b>고른 것은 진한 파랑</b>, <b>묻는 자리는 연한 파랑</b> 알약입니다.</li>
     <li>화면에 <b>스크롤이 생기지 않습니다.</b> 고를 것이 많으면 좌우 <b>◀ ▶ 화살표</b>로 넘깁니다.</li>
+    <li>계획·일기를 <b>쓰다가 나가면</b> 「여기까지 저장할까요?」를 묻고, 다음에 <b>이어서</b> 할 수 있습니다.</li>
   </ul>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>3. 계획하GO! — 여가 계획하기</h2>
-<p class="intro">고르는 것을 차례로 묻고, 마지막에 <b>계획표 한 장</b>이 만들어집니다.</p>
+<p class="intro">실내·실외 고르기 → 활동 고르기 → 함께하는 사람·날짜·장소 순으로 묻고,
+  마지막에 <b>계획표 한 장</b>이 만들어집니다. 고를 수 있는 것은
+  <b>활동 40가지</b>(실내 20·실외 20) · <b>함께하는 사람 16</b> · <b>장소 20</b>이며,
+  목록에 없는 것은 <b>직접 쓰기</b>로 써 넣습니다.</p>
 
 <table>
-  <tr><th style="width:26%">계획 방식</th><th>묻는 내용</th></tr>
+  <tr><th style="width:16%">계획 방식</th><th>묻는 내용</th></tr>
   <tr><td class="l">쉬운 계획</td><td>활동 · 함께하는 사람 · 날짜 · 장소</td></tr>
-  <tr><td class="l">자세한 계획</td><td>쉬운 계획에 더해 <b>시간 · 준비물 · 메모</b>까지</td></tr>
-</table>
-<p class="small muted">학생마다 <b>선생님 설정 → 4. 계획 방식</b>에서 정합니다.</p>
-
-<div class="box b">
-  <b>쉬운 계획의 계획표에는 준비물 줄이 나오지 않습니다</b><br />
-  묻지 않은 것을 답한 것처럼 적지 않기 위해서입니다.
-  예전에는 준비물을 묻지 않았는데도 계획표에 준비물 줄이 나와,
-  음악 듣기처럼 준비물이 따로 없는 활동이면 <b>「준비물이 없어요」</b>라고 적혔습니다.
-  학생은 고른 적이 없고, 물어봤다면 무언가 골랐을 것입니다.<br />
-  준비물까지 적게 하시려면 <b>자세한 계획</b>으로 바꿔 주세요.
-</div>
-
-
-<div class="box g">
-  <b>준비물에는 「그 활동을 하는 데 손에 쥘 것」이 있어야 합니다</b> (2026-08-30)<br />
-  줄넘기를 하는데 준비물이 <b>운동화 · 수건 · 물통</b>뿐이면 정작 <b>줄넘기</b>가 빠집니다.
-  계획표에도 안 적혀 학생이 못 챙깁니다. 그래서 선생님이 그림을 그려 넣어 주셨고,
-  <b>줄넘기하기 → 줄넘기</b>, <b>공놀이하기 → 공</b>을 준비물에 더했습니다.
-  <div style="margin-top:.4em"><b>새 활동을 만드실 때도 이 잣대로 보세요</b> —
-  「이 활동을 하려면 손에 무엇을 쥐는가?」</div>
-  <span class="small muted">준비물 그림은 <b>images/준비물/</b> 에 넣습니다.
-  512×512 · 배경 투명 PNG 이면 다른 그림과 같아집니다. 그림이 없으면 가방 그림이 대신 나옵니다.</span>
-</div>
-<table>
-  <tr><th style="width:12%">순서</th><th>내용</th></tr>
-  <tr><td>1</td><td>실내에서 할지, 실외에서 할지 고릅니다.</td></tr>
-  <tr><td>2</td><td>활동을 고릅니다. 하위 활동이 있는 활동은 한 번 더 고릅니다.</td></tr>
-  <tr><td>3</td><td>함께하는 사람 · 날짜 · 장소를 고릅니다.</td></tr>
-  <tr><td>4</td><td>계획표가 만들어집니다. <b>계획표 인쇄하기</b>로 종이에 뽑을 수 있습니다.</td></tr>
+  <tr><td class="l">자세한 계획</td><td>쉬운 계획에 더해 <b>시간 · 준비물 · 메모</b>까지
+    <span class="small muted">— 쉬운 계획의 계획표에는 준비물 줄이 나오지 않습니다.
+    묻지 않은 것을 답한 것처럼 적지 않기 위해서입니다.</span></td></tr>
 </table>
 
-<table>
-  <tr><th style="width:26%">고를 수 있는 것</th><th>내용</th></tr>
-  <tr><td class="l">함께하는 사람 <b>16</b></td>
-    <td><b>자주 고르는 사람부터</b> 놓았습니다. 첫 화면에 보이는 여섯은
-      <b>선생님 · 친구 · 혼자 · 가족 · 엄마 · 아빠</b>입니다.
-      <div style="margin-top:.35em">그다음 — 할머니 · 할아버지 · 삼촌 · 고모 · 이모 ·
-        언니 · 누나 · 형 · 오빠 · 동생</div>
-      <span class="small muted">언니·누나·형·오빠가 따로 있습니다. 남학생은 누나·형, 여학생은 언니·오빠라 부르기 때문입니다.
-      <b>선생님 설정 → 7</b>에서 그 학생이 쓸 것만 켜 주세요.</span></td></tr>
-  <tr><td class="l">장소 <b>20</b></td>
-    <td><b>자주 가는 곳부터</b> 놓았고, 한 쪽에 여섯씩 <b>갈래끼리 묶여</b> 넘어갑니다.
-      <div style="margin-top:.35em">
-        <b>1쪽 학교 안</b> — 학교 · 교실 · 운동장 · 강당 · 학교 화단 · 텃밭<br />
-        <b>2쪽 동네</b> — 집 · 놀이터 · 공원 · 동네 · 노래방 · 문구점<br />
-        <b>3쪽 나들이</b> — 부엌 · 음식점 · 카페 · 캠핑장 · 도서관 · 영화관<br />
-        <b>4쪽</b> — 미술관 · 박물관
-      </div>
-      <span class="small muted">목록에 없는 곳은 <b>직접 쓰기</b> 칸에 써 넣으면 됩니다.</span></td></tr>
-  <tr><td class="l">활동 <b>실내 20 · 실외 20</b></td>
-    <td><b>계열성 있게</b> 늘어놓았습니다 — 앞은 손으로 하는 것, 뒤로 갈수록 몸 전체를 쓰는 것입니다.
-      <div style="margin-top:.35em">
-        <b>실내</b> — 만들기 · 블록놀이 · 퍼즐놀이 · 놀잇감 활동 · 구슬치기 /
-        음악 듣기 · 노래 부르기 · 책 읽기 / 수집하기 · 요리하기 · 곤충 키우기 · 반려동물과 놀기 /
-        TV 보기 · <b>유튜브 보기</b> · 게임하기 · 보드게임하기 / <b>그림 그리기</b> /
-        요가하기 · 체조하기 · <b>춤추기</b><br />
-        <b>실외</b> — 놀이 기구 타기 · 문구 사기 · 노래 부르기 /
-        <b>공놀이하기</b> · <b>줄넘기하기</b> /
-        나들이하기 · 자전거 타기 · 산책하기 · 식물 돌보기 · 반려동물과 산책하기 /
-        <b>꽃 구경하기</b> · <b>사진 찍기</b> /
-        맛있는 음식 먹기 · 음료 마시기 · <b>소풍 즐기기</b> · 캠핑하기 /
-        책 읽기 · 영화 보기 · 그림 감상하기 · 전시 구경하기
-      </div>
-      <span class="small muted"><b>블록놀이</b>는 안에 여섯 가지가 있습니다 (나무 · 레고 · 자석 · 종이 · 큰 · 끼우기).
-      <b>노래 부르기</b>와 <b>책 읽기</b>는 실내에도 실외에도 있습니다 — 교실에서도 도서관에서도 하는 일이라서요.
-      <b>그림이 서로 다릅니다</b> — 실내는 방 안 풍경, 실외는 도서관·노래방입니다.<br />
-      2026-08-29 에 여덟 가지를 더해 <b>20 : 20</b> 이 되었습니다. 새로 더한 것은
-      <b>장소를 늘리지 않고</b> 이미 있던 곳(운동장 · 학교 화단 · 동네)을 쓰도록 골랐습니다.</span></td></tr>
-</table>
-
-<div class="box">
-  <b>계획표를 인쇄하면 학습지가 함께 나옵니다.</b>
-  계획표 아래 반쪽에 그 학생의 단계에 맞는 쓰기 칸이 붙습니다. 종이 한 장이 곧 학습 자료가 됩니다.
-  <table style="margin-top:.5em">
-    <tr><th style="width:22%">단계</th><th>아래에 붙는 것</th></tr>
-    <tr><td class="l">1단계</td><td><b>따라 쓰기</b> — 위와 똑같은 문장이 연한 글씨로 나옵니다. 그 위에 덧씁니다.</td></tr>
-    <tr><td class="l">2단계</td><td><b>빠진 낱말 찾아 쓰기</b> — 시간 · 장소 · 활동이 빈칸입니다. 아래 낱말 상자를 보고 채웁니다.</td></tr>
-    <tr><td class="l">3단계</td><td><b>나만의 문장으로 다시 쓰기</b> — 빈 줄만 나옵니다.</td></tr>
-  </table>
-</div>
-
-<div class="box g">
-  <b>활용 팁</b> 계획을 세운 날에는 <b>나의 여가</b> 첫 화면에 <b>오늘의 여가 계획</b> 카드가 나타납니다.
-  활동을 마친 뒤 그 카드의 <b>활동을 했어요</b>를 누르면 계획 내용이 <b>일기에 그대로 옮겨져</b> 다시 고르지 않아도 됩니다.<br />
-  계획을 여러 개 세운 날에는 카드 옆에 <b>◀ ▶ 화살표</b>가 붙어 넘겨 볼 수 있습니다.
+<div class="two">
+  <div class="box" style="margin:0">
+    <b>계획표를 인쇄하면 학습지가 함께 나옵니다.</b> 아래 반쪽에 그 학생 단계에 맞는 쓰기 칸이 붙어,
+    종이 한 장이 곧 학습 자료가 됩니다.
+    <ul>
+      <li><b>1단계 따라 쓰기</b> — 같은 문장이 연한 글씨로</li>
+      <li><b>2단계 빠진 낱말 찾아 쓰기</b> — 낱말 상자를 보고 채움</li>
+      <li><b>3단계 나만의 문장으로 다시 쓰기</b> — 빈 줄만</li>
+    </ul>
+  </div>
+  <div class="box g" style="margin:0">
+    <b>활용 팁</b> 계획을 세운 날에는 <b>나의 여가</b> 첫 화면에 <b>오늘의 여가 계획</b> 카드가 나타납니다.
+    활동을 마친 뒤 <b>활동을 했어요</b>를 누르면 계획 내용이 <b>일기에 그대로 옮겨져</b> 다시 고르지 않아도 됩니다.
+    계획이 여럿이면 <b>◀ ▶</b>로 넘겨 봅니다.
+  </div>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>4. 알아보GO! — 여가 지도</h2>
-<p class="intro">활동을 둘러보고 <b>나에게 어떤 활동인지</b> 표시하는 곳입니다.</p>
+<p class="intro"><b>여가 섬(실내)</b>과 <b>여가 섬(실외)</b>을 다니며, 활동마다
+  <b>나에게 어떤 활동인지</b> 표시하는 곳입니다. 표시한 것만 모아 보는 <b>모아보기</b>도 있습니다.</p>
 
 <table>
-  <tr><th style="width:26%">표시</th><th style="width:16%">그림</th><th>뜻</th></tr>
-  <tr><td class="l">해봤어요</td><td>발바닥</td><td>한 번이라도 해 본 활동</td></tr>
-  <tr><td class="l">좋아해요</td><td>하트</td><td>내가 좋아하는 활동</td></tr>
-  <tr><td class="l">도전하고 싶어요</td><td>별</td><td>다음에 해 보고 싶은 활동</td></tr>
-  <tr><td class="l">잘 모르겠어요</td><td>물음표</td><td>더 해 보고 정하고 싶은 활동</td></tr>
+  <tr><th style="width:16%">표시</th><th style="width:10%">그림</th><th>뜻</th>
+      <th style="width:16%">표시</th><th style="width:10%">그림</th><th>뜻</th></tr>
+  <tr><td class="l">해봤어요</td><td class="n">발바닥</td><td class="n">한 번이라도 해 본 활동</td>
+      <td class="l">도전하고 싶어요</td><td class="n">별</td><td class="n">다음에 해 보고 싶은 활동</td></tr>
+  <tr><td class="l">좋아해요</td><td class="n">하트</td><td class="n">내가 좋아하는 활동</td>
+      <td class="l">잘 모르겠어요</td><td class="n">물음표</td><td class="n">더 해 보고 정하고 싶은 활동</td></tr>
 </table>
 
-<table>
-  <tr><th style="width:26%">화면</th><th>내용</th></tr>
-  <tr><td class="l">큰 지도</td><td><b>여가 섬(실내)</b>과 <b>여가 섬(실외)</b>이 보입니다. 섬을 누르면 그 섬으로 들어갑니다.<br />
-    지도 위쪽에 <b>「여가 섬(실내)과 여가 섬(실외)을 눌러 여가 탐험을 시작해요!」</b> 안내가 있어,
-    처음 온 학생도 무엇을 눌러야 할지 압니다.<br />
-    나가는 길은 <b>맨 위 줄의 「나의 여가」 글자나 홈 단추</b>입니다.</td></tr>
-  <tr><td class="l">섬 안</td><td>활동 카드가 놓여 있습니다. 카드를 누르면 네 가지 표시를 할 수 있습니다.<br />
-    지도 <b>왼쪽 위 「◀ 실내외 여가 섬으로」</b>로 섬 고르기로 돌아가고,
-    <b>오른쪽 위 「모아보기 ▶」</b>로 표시한 활동을 모아 봅니다.</td></tr>
-  <tr><td class="l">모아보기</td><td>표시한 활동만 모아서 봅니다. 발바닥·하트·별·물음표로 골라 볼 수 있습니다.</td></tr>
-</table>
-
-<div class="box g">
-  <b>표시에 따라 카드 테두리 색이 다릅니다</b> — 그 활동에 붙은 <b>첫 번째 표시</b>를 따릅니다.
-  차례는 <b>해봤어요 → 좋아해요 → 도전 → 모르겠어요</b>입니다.
-  「해봤어요」가 없고 「좋아해요」만 있는 활동은 <b>분홍 테두리</b>로 나옵니다. 고장이 아닙니다.
-</div>
-
-<h3>나의 여가 도장판</h3>
-
-<p>지도 맨 위에 <b>도장판</b>이 있습니다. <b>5개</b>를 해볼 때마다 발자국 도장이 하나씩 찍히고,
-활동 40개를 모두 해보면 도장 여덟이 다 찹니다.</p>
-
-<table>
-  <tr><th style="width:26%">보이는 것</th><th>뜻</th></tr>
-  <tr><td class="l">3 / 40개</td><td>활동 40개 가운데 3개를 해봤다는 뜻입니다.</td></tr>
-  <tr><td class="l">5개 · 10개 …</td><td>그 수만큼 해보면 받는 도장입니다.</td></tr>
-  <tr><td class="l">성공</td><td>도장을 받은 칸에 붙습니다. 누르면 그때 해본 활동을 볼 수 있습니다.</td></tr>
-</table>
-
-<div class="box g">
-  <b>「곳」이 아니라 「개」입니다</b> (2026-08-29 에 고쳤습니다).
-  도장판이 세는 것은 <b>활동</b>입니다. 예전에는 <b>40곳</b>이라고 적어 두어
-  학생이 <b>장소</b>를 다녀야 하는 것으로 읽었습니다.
-  장소는 20곳이고 활동은 40개라 서로 다릅니다.
-</div>
-
-<div class="box b">
-  <b>여기서 한 표시가 다른 코너로 이어집니다</b><br />
-  일기를 저장하면 그 활동에 <b>해봤어요</b>가 저절로 표시되고, 일기의 마지막 물음
-  <b>「또 하고 싶나요?」</b>도 지도의 표시로 이어집니다. 포트폴리오의 지도도 여기 표시를 그대로 씁니다.
+<div class="two">
+  <div class="box g" style="margin:0">
+    <b>나의 여가 도장판</b> 지도 맨 위에 있습니다. <b>5개</b>를 해볼 때마다 발자국 도장이 하나씩 찍히고,
+    40개를 다 해보면 도장 여덟이 찹니다. 「3 / 40개」는 <b>활동</b> 40개 가운데 3개를 해봤다는 뜻입니다.
+  </div>
+  <div class="box b" style="margin:0">
+    <b>여기서 한 표시가 다른 코너로 이어집니다.</b> 일기를 저장하면 그 활동에 <b>해봤어요</b>가 저절로 표시되고,
+    일기의 마지막 물음 <b>「또 하고 싶나요?」</b>도 지도 표시로 이어집니다. 포트폴리오의 지도도 이 표시를 그대로 씁니다.
+  </div>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>5. 기록하GO! — 여가 일기</h2>
-<p class="intro">
-  학생 수준에 따라 <b>세 단계</b>로 나뉩니다. <b>묻는 내용은 세 단계가 똑같고</b>,
-  다른 것은 <b>학생이 스스로 하는 정도</b>뿐입니다.
-</p>
+<p class="intro">학생 수준에 따라 <b>세 단계</b>로 나뉩니다.
+  <b>묻는 내용은 세 단계가 똑같고</b>, 다른 것은 <b>학생이 스스로 하는 정도</b>뿐입니다.
+  공통 뼈대는 <b>언제 → 누구와 → 어디에서 → 무엇을 → 기분</b>입니다.</p>
 
 <table>
-  <tr><th style="width:14%">단계</th><th style="width:28%">이름</th><th>학생이 하는 일</th></tr>
+  <tr><th style="width:10%">단계</th><th style="width:22%">이름</th><th>학생이 하는 일</th></tr>
   <tr><td>1단계</td><td class="l">그림으로 골라 쓰기</td><td>질문마다 <b>그림을 골라</b> 문장이 저절로 만들어집니다.</td></tr>
-  <tr><td>2단계</td><td class="l">문장 틀 완성하기</td><td>낱말을 골라 <b>빈칸을 채워</b> 문장을 완성합니다.</td></tr>
-  <tr><td>3단계</td><td class="l">자유롭게 쓰기</td><td>뼈대를 한 줄씩 쓴 뒤 <b>내 말로</b> 일기를 씁니다.</td></tr>
+  <tr><td>2단계</td><td class="l">문장 틀 완성하기</td><td>낱말을 골라 <b>빈칸을 채워</b> 문장을 완성합니다. 「가장 기억에 남는 것」과 「다음에는」을 더 묻습니다.</td></tr>
+  <tr><td>3단계</td><td class="l">자유롭게 쓰기</td><td>뼈대를 한 줄씩 쓴 뒤 <b>내 말로</b> 일기를 씁니다. <b>키보드 / 손글씨</b>를 고릅니다.</td></tr>
 </table>
-
-<h3>묻는 차례</h3>
-<table>
-  <tr><th style="width:20%">공통 뼈대</th><td colspan="2">언제 → 누구와 → 어디에서 → 무엇을 → 기분</td></tr>
-  <tr><th>1단계</th><td colspan="2">뼈대 → 또 하고 싶나 → 그림 → 완성</td></tr>
-  <tr><th>2단계</th><td colspan="2">뼈대 → 기억에 남는 것 → 다음에는 → 제목 → 또 하고 싶나 → 그림 → 완성</td></tr>
-  <tr><th>3단계</th><td colspan="2">뼈대 → 일기 쓰기 → 제목 → 또 하고 싶나 → 그림 → 완성</td></tr>
-</table>
-
-<div class="box g">
-  <b>활용 팁</b> 글 칸을 <b>비워 두어도 다음으로 넘어갑니다.</b> 한 칸에서 막힌 학생도 일기를 끝낼 수 있게 한 것입니다.
-  안 쓴 칸은 마지막 화면에서 모아 알려 주고, 누르면 그 질문으로 바로 돌아갑니다.
-</div>
 
 <h3>완성 화면 — 여기서 고치고 저장합니다</h3>
 <table>
-  <tr><th style="width:26%">자리</th><th>하는 일</th></tr>
-  <tr><td class="l">왼쪽 「그림」</td><td><b>그림 자리·크기 바꾸기</b>(손가락이나 마우스로 끌어 옮김) · <b>그림 다시 그리기</b></td></tr>
-  <tr><td class="l">왼쪽 「글」</td><td>노란 칸을 <b>눌러서 바로 고쳐 씁니다.</b> 고친 것은 <b>고른 낱말로 되돌리기</b>로 되돌릴 수 있습니다.<br />
-    그 아래 <b>「원고지에 손으로 쓰기」</b> — 아래 설명을 보세요.</td></tr>
-  <tr><td class="l">왼쪽 아래</td><td><b>날짜·사람·장소 바꾸기</b> · <b>일기 저장하기</b> (나란히 있습니다)</td></tr>
-  <tr><td class="l">오른쪽</td><td>완성된 <b>그림일기</b>가 그대로 보입니다. 왼쪽에서 고치면 바로 바뀝니다.</td></tr>
+  <tr><th style="width:16%">자리</th><th>하는 일</th></tr>
+  <tr><td class="l">왼쪽 「그림」</td><td><b>그림 자리·크기 바꾸기</b>(끌어서 옮김) · <b>그림 다시 그리기</b></td></tr>
+  <tr><td class="l">왼쪽 「글」</td><td>노란 칸을 <b>눌러서 바로 고쳐 씁니다.</b> <b>고른 낱말로 되돌리기</b>로 되돌릴 수 있고,
+    그 아래 <b>「원고지에 손으로 쓰기」</b>가 있습니다.</td></tr>
+  <tr><td class="l">왼쪽 아래</td><td><b>날짜·사람·장소 바꾸기</b> · <b>일기 저장하기</b></td></tr>
+  <tr><td class="l">오른쪽</td><td>완성된 <b>그림일기</b>. 왼쪽에서 고치면 바로 바뀝니다.</td></tr>
 </table>
 
 <div class="box b">
   <b>원고지에 손으로 따라 쓰기</b> — 전자칠판 · 태블릿<br />
-  완성 화면 「글」 칸의 <b>「원고지에 손으로 쓰기」</b>를 누르면 <b>흐린 글자가 깔린 원고지</b>가 열립니다.
-  손가락이나 펜으로 그 위를 덮어 쓰면 됩니다. 색과 굵기를 고를 수 있고 지우개도 있습니다.
-  <table style="margin-top:.5em">
-    <tr><th style="width:30%">누르면</th><th>하는 일</th></tr>
-    <tr><td class="l">다 썼어요</td><td>쓴 글씨가 <b>그림일기의 원고지 자리를 그대로 대신합니다.</b> 인쇄와 포트폴리오에도 학생 글씨로 나갑니다.</td></tr>
-    <tr><td class="l">원고지 이어 쓰기</td><td>다시 열어 고쳐 씁니다.</td></tr>
-    <tr><td class="l">글자 원고지로 되돌리기</td><td>원래의 글자 원고지로 돌아갑니다.</td></tr>
-  </table>
-  <div style="margin-top:.5em"><b>알아 두실 점</b> — 손으로 쓴 것은 <b>그림으로</b> 남습니다.
-  글자로 알아보지는 못하므로, 문장이 저절로 만들어지는 곳에는 들어가지 않습니다.
-  또 <b>따라 쓰기 · 힌트 보고 쓰기 · 빈 칸</b>으로 인쇄할 때는 손글씨가 빠지고 <b>빈 칸</b>이 나옵니다 —
-  학생이 새로 쓸 종이이기 때문입니다.</div>
+  「글」 칸의 <b>「원고지에 손으로 쓰기」</b>를 누르면 <b>흐린 글자가 깔린 원고지</b>가 열립니다.
+  손가락이나 펜으로 그 위를 덮어 씁니다(색·굵기 고르기, 지우개 있음).
+  <b>다 썼어요</b>를 누르면 쓴 글씨가 <b>그림일기의 원고지 자리를 그대로 대신</b>하고, 인쇄와 포트폴리오에도 학생 글씨로 나갑니다.
+  <span class="small muted">※ 손으로 쓴 것은 <b>그림으로</b> 남습니다. 따라 쓰기 · 힌트 보고 쓰기 · 빈 칸으로 인쇄할 때는
+  손글씨가 빠지고 <b>빈 칸</b>이 나옵니다 — 학생이 새로 쓸 종이이기 때문입니다.</span>
 </div>
 
 <div class="box g">
-  <b>3단계는 쓰는 방법을 고릅니다</b> — 「일기 쓰기」 단계에서 <b>키보드로 쓰기 · 손글씨로 쓰기</b> 둘 가운데 고릅니다.
-  <b>손글씨</b>를 고르면 줄공책처럼 줄이 그려진 넓은 판이 열립니다.
-  <span class="small muted">위의 「원고지에 손으로 쓰기」는 칸을 따라 쓰는 것이고, 이쪽은 자유롭게 쓰는 줄공책입니다.</span>
-  <div style="margin-top:.5em"><b>글 칸에는 앞에서 쓴 뼈대가 미리 들어가 있습니다.</b>
-  거기에 살을 붙여 쓰면 됩니다. 지우고 처음부터 써도 됩니다.</div>
-  <div class="small muted" style="margin-top:.4em">※ 예전에 있던 <b>「종이에 쓰기」</b>는 없앴습니다 — 안내만 뜨고 화면에서는
-  아무 일도 하지 않았기 때문입니다. 종이에 쓰려면 <b>그림일기에서 「빈 줄」로 인쇄</b>하세요.</div>
-</div>
-
-<div class="box">
-  <b>「가장 기억에 남는 것」에 직접 쓰기</b> (1·2단계)<br />
-  고를 수 있는 넷(친구와 함께한 것 · 만든 작품 · 맛있게 먹은 것 · 처음 해 본 것) 옆에
-  <b>「직접 쓰기」</b> 칸이 있습니다. 누르면 창이 열려 <b>글을 쓰고 사진도 넣을 수 있습니다.</b>
-  <span class="small muted">그날 가장 기억에 남는 것은 그 학생만 아는 것일 때가 많습니다.
-  쓴 글은 고른 낱말과 똑같이 문장·원고지·인쇄에 그대로 들어갑니다.</span>
+  <b>글 칸을 비워 두어도 다음으로 넘어갑니다.</b> 한 칸에서 막힌 학생도 일기를 끝낼 수 있게 한 것입니다.
+  안 쓴 칸은 마지막 화면에서 모아 알려 주고, 누르면 그 질문으로 바로 돌아갑니다.
+  <span class="small muted">1·2단계 「가장 기억에 남는 것」에는 <b>직접 쓰기</b> 칸이 있어 글과 사진을 넣을 수 있습니다.</span>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
@@ -468,454 +260,205 @@ table.plain td:first-child{ color:var(--ink); }
 <p class="intro">일기를 저장하면 <b>A4 그림일기 한 장</b>이 만들어집니다. 인쇄 모양은 <b>단계마다 다릅니다.</b></p>
 
 <table>
-  <tr><th style="width:14%">단계</th><th style="width:26%">칸 모양</th><th>고를 수 있는 인쇄 모양</th></tr>
+  <tr><th style="width:10%">단계</th><th style="width:16%">칸 모양</th><th>고를 수 있는 인쇄 모양</th></tr>
   <tr><td>1단계</td><td class="l">원고지 칸</td><td><b>글자</b>(완성된 글이 다 나옴) · <b>따라 쓰기</b>(연한 글씨 위에 따라 씀)</td></tr>
-  <tr><td>2단계</td><td class="l">원고지 칸</td><td><b>따라 쓰기</b> · <b>힌트 보고 쓰기</b>(칸만 나오고, 힌트를 보고 씀)</td></tr>
-  <tr><td>3단계</td><td class="l">줄</td><td><b>내가 쓴 글</b> · <b>빈 줄</b>(생각 질문을 보고 직접 씀)</td></tr>
-</table>
-<div class="box b">
-  <b>제목 — 짧으면 칸, 길면 줄글</b> (2026-08-26 바뀜)<br />
-  제목이 <b>원고지 한 줄에 들어가면 칸에</b> 씁니다. 이때 제목 글자와 본문 칸 글자가
-  <b>정확히 같은 크기</b>가 되어 한 장이 가지런해 보입니다.<br />
-  「가족과 친구와 함께 캠핑장에서 보드게임」처럼 <b>길면 칸 없이 한 줄</b>로 씁니다.
-  칸에 넣으면 앞 두 칸을 「제목」 딱지가 써서 <b>뒤가 잘려 사라지기</b> 때문입니다.
-  길어도 글자만 조금 작아질 뿐 <b>한 글자도 잘리지 않습니다.</b>
-  <div class="muted" style="margin-top:.4em">3단계는 본문이 줄이라 <b>제목도 늘 줄글</b>입니다.</div>
-</div>
-
-<div class="box b">
-  <b>힌트 보고 쓰기</b> 2단계에서 이 모양을 고르면 <b>힌트 보기</b> 단추가 옆에 나타납니다.
-  누르면 그림 자리에 <b>완성된 문장이 원고지 칸 모양 그대로</b> 크게 뜹니다.
-  어느 칸에 무엇을 쓰는지, 띄어쓰기와 문장부호 자리까지 눈으로 보고 베낄 수 있습니다. 인쇄해도 그대로 나옵니다.
-</div>
-
-<table>
-  <tr><th style="width:30%">단추</th><th>인쇄 내용</th></tr>
-  <tr><td class="l">A4 인쇄하기</td><td>지금 보고 있는 그림일기 한 장</td></tr>
-  <tr><td class="l">원고지에 손으로 쓰기</td><td>종이로 뽑지 않고 <b>화면의 원고지 위에 바로</b> 손으로 씁니다. 아래 설명을 보세요.</td></tr>
-  <tr><td class="l">나의 일기 모음 보기</td><td>날짜별로 쌓인 일기를 모아 봅니다. 여기서 골라 고칠 수 있습니다.</td></tr>
+  <tr><td>2단계</td><td class="l">원고지 칸</td><td><b>따라 쓰기</b> · <b>힌트 보고 쓰기</b> — 이 모양을 고르면 <b>힌트 보기</b> 단추가 나타나고,
+    그림 자리에 <b>완성된 문장이 원고지 칸 모양 그대로</b> 크게 떠서 띄어쓰기 자리까지 보고 베낄 수 있습니다.</td></tr>
+  <tr><td>3단계</td><td class="l">줄</td><td><b>내가 쓴 글</b> · <b>빈 줄(그림)</b> — 줄만 비고 그림칸에는 학생 그림 ·
+    <b>빈 줄(힌트)</b> — 줄만 비고 그림칸에 완성된 글</td></tr>
 </table>
 
 <div class="box g">
-  <b>「나의 일기 모음」의 책으로 인쇄 — 3단계는 셋입니다</b> (2026-08-30)
-  <table style="margin-top:.5em">
-    <tr><th style="width:26%">단추</th><th>어떤 종이가 나오나</th></tr>
-    <tr><td class="l">내가 쓴 글</td><td>학생이 쓴 일기가 줄에 그대로 나옵니다.</td></tr>
-    <tr><td class="l">빈 줄(그림)</td>
-        <td>줄만 비고 <b>그림칸에는 학생 그림</b>이 그대로. 제 그림을 보며 <b>스스로 씁니다.</b></td></tr>
-    <tr><td class="l">빈 줄(힌트)</td>
-        <td>줄만 비고 <b>그림칸에 완성된 글</b>이 뜹니다. 보고 <b>옮겨 씁니다.</b></td></tr>
-  </table>
-  <div style="margin-top:.5em">예전에는 「빈 줄」이 하나뿐이었는데 <b>늘 힌트가 함께</b> 나왔습니다.
-  그래서 <b>그림은 그대로 두고 줄만 비운 종이</b>를 뽑을 길이 없었습니다 —
-  학생이 제 그림을 보며 스스로 쓰는 종이가 바로 그것인데 말입니다.</div>
-  <span class="small muted">화면에서는 「힌트 보기」 단추로 켜고 끌 수 있지만
-  <b>인쇄에는 그 단추가 없으므로</b> 뽑을 때 골라야 합니다.
-  1·2단계는 원고지 칸이라 이름이 「빈 칸(그림) / 빈 칸(힌트)」로 나옵니다.</span>
-</div>
-
-<div class="box g">
-  <b>★ 종이 위에 바로 손으로 쓰기</b> (2026-08-26 새로 됨)<br />
-  <b>「원고지에 손으로 쓰기」</b>를 누르면 <b>보고 있는 그 종이의 원고지 칸 위에</b>
-  바로 씁니다. 따로 창이 뜨지 않습니다. 전자칠판에서는 손가락이나 펜으로,
-  태블릿에서는 터치펜으로 칸에 맞춰 쓰면 됩니다.
-  <ul>
-    <li>누르면 <b>종이가 화면 가득 커집니다</b> — 칸이 커져 쓰기 쉽습니다.</li>
-    <li>아래 줄이 도구 줄로 바뀝니다 — <b>펜 색 여덟 · 굵기 셋 · 지우개 · 다 지우기</b>.</li>
-    <li>다 쓰면 <b>「다 썼어요」</b>. <b>「이어서 쓰기」</b>로 나중에 더 쓸 수 있습니다.</li>
-    <li>지우고 싶으면 <b>「손글씨 지우기」</b>를 누르면 칸만 남습니다.</li>
-    <li><b>제목 칸에도 씁니다</b> (2026-08-30). 예전에는 제목 줄이 손글씨 판
-        <b>밖</b>에 있어서 붓이 닿지 않았습니다.</li>
-  </ul>
-  <div class="muted" style="margin-top:.4em">
-    학생 글씨는 <b>칸 위에 겹치는 한 겹</b>으로 담깁니다. 그래서 인쇄해도 원고지 칸은
-    또렷한 선 그대로고, 글씨만 그 위에 앉습니다. 일기 모음과 포트폴리오에서도 함께 나옵니다.
-  </div>
-  <div class="muted" style="margin-top:.4em">
-    ※ 1·2단계에만 나옵니다. 3단계는 칸이 아니라 줄이라 <b>「손글씨로 쓰기」</b>가 따로 있습니다.
-  </div>
-</div>
-
-<div class="box y">
-  <b>인쇄할 때 꼭 확인하세요</b><br />
-  인쇄 창에서 <b>「배경 그래픽」</b>을 켜 주세요. 꺼져 있으면 원고지 칸의 색과 일부 바탕이 인쇄되지 않습니다.<br />
-  대상을 <b>「PDF로 저장」</b>으로 바꾸면 종이 대신 PDF 파일로 보관할 수 있습니다.
+  그림일기 화면 아래에 <b>A4 인쇄하기</b> · <b>원고지에 손으로 쓰기</b> · <b>나의 일기 모음 보기</b>가 있습니다.
+  <b>일기 모음</b>에서는 날짜별로 쌓인 일기를 보고 고칠 수 있으며, <b>책으로 인쇄</b>도 여기서 합니다
+  (위 표의 인쇄 모양 그대로 — 1·2단계는 둘, 3단계는 셋).
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>7. 모아보GO! — 여가 포트폴리오</h2>
-<p class="intro">
-  네 코너에서 만든 것을 <b>한곳에 모아 두는 곳</b>입니다. 첫 화면은 왼쪽에 <b>나</b>(캐릭터·이름),
-  오른쪽에 <b>큰 창 넷</b>이 놓입니다.
-</p>
+<p class="intro">네 코너에서 만든 것을 <b>한곳에 모아 두는 곳</b>입니다.
+  첫 화면은 왼쪽에 <b>나</b>(캐릭터·이름), 오른쪽에 <b>큰 창 넷</b>이 놓입니다.</p>
 
 <table>
-  <tr><th style="width:26%">창</th><th>내용</th></tr>
+  <tr><th style="width:16%">창</th><th>내용</th></tr>
   <tr><td class="l">내가 세운 계획</td>
-      <td>계획을 한 줄에 셋씩 봅니다. 누르면 <b>내가 쓴 계획표</b>가 그대로 열립니다.
-          아래 <b>계획 모음 인쇄하기</b>로 한 번에 낼 수 있습니다.</td></tr>
+      <td>계획을 한 줄에 셋씩 봅니다. 누르면 <b>내가 쓴 계획표</b>가 그대로 열리고, 아래 <b>계획 모음 인쇄하기</b>로 한 번에 냅니다.</td></tr>
   <tr><td class="l">나의 여가지도</td>
-      <td>표시한 활동을 <b>실내 창 · 실외 창</b>으로 나누어 봅니다.
-          여기에서 <b>나만의 여가 지도 직접 완성하기</b>로 들어갑니다. <span class="small muted">(8번 참고)</span></td></tr>
+      <td>표시한 활동을 <b>실내 창 · 실외 창</b>으로 나누어 봅니다. 여기에서 <b>나만의 여가 지도 직접 완성하기</b>로 들어갑니다 <span class="small muted">(8번)</span>.</td></tr>
   <tr><td class="l">나의 일기장</td>
-      <td>일기 카드는 <b>날짜</b>가 머리글로 오고, 그 아래 왼쪽에 <b>제목과 활동 그림</b>,
-          오른쪽에 <b>전시할래요 · 그림일기 · 일기 고치기</b> 세 단추가 세로로 놓입니다.
-          아래 <b>일기장 모두 인쇄</b>가 <b>두 가지</b> 나옵니다 — 그 학생 단계에 맞는 인쇄 모양입니다.<br />
-          <span class="small muted">1단계 「글자 / 따라 쓰기」 · 2단계 「따라 쓰기 / 힌트 보고 쓰기」 ·
-          3단계 「내가 쓴 글 / 빈 줄」. 따라쓰기 판이 필요할 때 선생님 도구까지 들어가지 않아도 됩니다.</span></td></tr>
+      <td>일기 카드마다 <b>전시할래요 · 그림일기 · 일기 고치기</b>가 있습니다.
+        아래 <b>일기장 모두 인쇄</b>는 그 학생 단계에 맞는 인쇄 모양으로 나옵니다.</td></tr>
   <tr><td class="l">나의 한마디</td>
-      <td>학생이 <b>스스로 쓰는 마무리 글</b>입니다. 일기와 <b>같은 세 단계</b>입니다.</td></tr>
+      <td>학생이 <b>스스로 쓰는 마무리 글</b>입니다. 일기와 <b>같은 세 단계</b>이며 세 칸으로 이어집니다 —
+        <b>나의 한마디</b>(「나는 ○○○을 할 때 △△△.」 문장 만들기 · 고른 <b>그림이 함께</b> 나와 글을 못 읽는 학생도 압니다) →
+        <b>돌아보기</b>(네 문장의 빈칸 채우기 · 줄마다 읽어주기) → <b>나의 한마디 모음</b>(인쇄에 나가는 종이 그대로 보고 인쇄).</td></tr>
 </table>
 
-<h3>나의 한마디 — 세 칸으로 이어집니다</h3>
-<table>
-  <tr><th style="width:22%">칸</th><th>내용</th></tr>
-  <tr><td class="l">나의 한마디</td>
-      <td><b>무엇을 할 때</b> · <b>어떤 기분인가요</b> 두 자리를 채우면
-          「나는 ○○○을 할 때 △△△.」 문장이 만들어집니다.<br />
-          고른 <b>활동 그림과 기분 그림이 문장 위에</b> 함께 나옵니다 —
-          글을 못 읽는 학생도 자기가 무엇을 골랐는지 그림으로 압니다.
-          <span class="small muted">2단계는 낱말을 직접 써 넣는데, <b>쓴 말이 활동·기분 목록에 있으면
-          그림이 함께 나옵니다.</b> 제 말로 썼으면 글자만 나옵니다.</span></td></tr>
-  <tr><td class="l">돌아보기</td>
-      <td>네 문장의 빈칸을 채웁니다. 줄마다 <b>읽어주기</b>가 붙어 있습니다.</td></tr>
-  <tr><td class="l">나의 한마디 모음</td>
-      <td>완성된 것을 <b>인쇄에 나가는 종이 그대로</b> 보여 줍니다. 여기에서 인쇄하고 나갑니다.</td></tr>
-</table>
-
-<table class="plain">
-  <tr><th style="width:14%">단계</th><th>고르는 방법</th></tr>
-  <tr><td>1단계</td><td><b>그림</b>을 골라 문장이 만들어집니다.</td></tr>
-  <tr><td>2단계</td><td><b>낱말</b>을 골라 빈칸을 채우고, 직접 고쳐 쓸 수도 있습니다.</td></tr>
-  <tr><td>3단계</td><td><b>내 말로</b> 씁니다. 낱말은 도움으로만 보여 줍니다.</td></tr>
-</table>
-
-<div class="box g">
-  <b>3단계 화면 짜임</b> (2026-08-30)
-  <div style="margin-top:.4em; font-family:monospace; font-size:.9em; line-height:1.7">
-    [나 카드]&nbsp; [나의 한마디][수집하기][재미있어요]&nbsp; ← 고른 말이 뒤로 나란히<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;내 말로 스스로 적어요<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ 나는 나들이하기를 할 때… │&nbsp; ← 점선 · 노란 바탕<br />
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-  </div>
-  <b>점선 + 노란 바탕 + 나눔바른펜</b>은 이 앱에서 <b>「여기에 내 글을 쓴다」</b>는 표시입니다
-  (그림일기의 따라 쓰기 칸 · 계획표 문장 칸과 같은 차림).
-  예전에는 다른 입력칸과 같은 흰 칸이라, 학생이 <b>고르는 자리인지 쓰는 자리인지</b>
-  갈리지 않았습니다.
-  <span class="small muted">칸 폭은 한 문장이 끊기지 않으면서 앞뒤로 조금 여유가 남게 잡았습니다.
-  너무 넓히면 글이 가운데 조그맣게 떠 보입니다.</span>
-</div>
-<h3>나의 여가 포트폴리오 책자</h3>
-<p>첫 화면 <b>나 칸 바로 아래</b>의 단추를 누르면 네 코너가 <b>한 권으로 이어서</b> 나옵니다.</p>
 <div class="box b">
-  <b>표지 → 내가 세운 계획 → 나의 여가지도 → 나의 일기장 → 나의 한마디</b><br />
-  표지에는 학생의 캐릭터·이름·기간이 들어갑니다. 아무것도 없는 코너는 건너뜁니다.
-  묶으면 그대로 학생 한 명의 포트폴리오 한 권이 됩니다.
+  <b>나의 여가 포트폴리오 책자</b> — 첫 화면 <b>나 칸 바로 아래</b> 단추를 누르면 네 코너가 한 권으로 이어서 나옵니다
+  (<b>표지 → 내가 세운 계획 → 나의 여가지도 → 나의 일기장 → 나의 한마디</b>).
+  표지에는 학생의 캐릭터·이름·기간이 들어가고, 아무것도 없는 코너는 건너뜁니다.
 </div>
+
+<h3>선생님 도구 — 모아서 인쇄 · 전시</h3>
+<p style="margin-top:0">맨 위 줄의 <b>선생님 도구</b>를 누르면 한 창에 모여 있습니다.
+  <span class="small muted">(학생 화면에 보일지는 <b>선생님 설정 → 6번</b>에서 정합니다.)</span></p>
+<table>
+  <tr><th style="width:16%">단추</th><th>나오는 것</th></tr>
+  <tr><td class="l">전시판형</td>
+      <td><b>A3 가로 두 장.</b> 앞장은 대표 사진·좋아하는 활동·새롭게 도전한 활동 요약,
+        <b>뒷장은 여가 지도 한 장</b>입니다. 둘을 나란히 붙이면 교실 게시판 한 칸이 됩니다.</td></tr>
+  <tr><td class="l">책자형</td>
+      <td>표지 · 학생 소개 · 활동 기록 · 전시 일기 · 좋아하는 활동을 <b>A4 여러 쪽</b>으로 이어서 내고,
+        마지막에 <b>여가 지도가 A4 가로 한 장</b>으로 붙습니다.
+        <span class="small muted">칸이 이어서 채워지므로 아래가 텅 빈 종이가 나오지 않습니다.</span></td></tr>
+  <tr><td class="l">교실 TV 전시</td><td>전시하기로 고른 일기를 화면에 <b>한 장씩</b> 넘겨 보여 줍니다 (← → 로도 넘김).</td></tr>
+  <tr><td class="l">일기장 인쇄</td><td>이 기간의 그림일기를 한꺼번에 — <b>따라쓰기 판 · 빈칸 판</b>도 여기서 바로 뽑습니다.</td></tr>
+</table>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>8. 나만의 여가 지도 직접 완성하기</h2>
-<p class="intro">
-  <b>여가 포트폴리오 → 나의 여가지도</b>로 들어가면 위쪽에 큰 알약이 있습니다.
-  누르면 학생이 활동을 <b>직접 끌어다 붙이는 지도</b>가 열립니다.
-</p>
+<p class="intro"><b>여가 포트폴리오 → 나의 여가지도</b>로 들어가 위쪽 큰 알약을 누르면,
+  학생이 활동을 <b>직접 끌어다 붙이는 지도</b>가 열립니다.</p>
 
 <table>
-  <tr><th style="width:12%">순서</th><th>사용 방법</th></tr>
-  <tr><td>1</td><td><b>지도 안 아래쪽 띠</b>에서 활동을 누르면 지도에 붙습니다.</td></tr>
+  <tr><th style="width:8%">순서</th><th>사용 방법</th></tr>
+  <tr><td>1</td><td><b>지도 안 아래쪽 띠</b>에서 활동을 누르면 지도에 붙습니다. <b>남은 활동이 없으면 띠가 사라집니다.</b>
+    <span class="small muted">지도에는 <b>지도에서 표시한 활동만</b> 붙일 수 있습니다.</span></td></tr>
   <tr><td>2</td><td>붙은 활동을 <b>끌어서</b> 실내 섬·실외 섬 원하는 자리로 옮깁니다.</td></tr>
   <tr><td>3</td><td>활동을 <b>한 번 누르면</b> <b>크게 · 작게 · 지도에서 빼기</b>가 나타납니다.</td></tr>
-  <tr><td>4</td><td>맨 위 <b>A3로 인쇄하기</b>로 완성한 지도를 한 장 뽑습니다.</td></tr>
+  <tr><td>4</td><td>맨 위 <b>A3로 인쇄하기</b>로 완성한 지도를 뽑습니다.
+    <span class="small muted">테두리 색 — 갈색 해봤어요 · 분홍 좋아해요 · 노랑 도전 · 회색 모르겠어요.</span></td></tr>
 </table>
 
-<div class="box g">
-  <b>붙일 활동 띠는 지도 안에 있고, 다 붙이면 사라집니다</b> (2026-08-30)<br />
-  예전에는 지도 아래에 서랍이 따로 있었습니다. 그런데 지도는 <b>가로로 넓은 그림</b>이라
-  <b>높이가 폭을 정합니다.</b> 서랍이 아래에서 높이를 가져가는 만큼 지도가 작아졌습니다.<br />
-  그래서 띠를 <b>지도 안 맨 아래</b>에 얇게 얹었습니다. 자리를 안 뺏으니 지도가 그만큼 커집니다.
-  <b>남은 활동이 없으면 띠가 사라져</b> 지도가 온전히 보입니다.
-  <div style="margin-top:.4em"><b>지도 크기 (1280×620 화면에서 재어 본 값)</b><br />
-    서랍이 아래 → 433px · 서랍이 옆 → 618px · <b>띠가 지도 안 → 683px</b></div>
-  <span class="small muted">띠가 덮는 곳은 지도 아래쪽 물·모래 자리입니다.
-  붙인 활동은 그보다 위에 놓이므로 가려지지 않습니다.</span>
-</div>
 <div class="box b">
-  <b>지도는 종이가 두 가지입니다 — 어디에서 뽑느냐에 따라 저절로 갈립니다</b><br />
-  <b>낱장으로 뽑을 때 → A3 가로</b> (이 화면의 「A3로 인쇄하기」 · 선생님 설정의 「빈 여가 지도」)<br />
-  교실 벽에 붙일 것이라 멀리서도 보이게 크게 뽑습니다.<br />
-  <b>포트폴리오 책자 · 전시판형 안에서 → A4 가로</b><br />
-  <b>묶을 것</b>이기 때문입니다. 한 장만 A3면 접어 넣어야 하고, 넘길 때마다 펼쳤다 접었다 하다가
-  그 장이 먼저 찢어집니다. 전시판형에서는 지도가 <b>맨 뒤에 가로로 한 장</b> 통째로 나옵니다.
+  <b>지도 종이는 어디에서 뽑느냐에 따라 저절로 갈립니다</b> —
+  <b>벽에 붙일 것은 A3 가로</b>(이 화면의 「A3로 인쇄하기」 · 선생님 설정의 「빈 여가 지도」 · <b>전시판형</b>)로 크게 뽑고,
+  <b>포트폴리오 책자 안에서는 A4 가로</b>입니다. 책은 묶을 것이라 한 장만 A3면 접어 넣어야 하고, 넘길 때마다 펼쳤다 접다가 그 장이 먼저 찢어집니다.
 </div>
-
-<table>
-  <tr><th style="width:26%">테두리 색</th><th>뜻</th></tr>
-  <tr><td class="l">갈색</td><td>해봤어요 (발바닥)</td></tr>
-  <tr><td class="l">분홍</td><td>좋아해요 (하트)</td></tr>
-  <tr><td class="l">노랑</td><td>도전하고 싶어요 (별)</td></tr>
-  <tr><td class="l">회색</td><td>잘 모르겠어요 (물음표)</td></tr>
-</table>
-<p class="small muted">
-  표시가 여럿인 활동은 <b>대표 표시 하나</b>로 테두리 색을 정하고, 카드 아래에 작은 표시 그림을 함께 붙입니다.
-  지도에는 <b>지도에서 표시한 활동만</b> 붙일 수 있습니다.
-</p>
 
 <h3>종이로 하기 — 빈 지도와 활동 라벨</h3>
-<p>
-  화면에서 끌어 붙이는 것과 <b>같은 일을 종이로</b>도 할 수 있습니다.
-  <b>선생님 설정 → 종이로 하기</b>에 두 가지 인쇄가 있습니다.
-</p>
+<p style="margin-top:0">화면에서 끌어 붙이는 것과 <b>같은 일을 종이로</b>도 합니다. <b>선생님 설정 → 종이로 하기</b>에 있습니다.</p>
 <table>
-  <tr><th style="width:30%">인쇄</th><th>내용</th></tr>
+  <tr><th style="width:16%">인쇄</th><th>내용</th></tr>
   <tr><td class="l">빈 여가 지도</td>
-      <td><b>A3 가로 한 장.</b> 여가 섬(실내) · 여가 섬(실외)만 있고 활동은 비어 있습니다.
-          이름 쓰는 자리와 네 표시 설명이 함께 나옵니다.</td></tr>
+      <td><b>A3 가로 한 장.</b> 두 섬만 있고 활동은 비어 있습니다. 이름 쓰는 자리와 네 표시 설명이 함께 나옵니다.</td></tr>
   <tr><td class="l">활동 라벨 40개</td>
-      <td><b>A4 석 장</b>이 이어서 나옵니다. 실내 20 · 실외 20가지가 <b>한 장(40칸)에 딱</b> 들어갑니다.
-          떼어서 A3 지도에 손으로 붙입니다.
-          <div style="margin-top:.4em"><b>1장 그림만</b> — 글을 아직 못 읽는 학생<br />
-            <b>2장 그림+글자</b> — 그림을 보며 글자를 익히는 학생<br />
-            <b>3장 글자만</b> — 글을 읽는 학생</div>
-          <span class="small muted">학생에 맞는 한 장만 골라 쓰시면 됩니다.
-          한 벌이 한 장을 통째로 쓰므로 라벨지를 낱장으로 떼어 쓸 수 있습니다.</span></td></tr>
+      <td><b>A4 석 장</b>이 이어서 나오고, 실내 20 · 실외 20이 <b>한 장(40칸)에 딱</b> 들어갑니다.
+        <b>1장 그림만</b>(글을 아직 못 읽는 학생) · <b>2장 그림+글자</b> · <b>3장 글자만</b>(글을 읽는 학생) —
+        학생에 맞는 <b>한 장만</b> 골라 쓰시면 됩니다.</td></tr>
 </table>
 
 <div class="box y">
-  <b>라벨지 규격을 고를 수 있습니다</b><br />
-  가지고 계신 라벨지에 맞춰 <b>선생님 설정 → 종이로 하기</b>에서 고르시면, 그 칸 크기대로 인쇄됩니다.
-  <table style="margin-top:.5em">
-    <tr><th style="width:44%">규격</th><th>한 칸 크기</th><th>배치</th></tr>
-    <tr><td class="l">폼텍 <b>LS-3102</b> · 40칸 <span class="small muted">(기본)</span></td><td>47 × 26.9mm</td><td>4열 × 10줄</td></tr>
-    <tr><td class="l">48칸</td><td>33 × 33mm</td><td>6열 × 8줄</td></tr>
-    <tr><td class="l">폼텍 <b>LS-3104</b> · 27칸</td><td>62.7 × 30.1mm</td><td>3열 × 9줄</td></tr>
-    <tr><td class="l">폼텍 <b>LS-3106</b> · 24칸</td><td>64 × 34mm</td><td>3열 × 8줄</td></tr>
-  </table>
-  <div style="margin-top:.5em"><b>칸 수만 같고 크기가 다른 제품이 많습니다.</b>
-  사시기 전에 칸 크기를 확인하시고, <b>먼저 일반 종이에 한 장 뽑아 라벨지에 대어 보세요.</b>
-  라벨지가 없으면 일반 종이에 인쇄해 <b>오려 붙여도</b> 됩니다. (칸마다 옅은 점선이 있습니다.)</div>
-</div>
-
-<div class="box g">
-  <b>한 장에 다 뽑히는 것과, 섬에 다 붙는 것은 다릅니다</b><br />
-  A3로 뽑은 지도에서 섬 하나는 약 <b>129 × 173mm</b>라, 기본 칸 크기로 <b>15개쯤</b> 붙습니다.
-  활동은 실내 20 · 실외 20이므로 <b>다 붙지는 않습니다.</b><br />
-  그래서 라벨은 <b>40개를 다 뽑아</b> 드립니다. 그 가운데 학생과 함께 <b>골라 붙이시면</b> 됩니다 —
-  <b>안 뽑힌 활동은 고를 수조차 없기 때문</b>입니다.
-  <span class="small muted">(2026-08-30 이전에는 앞에서 15개씩만 뽑혀서, 책 읽기 · 영화 보기 · 전시 구경하기를
-  비롯한 10개 활동에 라벨이 아예 나오지 않았습니다.)</span>
+  <b>라벨지 규격을 고를 수 있습니다</b> — 가지고 계신 라벨지에 맞춰 고르시면 그 칸 크기대로 인쇄됩니다.
+  폼텍 <b>LS-3102</b> 40칸 47×26.9mm <span class="muted">(기본)</span> ·
+  <b>48칸</b> 33×33mm · 폼텍 <b>LS-3104</b> 27칸 62.7×30.1mm · 폼텍 <b>LS-3106</b> 24칸 64×34mm.
+  <div style="margin-top:2px"><b>칸 수만 같고 크기가 다른 제품이 많습니다.</b> 사시기 전에 칸 크기를 확인하시고,
+    <b>먼저 일반 종이에 한 장 뽑아 라벨지에 대어 보세요.</b> 라벨지가 없으면 일반 종이에 인쇄해 오려 붙여도 됩니다.</div>
+  <div class="small muted" style="margin-top:2px">※ A3 지도의 섬 하나에는 기본 칸 크기로 <b>15개쯤</b> 붙습니다.
+    활동은 40개이니 다 붙지는 않습니다 — 라벨은 40개를 다 뽑아 드리니 학생과 함께 <b>골라 붙이시면</b> 됩니다.</div>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
 <h2>9. 선생님 설정</h2>
-<p class="intro">
-  표지 오른쪽 위의 <b>톱니바퀴</b>를 누르면 열립니다. 고친 내용은 <b>바로 저장</b>됩니다.
-</p>
+<p class="intro">표지 오른쪽 위의 <b>톱니바퀴</b>를 누르면 열리고, 고친 내용은 <b>바로 저장</b>됩니다.
+  표지로 돌아가려면 맨 위 줄의 <b>「처음 화면(표지)으로」</b>를 누릅니다.
+  <b>2번에서 학생을 고른 다음</b> 아래 항목을 정하면 학생별로 따로 저장됩니다.</p>
 
 <table>
-  <tr><th style="width:34%">항목</th><th>내용</th></tr>
-  <tr><td class="l">1. 우리 반 학생</td>
-    <td>학생을 추가·수정·삭제합니다. 한 줄에 <b>이름 앞 그림 · 이름 · 캐릭터 · 성별 · 지우기</b>가 있습니다.<br />
-      <b>「캐릭터」</b> 단추를 누르면 캐릭터 고르는 화면으로 갑니다.
-      아직 안 고른 학생은 단추가 <b>빨간 점선</b>으로 보입니다.</td></tr>
-  <tr><td class="l">2. 어느 학생의 설정인가요?</td><td>아래 설정을 <b>어느 학생에게</b> 적용할지 고릅니다.</td></tr>
-  <tr><td class="l">3. 일기 쓰기 수준</td><td>1 · 2 · 3단계 가운데 고릅니다. 그림일기 인쇄 모양도 여기에 따릅니다.</td></tr>
-  <tr><td class="l">4. 계획 방식</td><td>쉬운 계획 / 자세한 계획</td></tr>
-  <tr><td class="l">5. 음성 안내 · 사진 첨부 · <b>읽어 주는 목소리</b></td>
-    <td>읽어주기와 사진 넣기를 켜고 끕니다.<br />
-      아래에 <b>이 기기에 깔린 한국어 목소리</b>가 단추로 나옵니다. 누르면 그 목소리로 한 마디 읽어 주니
-      들어 보고 고르시면 됩니다. <b>「저절로 고르기」</b>는 기기가 첫 번째로 내놓는 목소리를 씁니다.</td></tr>
-  <tr><td class="l">6. 학생 화면에 도구 보이기</td><td>포트폴리오의 인쇄·판형 도구를 학생 화면에 보일지 정합니다.</td></tr>
-  <tr><td class="l">7. 함께하는 사람 선택지</td>
-    <td>학생에게 보여 줄 사람을 고릅니다. 직접 추가할 수 있습니다.<br />
-      아래 <b>그림 고르기 (남 / 여)</b> 는 <b>위에서 켠 사람만</b> 나옵니다. 사람마다 남·여 그림을 고릅니다.</td></tr>
-  <tr><td class="l">8. 기분 선택지</td><td>학생에게 보여 줄 기분을 고릅니다. 직접 추가할 수 있습니다.</td></tr>
-  <tr><td class="l">9. 학생에게 보여줄 활동</td><td>활동을 숨기거나 <b>우리 반 활동</b>을 직접 더합니다.</td></tr>
-  <tr><td class="l">10. 포트폴리오 기간</td><td>포트폴리오에 모을 기간을 정합니다. (최근 한 달 · 두 달 · 한 학기 · 일 년 · 직접 선택)</td></tr>
-  <tr><td class="l">11. 학생의 기록</td><td>그 학생의 계획·일기·표시를 한눈에 봅니다.</td></tr>
-  <tr><td class="l">12. 백업 · 불러오기</td><td>기록을 파일로 저장하고 되불러옵니다. <b>가장 중요합니다.</b></td></tr>
-  <tr><td class="l">13. 예시 자료 · 초기화</td><td>예시 자료를 넣거나 지웁니다. 전체 초기화도 여기 있습니다.</td></tr>
+  <tr><th style="width:25%">항목</th><th>내용</th><th style="width:25%">항목</th><th>내용</th></tr>
+  <tr><td class="l">1. 우리 반 학생</td><td class="n">추가·수정·삭제. <b>캐릭터</b> 단추로 캐릭터 화면에 갑니다.</td>
+      <td class="l">8. 기분 선택지</td><td class="n">보여 줄 기분을 고르고 직접 추가</td></tr>
+  <tr><td class="l">2. 어느 학생의 설정</td><td class="n">아래 설정을 적용할 학생</td>
+      <td class="l">9. 보여줄 활동</td><td class="n">활동 숨기기 · <b>우리 반 활동</b> 더하기</td></tr>
+  <tr><td class="l">3. 일기 쓰기 수준</td><td class="n">1 · 2 · 3단계 (인쇄 모양도 여기에 따름)</td>
+      <td class="l">10. 포트폴리오 기간</td><td class="n">한 달 · 두 달 · 한 학기 · 일 년 · 직접</td></tr>
+  <tr><td class="l">4. 계획 방식</td><td class="n">쉬운 계획 / 자세한 계획</td>
+      <td class="l">11. 학생의 기록</td><td class="n">계획·일기·표시를 한눈에</td></tr>
+  <tr><td class="l">5. 음성 · 사진 · 목소리</td><td class="n">읽어주기·사진 켜고 끄기.
+      <b>이 기기에 깔린 목소리</b>를 눌러 들어 보고 고릅니다.</td>
+      <td class="l">12. 백업 · 불러오기</td><td class="n"><b>가장 중요합니다</b> (10번 참고)</td></tr>
+  <tr><td class="l">6. 학생 화면에 도구 보이기</td><td class="n">포트폴리오의 인쇄·판형 도구</td>
+      <td class="l">13. 예시 자료 · 초기화</td><td class="n">예시 자료 넣기·지우기 · 전체 초기화</td></tr>
+  <tr><td class="l">7. 함께하는 사람</td><td class="n">보여 줄 사람 고르기 · 남/여 그림 고르기</td>
+      <td class="l">종이로 하기</td><td class="n">빈 여가 지도 · 활동 라벨 (8번 참고)</td></tr>
 </table>
 
-<div class="box g">
-  <b>활용 팁</b> 같은 반이라도 학생마다 수준이 다릅니다.
-  <b>2번에서 학생을 고른 다음 3·4번을 정하는</b> 순서로 하시면 학생별로 따로 설정됩니다.
-</div>
-
 <div class="box b">
-  <b>우리 반 활동 · 사람 · 기분에 「내 그림 넣기」</b><br />
-  더하기 창에서 <b>「내 그림 넣기」</b>를 누르면 <b>이 컴퓨터에 있는 그림 파일</b>을 골라 넣을 수 있습니다.
-  넣으면 그 그림이 나오고, 안 넣으면 아래에서 고른 그림이 나옵니다.
-  <div style="margin-top:.5em"><b>다른 컴퓨터에서도 그대로 씁니다.</b>
-  넣은 그림은 학생 사진과 같은 곳에 저장되고, <b>백업 파일에 함께 담겨</b> 옮겨집니다.
-  앱 폴더에 파일을 넣을 필요가 없습니다.</div>
-  <div class="small muted" style="margin-top:.4em">※ 활동·사람·기분을 지우면 넣은 그림도 함께 지워집니다.</div>
-</div>
-
-<div class="box">
-  <b>처음 화면(표지)으로 가려면</b> — 선생님 설정 맨 위 줄의
-  <b>「처음 화면(표지)으로」</b>를 누르세요.
-  <span class="small muted">학생 화면 맨 위 줄을 깔끔하게 두려고, 표지로 가는 길은 여기에만 두었습니다.</span>
-</div>
-
-<div class="box b">
-  <b>7번 · 9번은 「하나는 남겨 두어야」 합니다</b><br />
-  함께하는 사람 · 기분 · 활동을 <b>모두 끄면</b> 학생 화면에 고를 것이 하나도 없어집니다.
-  그래서 마지막 하나는 꺼지지 않고 <b>「적어도 하나는 남겨 두세요」</b>라고 알려 드립니다.
-  <span class="small muted">혹시 예전에 모두 꺼진 채로 저장된 학생이 있으면, 앱을 열 때 저절로 되살아납니다.</span>
+  <b>「내 그림 넣기」</b> 우리 반 활동 · 사람 · 기분을 더할 때 <b>이 컴퓨터의 그림 파일</b>을 골라 넣을 수 있습니다.
+  넣은 그림은 학생 사진과 같은 곳에 저장되고 <b>백업 파일에 함께 담겨</b> 다른 컴퓨터로도 옮겨집니다 — 앱 폴더에 파일을 넣을 필요가 없습니다.
+  <span class="small muted">※ 사람·기분·활동을 <b>모두 끌 수는 없습니다</b> — 학생 화면에 고를 것이 없어지므로 마지막 하나는 남습니다.</span>
 </div>
 
 <!-- ─────────────────────────────────────────── -->
-<h2>10. 자주 묻는 질문</h2>
+<h2>10. 자료 저장 및 백업 <span style="font-size:8.6pt">(가장 중요합니다)</span></h2>
+
+<div class="two">
+  <div>
+    <table style="margin-top:0">
+      <tr><th style="width:20%">항목</th><th>확인 사항</th></tr>
+      <tr><td class="l">저장 위치</td><td>학생 기록·사진은 <b>그 기기의 브라우저 안</b>에 저장되며 밖으로 전송되지 않습니다.</td></tr>
+      <tr><td class="l">백업</td><td><b>학기당 한 번 이상</b> 선생님 설정 → <b>12. 백업 · 불러오기 → 전체 백업 내보내기</b>로 파일을 보관해 주세요.</td></tr>
+      <tr><td class="l">옮기기</td><td>다른 컴퓨터에서 이어 쓰려면 <b>백업 불러오기</b>로 넣습니다.</td></tr>
+    </table>
+  </div>
+  <div class="box y" style="margin-top:0">
+    <b>꼭 기억해 주세요</b><br />
+    학생 기록은 <b>기기 안에만</b> 있습니다. 컴퓨터를 바꾸거나 교실을 옮기기 전에는
+    <b>반드시 백업 파일을 먼저 내보내</b> 주세요.
+    <div style="margin-top:3px">브라우저의 <b>인터넷 사용 기록·쿠키·사이트 데이터를 삭제</b>하면
+    그동안 쌓인 기록도 함께 사라지며 <b>되돌릴 수 없습니다.</b></div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────── -->
+<h2>11. 자주 묻는 질문</h2>
 
 <div class="faq">
   <div class="q"><b>학생 기록이 어디에 저장되나요?</b>
-    인터넷이 아니라 <b>사용한 기기의 브라우저 안</b>에 저장됩니다.
-    다른 컴퓨터에서 열면 그 기록이 보이지 않습니다.
-    옮기려면 <b>선생님 설정 → 12. 백업 · 불러오기</b>를 사용해 주세요.</div>
+    인터넷이 아니라 <b>사용한 기기의 브라우저 안</b>입니다. 다른 컴퓨터에서 열면 보이지 않습니다.
+    옮기려면 <b>선생님 설정 → 12. 백업 · 불러오기</b>를 쓰세요.</div>
 
   <div class="q"><b>화면이 이전 상태로 보여요.</b>
-    <span class="key">Ctrl</span>+<span class="key">Shift</span>+<span class="key">R</span> 을 눌러 새로고침해 주세요.
-    브라우저에 저장된 이전 화면이 나타난 것일 수 있습니다.</div>
+    <span class="key">Ctrl</span>+<span class="key">Shift</span>+<span class="key">R</span> 로 새로고침해 주세요.
+    브라우저에 저장된 이전 화면이 나타난 것입니다.</div>
 
   <div class="q"><b>인쇄했더니 색과 바탕이 안 나와요.</b>
-    인쇄 창에서 <b>「배경 그래픽」</b>을 켜 주세요.
-    브라우저는 기본으로 꺼 두기 때문에 원고지 칸의 색이 빠질 수 있습니다.</div>
+    인쇄 창에서 <b>「배경 그래픽」</b>을 켜 주세요. 브라우저는 기본으로 꺼 둡니다.</div>
 
   <div class="q"><b>소리가 나오지 않아요.</b>
-    화면 오른쪽 위 <b>소리 끄기</b>가 켜져 있는지 확인해 주세요.
-    <b>선생님 설정 → 5. 음성 안내</b>가 꺼져 있어도 읽어주기가 나오지 않습니다.</div>
+    오른쪽 위 <b>소리 끄기</b>가 켜져 있는지, <b>선생님 설정 → 5. 음성 안내</b>가 꺼져 있지 않은지 확인해 주세요.
+    받쳐 주지 않는 브라우저도 있습니다 — <b>크롬</b>이나 <b>엣지</b>로 여시면 됩니다.</div>
 
   <div class="q"><b>기기마다 읽어 주는 목소리가 달라요.</b>
-    <b>목소리는 앱이 가진 것이 아니라 기기가 가진 것</b>입니다. 앱은 기기에 깔린 목소리 가운데 하나를 고를 뿐이라,
-    전자칠판 · 태블릿 · 노트북에 깔린 목소리가 다르면 소리도 달라집니다.<br />
-    <b>선생님 설정 → 5번</b>에서 <b>기기마다 한 번씩</b> 골라 주세요.
-    <b>같은 이름의 목소리를 고르면 세 기기가 같은 소리로 읽어 줍니다.</b><br />
-    <b>읽는 빠르기</b>도 다른 앱과 같게 맞추었습니다 (2026-08-30). 예전에는 이 앱만
-    0.94배로 느리게 읽어서, 같은 목소리를 골라도 <b>다른 목소리처럼</b> 들렸습니다.
-    (고른 값은 그 기기에만 저장되며, 학생 기록을 옮겨도 따라가지 않습니다.)</div>
+    <b>목소리는 앱이 아니라 기기가 가진 것</b>입니다. <b>선생님 설정 → 5번</b>에서 <b>기기마다 한 번씩</b>
+    같은 이름의 목소리를 골라 주시면 세 기기가 같은 소리로 읽어 줍니다.</div>
 
-  <div class="q"><b>글씨가 작아 보여요.</b>
-    오른쪽 위 <b>전체 화면</b>을 눌러 주세요. 화면이 커지면 글자와 그림도 함께 커집니다.
+  <div class="q"><b>글씨나 그림이 작아 보여요.</b>
+    오른쪽 위 <b>전체 화면</b>을 눌러 주세요. <b>태블릿은 가로로 눕혀</b> 주시고,
     브라우저 확대(<span class="key">Ctrl</span>+<span class="key">+</span>)도 됩니다.</div>
 
-  <div class="q"><b>「가장 기억에 남는 것은?」 에 고를 것이 셋뿐이었어요.</b>
-    2026-08-30 판에서 고쳤습니다. 이 화면은 원래 <b>다섯 장</b>입니다 —
-    친구와 함께한 것 · 만든 작품 · 맛있게 먹은 것 · <b>처음 해 본 것</b> · <b>직접 쓰기</b>.
-    그런데 다섯 장이 두 줄로 접히면서 뒤의 두 장이 <b>화면 밖으로</b> 밀려나 있었습니다.
-    전자칠판 · 노트북 · 태블릿 <b>세 기기 모두</b> 그랬습니다.
-    이제 다섯 장이 <b>한 줄</b>에 나옵니다.</div>
-
-  <div class="q"><b>아래 「1 / 2 ▶」 를 눌러도 화면이 안 넘어갔어요.</b>
-    2026-08-30 판에서 고쳤습니다. 넘어갔다가 <b>0.3초 만에 되돌아오던</b> 것이라,
-    번호만 바뀌고 화면은 그대로여서 <b>2쪽에 있는 것을 볼 수 없었습니다.</b>
-    지금은 눌러 둔 쪽에 그대로 머뭅니다.</div>
-
-  <div class="q"><b>나의 한마디 · 돌아보기 자리가 바뀌었어요.</b>
-    2026-08-30 판에서 <b>세 단계를 같은 짜임</b>으로 맞췄습니다.<br />
-    <b>나의 한마디</b> — 이름표 뒤로 고른 것이 나란히 서고, 그 아래 가운데에 빈칸 문장이 옵니다.
-    나 카드는 문장 바로 옆에 붙습니다.
-    <span class="muted">(1단계는 그대로입니다 — 거기는 노란 문장 칸 <b>안에도</b> 그림이 들어가서
-    위아래로 잇는 편이 읽힙니다.)</span><br />
-    <b>돌아보기</b> — 나 카드가 <b>네 줄의 한가운데</b>에 섭니다. 예전에는 이름표까지 함께 세어서
-    한 칸 위로 보였습니다.</div>
-
-  <div class="q"><b>태블릿에서 그림이 유난히 작아요.</b>
-    태블릿은 <b>높이가 모자란데 폭은 남습니다.</b> 2026-08-30 판부터는 낮고 넓은 화면에서
-    세로로 쌓이던 것을 <b>옆으로 눕혀</b> 그 남는 폭을 씁니다 —
-    고르는 카드는 <b>그림 왼쪽 · 글자 오른쪽</b>, 「예)」 도움말 두 줄은 좌우로 나란히.
-    같은 화면에서 그림이 <b>90px → 137~147px</b> 로 커졌습니다.
-    <span class="muted">전자칠판 · 노트북은 자리가 넉넉하므로 그대로 위아래로 쌓입니다.</span></div>
-
-  <div class="q"><b>선생님 설정의 오른쪽이 잘려 보여요.</b>
-    브라우저 확대가 크게 잡혀 있으면 그럴 수 있었습니다.
-    <span class="key">Ctrl</span>+<span class="key">0</span> 으로 확대를 100%로 되돌려 주세요.
-    <span class="muted">2026-08-26 판부터는 창이 좁아지면 설정이 <b>한 칸으로 접혀</b> 잘리지 않습니다.</span></div>
-
-  <div class="q"><b>학생이 캐릭터를 고를 줄 몰라요.</b>
-    캐릭터는 <b>아홉 칸이 한 화면</b>에 다 보입니다 — 넘길 것이 없습니다.
-    왼쪽에 <b>지금 고른 내 모습</b>이 크게 보이니, 눌러 보며 바뀌는 것을 함께 확인해 주세요.
-    오른쪽 아래 <b>사진 넣기</b> 칸으로 학생 사진을 넣을 수도 있습니다
-    <span class="muted">(사진은 그 기기에만 저장됩니다).</span></div>
-
-  <div class="q"><b>전자칠판에서 학생이 직접 써 보게 하고 싶어요.</b>
-    그림일기 화면의 <b>「원고지에 손으로 쓰기」</b>를 눌러 주세요.
-    종이가 화면 가득 커지고, <b>원고지 칸 위에 바로</b> 손이나 펜으로 씁니다.
-    종이로 뽑지 않아도 됩니다 <span class="muted">(6장을 보세요).</span></div>
-
-  <div class="q"><b>학생이 선생님 설정을 눌러요.</b>
-    톱니바퀴는 <b>표지 화면 오른쪽 위</b>에만 있습니다.
-    수업 중에는 표지로 나가지 않으면 눌릴 일이 없습니다.</div>
-
   <div class="q"><b>저장한 일기를 고치고 싶어요.</b>
-    <b>포트폴리오 → 나의 일기장</b>에서 <b>일기 고치기</b>를 누르면 완성 화면이 바로 열립니다.
+    <b>포트폴리오 → 나의 일기장</b>에서 <b>일기 고치기</b>를 누르면 완성 화면이 열립니다.
     고친 뒤 왼쪽 위 <b>나의 일기장으로 돌아가기</b>로 돌아옵니다.</div>
 
-  <div class="q"><b>활동을 우리 반에 맞게 바꾸고 싶어요.</b>
-    <b>선생님 설정 → 9. 학생에게 보여줄 활동</b>에서 필요 없는 활동을 숨기고
-    <b>우리 반 활동</b>을 직접 더할 수 있습니다.</div>
-
-  <div class="q"><b>태블릿에서 그림이 작아 보여요.</b>
-    <b>태블릿을 가로로 눕혀 주세요.</b> 이 앱은 가로 화면에 맞춰
-    카드와 그림을 크게 배치했습니다 (2026-08-25 부터). 그래도 내용이 많은
-    화면은 한 화면에 담기 위해 살짝 줄어들 수 있습니다.</div>
-
-  <div class="q"><b>학생이 일기를 쓰다 말고 나가면 어떻게 되나요?</b>
-    나가기 전에 <b>「여기까지 저장할까요?」</b> 를 묻습니다. 「여기까지 저장」을
-    누르면 다음에 그 코너에 들어올 때 <b>「이어서 할까요?」</b> 를 묻고,
-    쓰던 자리 그대로 이어집니다. (이 임시 기록은 백업 파일에는 담기지 않습니다)</div>
-
   <div class="q"><b>수업 중에 다른 학생으로 바꾸고 싶어요.</b>
-    홈 오른쪽 위 <b>학생 이름표</b>를 누르면 「누가 할까요?」 팝업이 뜹니다.
-    이름을 누르면 바로 바뀝니다. 학생을 더하거나 고치려면 팝업의
-    <b>「학생 화면으로 가기」</b>를 누릅니다.</div>
+    오른쪽 위 <b>학생 이름표</b>를 누르면 「누가 할까요?」가 뜹니다. 이름을 누르면 바로 바뀝니다.</div>
 
-  <div class="q"><b>브라우저를 확대했더니 고를 것이 몇 개만 보여요.</b>
-    지금은 확대한 만큼 화면이 저절로 조금 줄어들어 <b>한 화면에 다 담깁니다.</b>
-    그래도 모자라면 아래 <b>◀ ▶ 화살표</b>로 넘겨 보실 수 있습니다.</div>
-
-  <div class="q"><b>3단계 학생이 뼈대를 다 썼는데 완성 화면이 비어 보여요.</b>
-    지금은 <b>뼈대에 쓴 여섯 줄이 그대로 일기 본문</b>이 됩니다.
-    「일기 쓰기」 칸에 더 쓰고 싶으면 <b>「글쓰기 칸에 넣기」</b>를 눌러 뼈대를 옮긴 뒤 살을 붙이시면 됩니다.</div>
-
-  <div class="q"><b>「이 브라우저에서는 음성 안내를 사용할 수 없어요」가 떠요.</b>
-    그 브라우저가 읽어주기를 받쳐 주지 않는 것입니다. <b>크롬</b>이나 <b>엣지</b>로 여시면 됩니다.
-    이 알림은 <b>화면 맨 아래</b>에 잠깐 떴다 사라지며, 학생이 고르는 자리를 가리지 않습니다.</div>
+  <div class="q"><b>학생이 일기를 쓰다 말고 나가면?</b>
+    나가기 전에 <b>「여기까지 저장할까요?」</b>를 묻습니다. 저장하면 다음에 <b>「이어서 할까요?」</b>를 묻고
+    쓰던 자리 그대로 이어집니다. <span class="muted">(이 임시 기록은 백업 파일에 담기지 않습니다.)</span></div>
 
   <div class="q"><b>계획을 세웠는데 포트폴리오에 안 보여요.</b>
-    지금은 <b>앞으로 할 계획</b>도 함께 나옵니다.
-    그래도 안 보이면 <b>선생님 설정 → 10. 포트폴리오 기간</b>이 그 날짜를 담고 있는지 확인해 주세요.</div>
+    <b>앞으로 할 계획</b>도 함께 나옵니다. 그래도 안 보이면 <b>선생님 설정 → 10. 포트폴리오 기간</b>이
+    그 날짜를 담고 있는지 확인해 주세요.</div>
 </div>
 
-<!-- ─────────────────────────────────────────── -->
-<h2>11. 자료 저장 및 백업 (중요)</h2>
-
-<table>
-  <tr><th style="width:24%">항목</th><th>확인 사항</th></tr>
-  <tr><td class="l">저장 위치</td>
-      <td>학생 기록·사진은 <b>그 기기의 브라우저 안</b>에 저장됩니다. 밖으로 전송되지 않습니다.</td></tr>
-  <tr><td class="l">백업</td>
-      <td><b>학기당 한 번 이상</b> 선생님 설정 → <b>12. 백업 · 불러오기 → 전체 백업 내보내기</b>를 눌러
-          파일을 따로 보관해 주세요. 학생 한 명만 따로 백업할 수도 있습니다.</td></tr>
-  <tr><td class="l">옮기기</td>
-      <td>다른 컴퓨터에서 이어 쓰려면 백업 파일을 <b>백업 불러오기</b>로 넣어 주세요.</td></tr>
-  <tr><td class="l">주의</td>
-      <td>브라우저의 <b>인터넷 사용 기록·쿠키·사이트 데이터를 삭제</b>하면
-          그동안 쌓인 기록도 함께 사라지며 되돌릴 수 없습니다.</td></tr>
-</table>
-
-<div class="box y">
-  <b>꼭 기억해 주세요</b><br />
-  학생 기록은 <b>기기 안에만</b> 있습니다. 컴퓨터를 바꾸거나 교실을 옮기기 전에는
-  <b>반드시 백업 파일을 먼저 내보내</b> 주세요.
+<div class="box g" style="margin-top:7px">
+  이 웹앱은 특수교육 현장에서 활용할 수 있도록 제작했습니다. 학급과 학생의 특성에 맞게 설정하여 활용해 주세요.
 </div>
 
-<div class="box g">
-  이 웹앱은 특수교육 현장에서 활용할 수 있도록 제작했습니다.
-  학급과 학생의 특성에 맞게 설정하여 활용해 주세요.
-</div>
-
-<div class="foot">나의 여가 사용 설명서 · 교사용 · 2026-08-29 판</div>
+<div class="foot">나의 여가 사용 설명서 · 교사용 · 서울경인특수학급교사연구회</div>
 
 </div>
 </body>

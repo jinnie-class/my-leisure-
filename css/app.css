@@ -5843,14 +5843,53 @@ textarea.field.diary-write,
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   ★ 1단계 한마디 — 칸을 **문장만큼만** (2026-08-30 · 선생님 : 「아래의
+     노란바를 기준으로 왼쪽 나카드가 가까이 위치하도록 재배치」)
+   ⚠ 2단계는 **빈칸을 채우는** 자리라 문장 길이가 늘 같아서 33rem 으로
+     못박을 수 있습니다. 1단계는 **골라져서 완성된** 문장이라 활동 이름에
+     따라 길이가 제각각입니다. 재어 보니 칸 561px 에 문장은 395px 뿐이라,
+     남는 166px 이 좌우로 갈려 나 카드와 **93px** 벌어졌습니다.
+   ▸ 칸을 `auto` 로 두면 문장만큼만 잡아 나 카드가 바로 옆에 붙고,
+     「나 카드 + 한마디」 덩어리가 화면 가운데에 섭니다.
+   ⛔ 노란 칸은 `flex:0 0 100%`(제 줄 차지) 를 그대로 둡니다 — 이름표 줄과
+      한 줄로 붙으면 2·3단계와 짜임이 달라집니다. `auto` 칸 안에서는
+      100% 가 **그 줄의 내용폭**을 뜻하므로 늘어나지 않습니다.
+   ══════════════════════════════════════════════════════════════════ */
+.me-bar.has-art.lv1:not(.slots):not(.wide){
+  grid-template-columns:auto auto;
+}
+/* 1·2단계 — 이름표와 고른 그림은 **한 줄에 나란히** */
+.me-caprow{ display:flex; align-items:center; justify-content:center; gap:.6rem; flex-wrap:wrap; }
+/* ⛔ 그림 줄의 바탕값은 flex:0 0 100%(한 줄 통째로) 입니다 — 노란 바 **안에**
+     있을 때 문장 위를 온전히 쓰라는 뜻입니다. 이름표 옆으로 나오면 그 값이
+     이름표를 다음 줄로 밀어냅니다 (재어 확인 : 그림줄이 319px 로 늘어남).
+   ▸ 여기서는 **제 그림만큼만** 잡습니다. */
+.me-caprow > .me-sayart{ flex:0 1 auto; margin:0; }
+/* 1단계는 위아래 두 줄(이름표줄 / 노란바)이라 **세로**로 쌓습니다.
+   그래야 `auto` 칸이 둘 가운데 **넓은 쪽**만큼만 잡습니다. */
+.me-bar.has-art.lv1 .me-saycol{ flex-direction:column; flex-wrap:nowrap; }
+.me-bar.has-art.lv1 .me-saycol > .me-caprow{ width:auto; }
+.me-bar.has-art.lv1 .me-saycol > .me-saybar{ flex:0 0 auto; width:auto; }
+/* 1단계 문장은 그림이 섞여 있어 32rem 으로 자르면 접힙니다 — 한 줄로 둡니다 */
+.me-bar.has-art.lv1 .me-saycol > .me-saybar > .me-say{ max-width:none; }
+
+/* ══════════════════════════════════════════════════════════════════
    ★ 돌아보기 — 나 카드를 **네 줄의 가운데**에 (2026-08-30 · 선생님 말씀)
    이름표는 윗줄에 따로, 나 카드와 네 줄은 아랫줄에 나란히 둡니다.
    그러면 `align-items:center` 가 카드를 **네 줄만의 가운데**에 세웁니다.
    ⛔ `:not()` 둘을 같이 붙여야 위 `.me-bar:not(.slots):not(.wide)` 를
       이깁니다 (힘 0,3,0 대 0,3,0 · 인수인계 41 의 그 함정입니다).
    ══════════════════════════════════════════════════════════════════ */
+/* ⛔⛔ 오른쪽 칸을 `minmax(0,1fr)` 로 두지 마세요 (2026-08-30 · 선생님 :
+     「나카드는 돌아보기 아래 상자들 가까이 간격을 두게 배치 오른쪽으로 이동」).
+     `1fr` 은 남는 자리를 **다 먹습니다.** 재어 보니 바 986px 가운데 오른쪽
+     칸이 781px 인데 줄은 595px 이라, 줄이 그 안에서 가운데로 서면서
+     나 카드와 **114px** 이나 벌어졌습니다.
+   ▸ 두 칸 모두 **내용만큼만**(auto) 잡고 `justify-content:center` 로 모으면,
+     나 카드가 줄 바로 옆에 붙고 「나 카드 + 줄」 덩어리가 화면 가운데에 섭니다
+     (선생님 : 「빨간표시한 부분은 묶어서 가운데 정렬」). */
 .me-bar.rowbar:not(.slots):not(.wide){
-  grid-template-columns:auto minmax(0,1fr);
+  grid-template-columns:auto auto;
   grid-template-rows:auto auto;
   justify-content:center; align-items:center;
   row-gap:.35rem;
@@ -5858,6 +5897,27 @@ textarea.field.diary-write,
 .me-bar.rowbar > .me-cap{ grid-column:2; grid-row:1; justify-self:center; }
 .me-bar.rowbar > .me-who{ grid-column:1; grid-row:2; }
 .me-bar.rowbar > .me-saycol{ grid-column:2; grid-row:2; }
+
+/* ★ 돌아보기 줄은 **문장만큼만** (2026-08-30 · 선생님 : 「돌아보기 아래
+     상자들은 너무 폭이 긴데 문장의 앞과 뒤 20%의 여유분이 있을 정도의 폭」).
+   ⚠ 예전에는 35rem 으로 못박아 두어, 「나는 　　 좋아해요.」(204px) 한 줄이
+     595px 짜리 긴 상자 **왼쪽에** 붙어 있었습니다. 남는 자리가 문장보다
+     넓으면 상자가 문장을 묶어 주지 못하고 테두리만 하나 더 그립니다.
+   ▸ `fit-content` — 가장 긴 줄의 문장만큼만 잡습니다. 단계마다 문장 길이가
+     다른데(1단계 두 줄 · 2·3단계 네 줄) 한 값으로 못박으면 긴 문장이
+     두 줄로 접힙니다. 내용을 따라가게 두는 편이 안전합니다.
+   ▸ 앞뒤 여유는 `.me-row-txt` 의 좌우 여백으로 줍니다 — 문장 앞뒤로 각각
+     10% 남짓(합쳐 20%)입니다. 칸이 아니라 **글에** 걸어야 줄마다 같습니다.
+   ⚠ 35rem 은 그대로 **위 한계**로 둡니다. 아주 긴 문장이 화면을 넘지 않게. */
+.me-bar.rowbar .me-rows{
+  width:fit-content; max-width:min(100%, 35rem);
+}
+/* 문장을 줄 **가운데**로. 왼쪽에 붙어 있으면 오른쪽 읽어주기와 사이가
+   휑해져, 한 줄이 두 덩어리로 갈려 보입니다. */
+.me-bar.rowbar .me-row-txt{
+  justify-content:center;
+  padding-left:clamp(.8rem,2.4vw,2rem); padding-right:clamp(.8rem,2.4vw,2rem);
+}
 
 /* ★ 노란 쓰는 칸은 **문장 앞뒤로 20% 정도만** 여유 (2026-08-30 · 선생님 :
      「한 문장의 앞 뒤 20% 정도의 여백이 되도록만 상자 폭을 조정하고
