@@ -519,6 +519,15 @@ ul{ margin:0; padding:0; list-style:none; }
    4열이면 둘째 줄에 두 장만 남아 오른쪽이 휑하게 비어 보입니다. */
 .pick-grid.cols-3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
 .pick-grid.cols-4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+/* ⛔⛔ **cols-5 가 여기 없어서 다섯 칸이 세 칸으로 접혔습니다** (2026-08-30).
+     「가장 기억에 남는 것은?」 은 코드가 `cols=5` 로 부르는데(diary.js),
+     여기에 규칙이 없으니 기본값 3열로 떨어져 **다섯 장이 두 줄**이 됐습니다.
+     두 줄이면 397px 이라 태블릿(자리 283px)에 못 들어가고, 0.58 까지 줄여도
+     모자라 **두 쪽으로 갈려 뒤의 두 장(처음 해 본 것 · 직접 쓰기)이
+     화면 밖으로** 나갔습니다.
+   ⚠ 「없는 칸 수는 알아서 3열이 되겠지」 가 아닙니다 — **말없이 접힙니다.**
+     새 칸 수를 코드에서 쓰면 여기에도 꼭 한 줄 적어 주세요. */
+.pick-grid.cols-5{ grid-template-columns:repeat(5,minmax(0,1fr)); }
 .pick-grid.cols-6{ grid-template-columns:repeat(6,minmax(0,1fr)); }
 .pick-grid.cols-8{ grid-template-columns:repeat(8,minmax(0,1fr)); }
 
@@ -1735,7 +1744,8 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   /* cols-3 은 좁아져도 3열 그대로 — 2열이면 여섯 장이 세 줄이 되어
      흰 칸을 넘치고, 격자가 통째로 다음 쪽으로 밀려 1쪽이 텅 빕니다. */
   .pick-grid.cols-3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .pick-grid.cols-4{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .pick-grid.cols-4,
+  .pick-grid.cols-5{ grid-template-columns:repeat(3,minmax(0,1fr)); }
   .pick-grid.cols-6,.pick-grid.cols-8{
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
@@ -1786,8 +1796,17 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   .six-q{ min-width:9.5rem; font-size:.94rem; }
   /* 3단계 글쓰기 칸 — 여섯 줄이면 이 화면이 쪽을 넘깁니다 */
   .sec textarea.field{ height:8.5rem; min-height:0; }
-  /* 완성 화면 : 문장 칸과 미리보기를 함께 담아야 합니다 */
-  .sentence-box{ max-height:150px; overflow:auto; }
+  /* ⛔⛔ **완성된 일기 칸에 높이 제한을 걸지 마세요** (2026-08-30).
+       예전에 여기 `max-height:150px; overflow:auto` 가 있었습니다.
+       「문장 칸과 미리보기를 함께 담으려고」 건 것인데, 담긴 것이 아니라
+       **글 아랫부분이 칸 안에 숨은 것**이었습니다.
+       재어 본 것 : 태블릿 1024x600 · 2단계 — 칸 150px 에 글 219px.
+       학생은 다 쓴 자기 일기를 **칸 안에서 따로 밀어 올려야** 읽었습니다.
+       (노트북 1366x768 에서도 같았습니다)
+     ▸ 제한을 풀면 흰 칸이 조금 넘치는데, 그것은 무대 줄이기가 받아 줍니다.
+       글자가 조금 작아질 뿐 **숨는 글은 없습니다** — 그편이 맞습니다.
+     ⛔ 「완성 화면이 넘친다」고 이 제한을 되살리지 마세요.
+        넘치면 줄일 것을 찾으세요 (인수인계 42-2). */
 }
 /* 완성 미리보기는 낮은 화면에서 더 작게 (위 --dv 규칙보다 뒤에 두어야 이깁니다) */
 @media screen and (max-height: 780px){ .dv{ --dv:.30; } }
@@ -5394,6 +5413,113 @@ textarea.field.diary-write,
   .frame-line + .frame-line{ margin-top:-.1rem; }
   .frame-line .blank{ padding:.05rem .5rem; font-size:1.02rem; }
   .frame-row{ gap:.35rem; margin-bottom:.25rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ★★ 낮은 화면에서 **고르는 칸 둘레의 여백만** 더 여밉니다 (2026-08-30)
+   ──────────────────────────────────────────────────────────────────
+   위 규칙(문장 틀)만으로는 2·3단계가 태블릿에 들어가지 않았습니다.
+   재어 본 것 — 태블릿 1024x600 · 3단계 「기분이 어땠나요?」 :
+
+     질문 줄         60px
+     예) 도움 두 줄 100px
+     카드 한 줄     209px
+     쪽넘김          56px
+     사이 여백       80px   ← 다섯 군데에 나뉘어 있어 눈에 잘 안 띕니다
+     ────────────────────
+                   505px   인데 쓸 수 있는 자리는 293px
+
+   ⛔ 그래서 0.58(가장 작은 칸)까지 줄이고도 모자라 **두 쪽으로 갈렸고**,
+      「기분 더 보기」 단추가 2쪽으로 밀려 학생은 기분 셋 중에서만
+      골랐습니다 (인수인계 42-1 과 같은 고장).
+
+   ▸ 여기서 줄이는 것은 **여백과 테두리 안쪽 자리뿐**입니다.
+     글자 크기와 그림 크기는 그대로 둡니다 — 오히려 여백을 아낀 만큼
+     줄이기가 덜 걸려 **그림이 커집니다.**
+   ⛔ 이 값들을 「보기 좋게」 다시 늘리지 마세요. 늘리면 그만큼
+      줄이기가 더 걸려서 **그림이 작아집니다** (인수인계 42-2).
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-height: 700px){
+  /* ⛔⛔ **`.frame-line` 만 적으면 안 듣습니다** (2026-08-30).
+       위 규칙에 `.frame-line{ padding:.2rem .7rem }` 이 있는데도 재어 보면
+       9.35px 였습니다 — 아래쪽 `.frame-top .frame-line`(힘 0,2,0)이
+       `.frame-line`(0,1,0)을 이기기 때문입니다.
+     ▸ 여기서도 **`.frame-top` 을 함께 적어** 힘을 맞춥니다.
+       문장 틀 170 → 약 135px (2단계 세 줄 기준). */
+  .frame-top .frame-line{ padding:.3rem .8rem; line-height:1.4; row-gap:.3rem; }
+  .frame-top .frame-line{ margin-bottom:.15rem; }
+  /* 읽어주기 그림단추 — 질문 알약(46px)보다 커서 줄 높이를 혼자 정하고
+     있었습니다. 손가락으로 누를 수 있는 크기는 지키면서 줄입니다. */
+  .q-bar > .iconbtn.has-img{ width:48px; height:48px; }
+
+  .q{ margin-bottom:.25rem; }
+  .q-bar + .six,
+  .q + .six{ margin-top:.3rem; }
+  .six{ gap:.3rem; margin-bottom:.5rem; }
+  .six-row .field{ min-height:40px; padding:.25rem .55rem; }
+  /* 카드 안쪽 여백 — 그림은 그대로 두고 둘레만 여밉니다 */
+  .pick{ padding:.5rem .45rem .45rem; gap:.25rem; }
+  /* 쪽넘김 단추 — 손가락으로 누를 수 있는 크기(44px 이상)는 지킵니다 */
+  .pg-arrows{ margin-top:.35rem; gap:.9rem; }
+  .pg-arrow{ width:46px; height:46px; font-size:1.25rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ★★ 낮고 **넓은** 화면에서는 좌우로 벌립니다 (2026-08-30 · 「다」)
+   ──────────────────────────────────────────────────────────────────
+   태블릿은 **높이가 모자란데 폭은 남습니다.** 재어 본 것 —
+   1024x600 · 3단계 쓰기 화면에서 좌우로 200px 씩 비어 있었습니다.
+   그런데 무대 줄이기(`--fit`)는 가로세로를 **함께** 줄이므로, 남는 폭은
+   쓰지 못하고 그림만 작아집니다.
+
+   ▸ 세로로 쌓여 있던 것을 **가로로 눕혀** 그 폭을 씁니다.
+     ① 예) 도움 두 줄  → 좌우로 나란히   (100px → 46px)
+     ② 고르는 카드     → 그림 왼쪽 · 글자 오른쪽 (209px → 약 180px)
+   ⚠ 눕히는 것은 **높이가 모자란 화면에서만**입니다. 전자칠판·노트북은
+     그대로 위아래로 쌓입니다 — 거기서는 눕힐 까닭이 없습니다.
+   ⛔ min-width 900px 을 지우지 마세요. 좁은 화면에서 눕히면 글자가
+      그림 옆에서 잘게 접힙니다.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-height: 700px) and (min-width: 900px){
+  /* ① 예) 도움 두 줄을 좌우로 */
+  .six{ flex-direction:row; align-items:flex-start; }
+  .six-row{ flex:1 1 0; min-width:0; flex-wrap:nowrap; }
+  .six-row .six-q{ min-width:0; }
+  .six-row .field{ min-width:0; }
+
+  /* ② 카드를 눕힙니다 — 그림 왼쪽, 글자 오른쪽.
+       ⚠ `.compact` · `.bare` · `.add-card` 는 이미 제 모양이 있으므로 뺍니다. */
+  .pick:not(.compact):not(.bare):not(.add-card){
+    flex-direction:row; align-items:center; justify-content:flex-start;
+    gap:.7rem; text-align:left; padding:.5rem .7rem;
+    /* ⛔ **접을 수 있게 두세요** — 카드에 그림·이름 말고 **셋째 것**이
+         들어 있는 곳이 있습니다 (「언제 할까요?」의 날짜 고르기 카드는
+         달력 칸과 「이 날짜로」 단추를 안고 있습니다).
+         접히지 않게 두었더니 그 단추가 **화면 밖 x1120 으로** 밀려났습니다
+         (재어 확인 · 1024 폭). */
+    flex-wrap:wrap;
+  }
+  .pick:not(.compact):not(.bare):not(.add-card) > .thumb{ flex:0 0 auto; }
+  .pick:not(.compact):not(.bare):not(.add-card) > .pick-name{
+    flex:1 1 6rem; min-width:0; text-align:left; justify-content:flex-start;
+  }
+  /* 셋째 것(달력 칸·단추 등)은 **아래 줄로 내려서** 폭을 다 씁니다 */
+  .pick:not(.compact):not(.bare):not(.add-card) > .btn,
+  .pick:not(.compact):not(.bare):not(.add-card) > input,
+  .pick:not(.compact):not(.bare):not(.add-card) > .note,
+  .pick:not(.compact):not(.bare):not(.add-card) > .more{
+    flex:1 1 100%; min-width:0;
+  }
+  /* 칸이 다섯 이상인 격자는 **눕히지 않습니다** — 칸 하나가 190px 안쪽이라
+     그림 옆에 글자를 두면 둘 다 뭉개집니다 (준비물 여덟 칸, 기억 다섯 칸). */
+  .pick-grid.cols-5 .pick,
+  .pick-grid.cols-6 .pick,
+  .pick-grid.cols-8 .pick{
+    flex-direction:column; align-items:center; text-align:center; padding:.5rem .45rem .45rem;
+  }
+  .pick-grid.cols-5 .pick > .pick-name,
+  .pick-grid.cols-6 .pick > .pick-name,
+  .pick-grid.cols-8 .pick > .pick-name{ text-align:center; justify-content:center; }
 }
 
 /* ★ 좁은 알림 창의 단추는 **한 줄로** (2026-08-30 · 선생님 :

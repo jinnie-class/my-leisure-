@@ -569,6 +569,11 @@
     var st = useState({ pages: 1, page: 0 });
     var s = st[0], setS = st[1];
     var touch = useRef({ x: 0, y: 0 });
+    /* ⛔⛔⛔ **보고 있는 쪽을 적어 두는 자리** (2026-08-30).
+         아래 `measure` 는 한 번만 만들어지므로(useCallback []) 지금 몇 쪽을
+         보고 있는지 알 수 없습니다. 그래서 여기에 적어 두었다가 다시 잰 뒤에
+         **그 쪽으로 되돌려 놓습니다.** 까닭은 measure 끝의 주석을 보세요. */
+    var pageRef = useRef(0);
 
     /* 한 페이지의 폭(=단 폭)과 페이지 수를 잽니다.
        테두리 안쪽 여백을 뺀 '내용 폭'을 단 폭으로 써야 페이지가 정확히 맞습니다. */
@@ -777,6 +782,20 @@
         var page = Math.min(prev.page, n - 1);
         return (prev.pages === n && prev.page === page) ? prev : { pages: n, page: page };
       });
+
+      /* ⛔⛔⛔ **다시 잰 뒤에는 보던 쪽으로 되돌려 놓아야 합니다** (2026-08-30).
+           고장난 모습 : 태블릿에서 화면이 두 쪽으로 갈리면 ▶ 를 눌러도
+           **0.3초 만에 1쪽으로 되돌아왔습니다.** 쪽 번호만 「2 / 2」로 바뀌고
+           화면은 그대로라, 2쪽에 있는 것을 **영영 못 봤습니다.**
+           재어 본 것 — 누른 뒤 0.014초 scrollLeft 1022(2쪽) → 0.310초 0(1쪽).
+         ▸ 까닭 : 위에서 `columnWidth` 를 'auto' 로 한 번 풀었다 다시 겁니다.
+           푸는 순간 넘길 폭이 사라져 브라우저가 scrollLeft 를 0 으로 되돌리는데,
+           쪽 번호(s.page)는 그대로라 아래 「페이지 위치 적용」 이 다시 돌지
+           않습니다. (다시 재기는 그림이 늦게 실릴 때를 대비해 0.28초·0.9초
+           뒤에도 돕니다 — 그래서 늘 되돌아왔습니다)
+         ⛔ 이 두 줄을 지우지 마세요. */
+      var back = Math.min(pageRef.current, n - 1);
+      if (back > 0) el.scrollLeft = back * metrics(el).stride;
     }, []);
 
     /* ⛔⛔ **그림이 다 실린 뒤에 반드시 다시 재야 합니다** (2026-08-24).
@@ -851,6 +870,7 @@
     /* 페이지 위치 적용 */
     useEffect(function () {
       var el = trackRef.current; if (!el) return;
+      pageRef.current = s.page;          /* 다시 잴 때 되돌아올 자리 (위 주석) */
       el.style.scrollBehavior = 'auto';
       el.scrollLeft = s.page * metrics(el).stride;
     }, [s.page, s.pages]);
