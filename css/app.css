@@ -737,14 +737,18 @@ ul{ margin:0; padding:0; list-style:none; }
 .q-bar .q-pill h2{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .q-bar > .hint{ position:absolute; right:3.6rem; }
 .q-bar > .speak{ position:absolute; right:0; }
-/* 질문 줄 오른쪽에 늘 보이는 **일기 단계 안내** (보기: 틀 없이 내 말로 써요).
+/* 질문 줄에 붙는 **설명 한 줄**.
+   ★ 자리를 **질문 바로 뒤**로 옮겼습니다 (2026-08-30 · 선생님 :
+     「설명칸은 언제 했나요? 뒤에」 — 질문 알약 오른쪽 빈자리를 짚어 주셨습니다).
+   ⛔ 예전에는 `margin-left:auto` 로 **오른쪽 끝까지 밀려** 있었습니다.
+      질문과 900px 떨어져 있으면 그 질문에 딸린 말로 읽히지 않고,
+      화면 오른쪽 구석의 딴 안내처럼 보입니다.
    ▸ 질문 알약과 헷갈리지 않게 **테두리 없는 연한 글씨**로 둡니다.
-     여기서 또 알약을 쓰면 무엇이 질문인지 흐려집니다.
-   ▸ 읽어주기(4.4rem) 자리를 비켜 앉습니다. */
+     여기서 또 알약을 쓰면 무엇이 질문인지 흐려집니다. */
 .q-bar > .q-note{
-  margin-left:auto; margin-right:4.4rem;
+  margin-left:.7rem; margin-right:auto;
   font-size:.95rem; font-weight:800; color:#8a8a96;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46%;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%;
 }
 .q-bar.has-right > .q-note{ margin-right:.6rem; }
 /* 질문 줄 오른쪽에 붙는 단추 (보기: `실내·실외 다시 고르기`).
@@ -2321,10 +2325,24 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
 .six + .pick-grid,
 .six + .stack{ margin-top:0; }
 .six-row{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+/* ★ 묻는 말을 **주황색 칸 바로 앞에** 또렷하게 (2026-08-30 · 선생님 :
+     「묻는 문장은 주황색 창 바로 앞에 위치되어 여기에 무엇을 적어야 할지
+      명시되게 해줘」).
+   ⛔ 예전에는 연한 회색(--ink-soft) 1rem 이라 **꾸밈글처럼** 보였습니다.
+      바로 위에 같은 말이 큰 알약으로 또 있어서 더 그랬습니다.
+   ▸ 글자색을 본문색으로, 크기를 한 단 키웁니다.
+   ▸ `text-align:right` — 말이 짧아도 **칸에 바짝 붙습니다.**
+     그러면서 칸의 왼쪽 시작선은 여러 줄에서 그대로 나란합니다
+     (4단계는 「기분이 어땠나요?」와 「왜 그렇게 느꼈나요?」 두 줄입니다).
+   ⚠ min-width 는 가장 긴 말(왜 그렇게 느꼈나요?)이 안 접히는 크기입니다.
+     묻는 말을 더 길게 바꾸면 이 값도 함께 키우세요. */
 .six-q{
-  flex:0 0 auto; min-width:11rem;
-  font-weight:900; color:var(--ink-soft); font-size:1rem;
+  flex:0 0 auto; min-width:11rem; text-align:right;
+  font-weight:900; color:var(--ink);
+  font-size:clamp(1rem, .7rem + calc(.55 * var(--vh, 1vh)), 1.2rem);
 }
+/* ⛔ 이 줄을 지우지 마세요 — 없으면 입력칸의 `width:100%`(.field)가 그대로 기준이 되어
+      **주황 칸이 묻는 말 아래로 내려갑니다** (2026-08-30 에 실제로 지웠다가 겪음). */
 .six-in{ flex:1 1 14rem; min-width:0; }
 
 /* 글쓰기 단계에 함께 보이는 '내가 만든 뼈대' 띠 */
@@ -3323,15 +3341,20 @@ input.title-input{
    ※ 이 화면에는 `bigSpeak` 를 쓰지 마세요. 읽어주기를 글자 아래 크게 두면
      카드마다 54px 을 더 먹어서 역시 두 줄이 안 들어갑니다. */
 .pick-grid.big .thumb{ width:clamp(84px,calc(16 * var(--vh, 1vh)),200px); height:clamp(84px,calc(16 * var(--vh, 1vh)),200px); }
-/* ⚠ 낮은 화면에서는 조금 더 줄입니다. 장소는 **두 줄**(3칸 × 2줄)이라
-     그림이 조금만 커도 넘칩니다. 1280×720 에서 16vh(115px)면 24px 넘쳐
-     화면이 2쪽으로 갈라졌습니다. 14vh(101px)면 들어갑니다.
-   ※ 이 규칙은 위 기본 규칙 **뒤에** 두어야 이깁니다. 앞의
-     `@media screen and (max-height:900px)` 묶음에 넣었다가 기본 규칙에 덮였습니다. */
+/* ★ 장소 그림을 키웁니다 (2026-08-30 · 선생님 : 「어디서 했나요?는 왜 다 작은 거야?」
+     「무엇을 했나요? 정도 크기가 나오면 위치 바꾸지 말고 수정」).
+   ⚠ 위 주석의 「장소는 **두 줄**(3칸 x 2줄)」은 **옛말입니다.**
+     지금은 계획하기와 같이 **한 쪽에 셋**(PLACE_PER = PAGE_SIZE = 3)이라
+     한 줄뿐이고, 그만큼 높이가 남습니다.
+   ▸ 위쪽 「고른 것」 띠를 줄여 줄이기(--fit 0.64)가 풀린 뒤로는,
+     이 값이 그림 크기를 **직접** 정합니다. 14vh(87px) → 20vh(124px).
+   ⛔ 위치는 그대로 **그림 위 · 이름 아래**입니다. 옆으로 놓아도 그림이
+     커지지 않습니다 — 카드는 폭이 남고 **높이가 모자란** 모양이라,
+     글자를 옆으로 비켜 줘도 그림이 쓸 수 있는 높이는 그대로입니다
+     (재어 확인 : 옆으로 놓으니 87 → 87px, 카드만 102px 로 납작해졌습니다). */
 @media screen and (max-height: 820px){
-  .pick-grid.big .thumb{ width:clamp(84px,calc(14 * var(--vh, 1vh)),150px); height:clamp(84px,calc(14 * var(--vh, 1vh)),150px); }
+  .pick-grid.big .thumb{ width:clamp(84px,calc(20 * var(--vh, 1vh)),190px); height:clamp(84px,calc(20 * var(--vh, 1vh)),190px); }
 }
-
 /* 판 번호 — 학생 고르기 화면 맨 아래에 아주 작게.
    '고쳤는데 화면이 그대로' 일 때 캐시에 예전 판이 남았는지 알려 줍니다. */
 .build-rev{
@@ -4038,6 +4061,7 @@ textarea.field.diary-write,
      양옆이 또 비어, 위아래로 놓았을 때와 똑같은 손해가 납니다. */
   .folio-two > .folio-half{ width:100%; }
 }
+/* ⚠ 창을 흰 칸 폭만큼 늘이지 마세요. 가운데 모인 카드 좌우로 빈 자리가
      넓게 남아, 카드가 허전하게 떠 보입니다. **카드 셋 + 화살표** 만큼만. */
 .folio-half{
   min-width:0; padding:.35rem .5rem .45rem;
@@ -5332,3 +5356,38 @@ textarea.field.diary-write,
    ⚠ 여기에 넣을 말은 **420px 안에 드는 짧은 말**이어야 합니다.
      더 긴 말을 넣으려면 창을 .narrow 가 아니라 기본 폭으로 두세요. */
 .modal.narrow.center .btn{ white-space:nowrap; }
+
+/* ══════════════════════════════════════════════════════════════════
+   ⛔⛔⛔ **뒤로 갈수록 카드가 작아지던 것** (2026-08-30)
+
+   선생님 : 「무엇을 했나요?는 그림도 크게 나오면서 아래 글자가 나오거든.
+             어디서 했나요?는 왜 다 작은 거야?」
+
+   재어 확인 (1280x620 · 1단계)
+                        언제 했나요?      어디에서 했나요?
+     위쪽 「고른 것」 띠     0px            **214px** (그림 2개)
+     고르는 칸           438px            **224px**
+     줄이기 --fit         0.94            **0.64**
+     카드              406x250           409x102
+     그림              **152px**         **87px**
+
+   ⛔ 까닭은 장소 화면만 다른 것이 아니었습니다. 위쪽 **「지금까지 고른 것」
+      그림 띠**가 그림 한 개당 130px 씩 자리를 먹는데, 학생이 앞 단계를
+      지날수록 그 띠가 계속 남아 있습니다. 그만큼 고르는 칸이 줄고,
+      무대가 전체를 0.64 로 줄입니다.
+      → **뒤로 갈수록 고를 그림이 작아집니다.** 「무엇을 했나요?」도
+        같은 탈이었습니다 (그림 93px · 줄이기 0.58).
+
+   ▸ 낮은 화면에서는 이 띠를 **작게** 합니다. 띠는 「지금까지 이렇게 골랐어요」를
+     되짚어 주는 것이라 작아도 뜻이 그대로지만, 아래는 **지금 골라야 할 것**이라
+     작아지면 고를 수가 없습니다. (2026-08-29 41-3 과 같은 잣대입니다 —
+     넉넉할 때 누리는 편안함을 주인공보다 앞세우지 않습니다.)
+   ⚠ 높은 화면(노트북·전자칠판)은 그대로입니다.
+   ══════════════════════════════════════════════════════════════════ */
+@media screen and (max-height: 760px){
+  .pic-sofar-item{
+    width:clamp(52px, calc(11 * var(--vh, 1vh)), 210px);
+    height:clamp(52px, calc(11 * var(--vh, 1vh)), 210px);
+  }
+  .plan-l1{ padding:.4rem .6rem; gap:.2rem; }
+}

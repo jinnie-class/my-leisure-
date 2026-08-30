@@ -625,7 +625,22 @@
 
       if (step === 0) {
         return html`<${React.Fragment}>
-          <${C.Question} bar=${true} note=${lvNote} speakText="언제 했나요?">언제 했나요?<//>
+          <!-- ★ 3단계에만 **설명 한 줄**을 답니다 (2026-08-30 · 선생님 :
+                 「이렇게 디자인하고 설명칸은 언제 했나요? 뒤에」 — 빨간 네모로
+                  질문 알약 오른쪽 빈자리를 짚어 주셨습니다).
+               말은 선생님이 적어 주신 그대로입니다 —
+               「아래 칸에 질문에 따라 적으면서 나만의 문장을 만들어 보아요」
+               ⚠ 「아래칸」을 **「아래 칸」** 으로 띄웠습니다. 여기는 글쓰기를
+                 가르치는 앱이고 학생이 읽는 글이라, 띄어쓰기가 본보기가 됩니다.
+             ▸ 3단계는 학생이 **직접 글을 써서** 위 문장을 만드는 단계인데,
+               아래 칸이 그냥 입력칸으로만 보여 무엇에 쓰는 것인지 알기
+               어려웠습니다. 위 문장과 이어져 있다는 것을 알려 줍니다.
+             ▸ 첫 화면에만 답니다 — 화면마다 같은 말이 따라다니면 눈에 안
+               들어오고, 그만큼 고르는 칸이 줄어듭니다.
+             ⚠ note 는 **학생에게 읽어 주지 않습니다.** 지금 무엇을 하는
+               중인지 알리는 안내라 읽어주기에는 넣지 않습니다 (common.js). -->
+          <${C.Question} bar=${true} speakText="언제 했나요?"
+            note=${level === 3 ? '아래 칸에 질문에 따라 적으면서 나만의 문장을 만들어 보아요' : lvNote}>언제 했나요?<//>
           ${boneWrite(0)}
           <!-- bigSpeak : 읽어주기를 글자 아래에 크게 (질문 옆 읽어주기와 비슷한 크기) -->
           <${C.PickGrid} cols=${3} bigSpeak=${true}>
@@ -969,13 +984,26 @@
                 <b>다음에는</b> ${blank(f.f4)}<b>하고 싶어요.</b>
               </div>
             <//>`
+          /* ★ 3단계도 **기분이 · 왜냐하면 두 문장을 한 줄에** 놓습니다
+               (2026-08-30 · 선생님 : 「여기도 기분이~~와 왜냐하면~~ 두 문장을
+                한 줄에 배치하고 내용이 길어지면 문장이 줄바꿈되게」).
+             ▸ 2단계와 **똑같은 .frame-row** 를 씁니다 — 사이는 마침표 뒤
+               한 칸이고, 자리가 모자라면 문장이 **통째로** 다음 줄로 갑니다.
+             ⛔ 문장을 가운데서 자르지 않습니다 (2026-08-24 규칙). */
+          : level === 3
+          ? html`<div class="frame-row">
+              <div class="frame-line">
+                ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+                ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
+              </div>
+              <div class="frame-line">
+                <b>왜냐하면</b> ${tie(blank(say('why', ''), true), html`<b>${dotOf(say('why', ''))}</b>`)}
+              </div>
+            </div>`
           : html`<div class="frame-line">
               ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
               ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
             </div>`}
-        ${level === 3 && html`<div class="frame-line">
-          <b>왜냐하면</b> ${tie(blank(say('why', ''), true), html`<b>${dotOf(say('why', ''))}</b>`)}
-        </div>`}
       <//>`;
     }
 
