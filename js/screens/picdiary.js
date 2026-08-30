@@ -184,6 +184,34 @@
         다른데 둘로 나뉘면 언젠가 어긋납니다. 여기 한 곳에서만 정합니다. */
   App.diaryPrintModes = modesFor;
 
+  /* ★★ **「나의 일기 모음」 화면의 인쇄 단추는 셋입니다** (2026-08-30 · 선생님 :
+       「여기선 인쇄가 3개가 있으면 좋겠어. 내가 쓴 글 / 빈 줄(그림) / 빈줄(힌트)」).
+
+     까닭 : `빈 줄`(empty)로 뽑으면 지금까지는 **늘 힌트가 함께** 나왔습니다
+       (printBook 이 showHint 를 mode === 'empty' 로 묶어 두었기 때문).
+       그래서 **그림은 그대로 두고 줄만 비운 종이**를 뽑을 길이 없었습니다.
+       학생이 제 그림을 보며 스스로 쓰는 종이가 그것인데 말입니다.
+     ▸ 그 하나를 둘로 가릅니다.
+         빈 줄(그림) — 그림칸에 **학생 그림**이 그대로. 보고 스스로 씁니다.
+         빈 줄(힌트) — 그림칸에 **완성된 글**이 뜹니다. 보고 옮겨 씁니다.
+     ⚠ 화면의 인쇄 모양 탭(MODES_BY_LEVEL)은 **그대로 둘**입니다.
+       거기에는 「힌트 보기」 단추가 따로 있어 켜고 끌 수 있습니다.
+       인쇄에는 그 단추가 없으므로, 뽑을 때 골라야 합니다.
+     ⚠ 이름은 단계에 맞춥니다 — 3단계는 밑줄이라 `빈 줄`, 1·2단계는 원고지라
+       `빈 칸`입니다. */
+  function bookPrintModes(lv) {
+    var base = lv === 3 ? '빈 줄' : '빈 칸';
+    var out = [];
+    modesFor(lv).forEach(function (m) {
+      if (m.id !== 'empty') { out.push({ id: m.id, name: m.name, desc: m.desc, hint: false }); return; }
+      out.push({ id: 'empty', name: base + '(그림)', hint: false,
+                 desc: '줄만 나오고 그림은 그대로 — 내 그림을 보며 스스로 써요' });
+      out.push({ id: 'empty', name: base + '(힌트)', hint: true,
+                 desc: '줄만 나오고 그림칸에 완성된 글이 나와요 — 보고 옮겨 써요' });
+    });
+    return out;
+  }
+
   /* ==================== 「나의 여가 일기 — 원고지 작성 규칙」 ====================
      ★ 이 규칙은 앱의 고정 규칙입니다. 원고지 화면을 고칠 때 반드시 지켜 주세요.
        자세한 조항은 `인수인계.md` 의 `5-1-1. 원고지 작성 규칙` 에 있습니다.
@@ -1696,18 +1724,17 @@
        그 단추가 없으므로**, 인쇄에서는 늘 켜져 있어야 합니다 — 힌트를 보고
        쓰라고 뽑는 종이인데 힌트가 없으면 아무 소용이 없습니다.
      ▸ 같은 실수가 포트폴리오의 「일기장 모두 인쇄」에도 있었습니다. */
-    function printBook(mode) {
+    function printBook(mode, hint) {
       if (!list.length) { App.ui.toast('아직 모인 일기가 없어요.'); return; }
       App.printNode(html`<div class="pd-book">
         ${list.map(function (x) {
           return html`<div key=${x.id} class="pd-page">
             <${C.PicDiarySheet} diary=${x} student=${student} trace=${mode || 'text'}
-              showHint=${mode === 'empty'} />
+              showHint=${!!hint} />
           </div>`;
         })}
       </div>`);
     }
-
     var open = openS[0] ? App.store.diary(openS[0]) : null;
 
     return html`<div class="app" data-corner="diary">
@@ -1725,17 +1752,18 @@
              계획하GO! 의 마지막 화면 · 나의 여가 모아보기와 **같은 모양**입니다. -->
       <${C.Stage}
         action=${html`<div class="fix-acts">
-          <!-- ★ 이 학생의 **단계에 있는 두 가지**만 나옵니다 (위 printBook 주석).
-                 이름도 그 단계의 말로 나옵니다 (2단계는 「힌트 보고 쓰기」).
-               ⛔ 여기에 모양을 손으로 적지 마세요 — modesFor 한 곳에서만 정합니다.
+          <!-- ★ 이 학생의 **단계에 맞는 인쇄 모양**이 나옵니다 (위 bookPrintModes).
+                 3단계는 셋입니다 — 내가 쓴 글 · 빈 줄(그림) · 빈 줄(힌트)
+                 (2026-08-30 · 선생님 말씀).
+               ⛔ 여기에 모양을 손으로 적지 마세요 — bookPrintModes 한 곳에서만 정합니다.
                ⛔ onClick 에 함수를 **그대로** 넘기지 마세요 — 그러면 클릭
                   이벤트가 첫 인자로 들어가 mode 자리에 앉습니다. -->
-          ${modesFor(lv).map(function (m, i) {
-            return html`<${C.Btn} key=${m.id} icon="print" title=${m.desc}
+          ${bookPrintModes(lv).map(function (m, i) {
+            return html`<${C.Btn} key=${m.name} icon="print" title=${m.desc}
               kind=${i === 0 ? 'primary' : null}
               className=${i === 0 ? null : 'pastel-blue'}
               disabled=${!list.length}
-              onClick=${function () { printBook(m.id); }}>책으로 인쇄 · ${m.name}<//>`;
+              onClick=${function () { printBook(m.id, m.hint); }}>책으로 인쇄 · ${m.name}<//>`;
           })}
         </div>`}>
         <${C.Question} bar=${true}

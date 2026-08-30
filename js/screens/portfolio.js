@@ -1221,6 +1221,16 @@
       var all = boardCards();
       var placed = all.filter(function (c) { return layout[c.id]; });
       var left = all.filter(function (c) { return !layout[c.id]; });
+      /* ★ 붙일 활동은 **한 줄에 하나씩 셋** (2026-08-30 · 선생님 :
+           「붙일 활동을 한 개씩 3-4열 해서 넘어가기로 하는 건 어때?」
+            「그림이 안 잘리게 오른쪽 붙일활동칸을 좀 더 줄여볼까?」).
+         ⚠ 말씀하신 3~4 가운데 **셋**입니다. 넷으로 두면 서랍이 세로로 길어져
+           줄 높이를 키우고, 무대가 전체를 더 줄여 **지도가 되레 작아집니다.**
+           재어 확인 (창 1280x620 · 한 줄에 하나씩) :
+             4장 → 줄이기 0.70 · 지도 509
+             3장 → 줄이기 0.85 · 지도 618   ← 지금
+             2장 → 줄이기 0.91 · 지도 661
+         ⚠ 이 숫자와 css 의 grid-template-columns:1fr 는 함께 봅니다. */
       var info = pageOf(left, boardPageS[0], 3);
       var picked = boardPickS[0];
 
@@ -2096,10 +2106,15 @@
                 ${[{ k: 'indoor', nm: '실내', cls: 'in' }, { k: 'outdoor', nm: '실외', cls: 'out' }]
                   .map(function (side) {
                     var mine = shown.filter(function (c) { return c.area === side.k; });
-                    /* ★ **한 줄에 셋, 한 쪽에 셋**입니다. 두 줄로 두었더니
-                         그림이 작아 보기 힘들었습니다. 창이 둘(실내·실외)이라
-                         한 줄씩만 써도 화면에 두 줄이 들어갑니다. */
-                    var info = pageOf(mine, mapPageS[0][side.k], 3);
+                    /* ★ **한 쪽에 둘**입니다 (2026-08-30 · 선생님 :
+                         「아래 활동들 실내 2개씩 실외 2개씩 보여주기로 하면
+                          안의 창들이 선을 넘지 않을 것 같아」).
+                       ⚠ 셋씩이던 때는 카드가 창의 테두리를 넘어 삐져나왔습니다.
+                         실내·실외 두 창이 좌우로 나란히 서면서 창 하나가
+                         화면의 절반뿐인데, 거기에 셋을 넣으니 넘친 것입니다.
+                       ▸ 둘씩이면 카드가 창 안에 들어오고, 그만큼 그림도 큽니다.
+                       ⚠ 쪽수가 늘어나므로 머리줄의 `1 / 3` 표시가 함께 씁니다. */
+                    var info = pageOf(mine, mapPageS[0][side.k], 2);
                     return html`<div key=${side.k} class=${'folio-half ' + side.cls}>
                       <!-- 쪽 표시를 머리줄에 붙입니다 — 격자 아래에 두면
                            창마다 18px 씩, 둘이면 36px 을 먹습니다. -->

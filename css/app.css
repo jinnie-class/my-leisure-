@@ -5461,6 +5461,23 @@ textarea.field.diary-write,
     display:flex; flex-direction:column; min-height:0;
   }
 }
+/* ★ 도움 문장이 **한 줄로** 이어지게 (2026-08-30 · 선생님 :
+     「문장 도움 보기 창의 내용이 한 줄로 문장이 이어지도록 창의 폭을 넓히고
+      왼쪽 노란색 창은 조금 줄이고」).
+   ⚠ 재어 보니 가장 긴 문장(오늘 나는 ○○과 함께 ○○을 했어요.)은 단추 폭이
+     **322px** 이라야 한 줄로 펴집니다. 칸으로는 352px 쯤입니다.
+     그런데 칸이 294px 이라 문장이 두 줄로 접혔습니다.
+   ▸ 자리가 넉넉한 화면(1100px 이상)에서는 **칸을 글자 길이에 맞춥니다** —
+     단추를 한 줄로 두고(nowrap), 칸 폭은 내용만큼(width:auto).
+     그러면 늘 딱 필요한 만큼만 가져가고, 나머지는 왼쪽 쓰는 칸이 씁니다.
+   ⛔ 좁은 화면에서는 nowrap 을 걸지 마세요 — 문장이 칸을 뚫고 나가
+      읽을 수 없게 됩니다. 그때는 위 규칙대로 두 줄로 접히는 편이 낫습니다.
+   ⚠ max-width 46% 는 안전장치입니다. 도움말을 더 긴 문장으로 바꾸어도
+     왼쪽 쓰는 칸이 절반 밑으로 내려가지 않습니다. */
+@media screen and (min-width: 1100px){
+  .write-2col.on > .write-help{ width:auto; max-width:46%; }
+  .write-help-list .btn{ white-space:nowrap; }
+}
 .write-help{
   min-width:0; box-sizing:border-box;
   border:3px solid var(--line); border-radius:18px;
@@ -5537,10 +5554,15 @@ textarea.field.diary-write,
   /* ⚠ 폭은 width 로 따로 줍니다 (flex 줄임말 안에 clamp 를 넣지 않습니다).
        서랍이 너무 넓으면 지도가 그만큼 좁아집니다 — 서랍은 **두 칸**이
        들어갈 만큼만. */
-  .mb-2col > .mb-tray{ flex:0 0 auto; width:clamp(240px, 24%, 340px); }
-  /* 서랍 안은 **한 줄에 둘** (선생님 말씀). 세로로 길쭉한 칸이라 둘씩이
-     가장 잘 맞습니다. */
-  .mb-2col > .mb-tray .mb-tray-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  /* ★ 서랍을 **좁게 · 한 줄에 하나씩** (2026-08-30 · 선생님 :
+       「그림이 안 잘리게 오른쪽 붙일활동칸을 좀 더 줄여볼까?」
+        「붙일 활동을 한 개씩 3-4열 해서 넘어가기로 하는 건 어때?」).
+     ▸ 24% → **17%**. 한 줄에 하나면 좁아도 그림이 안 눌립니다.
+       좁아진 만큼은 왼쪽 지도가 씁니다.
+     ⚠ js 의 pageOf(left, …, 4) 와 함께 봅니다 — 한 줄에 하나씩 넉 장입니다. */
+  .mb-2col > .mb-tray{ flex:0 0 auto; width:clamp(160px, 17%, 230px); }
+  /* 한 줄에 **하나씩** — 좁은 칸에서 둘씩이면 그림이 눌립니다 (2026-08-30). */
+  .mb-2col > .mb-tray .mb-tray-grid{ grid-template-columns:1fr; }
 }
 
 /* ★ 좌우로 놓일 때(900px 이상)만 지도가 **높이를 통째로** 씁니다.
