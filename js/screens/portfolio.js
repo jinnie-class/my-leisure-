@@ -719,6 +719,24 @@
     }
 
     /* 만들어지는 한마디 — 고를 때마다 여기서 문장이 자랍니다 */
+    /* 고른 것 두 가지를 **그림 + 이름**으로 나란히 (활동 · 기분).
+       ⚠ 1단계는 노란 바 안(meSayBar)에서, 2단계는 이름표 옆에서 부릅니다 —
+         자리는 달라도 **모양은 하나**여야 학생이 같은 것으로 봅니다. */
+    function meArtRow() {
+      var wp = student.wordPick || {};
+      var act = wp.actId ? App.act(wp.actId) : null;
+      var mood = wp.moodId ? App.mood(wp.moodId) : null;
+      if (!act && !mood) return null;
+      return html`<div class="me-sayart">
+        ${act && html`<span class="me-sayart-one">
+          <span class="me-sayart-pic"><${C.ActivityArt} activity=${act} /></span>
+          <b>${App.shortName(act) || act.name}</b></span>`}
+        ${mood && html`<span class="me-sayart-one">
+          <span class="me-sayart-pic"><${C.MoodArt} mood=${mood} /></span>
+          <b>${mood.name}</b></span>`}
+      </div>`;
+    }
+
     function meSayBar() {
       var say = student.word || '나는 　　　 할 때 　　　.';
       /* ★ **고른 그림을 문장 위에 함께** 보여 줍니다 (2026-08-24 · 선생님 말씀 —
@@ -752,14 +770,13 @@
           </div>`}
         </div>`;
       }
-      var artRow = (act || mood) && html`<div class="me-sayart">
-        ${act && html`<span class="me-sayart-one">
-          <span class="me-sayart-pic"><${C.ActivityArt} activity=${act} /></span>
-          <b>${App.shortName(act) || act.name}</b></span>`}
-        ${mood && html`<span class="me-sayart-one">
-          <span class="me-sayart-pic"><${C.MoodArt} mood=${mood} /></span>
-          <b>${mood.name}</b></span>`}
-      </div>`;
+      /* ★ 2단계는 이 그림 줄을 **여기 안에 두지 않습니다** (2026-08-30 · 선생님 :
+           「나의 한마디 뒤에 선택한 것들이 뒤에 나란히 배열되게」).
+           그림 줄이 노란 상자와 한 묶음(.me-saybar)이면 이름표 아래로 내려갑니다.
+           2단계에서는 밖으로 꺼내어 **이름표 옆에** 세웁니다 (meArtRow).
+         ⛔ 1단계는 그대로 둡니다 — 거기는 노란 바 안에도 그림이 들어가서
+            위아래로 잇는 편이 읽힙니다. */
+      var artRow = (lv === 2) ? null : meArtRow();
 
       /* ★ **2단계는 「빈칸을 채워 문장을 완성해요」** 입니다 (2026-08-24).
            그래서 문장을 대신 완성해 주지 않습니다. 위 그림을 보고 학생이
@@ -795,9 +812,15 @@
                  ▸ 빈칸일 때에는 「을」 로 둡니다 (무엇이 올지 모르니까요).
                  ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
             <span>${(fill.act ? App.josa(fill.act, '을/를').slice(String(fill.act).length) : '을') + ' 할 때'}</span>
-            <input class="field me-blank" value=${fill.mood || ''} aria-label="어떤 기분인가요"
-              onChange=${function (e) { saveFill('mood', e.target.value); }} />
-            <span>.</span>
+            <!-- ⛔ 마침표를 **따로 두지 마세요** (2026-08-30). 칸이 조금만 좁아도
+                   마침표만 다음 줄에 혼자 떨어져 「. 」 한 글자짜리 줄이 됩니다
+                   (선생님이 보내 주신 화면이 그 모습이었습니다).
+                 ▸ 뒤 빈칸과 **한 덩이**로 묶으면 둘이 함께 움직입니다. -->
+            <span class="me-tie">
+              <input class="field me-blank" value=${fill.mood || ''} aria-label="어떤 기분인가요"
+                onChange=${function (e) { saveFill('mood', e.target.value); }} />
+              <span>.</span>
+            </span>
           </p>
           <${C.Speak} text=${student.word || '나는 무엇을 할 때 어떤 기분이에요.'} />
         </div>`;
@@ -1553,13 +1576,14 @@
                  (2026-08-30 · 선생님 : 「상자 길이의 폭을 넓히고」).
                ⛔ 이 표시가 없으면 위 .me-bar 규칙(내용만큼만 잡기)이
                   칸을 **글자만큼만** 잡아 쓰는 칸이 216px 로 쪼그라듭니다. -->
-          <div class=${'me-bar' + (meLv === 3 ? ' has-write' : '')}>
+          <div class=${'me-bar' + (meLv === 3 ? ' has-write' : '') + (meLv === 2 ? ' has-art' : '')}>
             <div class="me-who">
               <span class="me-who-face"><${C.AvatarArt} student=${student} /></span>
               <b class="me-who-nm">${student.name}</b>
             </div>
             <div class="me-saycol">
               <span class="me-cap">나의 한마디</span>
+              ${meLv === 2 && meArtRow()}
               ${meSayBar()}
               <!-- ⛔ 2단계에는 이 칸을 두지 마세요. 위 노란 바가 이미
                      **빈칸을 채우는 자리**라, 같은 일을 두 번 하게 됩니다
@@ -1605,13 +1629,21 @@
         <div class="me-bar wide">
           <div class="me-pickarea">${rPicks}</div>
         </div>
-        <div class="me-bar">
+        <!-- ★ 이름표(돌아보기)를 **바의 직접 자식**으로 꺼냅니다
+               (2026-08-30 · 선생님 : 「돌아보기 옆 나 카드를 조금 내려서
+                돌아보기 전체 4줄의 가운데 부분에 정렬되도록 맞추기」).
+             ⛔ 이름표가 오른쪽 칸(.me-saycol) 안에 있으면, 나 카드는
+                「이름표 + 네 줄」 전체의 가운데에 서게 됩니다. 그러면 눈에는
+                네 줄보다 **한 칸 위**로 보입니다.
+             ▸ 이름표를 윗줄에 따로 두면 나 카드가 **네 줄만의 가운데**에
+                섭니다. 이름표는 그대로 네 줄 위 가운데입니다. -->
+        <div class="me-bar rowbar">
+          <span class="me-cap">돌아보기</span>
           <div class="me-who">
             <span class="me-who-face"><${C.AvatarArt} student=${student} /></span>
             <b class="me-who-nm">${student.name}</b>
           </div>
           <div class="me-saycol">
-            <span class="me-cap">돌아보기</span>
             ${reviewRows(meLv === 3)}
           </div>
         </div>

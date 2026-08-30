@@ -5215,6 +5215,11 @@ textarea.field.diary-write,
   display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
   gap:.45rem; padding:.9rem 1rem; line-height:1.6;
 }
+/* 뒤 빈칸과 마침표는 **한 덩이** — 마침표만 다음 줄에 떨어지지 않게 */
+.me-say.me-fill .me-tie{
+  display:inline-flex; align-items:center; gap:.45rem;
+  flex:0 1 auto; min-width:0;
+}
 .me-say.me-fill .me-blank{
   flex:0 1 11rem; min-width:7rem; min-height:2.9rem;
   font-size:inherit; font-weight:900; text-align:center;
@@ -5778,6 +5783,81 @@ textarea.field.diary-write,
 .me-bar.has-write .me-saycol > .me-saybar .me-hintpills{ flex:0 1 auto; margin-bottom:0; }
 /* 쓰는 칸은 **다음 줄**로 내려 폭을 통째로 씁니다 */
 .me-bar.has-write .me-saycol > .me-write{ flex:0 0 100%; }
+
+/* ══════════════════════════════════════════════════════════════════
+   ★★ 2단계 「나의 한마디」 아래 바 (2026-08-30 · 선생님이 그림으로 짚어 주심)
+
+     [나 카드] [나의 한마디][만들기][뿌듯해요]      ← 고른 것이 이름표 뒤로
+               ┌─────────────────────┐
+               │ 나는 [만들기] 를 할 때 [뿌듯해요]. 🔊 │  ← 빈칸 채우는 노란 칸
+               └─────────────────────┘
+
+   ⛔ 예전에는 그림 줄이 노란 칸과 **한 묶음**이라 이름표 **아래**에 있었고,
+      이름표만 덩그러니 한 줄을 차지했습니다. 그래서 —
+        · 나 카드와 노란 칸 사이가 휑하게 벌어지고
+        · 「나의 한마디」와 고른 것이 따로 노는 것처럼 보였습니다.
+   ▸ 그림 줄을 밖으로 꺼내(js 의 meArtRow) 이름표 **옆**에 세우고,
+     노란 칸은 다음 줄로 내려 **가운데**에 둡니다.
+   ▸ 3단계(.has-write)와 **같은 짜임**입니다 — 두 화면이 같은 일을 하는데
+     생김새가 다르면 학생이 다른 화면으로 봅니다.
+   ══════════════════════════════════════════════════════════════════ */
+.me-bar.has-art .me-saycol{
+  flex-direction:row; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  column-gap:.6rem; row-gap:.4rem;
+}
+/* ⛔⛔ **폭은 `.me-saycol` 이 아니라 「칸(track)」 에 걸어야 합니다** (재어 확인).
+     `auto` 칸은 남는 자리를 **다 먹습니다.** 그래서 `.me-saycol` 만 좁히면
+     칸은 797px 그대로이고 내용만 그 왼쪽에 붙어, 나 카드와 한마디 사이가
+     휑하게 벌어졌습니다 (선생님이 짚어 주신 그 벌어짐).
+   ▸ 오른쪽 칸을 **노란 칸 + 읽어주기가 편히 드는 만큼**(38rem)으로 못박고,
+     `justify-content:center` 로 두 칸을 가운데로 모읍니다.
+   ▸ 나 카드와 노란 칸 사이는 **조금만** (선생님 : 「간격을 조그만 두게」). */
+.me-bar.has-art:not(.slots):not(.wide){
+  grid-template-columns:auto min(100%, 33rem);
+  justify-content:center;
+  gap:clamp(.3rem,.8vw,.7rem);
+}
+/* 그림 줄은 제 그림만큼만 — 아래 여백을 지워야 이름표와 밑선이 맞습니다 */
+.me-bar.has-art .me-saycol > .me-sayart{ flex:0 1 auto; margin:0; }
+/* 노란 칸은 **다음 줄** 가운데.
+   ⛔ 여기서 `width` 로 좁히려 하지 마세요 — `flex-basis:100%` 가 이겨서
+      797px 짜리 긴 띠가 됩니다 (재어 확인). 줄은 통째로 쓰되 **안의 노란
+      칸을 max-width 로** 묶고, 줄이 가운데 정렬이라 저절로 가운데에 섭니다.
+   ⚠ 넓다고 좋은 것이 아닙니다 — 앞말과 뒷말이 멀어지면 한 문장으로
+      이어 읽히지 않습니다 (3단계에서 이미 겪은 것 · 아래 20% 주석). */
+.me-bar.has-art .me-saycol > .me-saybar{
+  flex:0 0 100%; width:100%; margin:0;
+  /* ★ 읽어주기는 노란 칸 **아래 가운데**로 내립니다.
+       옆에 두면 그 단추가 미는 만큼 노란 칸이 왼쪽으로 밀려 위 이름표 줄과
+       가운데가 어긋나고(재어 보니 21px), 그것을 맞추려 반대쪽에 빈자리를
+       두면 이번에는 나 카드와 노란 칸 사이가 그만큼 벌어집니다.
+       아래로 내리면 둘 다 풀립니다 — 가운데도 맞고 사이도 좁습니다. */
+  flex-direction:column; align-items:center; gap:.25rem;
+}
+/* ⚠ 32rem 은 **문장 한 줄이 딱 드는** 폭입니다 (재어 확인 : 나는 + 빈칸 +
+     을 할 때 + 빈칸 + 마침표 = 534px, 31rem 은 527px 라 7px 이 모자랐습니다).
+     더 넓히지 마세요 — 앞말과 뒷말이 멀어지면 한 문장으로 안 읽힙니다. */
+.me-bar.has-art .me-saycol > .me-saybar > .me-say{
+  flex:0 1 auto; align-self:stretch; max-width:min(100%, 32rem); margin:0 auto;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ★ 돌아보기 — 나 카드를 **네 줄의 가운데**에 (2026-08-30 · 선생님 말씀)
+   이름표는 윗줄에 따로, 나 카드와 네 줄은 아랫줄에 나란히 둡니다.
+   그러면 `align-items:center` 가 카드를 **네 줄만의 가운데**에 세웁니다.
+   ⛔ `:not()` 둘을 같이 붙여야 위 `.me-bar:not(.slots):not(.wide)` 를
+      이깁니다 (힘 0,3,0 대 0,3,0 · 인수인계 41 의 그 함정입니다).
+   ══════════════════════════════════════════════════════════════════ */
+.me-bar.rowbar:not(.slots):not(.wide){
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-rows:auto auto;
+  justify-content:center; align-items:center;
+  row-gap:.35rem;
+}
+.me-bar.rowbar > .me-cap{ grid-column:2; grid-row:1; justify-self:center; }
+.me-bar.rowbar > .me-who{ grid-column:1; grid-row:2; }
+.me-bar.rowbar > .me-saycol{ grid-column:2; grid-row:2; }
 
 /* ★ 노란 쓰는 칸은 **문장 앞뒤로 20% 정도만** 여유 (2026-08-30 · 선생님 :
      「한 문장의 앞 뒤 20% 정도의 여백이 되도록만 상자 폭을 조정하고
