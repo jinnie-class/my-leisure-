@@ -440,6 +440,31 @@
           (css 의 `.pd-box.pd-titlelab{grid-column:span 2}`). */
     var titleCells = Math.max(0, (g.cols || 0) - 2);
     var titleFits = !useLines && titleText.length > 0 && titleText.length <= titleCells;
+    /* ★★ 제목 줄을 **하나로 묶어 둡니다** (2026-08-30 · 선생님 말씀 —
+           「1단계 따라쓰기 원고지에 손으로 쓰기에서 제목은 원고지에
+            손으로 쓰기가 안 됨」).
+         까닭 : 손글씨 판(.pd-writepad)은 .pd-writewrap 을 덮는데,
+         제목 줄은 그 **밖에** 따로 있었습니다. 붓이 닿을 자리가 아니었습니다.
+       ▸ 1·2단계에서는 이 줄을 판 **안**에 넣어 함께 덮습니다.
+         3단계(밑줄)와 사진으로 올린 원고지에서는 예전 자리 그대로입니다. */
+    var titleRow = titleFits
+      ? html`<div class="pd-grid pd-titlegrid"
+           style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
+                     fontSize: titleFs + 'px' }}>
+          <span class="pd-box pd-titlelab">제목</span>
+          ${(function () {
+            var cells = [];
+            for (var i = 0; i < titleCells; i++) cells.push(titleText.charAt(i) || '');
+            return cells.map(function (ch, i) {
+              return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
+            });
+          })()}
+        </div>`
+      : html`<div class="pd-titleline"
+           style=${{ fontSize: titleFsFit + 'px', height: titleRowH + 'px' }}>
+          <span class="pd-titlelab-line">제목</span>
+          <span class="pd-titletext">${titleText}</span>
+        </div>`;
     /* 힌트 보기에 쓸 문장 — 학생이 아래 빈 칸에 보고 쓸 내용입니다 */
     var hintLines = lines;
 
@@ -691,34 +716,19 @@
               })}
             </div>`}
       </div>
-
       <!-- ★ 제목 = **칸 없는 한 줄** (세 단계 모두 · 2026-08-26).
              글자 크기는 본문과 같고, 높이는 그 단계의 원고지 한 줄과 같습니다.
              까닭과 ⛔ 는 위 titleRowH 를 정하는 곳에 적어 두었습니다.
            ⛔ 이 주석은 html 안입니다. 여는 것과 닫는 것을 **짝 맞춰** 쓰세요.
              js 주석 닫기(별표+빗금)로 닫으면 주석이 안 닫혀서 뒤 마크업이
-             통째로 먹히고 화면이 아예 안 뜹니다. 백틱도 쓰지 마세요. -->
-      ${titleFits
-        ? html`<div class="pd-grid pd-titlegrid"
-             style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
-                       fontSize: titleFs + 'px' }}>
-            <span class="pd-box pd-titlelab">제목</span>
-            ${(function () {
-              var cells = [];
-              for (var i = 0; i < titleCells; i++) cells.push(titleText.charAt(i) || '');
-              return cells.map(function (ch, i) {
-                return html`<span key=${i} class="pd-box"><span class="pd-ch">${ch}</span></span>`;
-              });
-            })()}
-          </div>`
-        : html`<div class="pd-titleline"
-             style=${{ fontSize: titleFsFit + 'px', height: titleRowH + 'px' }}>
-            <span class="pd-titlelab-line">제목</span>
-            <span class="pd-titletext">${titleText}</span>
-          </div>`}
+             통째로 먹히고 화면이 아예 안 뜹니다. 백틱도 쓰지 마세요.
+           ★★ 1·2단계에서는 이 줄이 **손글씨 판 안**으로 들어갑니다
+             (아래 pd-writewrap). 그래야 제목 칸에도 손으로 쓸 수 있습니다
+             (2026-08-30 · 선생님 말씀). 3단계와 사진으로 올린 원고지에서는
+             예전처럼 여기 그대로 나옵니다. -->
+      ${(useLines || paperwriting) && titleRow}
 
       ${hint}
-
       ${useLines
         /* 3단계(자유쓰기)는 칸이 아니라 밑줄에 씁니다.
            글이 길어져도 한 장에 다 담기고, 칸에 맞춰 쓰는 부담도 없습니다.
@@ -766,6 +776,8 @@
             ⛔ 글씨를 칸과 **한 장으로 합쳐 저장하지 마세요** — 칸이 그림이
                되어 인쇄가 흐려지고, 글자 크기를 바꾸면 칸과 어긋납니다. */
         : html`<div class="pd-writewrap">
+          <!-- ★ 제목 줄이 **판 안**에 있습니다 — 그래야 제목에도 손으로 씁니다. -->
+          ${titleRow}
           <div class="pd-grid" style=${{ gridTemplateColumns: 'repeat(' + g.cols + ', 1fr)',
               fontSize: Math.round(790 / g.cols * GLYPH_FILL) + 'px' }}>
             ${g.rows.map(function (row, r) {
@@ -778,9 +790,19 @@
               });
             })}
           </div>
-          ${writeInk && !writing && html`<img class="pd-writeink" src=${writeInk} alt="손으로 쓴 글씨" />`}
+          <!-- ⛔⛔ **이미 저장해 둔 글씨는 제목 줄이 없던 때 것**입니다
+                 (2026-08-30). 판이 제목 줄만큼 커졌으므로, 옛 글씨를 판 전체에
+                 늘려 덮으면 **글씨가 아래로 밀리고 눌립니다.**
+               ▸ 그래서 writeInkTitle 이 적힌 것(새로 쓴 것)만 판 전체를 덮고,
+                 없는 것(옛 기록)은 **본문 칸 자리에만** 얹습니다.
+               ⚠ 이 갈래를 지우지 마세요 — 지우면 학생들이 이미 써 둔 글씨가
+                 통째로 어긋납니다. -->
+          ${writeInk && !writing && html`<img class="pd-writeink" src=${writeInk}
+            alt="손으로 쓴 글씨"
+            style=${d.writeInkTitle ? null
+              : { top: titleRowH + 'px', height: 'calc(100% - ' + titleRowH + 'px)' }} />`}
           ${writing && html`<canvas class="pd-writepad" ref=${padRef}
-            width=${gridPx.w} height=${gridPx.h}
+            width=${gridPx.w} height=${gridPx.h + titleRowH} data-titleh=${titleRowH}
             onPointerDown=${p.onPenDown} onPointerMove=${p.onPenMove}
             onPointerUp=${p.onPenUp} onPointerCancel=${p.onPenUp}
             onPointerLeave=${p.onPenUp} />`}
@@ -1115,17 +1137,23 @@
     var thickS = useState(PEN_SIZES[1].v);
     var eraseS = useState(false);
     var writing = writeS[0];
-
     /* 쓰기를 켜면 저장해 둔 글씨를 판 위에 **먼저 깔아** 이어서 쓰게 합니다.
-       ⛔ 판은 투명하게 둡니다 — 흰색을 칠하면 아래 원고지 칸이 가려집니다. */
+       ⛔ 판은 투명하게 둡니다 — 흰색을 칠하면 아래 원고지 칸이 가려집니다.
+       ⛔⛔ **옛 글씨는 제목 줄이 없던 때 것**입니다 (2026-08-30).
+            판이 제목 줄만큼 커졌으므로 그대로 판 전체에 그리면 글씨가
+            아래로 밀리고 눌립니다. writeInkTitle 이 없는 것은
+            **제목 줄 아래(본문 자리)에만** 깔아 줍니다. */
     useLayoutEffect(function () {
       if (!writing) return;
       var cv = padRef.current; if (!cv) return;
       var g2 = cv.getContext('2d');
       g2.clearRect(0, 0, cv.width, cv.height);
       if (d && d.writeInkId) {
+        var titleH = d.writeInkTitle ? 0 : (parseFloat(cv.dataset && cv.dataset.titleh) || 0);
         var img = new window.Image();
-        img.onload = function () { g2.drawImage(img, 0, 0, cv.width, cv.height); };
+        img.onload = function () {
+          g2.drawImage(img, 0, titleH, cv.width, cv.height - titleH);
+        };
         img.src = App.photos.url(d.writeInkId);
       }
     }, [writing, d && d.writeInkId]);
@@ -1179,7 +1207,10 @@
       var url = cv.toDataURL('image/png');   // 투명한 글씨 한 겹
       App.photos.addDataUrl(url, student.id, 'ink').then(function (id) {
         var old = d.writeInkId;
-        App.store.updateDiary(d.id, { writeInkId: id });
+        /* ⚠ writeInkTitle 을 함께 적습니다 — 이 글씨는 **제목 줄까지 담긴**
+             새 판에서 나온 것이라는 표시입니다. 이것이 없는 옛 기록은
+             본문 자리에만 얹습니다 (위 pd-writeink · 이어서 쓰기 참고). */
+        App.store.updateDiary(d.id, { writeInkId: id, writeInkTitle: 1 });
         if (old) App.photos.remove(old);
         writeS[1](false);
         App.ui.toast('종이에 쓴 글씨를 담았어요.');
