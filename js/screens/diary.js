@@ -1707,21 +1707,31 @@
              정작 학생이 글을 쓰는 노란 칸이 그만큼 위로 올라옵니다.
            ⚠ 좁은 화면에서는 질문 줄이 스스로 접힙니다 (.q-bar 는 flex-wrap). */
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} speakText="오늘의 여가 일기를 써요"
-          note="오늘 있었던 일을 써 보아요"
-          right=${html`<span class="q-ways">
-            ${WRITE_WAYS.map(function (wy) {
-              /* 없어진 「종이에 쓰기」가 저장돼 있으면 키보드로 봅니다 */
-              var on = (draft.writeWay === 'hand') ? (wy.id === 'hand') : (wy.id === 'key');
-              return html`<button key=${wy.id} type="button" class=${'tab' + (on ? ' on' : '')}
-                aria-pressed=${on ? 'true' : 'false'} title=${wy.desc}
-                onClick=${function () { patch({ writeWay: wy.id }); }}>${wy.name}<//>`;
-            })}
-            <${C.Btn} size="small" icon="book"
-              onClick=${function () { helpS[1](true); }}>문장 도움 보기<//>
-          </span>`}>오늘의 여가 일기를 써요<//>
+        <${C.Question} bar=${true} note=${lvNote}
+          speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
         <${C.Sec}>
-
+          <!-- ★ 안내 한 줄 + 단추 셋을 **한 묶음으로 가운데**에 둡니다
+                 (2026-08-30 · 선생님이 빨간 동그라미로 짚어 주신 그대로).
+               ⛔ 질문 줄에 한 줄로 합치지 마세요 — 선생님 말씀 :
+                  「내가 말한 거는 한 줄 배치가 아니야」.
+                  안내와 단추는 **쓰는 칸에 딸린 것**이라, 질문 줄이 아니라
+                  쓰는 칸 바로 위에 제 묶음으로 있어야 합니다.
+               ⛔ 예전에는 안내가 왼쪽 끝, 「문장 도움 보기」가 오른쪽 끝으로
+                  갈라져 있어(lab grow) 한 묶음으로 보이지 않았습니다. -->
+          <div class="write-ways">
+            <span class="write-ways-cap">오늘 있었던 일을 써 보아요</span>
+            <div class="write-ways-btns">
+              ${WRITE_WAYS.map(function (wy) {
+                /* 없어진 「종이에 쓰기」가 저장돼 있으면 키보드로 봅니다 */
+                var on = (draft.writeWay === 'hand') ? (wy.id === 'hand') : (wy.id === 'key');
+                return html`<button key=${wy.id} type="button" class=${'tab' + (on ? ' on' : '')}
+                  aria-pressed=${on ? 'true' : 'false'} title=${wy.desc}
+                  onClick=${function () { patch({ writeWay: wy.id }); }}>${wy.name}<//>`;
+              })}
+              <${C.Btn} size="small" icon="book"
+                onClick=${function () { helpS[1](true); }}>문장 도움 보기<//>
+            </div>
+          </div>
           <!-- ⚠ 없어진 「종이에 쓰기」로 저장해 둔 학생이 **빈 화면**을 보지
                  않게, 아는 두 가지가 아니면 키보드로 봅니다 (2026-08-28).
                  예전 기록을 고치지 않고 이어 주는 방식입니다 — 활동의
@@ -1729,22 +1739,49 @@
                ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). 실제로 여기에
                   백틱을 썼다가 화면이 통째로 안 떴습니다. -->
           ${(draft.writeWay !== 'hand') && html`<${React.Fragment}>
-            <!-- ★ **위 문장 틀만큼 크게, 나눔바른펜으로** (2026-08-28 · 선생님 말씀 —
-                   「일기칸이 너무 길고 글자가 작아서 잘 안보여. 글자크기 위의
-                   글자만큼 크게 하고 나눔바른펜으로 … 눈에 잘 띄게 수정도
-                   편하게」).
-                   예전에는 작은 회색 칸이 화면 폭을 다 써서, 학생이 자기가 쓴
-                   글을 읽기 어려웠습니다. 노란 미리보기 창은 잘 보였는데
-                   정작 **쓰는 칸**이 안 보였습니다.
-                 ▸ 완성 화면의 문장 칸(sentence-edit)과 **같은 차림**을 씁니다. -->
-            <${C.Area} rows=${5} className="diary-write" value=${draft.text}
-              placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
-              onChange=${function (v) { patch({ text: v }); }} />
-            <div class="wrap" style=${{ marginTop: '.45rem' }}>
-              <${C.Speak} text=${draft.text} label="내가 쓴 글 들어보기" />
+            <!-- ★★ **보면서 쓰기** (2026-08-30 · 선생님 말씀 —
+                   「문장 도움 보기를 누르면 오른쪽에 창이 보이면서 왼쪽에
+                    노란색 글 쓰는 창이 배치되면서 오른쪽 문장 도움 보기를
+                    보면서 작성할 수 있게」).
+                 ⛔ 예전에는 **덮는 창(모달)** 이었습니다. 도움 문장을 보려면
+                    쓰는 칸이 가려지고, 닫으면 도움 문장이 사라졌습니다.
+                    학생은 문장을 **외워서** 옮겨 적어야 했습니다 —
+                    3단계에서 가장 어려운 일을 더 어렵게 만든 셈입니다.
+                 ▸ 이제 옆에 나란히 둡니다. 보면서 그대로 쓸 수 있고,
+                   눌러서 글에 넣을 수도 있습니다.
+                 ⚠ 좁은 화면에서는 위아래로 쌓입니다 (css .write-2col). -->
+            <div class=${'write-2col' + (helpS[0] ? ' on' : '')}>
+              <div class="write-left">
+                <!-- ★ **위 문장 틀만큼 크게, 나눔바른펜으로** (2026-08-28 · 선생님 말씀 —
+                       「일기칸이 너무 길고 글자가 작아서 잘 안보여. 글자크기 위의
+                       글자만큼 크게 하고 나눔바른펜으로 … 눈에 잘 띄게 수정도
+                       편하게」).
+                     ▸ 완성 화면의 문장 칸(sentence-edit)과 **같은 차림**을 씁니다. -->
+                <${C.Area} rows=${5} className="diary-write" value=${draft.text}
+                  placeholder="예) 오늘 나는 친구와 슬라임 놀이를 했어요. 말랑말랑해서 재미있었어요."
+                  onChange=${function (v) { patch({ text: v }); }} />
+                <div class="wrap" style=${{ marginTop: '.45rem' }}>
+                  <${C.Speak} text=${draft.text} label="내가 쓴 글 들어보기" />
+                </div>
+              </div>
+              ${helpS[0] && html`<aside class="write-help" aria-label="문장 도움 보기">
+                <div class="write-help-top">
+                  <b>문장 도움 보기</b>
+                  <${C.Btn} size="small" icon="close"
+                    onClick=${function () { helpS[1](false); }}>닫기<//>
+                </div>
+                <p class="small muted">아래 문장을 참고해서 내 이야기로 바꾸어 써 보아요.
+                  누르면 글에 넣어져요.</p>
+                <div class="write-help-list">
+                  ${App.DATA.writingHelp.map(function (s, i) {
+                    return html`<button key=${i} type="button" class="btn wide"
+                      style=${{ justifyContent: 'flex-start' }}
+                      onClick=${function () { patch({ text: (draft.text ? draft.text + '\n' : '') + s }); }}>${s}<//>`;
+                  })}
+                </div>
+              </aside>`}
             </div>
           <//>`}
-
           ${(draft.writeWay || 'key') === 'hand' && html`<div class="stack">
             ${draft.writePhotoId
               ? html`<${React.Fragment}>
@@ -1968,7 +2005,10 @@
         </div>
       <//>`}
 
-      ${helpS[0] && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
+      <!-- ⚠ 덮는 창은 **손글씨로 쓰기**일 때만 남깁니다 (2026-08-30).
+             키보드로 쓸 때는 위에서 옆에 나란히 보여 주므로,
+             여기까지 뜨면 같은 것이 두 번 나옵니다. -->
+      ${helpS[0] && (draft.writeWay || 'key') === 'hand' && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
         actions=${html`<${C.Btn} onClick=${function () { helpS[1](false); }}>닫기<//>`}>
         <p class="small muted">아래 문장을 참고해서 내 이야기로 바꾸어 써 보아요. 누르면 글에 넣어져요.</p>
         <div class="stack" style=${{ marginTop: '.5rem' }}>
