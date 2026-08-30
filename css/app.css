@@ -17,7 +17,12 @@
   /* ★ B안 (2026-08-26 · 선생님 결정) : **회색 바탕 + 흰 스테이지 + 파랑 포인트 하나.**
        바탕을 흰색에 가까운 #f6f8fc 에서 한 단 진한 회청색으로 내려,
        흰 칸(무대)이 또렷이 떠 보이게 합니다. 벽지 그림도 껐습니다 (app.js). */
-  --bg:       #e9edf3;
+  /* ⚠ 바탕색은 **벽지와 같은 결**이어야 합니다 (2026-08-30 · 선생님 :
+       「바탕벽지가 … 민트벽지로 다 바꿔줘」).
+     2026-08-26 「B안」에서 벽지를 끄면서 회청색 #e9edf3 으로 내렸던 것을
+     되돌립니다. #f3f7ea 는 images/벽지.jpg 를 재어 나온 평균색이라,
+     그림이 늦게 실리거나 화면 가장자리가 비어도 **파랗게 번쩍이지 않습니다.** */
+  --bg:       #f3f7ea;
   /* 파랑 포인트 — 중요한 단추·고른 것 표시에 **이 한 색만** 씁니다.
      (예전 하늘색 #5ec8f2 는 흰 글자와 대비가 모자랐습니다) */
   --accent:   #2b7de9;
@@ -1159,8 +1164,16 @@ textarea.field.diary-write:focus{
 /* 그림을 크게 — 카드 높이의 절반 넘게 */
 .mapcard .mi{ width:calc(var(--cw) * .52); height:calc(var(--cw) * .52); flex:0 0 auto; }
 .mapcard .mi svg,.mapcard .mi img{ width:100%; height:100%; display:block; object-fit:contain; }
+/* ★ 이름을 키웠습니다 (2026-08-30 · 선생님 : 「활동이 충분히 자리가 있는데
+     왜 글자가 작은지. 글자를 키워줘」).
+   ⛔ 까닭은 **22px 상한**이었습니다. 이름은 카드 폭의 12.5% 인데, 화면이
+      커져 카드가 280px 이 되어도 글자는 22px 에서 멈췄습니다 —
+      **카드가 커질수록 글자가 상대적으로 더 작아 보였습니다.**
+   ▸ 비율 .125 → .15, 상한 22 → 32px.
+     카드 136px 에서 17 → 20px · 카드 280px 에서 22 → 32px.
+   ⚠ 두 줄까지만 보이는 것(-webkit-line-clamp:2)은 그대로입니다. */
 .mapcard .mn{
-  font-size:clamp(12px, calc(var(--cw) * .125), 22px);
+  font-size:clamp(12px, calc(var(--cw) * .15), 32px);
   font-weight:900; line-height:1.15; letter-spacing:-.03em;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
@@ -2051,8 +2064,18 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   .dv-bar{
     position:absolute; left:0; right:0; top:-3.2rem; z-index:2; margin-bottom:0;
   }
+  /* ⛔⛔ **확인 화면에서는 띄우지 않습니다** (2026-08-30 · 선생님 :
+       「더 크게 보기가 잘려서 안 보임. 그림일기 자체를 아래로 내리든지…
+        보이게 다시 해줘」).
+     까닭 — 띄우는 자리(top:-3.2rem)는 원래 「일기가 완성되었어요」 줄이
+     차지하던 **빈 띠**였습니다. 그 줄을 왼쪽 칸 안으로 옮기면서 띠가
+     없어졌고, 단추가 흰 칸 위로 올라가 **잘려 보이지 않게** 되었습니다.
+     ▸ 여기서는 흐름 안에 두어 종이 바로 위에 놓습니다. 종이가 그만큼
+       내려가지만(선생님이 허락하신 쪽), 단추가 늘 보입니다.
+     ▸ fitDv 가 「흐름 안에 있으면 그 높이를 뺀다」로 되어 있어
+       종이 크기도 저절로 맞습니다 — 따로 고칠 것이 없습니다. */
+  .confirm-2col > .dv-row > .dv-bar{ position:static; margin-bottom:.4rem; }
 }
-.dv-bar .btn{ white-space:normal; line-height:1.25; }
 .dv{
   --dv:.60;
   display:flex; flex-direction:column; align-items:center; gap:.3rem;
@@ -2709,15 +2732,30 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      그러지 않으면 2026-08-24 에 났던 탈(문장이 가운데서 잘려
      「하고 싶어요.」 만 다음 줄에 남는 것)이 되살아납니다. */
 .frame-row{
-  display:flex; flex-wrap:wrap; gap:.5rem; align-items:stretch;
+  display:flex; flex-wrap:wrap; align-items:stretch;
   margin-bottom:.5rem;
   /* ⚠ 감싸는 .frame-top 이 **세로 flex** 라, 그냥 두면 이 줄이 내용만큼만
        좁아집니다 (1251 자리에 486px). 그러면 두 문장이 나란히 못 서고
        위아래로 쌓입니다. **폭을 펴 주어야** 합니다. */
   align-self:stretch; width:100%;
+  /* ★ 두 문장을 **글 쓰듯 이어 붙입니다** (2026-08-30 · 선생님 :
+       「서로 너무 띄어져 있어. 쓰면서 자연스럽게 벌어지도록 어법에 맞게
+        마침표 다음 한 칸 띄우고 기억에 남는 것은~~이 시작되도록」).
+     ⛔ 예전에는 두 문장에 `flex:1 1 22em` 을 주어 **남는 폭을 반씩 나눠**
+        가졌습니다. 그래서 화면이 넓을수록 사이가 더 벌어져,
+        한 줄에 있는데도 **딴 줄처럼** 보였습니다 (선생님이 빨갛게 그리신 자리).
+     ▸ 이제 문장은 **제 글자만큼만** 차지하고(flex:0 1 auto),
+       사이는 **마침표 뒤 한 칸(.4em)** 만 둡니다. 글을 쓸 때와 같습니다.
+     ▸ 줄이 모자라면 두 번째 문장이 **통째로** 다음 줄로 내려갑니다
+       (flex-wrap). 문장이 가운데서 잘리는 일은 없습니다. */
+  justify-content:center; gap:.15rem .4em;
 }
 .frame-row > .frame-line{
-  flex:1 1 22em; min-width:min(22em, 100%); margin-bottom:0;
+  /* ⛔ `.frame-line` 에 걸린 `margin-left:auto; margin-right:auto` 를 **꼭 풀어야**
+       합니다. flex 줄에서 auto 여백은 남는 폭을 **양끝으로 밀어내는** 힘이라,
+       flex:0 1 auto 로 바꿔도 두 문장이 402px 이나 벌어져 있었습니다. */
+  margin:0;
+  flex:0 1 auto; min-width:0; margin-bottom:0;
 }
 .frame-line .blank.on{ background:#fff; border-bottom-color:var(--ok); }
 .blank.wide{ min-width:10em; }
@@ -3653,12 +3691,30 @@ textarea.field.diary-write,
      어려웠습니다. 카드로 만들면 그림이 크고 몇 개인지도 한눈에 보입니다. */
 /* ★ 칸 크기를 **네 칸 화면과 똑같이** 못박습니다 (2026-08-26 · 선생님 말씀).
      활동이 한 개뿐이어도 같은 크기 · 같은 세로 길이로, 줄은 가운데 정렬. */
+/* ★★ **한 줄에 셋 · 스크롤 없이 최대한 크게** (2026-08-30 · 선생님 :
+     「3개씩 나열하고 글자와 그림을 키워줘」 「3개 기기에서 스크롤 없이 최대한」)
+
+   ⚠ 카드는 정사각형(aspect-ratio:1)이라 **폭이 곧 높이**입니다. 그래서
+     크기를 **폭과 높이 둘 다**로 묶어야 합니다. 하나만 보면 —
+       높이만 보면 : 좁은 화면에서 셋이 가로로 안 들어가 넘칩니다
+       폭만 보면   : 낮은 화면에서 카드가 아래로 넘쳐 **스크롤이 생깁니다**
+   ▸ min(높이몫, 폭몫) 으로 **작은 쪽**을 씁니다. 어느 기기에서도 안 넘칩니다.
+
+   재어 맞춘 값 (흰 칸 높이에서 위 알약 줄 60 · 아래 쪽넘김 50 을 뺀 것)
+     1024x600  카드 240  (흰 칸 400 · 쓰는 높이 350)
+     1280x620  카드 248  (흰 칸 458 · 쓰는 높이 358)   ← 186 에서 커짐
+     1920x1080 카드 420  (흰 칸 853 · 쓰는 높이 530)   ← 186 에서 커짐
+
+   ⚠ js 의 MY_PER 과 여기 repeat(3, …) 는 **함께** 고쳐야 합니다 (map.js). */
 .mymap-cards{
-  display:grid; grid-template-columns:repeat(4, clamp(170px, calc(30 * var(--vh, 1vh)), 300px));
-  gap:clamp(.55rem,1.1vw,1rem);
+  display:grid;
+  grid-template-columns:repeat(3, clamp(170px, min(calc(40 * var(--vh, 1vh)), 30vw), 420px));
+  gap:clamp(.55rem,1.1vw,1.2rem);
   justify-content:center;
 }
-@media screen and (max-width: 780px){ .mymap-cards{ grid-template-columns:repeat(2, clamp(170px, 30vh, 300px)); } }
+@media screen and (max-width: 780px){
+  .mymap-cards{ grid-template-columns:repeat(2, clamp(150px, min(calc(34 * var(--vh, 1vh)), 42vw), 300px)); }
+}
 .mymap-item{
   position:relative; background:#fff; border:2px solid var(--line); border-radius:18px;
   padding:.8rem .6rem .7rem; box-shadow:var(--shadow);
@@ -3672,13 +3728,21 @@ textarea.field.diary-write,
   background:#fff8e2; border:2px solid #e6bf4a; color:#6b5410;
   font-weight:900; font-size:.85rem;
 }
-.mymap-art{ width:clamp(76px,calc(14 * var(--vh, 1vh)),150px); height:clamp(76px,calc(14 * var(--vh, 1vh)),150px); display:block; }
+/* ⚠ 그림·글자도 **카드와 같은 잣대**(높이몫과 폭몫 중 작은 쪽)로 키웁니다.
+     카드만 키우고 속을 그대로 두면 **빈자리만 넓어집니다** —
+     상자를 없앤 자리를 그림이 받지 못했던 것과 똑같은 실수입니다.
+     카드의 6할쯤이 그림이 되도록 맞췄습니다. */
+.mymap-art{
+  width:clamp(76px, min(calc(24 * var(--vh, 1vh)), 18vw), 250px);
+  height:clamp(76px, min(calc(24 * var(--vh, 1vh)), 18vw), 250px);
+  display:block;
+}
 .mymap-art img, .mymap-art svg{ width:100%; height:100%; object-fit:contain; display:block; }
 .mymap-name{
-  font-size:clamp(.95rem,.6rem + calc(.9 * var(--vh, 1vh)),24px); font-weight:900; text-align:center;
+  font-size:clamp(1rem,.5rem + calc(1.8 * var(--vh, 1vh)),38px); font-weight:900; text-align:center;
   line-height:1.25; min-width:0;
 }
-.mymap-item .mymap-date{ font-size:.85rem; font-weight:800; color:var(--ink-soft); }
+.mymap-item .mymap-date{ font-size:clamp(.8rem,.45rem + calc(1 * var(--vh, 1vh)),22px); font-weight:800; color:var(--ink-soft); }
 
 /* 그림일기 그림칸 — **장소를 배경으로**, 그 안에 누구와 → 활동 → 기분.
    ★ 예전에는 활동이 왼쪽 위에 작게, 나머지가 아래에 더 작게 흩어져
@@ -4391,7 +4455,7 @@ textarea.field.diary-write,
    ※ .pd-sheet 안이라 크기는 **px** 로 잡습니다 (794 고정 캔버스). */
 .pd-hintbig{
   width:100%; height:100%; display:flex; flex-direction:column;
-  justify-content:center; gap:8px; padding:14px 22px;
+  justify-content:flex-start; gap:8px; padding:14px 22px;
   background:#fffbe8; border:3px dashed #e8bf3d; border-radius:12px;
   box-sizing:border-box; overflow:hidden;
 }
@@ -5257,3 +5321,14 @@ textarea.field.diary-write,
   .frame-line .blank{ padding:.05rem .5rem; font-size:1.02rem; }
   .frame-row{ gap:.35rem; margin-bottom:.25rem; }
 }
+
+/* ★ 좁은 알림 창의 단추는 **한 줄로** (2026-08-30 · 선생님 :
+     「완성한 그림일기보기가 한줄로 나오게」).
+   ⚠ 자리가 없어서 접힌 것이 아닙니다 — 재어 보니 「완성한 그림일기 보기」는
+     그림표시까지 290px 이고 창 안쪽은 420px 이라 **넉넉히 남습니다.**
+     그런데도 접힌 것은 단추 글자가 저절로 줄바꿈되기 때문입니다.
+   ▸ 두 줄로 접히면 단추가 세로로 길어져 **눌러야 할 곳이 흐려집니다.**
+     학생이 다음에 할 일 하나만 남겨 둔 창이라 더 그렇습니다.
+   ⚠ 여기에 넣을 말은 **420px 안에 드는 짧은 말**이어야 합니다.
+     더 긴 말을 넣으려면 창을 .narrow 가 아니라 기본 폭으로 두세요. */
+.modal.narrow.center .btn{ white-space:nowrap; }

@@ -273,11 +273,14 @@
       };
       probe.src = url;
     }
-    /* ★ 벽지는 **끕니다** (2026-08-26 · B안 : 회색 바탕 + 흰 스테이지 + 파랑 하나).
-         무늬 벽지는 카드·그림과 겹쳐 시각 자극을 늘립니다.
-         되살리려면 아래 줄의 주석을 풀면 됩니다 — 그림 파일은 그대로 있습니다. */
-    /* useIfExists(App.IMAGE_BASE.wallpaper, '--wallpaper'); */
-    useIfExists(App.IMAGE_BASE.mapbg, '--mapbg');
+    /* ★ 벽지를 **다시 켰습니다** (2026-08-30 · 선생님 : 「바탕벽지가 어느새
+         파랑이 되어 있어 내가 이미지에 넣은 민트벽지로 다 바꿔줘」).
+       2026-08-26 「B안」에서 껐던 것을 되돌립니다. 그림 파일(images/벽지.jpg)은
+       그대로 있었고, 이 한 줄이 주석 처리되어 있었을 뿐입니다.
+       ⚠ 함께 바뀌었던 바탕색 --bg 도 회청색 #e9edf3 → 벽지와 같은 결의
+         #f3f7ea 로 되돌립니다 (벽지를 재어 나온 평균색). 그림이 늦게 실려도
+         파랗게 번쩍이지 않습니다. */
+    useIfExists(App.IMAGE_BASE.wallpaper, '--wallpaper');
     /* 포트폴리오 첫 화면 창 다섯 안쪽의 바탕 그림 */
     useIfExists(App.IMAGE_BASE.folioBg, '--folio-bg');
 
