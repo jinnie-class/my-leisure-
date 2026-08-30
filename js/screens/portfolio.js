@@ -1554,7 +1554,12 @@
             <div class="me-slots">${pills}</div>
             <div class="me-pickarea">${picks}</div>
           </div>
-          <div class="me-bar">
+          <!-- ★ 3단계에는 아래에 **직접 쓰는 칸**이 붙습니다. 그때는 말 칸이
+                 폭을 넉넉히 써야 하므로 has-write 를 붙여 css 에 알려 줍니다
+                 (2026-08-30 · 선생님 : 「상자 길이의 폭을 넓히고」).
+               ⛔ 이 표시가 없으면 위 .me-bar 규칙(내용만큼만 잡기)이
+                  칸을 **글자만큼만** 잡아 쓰는 칸이 216px 로 쪼그라듭니다. -->
+          <div class=${'me-bar' + (meLv === 3 ? ' has-write' : '')}>
             <div class="me-who">
               <span class="me-who-face"><${C.AvatarArt} student=${student} /></span>
               <b class="me-who-nm">${student.name}</b>
@@ -2152,12 +2157,16 @@
                  다단에서 제멋대로 쪼개져, 다 들어가는데도 4쪽이 되었습니다. -->
           ${folioTab[0] === 'diary' && html`<${C.Sec}>
             ${data.diaries.length ? (function () {
-              /* ★ 한 쪽에 **둘** (2026-08-29 · 선생님 말씀 — 「2개씩 배치하고 제목은
-     한줄로 나오게 해줘. 그리고 그림은 크게」).
-     넷이면 카드가 좁아 제목이 두 줄로 접히고 그림도 96px 뿐이었습니다.
-     둘로 줄이면 카드 폭이 곱절이라 **제목이 저절로 한 줄**에 들어가고,
-     남는 자리를 그림이 가져갑니다. 셋을 따로 손보지 않아도 함께 풀립니다. */
-                var info = pageOf(data.diaries, diaryPageS[0], 2);
+                /* ★ 한 쪽에 **셋** (2026-08-30 · 선생님 :
+                     「일기도 너무 공간이 많은데 두 개 말고 세 개씩 하면
+                      이 크기 그대로 그림과 사이 간격이 조화로울 듯」).
+                   ⚠ 2026-08-29 에 넷 → 둘로 줄인 것은 **제목이 두 줄로 접히고
+                     그림이 96px 뿐**이어서였습니다. 그 뒤 카드가 넉넉해졌고,
+                     이제는 둘이라 오히려 좌우가 휑합니다.
+                   ▸ 셋이면 카드 크기는 그대로 두면서 빈자리가 메워집니다.
+                   ⚠ 제목이 다시 접히지 않는지 꼭 재어 보세요 — 접히면 둘로
+                     되돌리는 편이 낫습니다 (2026-08-29 의 까닭이 살아납니다). */
+                var info = pageOf(data.diaries, diaryPageS[0], 3);
               return flowBox(info, function (n) { diaryPageS[1](n); }, 'folio-diaries',
                 info.items.map(function (d) {
                 var a = App.act(d.activityId), pt = App.partner(d.partnerId);

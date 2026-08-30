@@ -4150,7 +4150,15 @@ textarea.field.diary-write,
    왼쪽 기둥 : 무엇을 하는 칸인지(알약) · 채우는 자리(알약) · 누구의 것인지
    오른쪽    : 고르는 것(4개씩 2줄 + 양쪽 화살표) · 만들어지는 문장
    ★ 세 단계가 같은 자리를 쓰므로, 단계를 옮겨도 다시 익힐 것이 없습니다. */
-.me-lv{ align-items:center; }
+/* ★ 「한마디 단계」 줄을 **가운데로** (2026-08-30 · 선생님 :
+     「맨 위의 한마디 단계 부분도 왼쪽으로 치우쳐 있는데 모든 창마다
+      가운데 정렬로 오게 해줘」).
+   ⛔ `.wrap` 은 왼쪽 맞춤이라 이 줄만 왼쪽 끝에 붙어 있었습니다.
+      아래 모든 덩어리(네 알약 · 나 카드 · 쓰는 칸)는 가운데인데 이 줄만
+      왼쪽이면, 화면이 한쪽으로 기운 것처럼 보입니다.
+   ▸ 이 코너의 **모든 창**(나의 한마디 · 돌아보기 · 모음)이 같은 줄을 쓰므로
+     한 곳만 고치면 셋 다 가운데로 옵니다. */
+.me-lv{ align-items:center; justify-content:center; }
 /* 한마디 / 돌아보기 작은 탭 — 단계 탭과 헷갈리지 않게 왼쪽에 선을 하나 긋습니다 */
 .me-parts{
   display:flex; gap:.3rem; align-items:center;
@@ -5205,10 +5213,8 @@ textarea.field.diary-write,
   background:var(--sel-bg,#eaf6fd); border:2px solid var(--sel-line,#7fc9ea);
   font-weight:900; font-size:clamp(.95rem,.6rem + calc(.8 * var(--vh, 1vh)),1.2rem);
 }
-/* 흰 긴 바 — 화면 폭을 넉넉히 쓰고 이름표는 가운데 */
-.me-write.wide{ width:min(100%, 46rem); }
+/* 흰 긴 바 — 이름표는 가운데 (자세한 규칙은 파일 아래 has-write 묶음) */
 .me-write.wide .lab{ text-align:center; display:block; font-weight:900; }
-.me-write.wide .field{ min-height:3.2rem; font-size:1.1rem; }
 
 /* ★ 1단계 나의 한마디 — **노란 바 안에도 그림**.
      글을 못 읽는 학생은 위 그림과 아래 문장이 따로 놀면 둘을 잇지 못합니다.
@@ -5571,3 +5577,103 @@ textarea.field.diary-write,
 @media screen and (min-width: 900px){
   .mb-2col .mb-board{ height:clamp(200px, calc(66 * var(--vh, 1vh)), 900px); }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   ★★ 3단계 「나의 한마디」 아래 바 (2026-08-30 · 선생님이 그림으로 짚어 주심)
+
+     [나 카드]  [나의 한마디][나들이하기][편안해요]   ← 고른 말이 차례로
+                          (간격)
+                      내 말로 스스로 적어요
+                          (간격)
+        ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+        │  나는 나들이하기를 할 때 편안해요.          │   ← 점선 · 노란 바탕
+        └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+
+   ⛔ 쓰는 칸이 **216px** 로 쪼그라들어 문장이 「…할 때 편인」에서 잘렸습니다.
+      까닭이 둘 겹쳐 있었습니다.
+        ① `.me-bar:not(.slots):not(.wide)` 가 두 칸을 **내용만큼만**(auto)
+           잡습니다 (2026-08-29 · 나 카드를 한마디 옆에 붙이려던 규칙).
+           `:not()` 이 둘이라 힘이 세서, `.me-bar.has-write` 로는 못 이깁니다 —
+           **여기에도 `:not()` 을 같이 붙여야** 이깁니다 (재어 확인).
+        ② `.me-saycol` 이 세로 flex 에 `align-items:center` 라, 칸을 넓혀도
+           속은 글자만큼만 남습니다. `align-self:stretch` 를 함께 주어야 폅니다.
+   ▸ 문장이 **끊기지 않게** 칸을 넓히고, 앞뒤로 20% 씩 숨 쉴 자리를 둡니다
+     (선생님 : 「한 문장의 앞뒤 간격 20% 여유있게」).
+   ══════════════════════════════════════════════════════════════════ */
+.me-bar.has-write:not(.slots):not(.wide){
+  grid-template-columns:auto minmax(0,1fr);
+  justify-content:stretch;
+}
+.me-bar.has-write .me-saycol{ align-self:stretch; }
+.me-bar.has-write .me-write{ align-self:stretch; }
+/* 이름표(내 말로 스스로 적어요)와 쓰는 칸 사이를 띄웁니다 */
+.me-bar.has-write .me-write .lab{ margin-bottom:.5rem; }
+/* ★ 쓰는 칸 — 점선 · 노란 바탕 · 나눔바른펜 (선생님 말씀).
+   ▸ 앞뒤 20% 여유 : 안쪽 여백을 좌우 10% 씩 주어 글이 테두리에 붙지 않게. */
+.me-write.wide{ width:100%; }
+.me-write.wide .field{
+  min-height:3.6rem;
+  padding-left:10%; padding-right:10%;
+  border:3px dashed var(--note-line, #e8bf3d);
+  background:var(--note, #fffbe8);
+  border-radius:14px;
+  font-family:'NanumBarunpen',"한컴산뜻돋움","HancomSandeutDotum","학교안심 산뜻돋움",
+              "Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
+  /* 나눔바른펜은 획이 얇아 같은 크기라도 작아 보입니다 — 한 단 키우고
+     두께는 낮춥니다 (계획 문장 칸과 같은 까닭). */
+  font-size:clamp(1.05rem,.7rem + calc(1 * var(--vh, 1vh)),1.5rem);
+  font-weight:700; text-align:center;
+}
+.me-write.wide .field::placeholder{ color:#bda85e; font-weight:700; }
+
+/* ★ 3단계 — 「나의 한마디」 뒤로 고른 알약이 **나란히** (2026-08-30 · 선생님 :
+     「나의 한마디 뒤로 선택한 파란색 창들을 나란히 배열해달라고」).
+
+     [나의 한마디] [수집하기] [재미있어요]     ← 한 줄
+                내 말로 스스로 적어요
+     ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+
+   ⛔ `.me-saycol` 은 **세로 flex** 라 이름표와 알약이 위아래로 나뉘었습니다.
+      셋이 한 줄에 서야 「나의 한마디 = 수집하기 + 재미있어요」 로 읽힙니다.
+   ▸ 3단계일 때만 가로로 눕히고, 쓰는 칸은 `flex:0 0 100%` 로 **줄을 바꿉니다.**
+   ⚠ 1·2단계는 그대로 두세요 — 거기는 노란 문장 바가 한 줄을 통째로 씁니다. */
+.me-bar.has-write .me-saycol{
+  flex-direction:row; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  column-gap:.6rem; row-gap:.5rem;
+}
+/* 알약 묶음은 제 글자만큼만 — 31rem 로 못박아 두면 이름표와 멀어집니다 */
+.me-bar.has-write .me-saycol > .me-saybar{ flex:0 1 auto; width:auto; margin:0; }
+.me-bar.has-write .me-saycol > .me-saybar .me-hintpills{ flex:0 1 auto; margin-bottom:0; }
+/* 쓰는 칸은 **다음 줄**로 내려 폭을 통째로 씁니다 */
+.me-bar.has-write .me-saycol > .me-write{ flex:0 0 100%; }
+
+/* ★ 노란 쓰는 칸은 **문장 앞뒤로 20% 정도만** 여유 (2026-08-30 · 선생님 :
+     「한 문장의 앞 뒤 20% 정도의 여백이 되도록만 상자 폭을 조정하고
+      너무 길게는 하지 않았으면 해」).
+   ⛔ 앞서 폭을 통째로(791px) 주었더니 글은 가운데 조그맣게 뜨고 좌우가
+      휑했습니다. 넓다고 좋은 것이 아니었습니다.
+   ▸ 34rem(약 544px)로 묶습니다. 한마디 문장은 스무 글자 안팎(약 360px)이라
+     좌우로 10% 씩(=합쳐 20%) 숨 쉴 자리가 남습니다.
+   ⚠ 칸이 좁아 글이 잘리면 안 됩니다 — 34rem 은 가장 긴 보기글
+     「예) 친구와 함께하는 여가가 제일 즐거워요.」가 한 줄에 드는 폭입니다. */
+.me-write.wide .field{
+  width:min(100%, 34rem); margin-left:auto; margin-right:auto; display:block;
+  padding-left:8%; padding-right:8%;
+}
+
+/* ★ 나 카드는 **말 칸 쪽으로 붙이고**, 말 칸은 **화면 가운데**로
+     (2026-08-30 · 선생님 : 「나 카드도 노란색 바에 따라 오른쪽으로 붙이고
+      아래 내용들이 다 가운데 정렬이 되도록」).
+   ⛔ 두 칸(나 카드 + 말 칸)만 두고 가운데로 모으면, **둘을 합친 것**이
+      가운데가 되어 정작 쓰는 칸은 오른쪽으로 86px 치우칩니다 (재어 확인).
+   ▸ 빈 칸을 하나 더 두어 **셋**으로 만듭니다. 가운데 칸이 말 칸이므로
+     쓰는 칸이 화면 한가운데에 서고, 나 카드는 그 왼쪽에 바짝 붙습니다.
+       [남는 자리] [나 카드][말 칸] [남는 자리]
+   ⚠ 나 카드는 `justify-self:end` 로 오른쪽 끝(=말 칸 쪽)에 붙입니다. */
+.me-bar.has-write:not(.slots):not(.wide){
+  grid-template-columns:minmax(0,1fr) minmax(0,46rem) minmax(0,1fr);
+  justify-content:center;
+}
+.me-bar.has-write > .me-who{ justify-self:end; }
