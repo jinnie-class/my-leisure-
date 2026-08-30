@@ -437,7 +437,17 @@
         defaultPlace: '운동장', defaultSupplies: ['운동화', '물통'] }),
     A({ id: 'jumprope', area: 'outdoor', name: '줄넘기하기', icon: 'shoe', imageKey: '줄넘기하기',
         planText: '줄넘기를 할 거예요', diaryText: '줄넘기를 했어요',
-        defaultPlace: '운동장', defaultSupplies: ['운동화', '수건', '물통'] }),
+        /* ⚠ **하는 그 물건이 준비물에 있어야 합니다** (2026-08-30 · 선생님 :
+             「줄넘기 활동을 하려면 준비물에 줄넘기가 있어야 할 것 같아」).
+             줄넘기를 하는데 준비물이 운동화·수건·물통뿐이면 정작 손에 쥘
+             것이 빠집니다. 선생님이 images/준비물/줄넘기.png 를 그려 주셨습니다
+             (512x512 투명 배경 — 다른 준비물 그림과 같은 규격).
+           ▸ plan.js 는 D.supplies 여덟에 없는 것을 **앞에 끼워 넣습니다**.
+             그래서 고르는 칸 첫 줄에 함께 나옵니다 (재어 확인 :
+             운동화 · 줄넘기 · 가방 · 물통 · 수건 · 앞치마 · 모자 · 용돈).
+           ⚠ 끼워 넣는 차례는 **적은 차례의 거꾸로**입니다(unshift). 여기 순서가
+             곧 화면 순서는 아닙니다 — 화면에 나오는지만 보면 됩니다. */
+        defaultPlace: '운동장', defaultSupplies: ['줄넘기', '운동화', '수건', '물통'] }),
     A({ id: 'picnic', area: 'outdoor', name: '소풍 즐기기', icon: 'food', imageKey: '소풍 즐기기',
         planText: '소풍을 즐길 거예요', diaryText: '소풍을 즐겼어요',
         defaultPlace: '공원', defaultSupplies: ['돗자리', '간식', '물통'] }),
