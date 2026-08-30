@@ -48,11 +48,24 @@
       <div class="row"><span class="k">언제</span><b>${App.fmtDateLong(plan.date)}${
         App.timeWord(plan.time) ? ' ' + App.timeWord(plan.time) : ''}</b></div>
       ${plan.place ? html`<div class="row"><span class="k">어디에서</span><b>${plan.place}</b></div>` : null}
-      ${(plan.supplies && plan.supplies.length)
-        ? html`<div class="row"><span class="k">준비물</span>
-            <span class="wrap">${plan.supplies.map(function (s, i) {
-              return html`<span key=${i} class="chip">${s}</span>`; })}</span></div>`
-        : html`<div class="row"><span class="k">준비물</span><b>준비물이 없어요</b></div>`}
+      <!-- ★ 준비물 줄은 **자세한 계획일 때만** 나옵니다 (2026-08-30 · 선생님 말씀 —
+             「1단계 학생인데 준비물 선택 안 했는데도 준비물 줄이 뜨면서 준비물이
+              없다고 나와 … 음악 듣는데 준비물이 없다는 건 말이 안 됨」).
+           ⛔ **묻지 않은 것을 답한 것처럼 적지 않습니다.** 쉬운 계획은 준비물을
+              아예 묻지 않는데(무엇 → 누구와 → 언제 → 어디에서 → 확인),
+              계획표에는 늘 준비물 줄이 나와 「준비물이 없어요」로 단정했습니다.
+              학생은 고른 적이 없고, 물어봤다면 무언가 골랐을 것입니다.
+           ▸ 쉬운 계획의 뜻이 본래 **시간 · 준비물 · 메모를 빼는 것**이므로
+             (선생님 설정 4번), 줄을 감추는 편이 그 뜻과도 맞습니다.
+           ⚠ 예전 기록에는 level 값이 없을 수 있어 그때는 **보여 줍니다** —
+             이미 골라 둔 준비물이 소리 없이 사라지면 더 놀랍니다. -->
+      ${plan.level !== 'easy'
+        ? ((plan.supplies && plan.supplies.length)
+            ? html`<div class="row"><span class="k">준비물</span>
+                <span class="wrap">${plan.supplies.map(function (s, i) {
+                  return html`<span key=${i} class="chip">${s}</span>`; })}</span></div>`
+            : html`<div class="row"><span class="k">준비물</span><b>준비물이 없어요</b></div>`)
+        : null}
       ${plan.memo ? html`<div class="row"><span class="k">메모</span><b>${plan.memo}</b></div>` : null}
     </div>`;
 
@@ -379,6 +392,17 @@
          준비물은 여러 개를 더하고 빼는 칸이라 밑그림이 있는 편이 낫습니다.
        ⚠ `defaultPlace` 자체는 남겨 둡니다. 이제는 **장소 칸에서 그곳을
          맨 앞에 놓아 주는** 일만 합니다 (고르기 쉽게 하는 단서). */
+    /* ⚠ 기본 준비물은 **자세한 계획일 때만** 채웁니다 (2026-08-30).
+         쉬운 계획은 준비물을 묻지 않으므로, 채워 넣어 봐야 학생은 그것을
+         **한 번도 보지 못한 채** 계획표에 적히게 됩니다. 요리하기를 고르면
+         고른 적 없는 `앞치마 · 재료` 가 제 계획표에 들어 있는 셈입니다.
+       ▸ 자세한 계획에서는 예전 그대로 채웁니다 — 준비물은 여러 개를 더하고
+         빼는 칸이라 밑그림이 있는 편이 낫습니다. */
+    function fillSupplies(card) {
+      if (draft.supplies.length) return draft.supplies;
+      return detail ? card.defaultSupplies.slice() : [];
+    }
+
     function chooseCard(card) {
       var kids = App.visibleChildren(student, card);
       /* ⚠ 쪽 번호를 **0 으로 되돌립니다** — 대표 활동과 하위 활동이 같은
@@ -386,14 +410,14 @@
       if (kids.length) { subS[1](card); pageS[1](0); App.speakFor(student, card.speechName); return; }
       pick(function () {
         patch({ cardId: card.id, activityId: card.id,
-                supplies: draft.supplies.length ? draft.supplies : card.defaultSupplies.slice() });
+                supplies: fillSupplies(card) });
         App.speakFor(student, card.speechName);
       });
     }
     function chooseChild(card, child) {
       pick(function () {
         patch({ cardId: card.id, activityId: child.id,
-                supplies: draft.supplies.length ? draft.supplies : child.defaultSupplies.slice() });
+                supplies: fillSupplies(child) });
         App.speakFor(student, child.speechName);
         subS[1](null);
       });
