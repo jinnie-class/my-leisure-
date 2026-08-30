@@ -1256,25 +1256,29 @@
       }
 
       return html`<${React.Fragment}>
-        <!-- ★★ **지도는 왼쪽 · 붙일 활동은 오른쪽** (2026-08-30 · 선생님 :
-               「왼쪽에 그림을 두고 붙일 그림들을 오른쪽에 배치해 보는 건 어떨까?」
-                「붙일 그림들은 오른쪽에 2개씩 폭과 길이에 맞게」).
-             ⛔ 예전에는 위아래였습니다. 지도는 가로:세로 = 1671:941 이라
-                **높이가 폭을 정하는데**, 아래 서랍이 높이를 143px 이나 가져가
-                지도가 그만큼 작았습니다. 게다가 흰 칸을 넘쳐 무대가 전체를
-                0.82 로 줄이는 바람에 서랍 그림까지 작아졌습니다.
-             ▸ 좌우로 놓으면 지도가 **높이를 통째로** 씁니다. 서랍은 폭만
-                가져가는데, 지도는 어차피 높이에 묶여 있어 폭이 남습니다.
-             재어 확인 (1280x620)
-                위아래 : 지도 433x244 · 줄이기 0.82 · 서랍 그림 57px
-                좌우   : 지도 **684x385** · 줄이기 **0.94** · 서랍 그림 **65px**
-                → 지도 +58% · 서랍 그림 +14% · 줄이기까지 풀렸습니다.
-             ⚠ 좁은 화면(900px 미만)에서는 예전처럼 위아래로 쌓입니다. -->
-        <div class="mb-2col">
-        <div class="mb-left">
-        <!-- ★ 지도 — 학생이 활동을 **직접 끌어다 놓는** 곳.
-               자리는 % 로 담으므로 화면 크기가 달라져도 그대로 있습니다. -->
-        <div class="mb-wrap">
+        <!-- ★★ **붙일 활동 띠를 지도 안에 겹쳐 놓습니다** (2026-08-30 ·
+               선생님 제안 : 「그림 여가지도를 크게 넣고 지도 안에 붙일활동바를
+               넣고 다 넣으면 바가 없어지는 건 불가능한가?」).
+
+             ⚠ 지도는 가로:세로 = 1671:941 이라 **높이가 폭을 정합니다.**
+               서랍을 옆에 두면 폭을 뺏기는데 지도는 어차피 폭이 남으니
+               손해가 없어 보였습니다. 그런데 실제로는 서랍이 **줄 높이를 키워**
+               무대가 전체를 줄이고 있었습니다. 지도 **안**에 겹치면 폭도
+               높이도 안 뺏깁니다.
+
+             재어 확인 (1280x620 · 시늉으로 미리 재어 본 값)
+               위아래 : 지도 433x244 · 줄이기 0.82
+               좌우   : 지도 618x348 · 줄이기 0.85
+               지도 안 : 지도 **684x385** · 줄이기 **0.94**
+
+             ▸ 띠는 **남은 활동이 있을 때만** 뜹니다. 다 붙이면 사라져
+               지도가 온전히 보입니다 (선생님 말씀).
+             ▸ 띠가 덮는 곳은 지도 아래쪽 물·모래 자리입니다. 붙은 활동은
+               지도 높이의 32% · 50% · 72% 자리에 놓이므로 가려지지 않습니다.
+             ⛔ 띠를 .mb-board **안**에 넣지 마세요 — 그 칸은 끌어 놓기를
+                받는 자리(touch-action:none)라, 띠 위에서 시작한 손짓이
+                지도 끌기로 잡힙니다. .mb-stack 안에 형제로 둡니다. -->
+        <div class="mb-stack">
           <div class="mb-board" ref=${boardRef}>
             ${App.IMAGE_BASE.mapBoard && html`<img class="mb-bg"
               src=${App.imgUrl(App.IMAGE_BASE.mapBoard)} alt="" />`}
@@ -1285,9 +1289,29 @@
             <span class="mb-isle out">여가 섬(실외)</span>
             ${placed.map(function (c) { return card(c, layout[c.id]); })}
           </div>
+          <!-- ★ 붙일 활동 띠 — **남은 것이 있을 때만** 뜹니다.
+                 다 붙이면 사라져 지도가 온전히 보입니다 (선생님 말씀).
+               ▸ 지도 안 맨 아래에 반투명으로 얹습니다. 덮는 곳은
+                 물·모래 자리라, 붙은 활동(높이 32/50/72%)은 안 가립니다. -->
+          ${left.length ? html`<div class="mb-tray in-map">
+            <span class="mb-tray-cap">붙일 활동</span>
+            ${flowBox(info, function (n) { boardPageS[1](n); }, 'mb-tray-grid',
+                info.items.map(function (c) {
+                  var mk = mainMark(c.id);
+                  return html`<button key=${c.id} type="button" class=${'mb-pick mk-' + (mk || 'none')}
+                      onClick=${function () {
+                        /* 지도 가운데쯤에 놓습니다 — 붙인 뒤 끌어서 옮기면 됩니다 */
+                        placeCard(c.id, { x: 30 + (placed.length % 5) * 10,
+                                          y: 32 + (Math.floor(placed.length / 5) % 3) * 18, s: 1 });
+                        boardPickS[1](c.id);
+                        App.speakFor(student, c.name);
+                      }}>
+                    <span class="mb-art"><${C.ActivityArt} activity=${c} /></span>
+                    <span class="mb-nm">${App.shortName(c) || c.name}</span>
+                  </button>`;
+                }), '붙일 활동')}
+          </div>` : null}
         </div>
-
-
         <!-- 고른 카드가 있을 때만 크기 바꾸기 · 떼어내기가 나옵니다 -->
         <div class=${'mb-tools' + (picked ? '' : ' off')} aria-hidden=${picked ? 'false' : 'true'}>
           <${C.Btn} size="small" className="pastel-blue" icon="shrink"
@@ -1302,36 +1326,6 @@
             }}>크게<//>
           <${C.Btn} size="small" className="pastel-red" icon="back"
             onClick=${function () { removeCard(picked); }}>지도에서 빼기<//>
-        </div>
-        </div>
-
-        <!-- 아직 안 붙인 활동 서랍 — 오른쪽 칸. 좁은 화면에서는 지도 아래로 갑니다 -->
-        <div class="mb-tray">
-          <!-- 안내는 **서랍 안**에 둡니다. 지도 아래에 따로 한 줄을 두면
-               그만큼 지도가 작아지고, 안내가 가리키는 곳과도 멀어집니다. -->
-          <div class="mb-tray-head">
-            <span class="mb-tray-cap">붙일 활동</span>
-            <span class="mb-say">아래 활동을 선택하여 지도에 붙여 보아요.</span>
-          </div>
-          ${left.length
-            ? flowBox(info, function (n) { boardPageS[1](n); }, 'mb-tray-grid',
-                info.items.map(function (c) {
-                  var mk = mainMark(c.id);
-                  return html`<button key=${c.id} type="button" class=${'mb-pick mk-' + (mk || 'none')}
-                      onClick=${function () {
-                        /* 지도 가운데쯤에 놓습니다 — 붙인 뒤 끌어서 옮기면 됩니다 */
-                        placeCard(c.id, { x: 30 + (placed.length % 5) * 10,
-                                          y: 32 + (Math.floor(placed.length / 5) % 3) * 18, s: 1 });
-                        boardPickS[1](c.id);
-                        App.speakFor(student, c.name);
-                      }}>
-                    <span class="mb-art"><${C.ActivityArt} activity=${c} /></span>
-                    <span class="mb-nm">${App.shortName(c) || c.name}</span>
-                  </button>`;
-                }), '붙일 활동')
-            : html`<p class="muted small" style=${{ margin: '.3rem 0' }}>
-                표시한 활동을 모두 붙였어요.</p>`}
-        </div>
         </div>
       <//>`;
     }
