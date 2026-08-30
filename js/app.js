@@ -281,6 +281,12 @@
          #f3f7ea 로 되돌립니다 (벽지를 재어 나온 평균색). 그림이 늦게 실려도
          파랗게 번쩍이지 않습니다. */
     useIfExists(App.IMAGE_BASE.wallpaper, '--wallpaper');
+    /* ⛔ 여가 지도(민트색 칸)의 바탕 그림 — **이 줄을 지우지 마세요.**
+         2026-08-30 에 위 벽지 줄을 되살리다가 이 줄을 함께 지웠고,
+         지도 화면에서 **여가 섬이 통째로 사라졌습니다** (선생님 : 「여가지도
+         에서 여가섬이 사라졌어」). 그림 파일은 멀쩡했는데 --mapbg 가 none 이라
+         배경이 안 깔렸고, 배경 비율을 못 재니 활동 카드도 놓이지 못했습니다. */
+    useIfExists(App.IMAGE_BASE.mapbg, '--mapbg');
     /* 포트폴리오 첫 화면 창 다섯 안쪽의 바탕 그림 */
     useIfExists(App.IMAGE_BASE.folioBg, '--folio-bg');
 
