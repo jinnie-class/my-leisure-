@@ -434,7 +434,11 @@
          `공원에서 소풍을 즐길 거예요` 처럼 문장도 자연스러워집니다. */
     A({ id: 'ball', area: 'outdoor', name: '공놀이하기', icon: 'gym', imageKey: '공놀이하기',
         planText: '공놀이를 할 거예요', diaryText: '공놀이를 했어요',
-        defaultPlace: '운동장', defaultSupplies: ['운동화', '물통'] }),
+        /* ⚠ **하는 그 물건이 준비물에 있어야 합니다** — 줄넘기하기와 같은 까닭
+             (2026-08-30 · 선생님이 images/준비물/공.png 를 그려 주심).
+             공놀이를 하는데 준비물이 운동화·물통뿐이면 정작 손에 쥘 것이
+             빠집니다. 계획표에도 「공」이 안 적혀 학생이 못 챙깁니다. */
+        defaultPlace: '운동장', defaultSupplies: ['공', '운동화', '물통'] }),
     A({ id: 'jumprope', area: 'outdoor', name: '줄넘기하기', icon: 'shoe', imageKey: '줄넘기하기',
         planText: '줄넘기를 할 거예요', diaryText: '줄넘기를 했어요',
         /* ⚠ **하는 그 물건이 준비물에 있어야 합니다** (2026-08-30 · 선생님 :

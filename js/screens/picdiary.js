@@ -991,9 +991,76 @@
       ${bigS[0] && html`<${C.Modal} title="인쇄 모양" wide=${true}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
-        <div class="dv-big">${sheet}</div>
+        <${C.BigPaper}>${sheet}<//>
       <//>`}
     </div>`;
+  };
+
+  /* ★★ 「크게 보기」 종이 — **남는 자리를 재어** 그만큼 키웁니다 (2026-08-30 ·
+       선생님 : 「눌러서 크게 보기를 누르니 크게 보여지지 않고 작은 창으로 떠」).
+
+     ⛔ 예전에는 --dv 를 0.42~0.62 로 **못박아** 두었습니다. 그래서 창은
+        넓은데 종이는 그대로라, 재어 보니
+          작은 미리보기 198x280 → 크게 보기 211x299   (겨우 6% 큼)
+          창은 696x345 인데 **폭이 485px 이나 남아** 있었습니다.
+        「크게 보기」인데 크게 보이지 않았습니다.
+     ▸ 이제 창 안에 남는 자리를 재어 A4(794x1123)를 그 자리에 꽉 채웁니다.
+       폭과 높이 가운데 **작은 쪽**에 맞춥니다 — 넘치면 잘리니까요.
+     ⚠ 1배(원래 크기)를 넘기지 않습니다. 그보다 키우면 흐려집니다. */
+  C.BigPaper = function (p) {
+    var boxRef = useRef(null);
+    var dvS = useState(0.5);
+    /* ⚠ 창 테두리·여백까지 셈으로 다 알 수는 없습니다. 넘친 만큼 줄인 값을
+         **기억해 두어야** 합니다 — 매번 새로 셈하면 커졌다 작아졌다
+         오르내리기만 하고 자리를 못 잡습니다 (2026-08-30 에 겪음). */
+    var shrinkRef = useRef(1);
+    useLayoutEffect(function () {
+      function fit() {
+        var el = boxRef.current; if (!el) return;
+        var host = el.parentElement; if (!host) return;
+        /* ⛔⛔ **이 창은 확인 화면의 줄이기(zoom) 안에 들어 있습니다.**
+             확인 화면이 흰 칸에 맞추려고 `.confirm-fit` 에 zoom 을 거는데,
+             팝업이 그 안에서 그려지므로 **창째로 함께 줄어듭니다**
+             (2026-08-30 재어 확인 : zoom 0.633 → css 459px 인 종이가 290px).
+           ▸ 그래서 **겉보기 배율을 재어 나눕니다.** 그러지 않으면 아무리
+             크게 잡아도 그만큼 다시 줄어듭니다. */
+        var cssH = parseFloat(window.getComputedStyle(el).height) || 1;
+        var scale = el.getBoundingClientRect().height / cssH;
+        if (!(scale > 0.05)) scale = 1;
+        /* 창에서 제목 줄·단추 줄이 쓰는 높이를 뺍니다 (재어 본 실제 px) */
+        var modal = el.closest ? el.closest('.modal') : null;
+        var chrome = 0;
+        if (modal) {
+          [].forEach.call(modal.children, function (c) {
+            if (!c.contains(el)) chrome += c.getBoundingClientRect().height;
+          });
+        }
+        var availW = Math.max(120, host.getBoundingClientRect().width - 8);
+        var availH = Math.max(160, window.innerHeight - chrome - 56);
+        var s = Math.max(0.2, Math.min(1,
+          availW / (A4_W * scale),
+          availH / (A4_H * scale)) * shrinkRef.current);
+        /* ★ 그려 놓고 보아 **화면 아래로 넘치면 그만큼 되줄입니다.**
+             줄인 몫은 shrinkRef 에 남겨, 다음 번 셈에도 이어집니다. */
+        var r = el.getBoundingClientRect();
+        if (r.height > 10 && r.bottom > window.innerHeight - 10) {
+          var over = r.bottom - (window.innerHeight - 10);
+          var k = Math.max(0.5, (r.height - over) / r.height);
+          shrinkRef.current = Math.max(0.3, shrinkRef.current * k);
+          s = Math.max(0.2, s * k);
+        }
+        dvS[1](function (prev) { return Math.abs(prev - s) < 0.004 ? prev : s; });
+      }
+      fit();
+      /* 창이 열리며 크기가 잡히는 데 한 박자 걸립니다 — 두 번 더 잽니다 */
+      var t1 = setTimeout(fit, 120), t2 = setTimeout(fit, 300), t3 = setTimeout(fit, 600), t4 = setTimeout(fit, 1000);
+      window.addEventListener('resize', fit);
+      return function () {
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
+        window.removeEventListener('resize', fit);
+      };
+    }, []);
+    return html`<div class="dv-big" ref=${boxRef} style=${{ '--dv': dvS[0] }}>${p.children}</div>`;
   };
 
   C.DiaryPreview = function (p) {
@@ -1149,7 +1216,7 @@
       ${bigS[0] && html`<${C.Modal} title="완성된 그림일기" wide=${true}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
-        <div class="dv-big">${sheet}</div>
+        <${C.BigPaper}>${sheet}<//>
       <//>`}
     </div>`;
   };

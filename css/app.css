@@ -1790,7 +1790,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   .sentence-box{ max-height:150px; overflow:auto; }
 }
 /* 완성 미리보기는 낮은 화면에서 더 작게 (위 --dv 규칙보다 뒤에 두어야 이깁니다) */
-@media screen and (max-height: 780px){ .dv{ --dv:.30; } .dv-big{ --dv:.4; } }
+@media screen and (max-height: 780px){ .dv{ --dv:.30; } }
 
 /* 완성 화면 : 기본은 위아래로 쌓습니다 */
 /* ★ 무대는 여러 단(column)으로 쪽을 나눕니다. 그 안의 칸이 **단보다 넓으면
@@ -2308,16 +2308,20 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   flex-wrap:wrap; gap:.4rem .6rem; margin-top:.15rem;
 }
 .fix-undo .small{ font-size:.8rem; }
-/* 크게 보기 (팝업 안) */
+/* 크게 보기 (팝업 안).
+   ⚠ `--dv` 는 **js 가 자리를 재어** 넣어 줍니다 (picdiary.js 의 C.BigPaper).
+     여기에 값을 못박지 마세요 — 그러면 창은 넓은데 종이만 작아집니다
+     (2026-08-30 · 재어 확인 : 작은 미리보기 198px · 크게 보기 211px 로
+      겨우 6% 차이였고, 창 안에 폭이 485px 이나 남아 있었습니다). */
 .dv-big{
   --dv:.62;
   width:calc(794px * var(--dv)); height:calc(1123px * var(--dv));
   overflow:hidden; margin:0 auto; background:#fff;
 }
 .dv-big .pd-sheet{ transform:scale(var(--dv)); transform-origin:top left; }
-@media screen and (max-height: 900px){ .dv{ --dv:.46; } .dv-big{ --dv:.5; } }
+@media screen and (max-height: 900px){ .dv{ --dv:.46; } }
 /* 아주 낮은 화면에서는 더 작게 — 안 그러면 완성 화면이 2쪽으로 갈라집니다 */
-@media screen and (max-height: 780px){ .dv{ --dv:.36; } .dv-big{ --dv:.42; } }
+@media screen and (max-height: 780px){ .dv{ --dv:.36; } }
 
 /* 손글씨로 쓴 일기를 그림일기에 그대로 넣습니다 (3단계).
    손글씨 판에 이미 줄이 그려져 있으므로 배경 줄무늬는 끕니다 — 줄이 두 겹 보입니다. */
