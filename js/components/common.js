@@ -398,7 +398,9 @@
       if (g) g(go); else go();
     }
 
-    var title = p.title && html`<div class="topbar-title">
+    /* titleTight : 맨 위 줄에 단추가 많아 자리가 빠듯한 화면에서 제목만 작게.
+         (2026-08-30 · 지도 직접 붙이기 화면 — 단추가 여덟이라 제목이 잘렸습니다) */
+    var title = p.title && html`<div class=${'topbar-title' + (p.titleTight ? ' tight' : '')}>
         ${p.sub && html`<div class="sub">${p.sub}</div>`}
         <div class="title">${p.title}</div>
       </div>`;

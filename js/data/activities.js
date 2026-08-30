@@ -40,7 +40,7 @@
     corner: 'images/코너명/',        // 여가 계획하기.png · 여가 지도.png · 여가 일기.png · 여가 포트폴리오.png
     ext: '.png',
     cover: 'images/표지.png',        // 첫 화면 표지
-    wallpaper: 'images/벽지.jpg',    // 모든 화면의 배경 무늬
+    wallpaper: 'images/벽지.png',   // 모든 화면의 배경 무늬 (2026-08-30 선생님이 옅은 것으로 바꾸심)
     /* 여가 지도(민트색 칸) 의 바탕 그림. 파일이 없으면 지금처럼 연한 색만 깔립니다.
        카드·캐릭터·발자국이 그 위에 올라가므로 아주 연하게 그려야 합니다. */
     mapbg: 'images/여가지도.jpg',

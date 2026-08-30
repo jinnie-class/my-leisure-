@@ -20,9 +20,10 @@
   /* ⚠ 바탕색은 **벽지와 같은 결**이어야 합니다 (2026-08-30 · 선생님 :
        「바탕벽지가 … 민트벽지로 다 바꿔줘」).
      2026-08-26 「B안」에서 벽지를 끄면서 회청색 #e9edf3 으로 내렸던 것을
-     되돌립니다. #f3f7ea 는 images/벽지.jpg 를 재어 나온 평균색이라,
+     되돌립니다. #f7f9f7 은 images/벽지.png 를 재어 나온 평균색이라,
+     (2026-08-30 선생님이 벽지를 옅은 것으로 바꾸셔서 함께 고쳤습니다)
      그림이 늦게 실리거나 화면 가장자리가 비어도 **파랗게 번쩍이지 않습니다.** */
-  --bg:       #f3f7ea;
+  --bg:       #f7f9f7;
   /* 파랑 포인트 — 중요한 단추·고른 것 표시에 **이 한 색만** 씁니다.
      (예전 하늘색 #5ec8f2 는 흰 글자와 대비가 모자랐습니다) */
   --accent:   #2b7de9;
@@ -2098,7 +2099,15 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
      「날짜기록도 맨위에 배치하되 아래와 간격두고 가운데 정렬」).
      바로 아래 덩어리에 붙어 있으면 그 덩어리의 머리글처럼 보입니다.
      이 글은 **화면 전체가 어느 기간의 것인지**를 말하므로 한 칸 떨어뜨립니다. */
+/* ★ 기간 줄을 **진하게** (2026-08-30 · 선생님 : 「색 진하게(지금 안 보임)」).
+   ⛔ 이 줄은 `small muted` 라 아주 연한 회색(#8a8a96)이었습니다. 그 위에
+      벽지 무늬가 깔려 있어서 **글자가 바탕에 묻혀 안 보였습니다.**
+      기간은 「언제부터 언제까지의 기록인가」를 알려 주는 말이라,
+      포트폴리오를 뽑아 학부모께 드릴 때 꼭 읽혀야 합니다.
+   ▸ 본문색으로 올리고 굵기를 더합니다. 크기는 그대로 둡니다 —
+     제목보다 커지면 무엇이 제목인지 흐려집니다. */
 .folio-range{ text-align:center; margin:.1rem 0 1.1rem; }
+.folio-range.small.muted{ color:var(--ink); font-weight:800; }
 
 /* ═══════ 1단계 크게 보기 — 그림과 문장만 ═══════
    ★ 1단계 학생은 글자를 못 읽습니다. 그림이 핵심이고 문장은 읽어주기로 듣습니다.
@@ -3867,15 +3876,20 @@ textarea.field.diary-write,
      아래는 가운데 모여 **두 덩어리가 따로 노는 것처럼** 보였습니다.
    ▸ 폭을 44rem 으로 같이 묶고 **두 줄 두 칸**으로 놓습니다.
      넷을 한 줄에 두면 이 폭에서 글자가 접힙니다. */
+/* ★ 네 알약을 **한 줄에 · 가운데** (2026-08-30 · 선생님 :
+     「4가지 한 줄 정렬 가운데 정렬로 맞추기」).
+   ⚠ 2026-08-29 에는 「두 줄 두 칸」이었습니다. 그때는 아래 실내·실외 창이
+     위아래로 쌓여 폭이 60% 뿐이라, 넷을 한 줄에 두면 글자가 접혔습니다.
+     지금은 실내·실외를 **좌우로** 놓아 아래가 화면 폭을 다 쓰므로,
+     네 알약도 한 줄에 넉넉히 들어갑니다.
+   ▸ 폭은 내용만큼만(fit-content) 잡고 가운데로 모읍니다. 알약마다 글자
+     길이가 달라서 1fr 로 똑같이 나누면 짧은 것에 빈자리가 크게 남습니다.
+   ⚠ 좁은 화면에서는 flex-wrap 으로 저절로 접힙니다. */
 .folio-marks{
-  display:grid; gap:.6rem;
-  grid-template-columns:repeat(2, minmax(0, 1fr));
-  /* 폭은 흰 칸의 **60%** — 좌우로 20% 씩 여백이 남습니다 (선생님 말씀).
-     좁은 화면에서는 28rem 밑으로는 안 내려갑니다 (글자가 접힙니다). */
-  width:min(100%, max(28rem, 60%)); margin-left:auto; margin-right:auto;
-}
-@media screen and (max-width: 560px){
-  .folio-marks{ grid-template-columns:1fr; }
+  display:flex; flex-wrap:wrap; gap:.6rem;
+  justify-content:center; align-items:stretch;
+  width:fit-content; max-width:100%;
+  margin-left:auto; margin-right:auto;
 }
 .folio-mark{
   display:flex; align-items:center; gap:.6rem; cursor:pointer; min-width:0;
@@ -4761,18 +4775,24 @@ textarea.field.diary-write,
      들어오자마자 보이는 **큰 알약**으로 올렸습니다.
      작은 탭으로 「모아 보기」 옆에 두었더니 찾기 어려웠습니다.
    ▸ 눌러 보라는 뜻으로 잔잔한 테두리 물결을 줍니다.
-     ⚠ 화면을 흔드는 움직임은 쓰지 않습니다 — 테두리 빛만 천천히 번집니다.
-       움직임을 싫어하는 설정(prefers-reduced-motion)에서는 멈춥니다. */
+     ⚠ 화면을 흔드는 움직임은 쓰지 않습니다 — 테두리 빛만 천천히 번집니다. */
 .map-go{
   display:flex; align-items:center; gap:clamp(.5rem,1.4vw,1rem);
   /* ★ 아래 두 덩어리(네 알약 · 실내/실외)와 **같은 폭**입니다.
-       셋이 같은 자리에서 시작하고 끝나야 한 화면으로 보입니다.
-       1280 화면에서 좌우가 각각 20% 씩 남습니다 (선생님 말씀). */
-  /* 폭은 흰 칸의 **60%** — 좌우로 20% 씩 여백이 남습니다 (선생님 말씀).
-     좁은 화면에서는 28rem 밑으로는 안 내려갑니다 (글자가 접힙니다). */
+       셋이 같은 자리에서 시작하고 끝나야 한 화면으로 보입니다. */
   width:min(100%, max(28rem, 60%)); margin:.2rem auto .55rem;
-  padding:clamp(.45rem,calc(1.2 * var(--vh, 1vh)),.8rem) clamp(.8rem,1.6vw,1.3rem);
-  cursor:pointer; text-align:left;
+  /* ★ **바 안에서 가운데 정렬 · 양쪽 20% 여백** (2026-08-30 · 선생님 :
+       「가운데 정렬. 바 안에서 양쪽 20% 여백」).
+     ⛔⛔ `padding: … 20%` 라고 쓰면 안 됩니다. css 에서 **%로 준 안쪽 여백은
+        제 폭이 아니라 「담고 있는 칸」의 폭**을 기준으로 잡습니다.
+        이 바는 흰 칸의 60% 이므로, 20% 라고 쓰면 흰 칸의 20%(249px)가 들어가
+        **바 폭의 35%** 가 됩니다. 실제로 그렇게 했다가 남는 자리가 239px 뿐이라
+        그림과 글이 겹쳐 보였습니다 (2026-08-30 화면으로 확인).
+     ▸ 바가 흰 칸의 60% 이니, 바의 20% = 흰 칸의 **12%** 입니다.
+     ⚠ 바 폭 규칙(60%)을 고치면 이 숫자도 함께 고쳐야 합니다. */
+  padding:clamp(.45rem,calc(1.2 * var(--vh, 1vh)),.8rem) 12%;
+  justify-content:center; text-align:center;
+  cursor:pointer;
   background:#fffdf3; border:4px solid #e8bf3d; border-radius:999px;
   box-shadow:var(--shadow);
   animation:눌러보아요 2.4s ease-in-out infinite;
@@ -4781,7 +4801,9 @@ textarea.field.diary-write,
 .map-go:active{ transform:translateY(0); }
 .map-go-art{ flex:0 0 auto; width:clamp(38px,calc(5.6 * var(--vh, 1vh)),60px); height:clamp(38px,calc(5.6 * var(--vh, 1vh)),60px); display:block; }
 .map-go-art > *{ width:100%; height:100%; object-fit:contain; display:block; }
-.map-go-txt{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px; }
+/* ⚠ flex:0 1 auto — 남는 폭을 글이 다 가져가면 화살표만 오른쪽 끝으로
+     밀려나 가운데 정렬이 무너집니다 (2026-08-30). 셋이 한 덩어리로 가운데. */
+.map-go-txt{ flex:0 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px; align-items:center; }
 .map-go-nm{
   font-size:clamp(1rem,.58rem + calc(.95 * var(--vh, 1vh)),1.35rem); font-weight:900; letter-spacing:-.02em;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -5455,3 +5477,14 @@ textarea.field.diary-write,
   display:flex; align-items:center; justify-content:center;
   flex-wrap:wrap; gap:.4rem;
 }
+
+/* ★ 단추가 많아 자리가 빠듯한 화면의 제목 — **줄여서 넣습니다**
+     (2026-08-30 · 선생님 : 「왼쪽 파란색 화살표 뒤에 '나의 여가지도'를
+      크기를 줄여서 넣어주면 좋겠다. 없으니 또 이상하구나」).
+   ⚠ 2026-08-29 에 이 제목을 **뺐던** 까닭은 '나의 ⋯' 로 잘려서였습니다.
+     지울 것이 아니라 **줄일 것**이었습니다.
+   ▸ 지도 직접 붙이기 화면은 맨 위 줄에 단추가 여덟(인쇄 셋 · 모아 보기로 ·
+     홈 · 전체화면 · 설정 · 학생)입니다. 제목을 한 단 줄이면 함께 들어갑니다.
+   ▸ 왼쪽 색 막대(::before)는 그대로 둡니다 — 제목이라는 표시입니다. */
+.topbar-title.tight .title{ font-size:clamp(.95rem, .6rem + calc(.9 * var(--vh, 1vh)), 1.25rem); }
+.topbar-title.tight{ padding-left:.55rem; flex:0 1 auto; }
