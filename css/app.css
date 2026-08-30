@@ -811,9 +811,16 @@ ul{ margin:0; padding:0; list-style:none; }
   background:var(--sel-bg); border-radius:8px 8px 0 0;
 }
 
+/* ⚠ 글자 크기를 **원래대로 되돌렸습니다** (2026-08-30 · 선생님 :
+     「노란색 네모칸의 글자가 갑자기 커진 것 같아 … 따라쓰기 글자보다 더 큼」
+      「원래대로 돌려줘」).
+   b4cc184 「계획 문장에 나눔바른펜 + 글자 키우기」 에서 위끝을
+   1.6rem → 34px 으로 올렸던 것을 되돌립니다. 첫 등록 때 값입니다.
+   ⛔ 여기를 다시 키우지 마세요. 인쇄에서 **따라 쓰기(30pt)보다 커지면**
+      학생이 어느 것을 보고 써야 하는지 헷갈립니다. */
 .sentence{
   background:#fff; border:3px dashed var(--line); border-radius:var(--radius);
-  padding:.8rem 1rem; font-size:clamp(1.3rem,.85rem + calc(1.5 * var(--vh, 1vh)),34px);
+  padding:.8rem 1rem; font-size:clamp(1.05rem,.7rem + calc(1.2 * var(--vh, 1vh)),1.6rem);
   font-weight:800; line-height:1.5; break-inside:avoid;
 }
 /* 완성된 문장 : 노란 칸에 한 줄에 한 문장씩, 가운데로.
@@ -1283,7 +1290,14 @@ textarea.field.diary-write:focus{
 .ws .sentence-center{
   text-align:center;
   margin-left:var(--sheet-inset); margin-right:var(--sheet-inset);
-  font-size:clamp(1.5rem,.9rem + calc(2 * var(--vh, 1vh)),42px);
+  /* ⛔ 여기에 font-size 를 **다시 넣지 마세요** (2026-08-30 · 선생님 :
+       「노란색 네모칸 글자크기를 원래대로 돌려줘」).
+     f1d0f1e 에서 clamp(1.5rem, …, 42px) 를 넣어 42px 까지 커졌습니다.
+     그 전에는 지정이 없어 위 `.sentence` 값을 그대로 물려받았습니다.
+     이제 다시 물려받습니다 — 두 바(.sheet · .ws)가 여전히 서로 같은
+     크기라, 2026-08-26 의 「글자크기 그대로」도 함께 지켜집니다.
+     ⚠ 인쇄 크기는 print.css 에서 18.5pt 로 못박습니다 — 기기마다
+       달라지지 않게 하기 위함입니다. */
 }
 .ws{ --sheet-inset:14%; }
 /* 표는 노란 바와 **같은 축에 가운데로** (2026-08-26 · 선생님 말씀).
@@ -3939,20 +3953,27 @@ textarea.field.diary-write,
   justify-content:center; gap:.7rem;
 }
 @media screen and (max-width: 620px){ .folio-grid.wide{ grid-template-columns:repeat(2, auto); } }
-
-/* ★ 나의 여가지도 — 실내 창 · 실외 창을 **위아래**로. 한눈에 둘 다 보입니다.
-     예전에는 한 덩어리로 섞고 카드마다 딱지를 붙여서, 어느 쪽이 몇 가지인지
-     세어 보아야 알았습니다.
-   ▸ 좌우가 아니라 **위아래**입니다. 좌우로 놓으면 한 창이 화면의 절반뿐이라
-     카드가 좁아지고 그림이 작아집니다 (91px). 위아래로 놓으면 창이 화면 폭을
-     다 써서 **같은 자리에 그림을 훨씬 크게** 담습니다 (120px).
-   ▸ 대표 활동은 실내 15 · 실외 15 가지. 창마다 여덟씩이면 2줄이라
-     두 창을 합쳐도 4줄입니다. */
+/* ★ 나의 여가지도 — 실내 창 · 실외 창.
+   ⚠ 예전 주석은 「위아래가 낫다(120px 대 91px)」였는데, **지금은 반대**입니다
+     (2026-08-30 재어 확인 · 선생님 : 「상자만 없애고 그대로인 것들 다시 보고
+      균형있게 틀을 완성해줘」).
+     까닭 — 위아래로 놓으면 두 창이 높이를 두 배로 먹습니다. 흰 칸이 458px 인데
+     내용이 619px 이 되어 무대가 **전체를 0.64 로 줄였습니다.**
+     그래서 창은 넓은데 카드는 **83px** 로, 좌우 여백만 40% 남았습니다.
+     ⛔ **칸을 넓게 잡아도 전체가 줄어들면 아무 소용이 없습니다.**
+   ▸ 좌우로 놓으면 두 창이 한 줄에 들어가 높이가 절반이 됩니다.
+     줄이기가 풀려 카드가 제 크기로 섭니다.
+   ⚠ 좁은 화면(900px 미만)에서는 예전대로 위아래입니다 — 폭이 없으니까요. */
 .folio-two{
   display:grid; gap:.5rem; margin-top:.5rem;
   grid-template-columns:1fr;
 }
-/* ⚠ 창을 흰 칸 폭만큼 늘이지 마세요. 가운데 모인 카드 좌우로 빈 자리가
+@media screen and (min-width: 900px){
+  .folio-two{ grid-template-columns:1fr 1fr; align-items:start; gap:.7rem; }
+  /* 좌우로 놓을 때는 창이 제 칸을 꽉 씁니다 — 60% 로 묶으면 가운데만 쓰고
+     양옆이 또 비어, 위아래로 놓았을 때와 똑같은 손해가 납니다. */
+  .folio-two > .folio-half{ width:100%; }
+}
      넓게 남아, 카드가 허전하게 떠 보입니다. **카드 셋 + 화살표** 만큼만. */
 .folio-half{
   min-width:0; padding:.35rem .5rem .45rem;
