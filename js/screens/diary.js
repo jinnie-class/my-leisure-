@@ -1696,16 +1696,20 @@
               (아래 useEffect). 「글쓰기 칸에 넣기」 단추가 하던 일을 학생이
               누르지 않아도 되게 한 것입니다.
             ⛔ 되살리지 마세요 — 위 문장 틀이 같은 내용을 더 크게 보여 줍니다. */
+      /* ★★ 안내와 단추 셋을 **질문 줄로 올렸습니다** (2026-08-30 · 선생님이
+             빨간 동그라미로 「이렇게 재배치」 라고 짚어 주신 자리).
+           ⛔ 예전에는 질문 줄 아래에 **두 줄**이 더 있었습니다 —
+             ① 「오늘 있었던 일을 써 보아요」 + 문장 도움 보기
+             ② 키보드로 쓰기 · 손글씨로 쓰기
+             그 두 줄이 100px 가까이 먹는 동안, 질문 알약 오른쪽은
+             900px 넘게 **텅 비어** 있었습니다.
+           ▸ 안내는 스피커 옆(note), 단추 셋은 줄 오른쪽 끝(right)으로.
+             정작 학생이 글을 쓰는 노란 칸이 그만큼 위로 올라옵니다.
+           ⚠ 좁은 화면에서는 질문 줄이 스스로 접힙니다 (.q-bar 는 flex-wrap). */
       return html`<${React.Fragment}>
-        <${C.Question} bar=${true} note=${lvNote} speakText="오늘의 여가 일기를 써요">오늘의 여가 일기를 써요<//>
-        <${C.Sec}>
-          <div class="row" style=${{ marginBottom: '.3rem' }}>
-            <span class="lab grow">오늘 있었던 일을 써 보아요</span>
-            <${C.Btn} size="small" icon="book" onClick=${function () { helpS[1](true); }}>문장 도움 보기<//>
-          </div>
-
-          <!-- 3단계는 쓰는 방법을 고릅니다 : 키보드 · 손글씨 · 종이 -->
-          <div class="wrap" style=${{ marginBottom: '.5rem' }}>
+        <${C.Question} bar=${true} speakText="오늘의 여가 일기를 써요"
+          note="오늘 있었던 일을 써 보아요"
+          right=${html`<span class="q-ways">
             ${WRITE_WAYS.map(function (wy) {
               /* 없어진 「종이에 쓰기」가 저장돼 있으면 키보드로 봅니다 */
               var on = (draft.writeWay === 'hand') ? (wy.id === 'hand') : (wy.id === 'key');
@@ -1713,7 +1717,10 @@
                 aria-pressed=${on ? 'true' : 'false'} title=${wy.desc}
                 onClick=${function () { patch({ writeWay: wy.id }); }}>${wy.name}<//>`;
             })}
-          </div>
+            <${C.Btn} size="small" icon="book"
+              onClick=${function () { helpS[1](true); }}>문장 도움 보기<//>
+          </span>`}>오늘의 여가 일기를 써요<//>
+        <${C.Sec}>
 
           <!-- ⚠ 없어진 「종이에 쓰기」로 저장해 둔 학생이 **빈 화면**을 보지
                  않게, 아는 두 가지가 아니면 키보드로 봅니다 (2026-08-28).
