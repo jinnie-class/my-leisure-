@@ -79,6 +79,21 @@
       재기();
       var raf = requestAnimationFrame(재기);
       timers.push(setTimeout(재기, 250), setTimeout(재기, 700));
+      /* ⛔ 250ms · 700ms 두 번으로는 **모자랍니다** (2026-08-30).
+           --dv(종이 배율)가 자리를 잡는 데 3초 가까이 걸리는 때가 있는데,
+           그 사이에 이 줄이기가 「옛 큰 높이」로 셈해 놓고 끝나면
+           **줄인 값이 그대로 굳습니다.** 태블릿에서 종이가 작게 굳는 탈의 한 축입니다.
+         ▸ 처음 3초 동안 0.25초마다 다시 잽니다. 흰 칸 높이가 세 번 잇달아
+           같으면 일찍 멈춰, 자리가 정해진 뒤에는 헛돌지 않습니다. */
+      var lastH0 = -1, same0 = 0, iv0 = null;
+      iv0 = setInterval(function () {
+        var tr0 = boxRef.current && boxRef.current.closest('.stage-track');
+        var h0 = tr0 ? tr0.clientHeight : 0;
+        재기();
+        if (h0 === lastH0) { if (++same0 >= 3 && iv0) { clearInterval(iv0); iv0 = null; } }
+        else { same0 = 0; lastH0 = h0; }
+      }, 250);
+      timers.push(setTimeout(function () { if (iv0) { clearInterval(iv0); iv0 = null; } }, 3000));
       /* 창 크기가 바뀔 때 resize 이벤트가 안 오는 경우가 있어(전자칠판·미리보기)
          흰 칸 자체를 지켜봅니다. 이게 가장 확실합니다. */
       if (window.ResizeObserver) {
@@ -109,6 +124,7 @@
       return function () {
         cancelAnimationFrame(raf);
         timers.forEach(clearTimeout);
+        if (iv0) clearInterval(iv0);
         reTimers.forEach(clearTimeout);
         if (ro) ro.disconnect();
         window.removeEventListener('resize', 다시재기);
@@ -1139,11 +1155,6 @@
         <!-- ⚠ 여기에는 단계 설명(note)을 두지 않습니다.
                단계 설명은 **무엇을 하는 중인지** 알려 주는 말인데, 완성 화면은
                이미 다 만든 뒤라 알려 줄 일이 없습니다. 오른쪽 자리도 좁습니다. -->
-        <!-- cls : 이 화면의 머리말만 조금 작게 하려고 붙인 표시입니다.
-             (머리말은 흰 칸 바로 아래라 confirm-fit 밖에 있어서, CSS 로는
-              여기가 확인 화면인지 알 길이 없습니다) -->
-        <${C.Question} bar=${true} cls="q-confirm"
-          speakText="일기가 완성되었어요">일기가 완성되었어요<//>
         <!-- 넓고 낮은 화면에서는 좌우로 나눕니다 (문장 | 완성된 그림일기).
              위아래로 쌓으면 낮은 화면에서 2쪽으로 갈라집니다.
              ★ 바깥 껍데기(.confirm-fit)에 zoom 을 걸어 흰 칸을 넘으면 통째로 줄입니다.
@@ -1152,6 +1163,21 @@
         <div class="confirm-fit" ref=${fitBox}>
         <div class="confirm-2col" ref=${fitInner}>
           <div class="confirm-left">
+            <!-- ★ 「일기가 완성되었어요」 줄을 **왼쪽 칸 안으로** 넣었습니다
+                   (2026-08-30 · 선생님 : 「일기가 완성되었어요에서도 오른쪽 왼쪽
+                    여백이 있고 왼쪽창이 여전히 길고 오른쪽 그림일기는 작게 보여」).
+                 ⛔ 예전에는 이 줄이 두 칸 **위에** 홀로 있었습니다. 글자는 400px
+                    인데 줄은 폭 1244px 을 다 차지하면서 **높이 56px** 을 먹었고,
+                    그만큼 두 칸이 아래로 밀렸습니다.
+                 ⚠ 종이는 A4 세로라 **높이에 묶입니다.** 폭을 아무리 넓혀 줘도
+                    안 커지고, 높이를 주어야만 커집니다. 그래서 이 56px 이
+                    그대로 종이 크기였습니다 (재어 확인 : 종이 282x399 → 326x461).
+                 ▸ 왼쪽 칸은 세로로 길어 이 줄 하나를 더 얹을 자리가 있습니다.
+                    좁은 화면에서는 칸이 위아래로 쌓이므로 이 줄이 여전히
+                    맨 위에 옵니다 — 보이는 모습은 그대로입니다.
+                 ⛔ 이 주석에 백틱을 쓰면 템플릿이 끊깁니다 — 낫표(「」)만 쓸 것. -->
+            <${C.Question} bar=${true} cls="q-confirm"
+              speakText="일기가 완성되었어요">일기가 완성되었어요<//>
             <!-- ★ 왼쪽 고치는 길을 **오른쪽 그림일기의 차례와 나란히** 놓습니다.
                    위 = 그림칸 → 그림 고치기 두 가지
                    아래 = 원고지 → 글 고치기(노란 칸)

@@ -998,8 +998,30 @@
       /* 흰 칸은 처음 그릴 때 아직 크기가 없을 수 있어 한 박자 뒤에 다시 잽니다.
          (그러지 않으면 첫 화면만 어림값으로 그려져 쪽이 갈라진 채 남습니다) */
       var r1 = requestAnimationFrame(onResize);
-      var t1 = setTimeout(onResize, 220);
-      var t2 = setTimeout(onResize, 700);
+      /* ⛔⛔ 220ms · 700ms 두 번만으로는 **모자랍니다** (2026-08-30 · 선생님 :
+             「태블릿은 전반적으로 총체적 난국이야」).
+           재어 확인 — 1920x1080 에서 확인 화면에 닿았을 때 종이가 334x473 에
+           멈춰 있다가, 창을 건드리자 **577x816** 으로 뛰었습니다. 잰 값이
+           620 높이 시절 그대로 굳어 있었던 것입니다.
+         까닭 : 흰 칸은 mount 뒤 한참 있다가도 커집니다 (.stage.tall 이 켜질 때,
+           글꼴이 늦게 와서 줄 수가 바뀔 때). 그런데 ResizeObserver 는
+           **알림을 떨어뜨릴 때가 있습니다** — 콜백이 다시 크기를 바꾸므로
+           브라우저가 되돌이를 막습니다 (41-2 에 적어 둔 것과 같은 탈).
+           그러면 마지막 700ms 뒤에는 아무도 다시 재지 않아 **작은 채로 굳습니다.**
+         ⚠ **태블릿은 이 일이 훨씬 잦습니다** — 주소창이 접혔다 펴질 때마다
+           보이는 높이가 바뀌는데, 그 시점이 mount 700ms 안에 들어오지 않습니다.
+         ▸ 처음 3초 동안 0.25초마다 다시 잽니다. 흰 칸 높이가 세 번 잇달아
+           같으면 일찍 멈춥니다 — 자리가 정해진 뒤에는 헛돌지 않습니다. */
+      var lastH = -1, same = 0, iv = null;
+      iv = setInterval(function () {
+        var tr = document.querySelector('.stage-track');
+        var h = tr ? tr.clientHeight : 0;
+        onResize();
+        if (h === lastH) {
+          if (++same >= 3 && iv) { clearInterval(iv); iv = null; }
+        } else { same = 0; lastH = h; }
+      }, 250);
+      var ivStop = setTimeout(function () { if (iv) { clearInterval(iv); iv = null; } }, 3000);
       window.addEventListener('resize', onResize);
       /* ⚠ **흰 칸 자체를 지켜봅니다.**
            창 크기가 그대로여도 흰 칸은 커질 수 있습니다. 완성 화면에서 무대가
@@ -1013,7 +1035,9 @@
         if (tr) ro.observe(tr);
       }
       return function () {
-        cancelAnimationFrame(r1); clearTimeout(t1); clearTimeout(t2);
+        cancelAnimationFrame(r1);
+        if (iv) clearInterval(iv);
+        clearTimeout(ivStop);
         if (ro) ro.disconnect();
         window.removeEventListener('resize', onResize);
       };
