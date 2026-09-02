@@ -493,12 +493,20 @@
         App.speakFor(student, card.speechName);
       });
     }
+    /* ★★ 하위 활동을 고르면 **그 자리에 머무릅니다** (2026-09-02 · 선생님 말씀 —
+         「하위활동을 선택하자마자 무섭게 바로 상위활동으로 돌아와버리거든.
+          특수아이들에겐 「내가 누른 게 없어졌어요」가 되어버리더라구」).
+       예전에는 고르는 순간 `subS` 를 비워 **상위 활동 목록으로 튕겨** 나갔습니다.
+       학생 눈에는 방금 누른 그림이 사라지고 다른 화면이 나타난 것입니다.
+     ▸ 이제 고른 카드가 그 화면에 **✓ 와 파란 테두리**로 남고, 이름을 읽어 줍니다.
+       넘어가는 것은 학생이 아래 「다음」을 눌러 **스스로** 합니다
+       (이 앱의 규칙 — 고르고 나서 아래 단추를 눌러야 넘어갑니다).
+     ⛔ 여기서 subS 를 비우지 마세요. 되돌리면 같은 일이 그대로 돌아옵니다. */
     function chooseChild(card, child) {
       pick(function () {
         patch({ cardId: card.id, activityId: child.id,
                 supplies: fillSupplies(child) });
         App.speakFor(student, child.speechName);
-        subS[1](null);
       });
     }
 
@@ -1079,8 +1087,12 @@
            쪽 넘기는 단추는 `활동 더 보기` 로 바꿨습니다 (위를 보세요).
            하위 활동을 고르는 화면(`subCard`)에서는 내보내지 않습니다:
            그 화면은 활동을 아직 고르는 중이라 넘어갈 수 없습니다. */
-      action = subCard ? null
-        : html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
+      /* ★ 하위 활동 화면에도 **「다음」을 둡니다** (2026-09-02).
+           예전에는 「그 화면은 아직 고르는 중」이라며 내보내지 않았는데,
+           이제는 고르고 나서도 그 화면에 머무르므로 **넘어갈 길**이 있어야 합니다.
+         ▸ 아직 아무것도 안 골랐으면 흐리게(disabled) 있습니다 — 무엇을 해야
+           하는지는 그대로 보입니다. */
+      action = html`<${C.Btn} kind="primary" icon="next" disabled=${!canNext()}
             onClick=${next}>다음<//>`;
     }
 

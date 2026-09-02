@@ -201,9 +201,17 @@
       return html`<${React.Fragment}>
         <${C.Question} bar=${true} note=${p.note} speakText=${'무엇을 했나요? ' + subS[0].name}>무엇을 했나요? — ${subS[0].name}<//>
         <${C.PickGrid} cols=${3}>
+          <!-- ★★ 고른 뒤에도 **이 화면에 머무릅니다** (2026-09-02 · 선생님 말씀 —
+                 「하위활동을 선택하자마자 무섭게 바로 상위활동으로 돌아와버리거든.
+                  특수아이들에겐 「내가 누른 게 없어졌어요」가 되어버리더라구」).
+               고른 카드가 ✓ 와 파란 테두리로 남고 이름을 읽어 줍니다.
+               넘어가는 것은 아래 「다음」으로 학생이 스스로 합니다.
+             ⛔ 여기서 subS 를 비우지 마세요 (계획하기 chooseChild 와 같은 규칙).
+             ⚠ 이 설명은 **태그 밖**에 둡니다 — 속성 사이에 두면 htm 이 다음
+               속성 이름을 글자 그대로 화면에 찍습니다. -->
           ${kids.slice(kPage * PAGE_SIZE, kPage * PAGE_SIZE + PAGE_SIZE).map(function (ch) {
             return html`<${C.ActivityPick} key=${ch.id} activity=${ch} selected=${p.value === ch.id}
-              onClick=${function () { p.onPick(ch.id); subS[1](null); pageS[1](0); App.speakFor(student, ch.speechName); }} />`;
+              onClick=${function () { p.onPick(ch.id); App.speakFor(student, ch.speechName); }} />`;
           })}
         <//>
         ${App.arrowPager(kPage, kPages, function (n) { pageS[1](n); }, '활동')}
