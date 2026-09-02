@@ -26,6 +26,48 @@
     { id: 'evening', name: '저녁', icon: 'clock' }
   ];
 
+  /* ★ 계획 그림 줄 — **계획표와 학습지가 같은 것을 씁니다** (2026-09-01).
+       계획표 윗줄(sheet-pics)과 1단계 오려 붙이기 학습지가 **같은 그림 · 같은
+       차례**라야, 학생이 위를 보고 아래에 붙일 수 있습니다.
+     ⛔ 두 곳에 따로 만들지 마세요 — 언젠가 그림이나 차례가 어긋납니다.
+     차례 : 언제 → (시간대) → 누구와 → 어디에서 → 무엇을
+     ⚠ 날짜 그림은 `8월 20일` 이 아니라 **`오늘`·`내일`** 로 찾아야 합니다.
+       images/시간/ 의 파일 이름이 그렇습니다. 날짜로 찾으면 그림이 없어
+       달력 아이콘으로 떨어지는데, 학생은 방금 `내일` 그림을 골랐으므로
+       계획표에서 그림이 바뀐 것처럼 보입니다.
+     ▸ App.dayWord 는 문장(App.whenPhrase)이 쓰는 것과 **같은 함수**라,
+       그림과 문장이 늘 같은 말을 씁니다. */
+  function planPics(plan, student) {
+    var out = [];
+    if (!plan) return out;
+    var a = App.act(plan.activityId);
+    var whoIds = (plan.partnerIds && plan.partnerIds.length)
+      ? plan.partnerIds : (plan.partnerId ? [plan.partnerId] : []);
+    /* ⚠ 딱지 이름은 **칸마다 달라야** 합니다. 날짜와 시간대를 둘 다 「언제」로
+         적었더니 빈 칸 두 개에 같은 말이 나란히 붙어 어느 칸에 무엇을 붙일지
+         알 수 없었습니다 (2026-09-01 첫 판). 「날짜 · 시간」으로 가릅니다.
+       ▸ 계획표 표(무엇을 · 누구와 · 언제 · 어디에서)는 그대로 둡니다 —
+         거기는 읽는 표이고, 여기는 **붙일 자리를 가리키는 단서**입니다. */
+    if (plan.date) {
+      var dayW = App.dayWord(plan.date);
+      out.push({ key: 'date', kind: '날짜', label: dayW || App.fmtDateShort(plan.date),
+        art: dayW
+          ? html`<${C.PickArt} kind="when" word=${dayW} iconKey="calendar" />`
+          : html`<${C.PickArt} kind="when" word="날짜 고르기" iconKey="calendar" />` });
+    }
+    if (App.timeWord(plan.time)) out.push({ key: 'time', kind: '시간', label: App.timeWord(plan.time),
+      art: html`<${C.PickArt} kind="when" word=${App.timeWord(plan.time)} iconKey="clock" />` });
+    whoIds.map(App.partner).filter(Boolean).forEach(function (pt) {
+      out.push({ key: 'who-' + pt.id, kind: '누구와', label: pt.name,
+        art: html`<${C.PartnerArt} partner=${pt} student=${student} />` });
+    });
+    if (plan.place) out.push({ key: 'place', kind: '어디에서', label: plan.place,
+      art: html`<${C.PickArt} kind="place" word=${plan.place} iconKey="map" />` });
+    if (a) out.push({ key: 'act', kind: '무엇을', label: a.name,
+      art: html`<${C.ActivityArt} activity=${a} />` });
+    return out;
+  }
+
   /* ------------------------- 그림 중심 계획표 ------------------------- */
   C.PlanSheet = function (p) {
     var plan = p.plan;
@@ -73,31 +115,7 @@
          아직 글을 읽기 어려운 학생은 그림 차례만 보고도 계획을 읽습니다.
          2·3단계는 문장만 냅니다 — 글로 읽을 수 있으니까요. */
     var lv = (student && student.diaryLevel) || 1;
-    var pics = [];
-    if (lv === 1) {
-      /* ⚠ 날짜 그림은 `8월 20일` 이 아니라 **`오늘`·`내일`** 로 찾아야 합니다.
-           images/시간/ 에 있는 파일 이름이 그렇기 때문입니다.
-           날짜로 찾으면 그림이 없어 달력 아이콘으로 떨어지는데, 학생은
-           방금 `내일` 그림을 골랐으므로 계획표에서 그림이 바뀐 것처럼 보입니다.
-         ▸ App.dayWord 는 문장(App.whenPhrase)이 쓰는 것과 **같은 함수**라,
-           그림과 문장이 늘 같은 말을 씁니다. */
-      if (plan.date) {
-        var dayW = App.dayWord(plan.date);
-        pics.push({ key: 'date', label: dayW || App.fmtDateShort(plan.date),
-          art: dayW
-            ? html`<${C.PickArt} kind="when" word=${dayW} iconKey="calendar" />`
-            : html`<${C.PickArt} kind="when" word="날짜 고르기" iconKey="calendar" />` });
-      }
-      if (App.timeWord(plan.time)) pics.push({ key: 'time', label: App.timeWord(plan.time),
-        art: html`<${C.PickArt} kind="when" word=${App.timeWord(plan.time)} iconKey="clock" />` });
-      whoList.forEach(function (pt) {
-        pics.push({ key: 'who-' + pt.id, label: pt.name,
-          art: html`<${C.PartnerArt} partner=${pt} student=${student} />` });
-      });
-      if (plan.place) pics.push({ key: 'place', label: plan.place,
-        art: html`<${C.PickArt} kind="place" word=${plan.place} iconKey="map" />` });
-      if (a) pics.push({ key: 'act', label: a.name, art: html`<${C.ActivityArt} activity=${a} />` });
-    }
+    var pics = (lv === 1) ? planPics(plan, student) : [];
 
     return html`<div class="sheet">
       <div class="sheet-title">오늘의 여가 계획표</div>
@@ -165,12 +183,35 @@
     /* 제목은 짧게 (2026-08-26 · 선생님 말씀 — 「여가 계획표 따라쓰기 → 따라 쓰기」).
        바로 위에 「오늘의 여가 계획표」가 이미 적혀 있어서, 다시 붙이면
        같은 말이 두 번입니다. **하는 일만** 적습니다. */
+    /* ★★ **1단계는 「그림 오려 붙이기」입니다** (2026-09-01 · 선생님 말씀 —
+         「1단계 친구와 여가 계획표를 작성하니 글을 잘 쓰기 어려운 친구들에게도
+          이건 어려운 버전이더라구. 그냥 위의 그림을 순서대로 붙일 수 있게
+          아래 칸에 붙일 공간을 주고 오려서 그 공간에 그림 순서대로 계획을
+          나열해 보는 걸 만들어 보는 건 어때?」).
+       예전에는 1단계도 **따라 쓰기**(흐린 글자 덧쓰기)였습니다. 그런데
+       1단계는 아직 글씨를 쓰기 어려운 학생이라, 덧쓰기 자체가 벽이었습니다.
+       ▸ 이제 아래 반쪽은 **빈 칸에 그림을 오려 붙이는 판**입니다.
+         손으로 붙이는 일이라 글씨를 못 써도 계획을 제 손으로 한 번 더 세웁니다.
+       ▸ **위 계획표의 그림 줄이 곧 답지**입니다 — 보고 맞춰 붙입니다.
+         「너무 쉬워지지 않을까」가 아니라, 단서는 빼지 않고 주는 것이
+         이 앱의 방식입니다.
+       ⛔ 오리는 그림을 위 계획표에서 오리게 하지 마세요 — 계획표가 못 쓰게
+          됩니다. 아래 「오리는 곳」에 **같은 그림을 한 벌 더** 냅니다. */
+    /* ★ **두 가지 가운데 골라 뽑습니다** (2026-09-01 · 선생님 말씀 —
+         「예전에 있던 따라 쓰기도 계획표 인쇄하기를 두 개로 갈라서 하나는
+          따라 쓰기 하나는 그림 나열하기로 두 개로 해 줘, 선택하게」).
+         `mode` 가 `cut` 이면 **그림 오려 붙이기**, 아니면 그 단계의 쓰기 학습지
+         (1단계 따라 쓰기 · 2단계 빠진 낱말 · 3단계 나만의 문장)입니다.
+       ▸ 그림 나열은 **어느 단계에서나** 뽑을 수 있습니다 — 글씨가 힘든 날에는
+         2·3단계 학생도 그림으로 계획을 세워 볼 수 있어야 합니다. */
+    var cut = (p.mode === 'cut');
     var TITLE = { 1: '따라 쓰기',
                   2: '빠진 낱말 찾아 쓰기',
                   /* 「다시 스스로 쓰기」는 말이 어색해서 바꿨습니다
                      (2026-08-26 · 선생님 말씀). 3단계는 틀 없이 제 말로
                      쓰는 단계이므로 그 뜻을 그대로 적습니다. */
                   3: '나만의 문장으로 다시 쓰기' };
+    var CUT_TITLE = '그림을 오려 순서대로 붙여요';
 
     /* 2단계 — 문장을 토막으로 나누고 셋만 빈칸으로 둡니다.
        ⛔ 글자를 잘라 내지 말고 **토막을 이어 붙여** 만듭니다. 잘라 내면
@@ -199,21 +240,59 @@
       return parts;
     }
 
-    return html`<div class="ws">
-      <div class="ws-title">${TITLE[lv] || TITLE[1]}</div>
-      ${lv === 1
-        /* ★ 1단계는 **위 노란 점선 바를 그대로** 한 번 더 내고, 글자만
-             연하게 합니다 (2026-08-26 · 선생님 말씀 — 「위의 점선 노란색
-             그대로를 제공하되 글자 진하기가 연하게 제공되어서 그 위에
-             덧쓰기를 할 수 있게」).
-           ⛔ 줄글 밑줄로 바꾸지 마세요. 위 계획표와 **같은 모양**이라야
-              학생이 「저 문장을 그대로 덧쓴다」는 것을 바로 압니다. */
-        /* 위 계획표 바와 **똑같이** 구마다 묶습니다 — 덧쓰는 종이라
-           줄이 갈라지는 자리까지 같아야 학생이 그대로 베낍니다. */
-        ? html`<div class="sentence sentence-center ws-trace">
-            ${App.sentences.planParts(plan).map(function (t, i) {
-              return html`<${React.Fragment} key=${i}>${i > 0 && ' '}<span class="ph">${t}</span><//>`;
-            })}</div>`
+    return html`<div class=${'ws' + (cut ? ' ws-cutpaste' : '')}>
+      <div class="ws-title">${cut ? CUT_TITLE : (TITLE[lv] || TITLE[1])}</div>
+      ${cut
+        /* 그림 나열 — 붙일 빈 칸 줄 + 그 아래 오리는 그림 줄.
+           ▸ 빈 칸에는 **무엇을 붙일 자리인지**(언제 · 누구와 · 어디에서 ·
+             무엇을)를 작게 적어 둡니다. 그림만으로 헤매지 않게 하는 단서입니다.
+           ▸ 오리는 그림은 **차례를 섞어** 냅니다 — 그대로 두면 오려서
+             옮겨 붙이기만 하면 되어 「차례를 생각하는」 일이 사라집니다.
+             섞는 방법은 늘 같습니다(가운데부터 하나씩) — 같은 계획을 다시
+             뽑아도 같은 종이가 나와야 하기 때문입니다. */
+        ? (function () {
+            var ps = planPics(plan, p.student);
+            /* 가운데부터 하나씩 빼내어 섞습니다 (늘 같은 차례) */
+            var rest = ps.slice(), mixed = [];
+            while (rest.length) mixed.push(rest.splice(Math.floor(rest.length / 2), 1)[0]);
+            /* ★ 칸 크기는 **개수에 따라** 줄입니다 (2026-09-01 첫 판에서
+                 다섯 칸이 A4 폭을 넘어 한 칸만 아랫줄로 떨어졌습니다).
+                 붙일 칸과 오릴 그림은 **같은 값**을 씁니다 — 다르면 안 맞습니다. */
+            var sz = ps.length >= 6 ? '20mm' : (ps.length === 5 ? '24mm' : '28mm');
+            return html`<${React.Fragment}>
+              <div class="ws-slots" style=${{ '--slotw': sz }}>
+                ${ps.map(function (it, i) {
+                  return html`<${React.Fragment} key=${it.key}>
+                    ${i > 0 && html`<span class="ws-slot-sep" aria-hidden="true">›</span>`}
+                    <!-- 딱지는 칸 **아래**에 둡니다 — 칸 안에 두면 그림을 붙이는
+                         순간 덮여서, 붙이고 나면 무엇을 붙였는지 알려 주는 말이
+                         사라집니다. -->
+                    <span class="ws-slotcol">
+                      <span class="ws-slot"></span>
+                      <i class="ws-slot-lab">${it.kind}</i>
+                    </span>
+                  <//>`;
+                })}
+              </div>
+              <div class="ws-cutline"><span>✂ 여기 아래 그림을 오려서 위 칸에 붙여요</span></div>
+              <div class="ws-cuts" style=${{ '--slotw': sz }}>
+                ${mixed.map(function (it) {
+                  return html`<span key=${'c-' + it.key} class="ws-cut" role="img"
+                    aria-label=${it.label}>${it.art}</span>`;
+                })}
+              </div>
+            <//>`;
+          })()
+        : (lv === 1
+          /* ★ 1단계 따라 쓰기 — 위 노란 점선 바를 그대로 한 번 더 내고 글자만
+               연하게 (2026-08-26 · 선생님 말씀 — 「위의 점선 노란색 그대로를
+               제공하되 글자 진하기가 연하게 제공되어서 그 위에 덧쓰기를」).
+             ⛔ 줄글 밑줄로 바꾸지 마세요. 위 계획표와 **같은 모양**이라야
+                학생이 「저 문장을 그대로 덧쓴다」는 것을 바로 압니다. */
+          ? html`<div class="sentence sentence-center ws-trace">
+              ${App.sentences.planParts(plan).map(function (t, i) {
+                return html`<${React.Fragment} key=${i}>${i > 0 && ' '}<span class="ph">${t}</span><//>`;
+              })}</div>`
         : (lv === 2
           /* ⛔ 낱말 사이에 **띄어쓰기를 직접 넣습니다.** inline 으로 흐르게 두면
                 태그 사이의 줄바꿈이 공백으로 안 남아 「나는친구와」로 붙습니다.
@@ -265,8 +344,8 @@
             </div>`
           : html`<div class="ws-lines">
               <i></i><i></i><i></i>
-            </div>`)}
-      ${lv === 2 && html`<div class="ws-hint">
+            </div>`))}
+      ${!cut && lv === 2 && html`<div class="ws-hint">
         <b>낱말 상자</b>
         ${[App.whenPhrase(plan.date, plan.time), plan.place, a ? App.frameWord(a) : '']
           .filter(Boolean).map(function (w, i) {
@@ -637,7 +716,9 @@
                  소리로도 읽어 줍니다. 그 아래 계획표까지 이미 보이는데
                  바를 하나 더 두면 **같은 말을 세 번** 하는 셈입니다
                  (규칙 7 — 중복 금지). 그만큼 계획표가 커집니다. -->
-          <${C.PlanSheet} plan=${saved} student=${student} />
+          <!-- ★ 계획표는 이 화면의 **주인공**이라 남는 높이를 다 씁니다
+                 (2026-09-01 · C.GrowToFit — 그림 · 노란 바 · 표가 같은 비로 커집니다). -->
+          <${C.GrowToFit}><${C.PlanSheet} plan=${saved} student=${student} /><//>
           <!-- 「나의 여가로 돌아가기」는 없앴습니다 (2026-08-26) —
                홈 가는 길은 맨 위 줄의 「나의 여가」와 홈 단추 둘로 충분합니다. -->
         <//>`;
@@ -924,7 +1005,8 @@
         <${C.Question} bar=${true} speakText=${'계획을 확인해요. ' + App.sentences.plan(previewPlan)}>
           계획을 확인해요
         <//>
-        <${C.PlanSheet} plan=${previewPlan} student=${student} />
+        <!-- ★ 확인 화면도 마찬가지로 계획표가 주인공입니다 (2026-09-01). -->
+        <${C.GrowToFit}><${C.PlanSheet} plan=${previewPlan} student=${student} /><//>
       <//>`;
     }
 
@@ -939,16 +1021,40 @@
            계획표를 인쇄해서 들고 가고, 홈으로 돌아갑니다.
            활동을 마친 뒤에는 **홈의 '오늘의 여가 계획' 카드**에서
            `활동을 했어요` 를 눌러 일기로 갑니다. */
-      action = html`<${C.Btn} kind="primary" icon="print"
-        onClick=${function () {
-          var pl = App.store.plan(saved) || previewPlan;
-          /* 계획표 한 장 + 그 아래 **쓰기 학습지** (단계마다 다릅니다) */
-          App.printNode(html`<${React.Fragment}>
-            <${C.PlanSheet} plan=${pl} student=${student} />
-            <${C.PlanWorksheet} plan=${pl} student=${student} />
-          <//>`);
-        }}>
-        계획표 인쇄하기<//>`;
+      /* ★★ **인쇄를 둘로 갈랐습니다** (2026-09-01 · 선생님 말씀 —
+           「계획표 인쇄하기를 두 개로 갈라서 하나는 따라 쓰기 하나는
+            그림 나열하기로, 선택하게」).
+         둘 다 **계획표 한 장 + 그 아래 학습지**이고, 아래 반쪽만 다릅니다.
+           쓰기 판   그 단계의 쓰기 학습지 (1 따라 쓰기 · 2 빠진 낱말 · 3 스스로)
+           그림 나열 그림을 오려 빈 칸에 순서대로 붙이기 (글씨가 힘든 학생)
+       ⛔ 두 장으로 뽑지 마세요 — 한 번에 한 가지만 나갑니다. 종이 한 장이
+          그날 들고 다닐 학습지입니다.
+       ★★ **그림 나열은 1단계에만** 둡니다 (2026-09-02 · 선생님 말씀 —
+           「그림 나열이 2,3단계도 다 있구나~~ 1단계에만 넣어 주고 2,3단계는
+            빼 줘」). 오려 붙이기는 **글씨를 아직 쓰기 어려운 학생**을 위한
+           길입니다. 2·3단계는 낱말을 채우고 제 말로 쓰는 단계라, 단추가 둘이면
+           오히려 쉬운 쪽으로 내려가게 됩니다.
+         ▸ 그래서 2·3단계는 예전처럼 **단추 하나**(계획표 인쇄하기)입니다.
+         ⛔ 이 갈래는 네 곳이 함께 지킵니다 — 계획하기(여기) · 계획 모음 ·
+            계획표 낱장 창 · 포트폴리오 책자. 한 곳만 고치면 어긋납니다. */
+      var lvNow = (student && student.diaryLevel) || 1;
+      var wsName = { 1: '따라 쓰기', 2: '빠진 낱말', 3: '스스로 쓰기' }[lvNow] || '따라 쓰기';
+      var printPlan = function (mode) {
+        var pl = App.store.plan(saved) || previewPlan;
+        App.printNode(html`<${React.Fragment}>
+          <${C.PlanSheet} plan=${pl} student=${student} />
+          <${C.PlanWorksheet} plan=${pl} student=${student} mode=${mode} />
+        <//>`);
+      };
+      action = (lvNow === 1)
+        ? html`<div class="two-acts">
+            <${C.Btn} kind="primary" icon="print"
+              onClick=${function () { printPlan('write'); }}>계획표 · ${wsName}<//>
+            <${C.Btn} icon="print" className="pastel-blue"
+              onClick=${function () { printPlan('cut'); }}>계획표 · 그림 나열<//>
+          </div>`
+        : html`<${C.Btn} kind="primary" icon="print"
+            onClick=${function () { printPlan('write'); }}>계획표 인쇄하기<//>`;
     } else if (key === 'confirm') {
       action = html`<${C.Btn} icon="save" onClick=${save}>계획 저장하기<//>`;
     } else if (key === 'supplies') {

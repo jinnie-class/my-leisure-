@@ -1376,10 +1376,19 @@
     /* 인쇄 모양 단추는 제목·단추와 한 줄에 두면 서로 밀려 제목이 잘립니다 → 아랫줄로.
        단추는 **그 학생의 단계에 있는 것만** 나옵니다 (1단계는 하나뿐). */
     var myModes = modesFor(lv);
+    /* ★★ **인쇄 모양과 단추를 종이 오른쪽으로** (2026-09-01 · 선생님 말씀 —
+         「이거의 위치를 오른쪽처럼 조금 변경해서 그림일기의 크기를 키워볼까?
+          원고지에 손으로 쓰기가 쓰기엔 너무 작더라구」).
+       A4 는 **세로로 긴 종이**라 이 화면에서 남는 것은 늘 **폭**입니다.
+       (재어 확인 : 흰 칸 1150x870 인데 종이는 515x745 — 좌우가 600px 넘게 비었습니다)
+       그런데 인쇄 모양 줄과 단추 줄은 **높이**를 먹고 있었습니다.
+       둘을 오른쪽 남는 폭으로 옮기면 그만큼(약 130px) 종이가 커집니다.
+     ▸ 단계 딱지는 맨 위 줄로 올려, 아랫줄(below)을 통째로 없앴습니다.
+     ⛔ 다시 아래로 내리지 마세요 — 내리는 만큼 원고지 칸이 작아져,
+        손으로 쓰기 어려워집니다. */
+    var levelBadge = html`<span class="pd-lv" title=${LEVEL_INFO[lv].sub}>
+      <b>${lv}단계</b> ${LEVEL_INFO[lv].name}</span>`;
     var modeBar = html`<div class="pd-modebar">
-      <!-- 왼쪽 끝 : 이 학생이 몇 단계인지. 늘 같은 자리에 있어야 눈에 익습니다. -->
-      <span class="pd-lv" title=${LEVEL_INFO[lv].sub}>
-        <b>${lv}단계</b> ${LEVEL_INFO[lv].name}</span>
       <!-- 가운데 : 눌러서 고르는 인쇄 모양.
            ★ 힌트 보기 단추는 **힌트 보고 쓰기 바로 오른쪽**에 붙입니다.
              그 모양을 골라야만 나타나는 단추라, 원인과 결과가 떨어져 있으면
@@ -1443,7 +1452,7 @@
         onBack=${goBack}
         backText=${params.from === 'folio' ? '나의 일기장으로 돌아가기' : null}
         onTitle=${function () { p.nav("home"); }}
-        below=${modeBar}>
+        afterTitle=${levelBadge}>
         <${C.Speak} text=${d ? App.sentences.diaryBody(d) : '일기를 찾을 수 없어요.'} />
       <//>
 
@@ -1451,27 +1460,27 @@
              보통 화면은 85% 만 쓰는 것이 규칙인데(인수인계 §29-1), 종이 위에
              손으로 쓸 때만은 칸이 클수록 좋습니다. 800 높이 화면에서
              원고지 한 칸이 28 → 41px 로 커집니다. -->
-      <div class=${'stage' + (writing ? ' tall' : '')}>
+      <div class="stage tall">
         <div class="panel" style=${{ alignSelf: 'stretch' }}>
-          <div class="stage-fit" style=${{ display: 'flex', flexDirection: 'column' }}>
+          <!-- ★★ **왼쪽 종이 · 오른쪽 도구** (2026-09-01 · 선생님 말씀).
+                 A4 는 세로로 길어 이 화면에서 남는 것은 늘 폭입니다.
+                 도구를 오른쪽 남는 폭에 세우면 종이가 흰 칸 높이를 다 씁니다
+                 (재어 확인 : 종이 515x745 → 604x855 · 원고지 칸 43 → 50px).
+               ⛔ 도구를 다시 아래로 내리지 마세요 — 그만큼 칸이 작아집니다. -->
+          <div class="stage-fit pd-2col">
             ${d ? html`<div class="pd-fit grow" ref=${boxRef}>
               <div class="pd-scale" style=${{ width: A4_W + 'px', height: A4_H + 'px',
                   transform: 'scale(' + fit[0] + ')' }}>${sheet}</div>
             </div>` : html`<${C.Banner} icon="question">일기를 찾을 수 없어요.<//>`}
-          </div>
 
-          <!-- ★ 단추 둘을 **한 줄에 나란히**, 키도 낮춥니다.
-                 위아래로 쌓으면 두 줄(약 150px)을 먹어서 그림일기가 그만큼
-                 작아집니다. 한 줄이면 절반만 씁니다.
-                 1·2·3단계가 같은 화면을 쓰므로 세 단계에 함께 적용됩니다. -->
-          <!-- ⚠ 나가는 길을 여기에 두지 마세요. A4 인쇄와 나란히 서면
-                 무엇이 나가는 길인지 흐리고, 그만큼 그림일기가 작아집니다.
+          <!-- ⚠ 나가는 길은 여기에 두지 않습니다. A4 인쇄와 나란히 서면
+                 무엇이 나가는 길인지 흐려집니다.
                  지금은 **맨 위 줄 화살표 자리**에 글자 단추로 있습니다.
                ▸ 포트폴리오에서 왔을 때에는 「나의 일기 모음」 도 빼 둡니다 —
                  돌아갈 곳이 둘이면 어디가 앞 화면인지 흐려집니다. -->
           <!-- ★ 쓰는 중에는 도구 줄로 바뀝니다 (2026-08-26).
                  인쇄·모음 단추를 그대로 두면 쓰다가 눌러 나가 버립니다. -->
-          ${writing ? html`<div class="panel-action pd-writebar">
+          ${writing ? html`<div class="pd-side pd-writebar">
             <span class="pd-writehint">종이에 그대로 써 보아요</span>
             <span class="pd-pens">
               ${PEN_COLORS.map(function (c) {
@@ -1491,7 +1500,8 @@
             <${C.Btn} size="small" icon="trash" onClick=${clearPad}>다 지우기<//>
             <${C.Btn} kind="primary" icon="check" onClick=${saveInk}>다 썼어요<//>
             <${C.Btn} size="small" onClick=${stopWriting}>그만두기<//>
-          </div>` : html`<div class="panel-action pd-acts">
+          </div>` : html`<div class="pd-side pd-acts">
+            ${myModes.length > 1 ? modeBar : null}
             <${C.Btn} kind="primary" icon="print"
               onClick=${function () { App.printNode(html`<div class="pd-print">${sheet}</div>`); }}>
               A4 인쇄하기<//>
@@ -1508,7 +1518,11 @@
                 App.store.updateDiary(d.id, { writeInkId: null });
                 if (old) App.photos.remove(old);
               }}>손글씨 지우기<//>`}
-            ${params.from !== 'folio' && html`<${C.Btn} icon="book" className="pastel-yellow"
+            <!-- ★ 색은 **둘만** 씁니다 (2026-09-01 · 선생님 결정).
+                   파랑은 이 화면에서 가장 자주 하는 일(A4 인쇄하기) 하나에만,
+                   나머지 둘은 **같은 연한 톤**으로 둡니다.
+                   셋이 저마다 다른 색이면 무엇이 주된 일인지 안 보입니다. -->
+            ${params.from !== 'folio' && html`<${C.Btn} icon="book" className="pastel-blue"
               onClick=${function () { p.nav('journal', { studentId: student.id }); }}>
               나의 일기 모음 보기<//>`}
           </div>`}
@@ -1518,6 +1532,7 @@
                  **보고 있는 종이 위에 그대로** 쓰는 것이었습니다.
                  지금은 위 「writing」 이 켜지면 종이 안 원고지 칸 위에
                  투명한 그림판이 얹힙니다 (C.PicDiarySheet 의 .pd-writepad). -->
+          </div>
         </div>
       </div>
     </div>`;

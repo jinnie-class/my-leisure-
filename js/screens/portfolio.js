@@ -72,7 +72,14 @@
     var d = list[i];
     return html`<div class="tvshow" role="dialog" aria-modal="true" aria-label="교실 전시">
       <div class="tv-head">
-        <b class="tv-title">${(p.student ? p.student.name + ' 학생의 ' : '') + '여가 전시관'}</b>
+        <!-- ★ **누구의 전시관인지**가 한눈에 (2026-09-01 · 선생님 말씀 —
+               「'이은우 학생'이라는 말이 눈에 띄도록 바탕색을 그 부분만
+                연한 파스텔 노랑이든 뭐든 구분이 되게」).
+             교실 화면에 띄우는 자리라, 이름이 또렷해야 「내 것을 보여 주는
+             시간」이 됩니다. 이름만 노란 바탕으로 감쌉니다. -->
+        <b class="tv-title">
+          ${p.student && html`<span class="tv-who">${p.student.name} 학생</span>`}
+          ${p.student ? '의 여가 전시관' : '여가 전시관'}</b>
         <span class="tv-count">${n ? (i + 1) + ' / ' + n : '0 / 0'}</span>
         <div class="grow"></div>
         <${C.Btn} size="small" icon="back" onClick=${function () { go(-1); }}>이전<//>
@@ -278,7 +285,8 @@
             ${d.exhibited.slice(0, 2).map(function (dy) {
               return html`<div key=${dy.id} class="banner" style=${{ marginBottom: '.4rem' }}>
                 <b>${App.fmtDateShort(dy.date)} · ${(App.act(dy.activityId) || {}).name || ''}</b>
-                <div class="small say" style=${{ marginTop: '.2rem' }}>${App.sentences.diaryBody(dy)}</div>
+                <div class="small say" style=${{ marginTop: '.2rem' }}>
+                  <${C.BySentence} text=${App.sentences.diaryBody(dy)} /></div>
               </div>`;
             })}
             ${!d.exhibited.length && html`<div class="banner small">전시할 일기를 골라 주세요.</div>`}
@@ -345,7 +353,15 @@
           <div class="row"><span class="k">세운 계획</span><b>${d.plans.length}개</b></div>
           <div class="row"><span class="k">해본 활동</span><b>${d.tried.length}가지</b></div>
         </div>
-        ${s.word && html`<div class="sentence" style=${{ marginTop: '.7rem' }}>“${s.word}”</div>`}
+        <!-- ★ 따옴표 문장 앞에 **「나의 한마디」 이름표**를 답니다 (2026-09-01 ·
+               선생님 말씀 — 「이 앞부분에 '나의 한마디'라는 말이 있으면 좋겠어」).
+             이름표가 없으면 학생 소개 표 아래에 문장 하나가 덩그러니 놓여,
+             이것이 **학생이 쓴 마무리 글**이라는 것을 알 길이 없었습니다.
+           ▸ 다른 곳(화면 · 한마디 모음 · 전시판형)에서 쓰는 이름과 같은 말입니다. -->
+        ${s.word && html`<div class="bk-word" style=${{ marginTop: '.7rem' }}>
+          <span class="bk-word-cap">나의 한마디</span>
+          <div class="sentence">“${s.word}”</div>
+        </div>`}
       </div>
 
       <div class="book-page">
@@ -390,7 +406,10 @@
               gridTemplateColumns: 'repeat(' + Math.min(3, dy.photoIds.length) + ',1fr)' }}>
             ${dy.photoIds.slice(0, 3).map(function (id) { return html`<${C.PhotoBox} key=${id} photoId=${id} />`; })}
           </div>` : null}
-          <div class="sentence" style=${{ marginTop: '.6rem' }}>${App.sentences.diaryBody(dy)}</div>
+          <!-- 문장 **한가운데에서 줄이 갈리지 않게** 문장마다 칸에 담습니다
+               (2026-09-01 · C.BySentence). -->
+          <div class="sentence" style=${{ marginTop: '.6rem' }}>
+            <${C.BySentence} text=${App.sentences.diaryBody(dy)} /></div>
           <div class="wrap" style=${{ marginTop: '.5rem' }}>
             ${dy.moodIds.map(function (m) {
               var mo = App.mood(m); if (!mo) return null;
@@ -459,6 +478,17 @@
     var folioTab = useState(function () { return (p.params && p.params.tab) || null; });
     /* 여가지도 칸에서 네 가지 표시 가운데 무엇을 보고 있는지 */
     var mapPick = useState('tried');   // tried | like | challenge | unsure
+    /* ★ 화면이 낮으면 실내·실외 창을 **둘씩**으로 되돌립니다 (2026-09-01 ·
+         선생님 : 「낮은 화면에서는 둘씩으로 되돌리게 해줘」).
+       재어 확인 — 넷씩(2열 x 2줄) 놓았을 때 앱이 스스로 줄인 정도 :
+         1920x1080 · 1230x1100  줄이기 1     (그대로 큼)
+         1280x800               줄이기 0.97
+         1366x768 · 1024x768    줄이기 0.91  (카드 161 → 147px)
+       ▸ 900 을 금으로 삼습니다. 그보다 낮으면 둘씩이라 줄이기가 아예 안 걸리고,
+         높으면 넷씩이라 빈 아래를 채웁니다.
+       ▸ 창을 키우거나 전체화면으로 바꾸면 App.useWinH 가 다시 그려 줍니다. */
+    var winH = App.useWinH();
+    var mapPerPage = winH >= 900 ? 4 : 2;
     var mapPageS = useState({});       // 실내·실외 창이 지금 몇 쪽을 보고 있는지
     var diaryPageS = useState(0);      // 일기장이 지금 몇 쪽을 보고 있는지
     var mapViewS = useState('list');   // 여가지도 칸 : list(모아 보기) | board(지도에 붙이기)
@@ -599,17 +629,35 @@
           상태로 연결되어 출력되도록」). 계획하기 화면에서 뽑는 것과 같은
          것이라, 한 곳에서 고치면 두 곳이 함께 바뀝니다 (C.PlanWorksheet).
        ⛔ 학습지를 여기에 따로 만들지 마세요 — 언젠가 둘이 어긋납니다. */
-    function printPlans() {
+    /* ★ 계획 모음도 **두 가지**로 뽑습니다 (2026-09-01 · 선생님 말씀 —
+         「여기서도 두 개로 나누어서 인쇄하기」).
+         계획하기 마지막 화면과 **같은 두 가지**입니다 :
+           쓰기 판   그 단계의 쓰기 학습지 (1 따라 쓰기 · 2 빠진 낱말 · 3 스스로)
+           그림 나열 그림을 오려 빈 칸에 순서대로 붙이기
+       ▸ 한 계획이 종이 한 장이고, 장마다 아래 반쪽에 고른 학습지가 붙습니다.
+       ⛔ 두 가지를 한 번에 다 뽑지 마세요 — 종이가 두 배가 되고, 학생이
+          무엇을 할 종이인지 헷갈립니다. 고른 것만 나갑니다. */
+    function printPlans(mode) {
       if (!data.plans.length) { App.ui.toast('이 기간에 세운 계획이 없어요.'); return; }
       App.printNode(html`<div>
         ${data.plans.map(function (pl) {
           return html`<div key=${pl.id} class="book-page plain">
             <${C.PlanSheet} plan=${pl} student=${student} />
-            <${C.PlanWorksheet} plan=${pl} student=${student} />
+            <${C.PlanWorksheet} plan=${pl} student=${student} mode=${mode} />
           </div>`;
         })}
       </div>`);
     }
+    /* 단추 글씨는 **단계에 맞춰** 바뀝니다 (계획하기 화면과 같은 말) */
+    var lvNow = (student && student.diaryLevel) || 1;
+    var wsName = { 1: '따라 쓰기', 2: '빠진 낱말', 3: '스스로 쓰기' }[lvNow] || '따라 쓰기';
+    /* ★★ **그림 나열은 1단계에만** (2026-09-02 · 선생님 말씀 — 「1단계에만
+         넣어 주고 2,3단계는 빼 줘」). 오려 붙이기는 글씨를 아직 쓰기 어려운
+         학생을 위한 길입니다. 2·3단계에 단추가 둘이면 쉬운 쪽으로 내려가게
+         됩니다 — 거기는 예전처럼 **단추 하나**입니다.
+       ⛔ 이 갈래는 네 곳이 함께 지킵니다 — 계획하기 · 계획 모음 ·
+          계획표 낱장 창 · 포트폴리오 책자. 한 곳만 고치면 어긋납니다. */
+    var cutOk = (lvNow === 1);
 
     /* 계획 하나를 눌러 열어 본 창 — **내가 쓴 계획표 그대로** 보여 줍니다 */
     var openPlan = planOpenS[0] ? App.store.plan(planOpenS[0]) : null;
@@ -617,13 +665,22 @@
         speakText=${App.sentences.plan(openPlan)}
         onClose=${function () { planOpenS[1](null); }}
         actions=${html`<${React.Fragment}>
+          <!-- 낱장으로 뽑을 때도 **모음과 같은 두 가지**입니다 (2026-09-01).
+               한 곳만 둘로 갈라 두면, 같은 계획인데 어디서 뽑느냐에 따라
+               다른 종이가 나와 헷갈립니다. -->
           <${C.Btn} icon="print" onClick=${function () {
             /* 계획표 + 쓰기 학습지 — 다른 곳에서 뽑는 것과 **같은 한 장**입니다 */
             App.printNode(html`<${React.Fragment}>
               <${C.PlanSheet} plan=${openPlan} student=${student} />
-              <${C.PlanWorksheet} plan=${openPlan} student=${student} />
+              <${C.PlanWorksheet} plan=${openPlan} student=${student} mode="write" />
             <//>`);
-          }}>이 계획표 인쇄하기<//>
+          }}>${cutOk ? '이 계획표 · ' + wsName : '이 계획표 인쇄하기'}<//>
+          ${cutOk && html`<${C.Btn} icon="print" className="pastel-blue" onClick=${function () {
+            App.printNode(html`<${React.Fragment}>
+              <${C.PlanSheet} plan=${openPlan} student=${student} />
+              <${C.PlanWorksheet} plan=${openPlan} student=${student} mode="cut" />
+            <//>`);
+          }}>이 계획표 · 그림 나열<//>`}
           <${C.Btn} kind="ok" onClick=${function () { planOpenS[1](null); }}>닫기<//>
         <//>`}>
       <${C.PlanSheet} plan=${openPlan} student=${student} />
@@ -1341,11 +1398,31 @@
             <span class="mb-isle out">여가 섬(실외)</span>
             ${placed.map(function (c) { return card(c, layout[c.id]); })}
           </div>
-          <!-- ★ 붙일 활동 띠 — **남은 것이 있을 때만** 뜹니다.
-                 다 붙이면 사라져 지도가 온전히 보입니다 (선생님 말씀).
-               ▸ 지도 안 맨 아래에 반투명으로 얹습니다. 덮는 곳은
-                 물·모래 자리라, 붙은 활동(높이 32/50/72%)은 안 가립니다. -->
-          ${left.length ? html`<div class="mb-tray in-map">
+          <!-- ★ 기간 — **바닷빛 칸 맨 위**에 (2026-09-01 · 선생님 말씀 —
+                 「날짜도 위로 올릴 수 있어? 크기 그대로 하고 그것만」).
+               처음에는 지도 그림 안 하늘에 두었는데, 섬 이름표와 같은 높이라
+               셋이 한 줄로 붙어 보였습니다. 지도 **바깥 칸**(바다)으로 올리면
+               그림은 하나도 안 가리면서 제 줄처럼 보입니다.
+             ⛔ 흰 칸 위에 제 줄로 되돌리지 마세요 — 그 한 줄이 46px 을 먹고
+                그만큼 지도가 작아집니다 (그래서 안으로 들여온 것입니다).
+             ⛔ 손짓을 가로채지 않게 pointer-events 를 껐습니다 (css) —
+                지도는 끌어 놓기를 받는 자리라, 글자가 그것을 먹으면
+                가운데에서 시작한 끌기가 죽습니다. -->
+          ${folioTools && html`<span class="mb-range">
+            ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록</span>`}
+        </div>
+        <!-- ★★ 붙일 활동 띠 — **여가 지도의 「나의 여가 도장판」과 같은 자리**
+               (2026-09-01 · 선생님 말씀 — 「아래 나의 여가지도를 위의 여가지도랑
+                똑같이!! 나의 여가 도장판에는 붙일활동을 넣고!」).
+             두 화면의 짜임이 같아집니다 —
+               위 : 바닷빛 큰 칸(지도)  ·  아래 : 흰 띠 한 줄
+             ▸ 예전에는 지도 **안**에 반투명으로 얹었습니다. 그때는 지도가
+               높이를 다 쓰지 못해 띠를 넣을 자리가 없었기 때문입니다.
+               이제 바깥 칸이 바다를 채우므로 띠를 밖으로 내놓아도 지도가
+               작아지지 않습니다.
+             ▸ **남은 것이 있을 때만** 뜹니다. 다 붙이면 사라져 지도가 온전히
+               보입니다 (선생님 말씀). -->
+        ${left.length ? html`<div class="mb-tray as-strip">
             <span class="mb-tray-cap">붙일 활동</span>
             ${flowBox(info, function (n) { boardPageS[1](n); }, 'mb-tray-grid',
                 info.items.map(function (c) {
@@ -1362,8 +1439,7 @@
                     <span class="mb-nm">${App.shortName(c) || c.name}</span>
                   </button>`;
                 }), '붙일 활동')}
-          </div>` : null}
-        </div>
+        </div>` : null}
         <!-- 고른 카드가 있을 때만 크기 바꾸기 · 떼어내기가 나옵니다 -->
         <div class=${'mb-tools' + (picked ? '' : ' off')} aria-hidden=${picked ? 'false' : 'true'}>
           <${C.Btn} size="small" className="pastel-blue" icon="shrink"
@@ -1428,7 +1504,12 @@
       </div>`;
     }
 
-    function printBook() {
+    /* ★ 책자도 **두 가지**입니다 (2026-09-01 · 선생님 말씀 — 「여가 포트폴리오
+         1단계 나의 여가 포트폴리오 책자 인쇄창도 2개 버전 필요
+         (따라쓰기/그림 나열)」).
+       책 안의 계획표마다 아래 반쪽에 붙는 학습지가 갈립니다 —
+       `mode` 하나를 그대로 넘겨 줍니다 (계획하기 · 계획 모음과 **같은 것**). */
+    function printBook(mode) {
       var mapSheet = bookMapSheet();
       return html`<div>
         <!-- 표지 — 누구의 책인지, 어느 기간인지, 무엇이 담겼는지 -->
@@ -1468,7 +1549,7 @@
         ${data.plans.map(function (pl) {
           return html`<div key=${'p' + pl.id} class="book-page plain">
             <${C.PlanSheet} plan=${pl} student=${student} />
-            <${C.PlanWorksheet} plan=${pl} student=${student} />
+            <${C.PlanWorksheet} plan=${pl} student=${student} mode=${mode} />
           </div>`;
         })}
 
@@ -1952,7 +2033,8 @@
              위 잣대(내용이 폭을 다 쓰는가)로 보면 **상자가 있어야 할 자리**입니다.
              폭을 927 로 묶은 것은 「너무 퍼져 있어 시선 분산」이라 하셔서
              일부러 그렇게 한 것이라, 앞으로도 폭이 남습니다. -->
-      <${C.Stage} bare=${!((view === 'pick' && !folioTab[0]) || (view === 'pick' && folioTab[0] === 'me'))} action=${(folioTools && view !== 'pick')
+      <${C.Stage} full=${view === 'pick' && folioTab[0] === 'map' && mapViewS[0] === 'board'}
+        bare=${!((view === 'pick' && !folioTab[0]) || (view === 'pick' && folioTab[0] === 'me'))} action=${(folioTools && view !== 'pick')
         ? html`<${C.Btn} kind="primary" icon="print" onClick=${doPrint}>
             ${view === 'book' ? '책자형 인쇄하기' : '전시판형 인쇄하기'}<//>`
         /* ★ 나의 한마디 창은 **모음 칸에서만** 아래 단추를 둡니다.
@@ -1999,7 +2081,16 @@
           <!-- 창 안에서만 **지금 어느 기간을 보고 있는지**를 한 줄로 알려 줍니다.
                첫 화면에서는 왼쪽 「나」 칸 안에 들어가 있습니다.
                인쇄 · 판형 · 기간 고르기는 위 선생님 도구 창으로 옮겼습니다. -->
-          ${(folioTools && folioTab[0]) ? html`<div class="folio-range small muted">
+          <!-- ★ 「지도에 붙이기」 에서는 이 줄을 **지도 안으로** 넣습니다
+                 (2026-09-01 · 선생님 말씀 — 「날짜기록 때문이라면 지도 안에
+                  넣어서라도~ 가능할 것 같아서」).
+               한 줄이 제 자리를 쓰면 그만큼 지도가 작아집니다 (재어 확인 —
+               줄 28 + 여백 18 = 46px). 지도 안 하늘 자리는 비어 있어서
+               섬을 가리지 않습니다 — 섬 이름표(.mb-isle)와 같은 자리입니다.
+             ▸ 지도 안 자리는 아래 mapBoardBody 가 그립니다 (.mb-range). -->
+          ${(folioTools && folioTab[0]
+             && !(folioTab[0] === 'map' && mapViewS[0] === 'board'))
+            ? html`<div class="folio-range small muted">
             ${App.fmtDateShort(data.from)} ~ ${App.fmtDateShort(data.to)} 의 기록
           </div>` : null}
 
@@ -2036,9 +2127,16 @@
                      이 책이 누구의 것인지 바로 위에 적혀 있어서 이어집니다.
                    ▸ 코너마다 따로 인쇄하면 종이가 네 뭉치로 흩어집니다.
                      여기는 원래 모아 두는 곳이라 한 번에 이어 낼 수 있어야 합니다. -->
+              <!-- 책자도 **1단계만 두 가지**입니다 (2026-09-02 · 선생님 말씀 —
+                   「나 카드 아래에 있는 포트폴리오 책자 인쇄도 1단계 학생만
+                    2개가 나오게」). 책 안 계획표마다 붙는 학습지가 갈립니다.
+                   2·3단계는 예전처럼 단추 하나입니다. -->
               <${C.Btn} icon="print" className="folio-book"
-                onClick=${function () { App.printNode(printBook()); }}>
-                나의 여가 포트폴리오 책자<//>
+                onClick=${function () { App.printNode(printBook('write')); }}>
+                ${cutOk ? '포트폴리오 책자 · ' + wsName : '나의 여가 포트폴리오 책자'}<//>
+              ${cutOk && html`<${C.Btn} icon="print" className="folio-book"
+                onClick=${function () { App.printNode(printBook('cut')); }}>
+                포트폴리오 책자 · 그림 나열<//>`}
             </div>
             <div class="corner-grid folio-home">
               ${FOLIO_TABS.map(function (t) {
@@ -2098,8 +2196,12 @@
                   }), '계획');
               })()}
               <div class="wrap" style=${{ marginTop: '.6rem', justifyContent: 'center' }}>
-                <${C.Btn} kind="primary" icon="print" onClick=${printPlans}>
-                  계획 모음 인쇄하기 (${data.plans.length}장)<//>
+                <${C.Btn} kind="primary" icon="print"
+                  onClick=${function () { printPlans('write'); }}>
+                  ${cutOk ? '계획 모음 · ' + wsName : '계획 모음 인쇄하기'} (${data.plans.length}장)<//>
+                ${cutOk && html`<${C.Btn} icon="print" className="pastel-blue"
+                  onClick=${function () { printPlans('cut'); }}>
+                  계획 모음 · 그림 나열 (${data.plans.length}장)<//>`}
               </div>
             <//>` : html`<${C.Banner} icon="cornerPlan">
               아직 세운 계획이 없어요.
@@ -2191,7 +2293,21 @@
                          화면의 절반뿐인데, 거기에 셋을 넣으니 넘친 것입니다.
                        ▸ 둘씩이면 카드가 창 안에 들어오고, 그만큼 그림도 큽니다.
                        ⚠ 쪽수가 늘어나므로 머리줄의 `1 / 3` 표시가 함께 씁니다. */
-                    var info = pageOf(mine, mapPageS[0][side.k], 2);
+                    /* ★★ **한 쪽에 넷**입니다 — 2열 x 2줄 (2026-09-01 · 선생님 :
+                         「좌우 그대로 두고 높이 채워줘」).
+                       ⚠ 둘씩이던 때는 두 창이 흰 칸의 **아래 327px 을 그대로
+                         비워 두고** 있었습니다 (재어 확인 1230x1100 :
+                         흰 칸 868 · 내용 541 · 창 높이 282).
+                         한 창에 두 장이라 12가지를 보려면 **여섯 쪽**을
+                         넘겨야 했습니다.
+                       ▸ 줄을 하나 더 놓으면 그 빈 높이가 채워지고 쪽이 절반으로
+                         줄어듭니다 (6쪽 → 3쪽). 카드 크기는 그대로입니다 —
+                         카드는 폭(창의 절반)에 걸려 있지 높이에 걸려 있지
+                         않았기 때문입니다.
+                       ⛔ 여섯(3열)으로 늘리지 마세요 — 2026-08-30 에 셋씩 놓았다가
+                          카드가 창 테두리를 넘어 삐져나왔습니다. 창 하나가
+                          화면의 절반뿐이라 한 줄에 둘이 한계입니다. */
+                    var info = pageOf(mine, mapPageS[0][side.k], mapPerPage);
                     return html`<div key=${side.k} class=${'folio-half ' + side.cls}>
                       <!-- 쪽 표시를 머리줄에 붙입니다 — 격자 아래에 두면
                            창마다 18px 씩, 둘이면 36px 을 먹습니다. -->

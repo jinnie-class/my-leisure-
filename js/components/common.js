@@ -24,6 +24,62 @@
     return s[0];
   };
 
+  /* ★★ **문장 단위로 줄이 바뀌게** 나눕니다 (2026-09-01 · 선생님 말씀 —
+       「일기 내용이 문장으로 끊어지지 않게, 끊어지는 문장은 줄바꿈되도록」).
+     그냥 두면 자리가 모자랄 때 **한 문장 한가운데**에서 줄이 갈립니다
+     (「… 했어요. 기분이 / 재미있었어요.」). 읽는 학생에게는 한 문장이
+     두 도막으로 보입니다.
+   ▸ 문장마다 칸(inline-block)에 담으면 **문장과 문장 사이에서만** 줄이
+     바뀝니다. 한 문장이 한 줄보다 길면 그 안에서는 예전처럼 접힙니다.
+   ▸ 마침표(. ! ?) 뒤의 빈칸까지 함께 담아, 이어 붙여도 띄어쓰기가 지켜집니다.
+   ⛔ 정규식 lookbehind 를 쓰지 않았습니다 — 옛 브라우저(전자칠판)에서
+      한 줄이 통째로 죽습니다. 글자를 하나씩 훑는 쪽이 안전합니다. */
+  App.sentenceParts = function (text) {
+    var s = String(text == null ? '' : text);
+    var out = [], buf = '';
+    for (var i = 0; i < s.length; i++) {
+      buf += s.charAt(i);
+      if ('.!?'.indexOf(s.charAt(i)) >= 0) {
+        while (i + 1 < s.length && s.charAt(i + 1) === ' ') i++;
+        out.push(buf); buf = '';
+      }
+    }
+    if (buf.replace(/\s/g, '')) out.push(buf);
+    return out.length ? out : [s];
+  };
+  /* 문장마다 칸에 담아 돌려줍니다 — 쓰는 곳은 그대로 넣기만 하면 됩니다. */
+  C.BySentence = function (p) {
+    return html`${App.sentenceParts(p.text).map(function (t, i) {
+      return html`<span key=${i} class="sen">${t}</span>`;
+    })}`;
+  };
+
+  /* ★ 화면 **높이**를 보고 짜임을 바꿔야 할 때 씁니다 (2026-09-01 · 선생님 :
+       「낮은 화면에서는 둘씩으로 되돌리게 해줘」).
+     CSS 는 `vh` 로 크기를 줄일 수 있지만, **몇 개를 보여 줄지**는 CSS 가
+     정하지 못합니다. 그것은 자바스크립트가 세는 수(pageOf 의 개수)라,
+     창 높이가 바뀌면 **다시 그려야** 값이 따라옵니다.
+   ⛔ `window.innerHeight` 를 그냥 읽지 마세요 — 처음 그릴 때 한 번만 읽고,
+      창을 키워도 그대로 굳습니다 (전자칠판에 연결하거나 전체화면으로 바꿀 때
+      낮은 화면 짜임이 그대로 남습니다).
+   ▸ 값이 실제로 바뀔 때만 다시 그립니다 (같은 값이면 그대로 둡니다). */
+  App.useWinH = function () {
+    var s = useState(window.innerHeight);
+    useEffect(function () {
+      function on() {
+        var h = window.innerHeight;
+        s[1](function (prev) { return prev === h ? prev : h; });
+      }
+      window.addEventListener('resize', on);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', on);
+      return function () {
+        window.removeEventListener('resize', on);
+        if (window.visualViewport) window.visualViewport.removeEventListener('resize', on);
+      };
+    }, []);
+    return s[0];
+  };
+
   /* ======================= 안내 · 확인창 ======================= */
   var uiSubs = [];
   var uiQueue = { confirm: null, toast: null };
@@ -428,6 +484,12 @@
                다시 필요하면 선생님 설정에 넣어 드리겠습니다.
              ⛔ 이 주석 안에 백틱 금지 (인수인계 2-3). -->
         ${title}
+        <!-- ★ afterTitle : **제목 바로 옆**에 붙이는 딱지 (2026-09-01 · 선생님 말씀 —
+               「2단계 따라 쓰거나 보고 써요 는 그림일기 바로 옆에 붙이면
+                수준차가 분명하게 차이나 보일 것 같아. 바로 옆에!!」).
+             오른쪽 끝(children)에 두었더니 아이콘들과 부딪혀 글자가 잘렸습니다.
+             제목 옆이라야 「이 종이는 몇 단계 것」이 한눈에 읽힙니다. -->
+        ${p.afterTitle}
         <div class="spacer"></div>
         ${p.children}
         <${C.IconBtn} uiKey="home" icon="home" label="나의 여가로"
@@ -559,6 +621,70 @@
           aria-current=${i === p.current ? 'step' : null}>${done ? '✓ ' : ''}${s}</span>`;
       })}
     </nav>`;
+  };
+
+  /* ★★ 남는 높이만큼 **통째로 키우는 칸** (2026-09-01 · 선생님 말씀 —
+       「그림도 작고 노란색 바 안의 글자들도 작고 무엇을~~준비물까지 글자가 너무 작아」).
+     계획 확인 화면처럼 **종이 한 장이 주인공**인 화면에서, 흰 칸이 넓은데도
+     종이는 늘 같은 크기라 아래가 텅 비고 글씨만 작아 보였습니다.
+     여기서는 남는 높이를 재어 그만큼 zoom 으로 키웁니다 —
+     그림 · 노란 바 · 표(무엇을 · 누구와 …)가 **같은 비로** 함께 커집니다.
+   ⛔ 폭은 건드리지 않습니다. zoom 이 걸린 칸에서 폭 100% 는 **이미 보정된
+      값**(부모폭 ÷ zoom)이라, 그냥 두면 렌더 폭이 부모와 같습니다.
+      (여기에 width 를 또 나누면 두 번 커집니다 — .stage-track 의 경고와 같은 일)
+   ⚠ 재는 순서 : zoom 을 1 로 되돌리고 → 다시 그리게 하고(offsetHeight) → 잽니다.
+      되돌린 바로 뒤에 읽으면 **옛 값**이 잡힙니다 (Stage 의 measure 와 같은 까닭).
+   ⚠ 키우는 것뿐입니다. 넘칠 때 줄이는 것은 Stage 의 --fit 이 맡습니다 —
+      그래서 1 보다 크지 않으면 inline zoom 을 **지웁니다**. 남겨 두면
+      인라인이 더 세서 Stage 의 줄이기가 듣지 않습니다. */
+  C.GrowToFit = function (p) {
+    var ref = useRef(null);
+    var maxZoom = p.max || 1.9;   /* 위끝 — 남는 자리가 아주 넓은 화면(전자칠판)에서 종이가 화면을 삼키지 않게 */
+    useEffect(function () {
+      var el = ref.current; if (!el) return;
+      /* ⛔⛔ **한 번 셈해서 끝나지 않습니다** (2026-09-01 · 재어서 확인).
+           zoom 을 걸면 이 칸의 **속 폭이 부모폭 ÷ zoom** 으로 좁아져서,
+           글줄이 다시 접힙니다. 그래서 「높이 × zoom」 으로 미리 셈한 값보다
+           실제 높이가 더 큽니다 (계획표 2단계 : 셈 674 → 실제 747 →
+           흰 칸을 넘겨 **1쪽이 텅 빈 채 2쪽으로 갈라졌습니다**).
+         ▸ 그래서 **걸어 보고 다시 재기**를 몇 번 되풀이합니다.
+           마지막에 그래도 넘치면 넘친 만큼 되줄입니다. */
+      function fit() {
+        var track = el.closest('.stage-track') || el.closest('.stage-fit');
+        if (!track) return;
+        el.style.zoom = '1';
+        void el.offsetHeight;
+        var tr = track.getBoundingClientRect();
+        var padB = parseFloat(window.getComputedStyle(track).paddingBottom) || 0;
+        /* 이 칸 **위**가 쓰는 높이(질문 바 등)를 빼고 남는 만큼 */
+        var avail = tr.height - (el.getBoundingClientRect().top - tr.top) - padB;
+        if (!(avail > 40)) return;
+        var z = 1;
+        for (var i = 0; i < 4; i++) {
+          var h = el.getBoundingClientRect().height;
+          if (!(h > 0)) return;
+          /* 0.98 은 숨 쉴 자리입니다. 딱 맞추면 반올림 한 픽셀에 넘쳐서
+             Stage 가 쪽을 갈라 버립니다. */
+          var want = Math.min(maxZoom, Math.max(1, z * (avail / h) * 0.98));
+          if (Math.abs(want - z) < 0.01) break;
+          z = want;
+          el.style.zoom = String(z);
+          void el.offsetHeight;
+        }
+        var last = el.getBoundingClientRect().height;
+        if (last > avail && last > 0) {
+          z = Math.max(1, z * (avail / last));
+          el.style.zoom = String(z);
+        }
+        if (z <= 1.01) el.style.zoom = '';
+      }
+      fit();
+      /* 그림이 늦게 실리면 높이가 바뀝니다 — 한 번 더 잽니다. */
+      var t = window.setTimeout(fit, 260);
+      window.addEventListener('resize', fit);
+      return function () { window.clearTimeout(t); window.removeEventListener('resize', fit); };
+    });
+    return html`<div class="growfit" ref=${ref}>${p.children}</div>`;
   };
 
   /* ======================= 무대 : 좌우로 넘기는 페이지 ======================= */
@@ -921,7 +1047,14 @@
        상자는 아무것도 묶어 주지 못하고 테두리만 하나 더 그립니다.
        안의 것을 좁게 모으는 편이 눈이 훨씬 덜 흩어집니다.
        ⛔ 여기는 JS 자리입니다. HTML 주석(<!-- -->)을 쓰면 문법 오류가 납니다. */
-    return html`<div class=${'stage' + (p.tall ? ' tall' : '')}>
+    /* ★ full : **지도처럼 흰 칸이 높이를 다 쓰는 화면** (2026-09-01 · 선생님 말씀 —
+         「여가지도가 이렇게 큼직하게 나와서 너무 좋아. 여가포트폴리오에서도
+          여가지도처럼 같은 크기로 보여지게 가능할까?」).
+       평소 흰 칸은 85% 인데(전 화면 통일), 지도가 주인공인 화면에서는 그
+       15% 가 그대로 지도 크기입니다. 여가 지도 코너(map.js)가 이미
+       `stage full` 로 그렇게 하고 있어서, 같은 이름을 여기에도 둡니다.
+       ⛔ 여기는 JS 자리입니다. HTML 주석(<!-- -->)을 쓰면 문법 오류가 납니다. */
+    return html`<div class=${'stage' + (p.tall ? ' tall' : '') + (p.full ? ' full' : '')}>
       <div class=${'panel' + (p.bare ? ' bare' : '')}>
       ${p.top && html`<div class="panel-top">${p.top}</div>`}
       <!-- ★ onePage : 쪽 나누기를 **아예 끕니다.**

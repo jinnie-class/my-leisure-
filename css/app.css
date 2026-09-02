@@ -342,6 +342,11 @@ ul{ margin:0; padding:0; list-style:none; }
    위아래로 쌓으면 두 줄(약 150px)을 먹어서 그림일기가 그만큼 작아집니다. */
 .panel-action.pd-acts{ display:flex; gap:.6rem; }
 .panel-action.pd-acts .btn{ flex:1 1 0; width:auto; min-height:52px; font-size:1.05rem; }
+/* 아래 단추가 **둘**일 때 (계획표 인쇄 : 쓰기 판 · 그림 나열 — 2026-09-01).
+   ⛔ 그냥 두면 `.panel-action .btn{width:100%}` 때문에 **위아래로 쌓여**
+      두 줄(150px)을 먹습니다. 한 줄에 반씩 나란히 세웁니다. */
+.panel-action .two-acts{ display:flex; gap:.6rem; }
+.panel-action .two-acts .btn{ flex:1 1 0; width:auto; min-height:64px; font-size:1.05rem; }
 
 /* 아래 줄 (이전 / 다음 / 홈) — 바탕 없이, 흰 칸이 끝나는 바로 아래에 붙습니다 */
 
@@ -934,6 +939,22 @@ textarea.sentence-edit:focus{
      선생님 설정(.tstage)도 목록이 길어 전부 씁니다. */
 .stage:not(.tall):not(.full):not(.tstage){ flex:1 1 auto; align-items:center; }
 .stage:not(.tall):not(.full):not(.tstage) > .panel{ height:85%; }
+/* ★ full 은 지금까지 map.js 가 **인라인으로** 하던 것을 규칙으로 옮긴 것입니다
+     (2026-09-01). 값은 map.js 가 쓰던 것과 같습니다 —
+     `<div class="stage full">` + 흰 칸에 `alignSelf:stretch`.
+   ▸ 이제 C.Stage 에 `full` 만 넘기면 어느 화면이든 지도와 같은 높이를 씁니다
+     (포트폴리오의 「지도에 붙이기」가 이것을 씁니다).
+   ⚠ 가로로 늘리면 안 됩니다 — 무대는 가로 flex 라 flex-grow 가 폭을 늘립니다
+     (.stage.tall 의 경고와 같은 까닭). 세로는 align-items 가 늘립니다. */
+.stage.full{ flex:1 1 auto; align-items:stretch; }
+.stage.full > .panel{ height:100%; }
+/* 흰 칸이 높이를 다 쓰므로, 지도가 폭에 걸려 작아지는 화면(세로로 긴 창)에서는
+   아래가 텅 빕니다. 그때는 **가운데로** 놓습니다 — 위에 붙어 있으면 흰 칸이
+   기울어 보입니다.
+ ⚠ 이 화면에는 칸이 **하나뿐**(지도)이라 좌우 쪽 나누기가 필요 없습니다.
+   그래서 세로 flex 로 바꿔도 잃는 것이 없습니다. 칸이 여럿인 화면에
+   `full` 을 쓰게 되면 이 규칙부터 다시 보세요. */
+.stage.full .stage-track{ display:flex; flex-direction:column; justify-content:center; }
 .home-title h1{
   font-size:clamp(1.5rem, .7rem + calc(2.2 * var(--vh, 1vh)), 42px);
   font-weight:900; letter-spacing:-.05em; line-height:1.15;
@@ -1918,6 +1939,92 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   display:flex; align-items:flex-start; justify-content:center;
   overflow:hidden; min-height:0;
 }
+/* ★★ **왼쪽 종이 · 오른쪽 도구** (2026-09-01 · 선생님 말씀 —
+     「이거의 위치를 오른쪽처럼 조금 변경해서 그림일기의 크기를 키워볼까?
+      원고지에 손으로 쓰기가 쓰기엔 너무 작더라구」).
+   A4 는 세로로 길어서 이 화면에서 남는 것은 늘 **폭**입니다 —
+   재어 확인 (흰 칸 1150x870) : 종이 515x745, 좌우가 600px 넘게 비었습니다.
+   그 남는 폭에 도구를 세우면, 도구가 먹던 높이(인쇄 모양 줄 + 단추 줄 ≈ 130px)가
+   그대로 종이 몫이 됩니다.
+ ▸ 오른쪽 칸은 **글자 크기에 따라** 넓어지되(rem) 화면이 좁으면 줄어듭니다.
+ ⛔ 오른쪽 칸을 더 넓히지 마세요 — 폭이 모자라면 종이가 이번에는 **폭에** 걸려
+    작아집니다. 지금 값은 A4 세로(0.707)가 높이에 먼저 걸리도록 잡은 것입니다. */
+.pd-2col{
+  display:flex; flex-direction:row; align-items:stretch; gap:.7rem;
+}
+/* ⛔⛔ **여기에 `align-items:center` 를 주지 마세요** (2026-09-01 · 선생님 :
+      「우선 그림일기가 잘려나감」).
+      종이(.pd-scale)는 `transform:scale` 로 **보이기만** 줄어들 뿐,
+      자리는 794x1123 그대로입니다. 가운데 맞춤을 걸면 1123px 짜리 자리가
+      700px 칸 한가운데에 놓이면서 **윗머리가 칸 위로 밀려 올라가고**,
+      overflow:hidden 이 아랫부분을 잘라 냅니다 (원고지 끝줄이 사라졌습니다).
+    ▸ 위 맞춤(flex-start)이라야 줄인 종이가 칸 안에 온전히 들어옵니다. */
+.pd-2col .pd-fit{ flex:1 1 auto; align-items:flex-start; }
+/* ★★ **오른쪽 칸 다듬기** (2026-09-01 · 선생님 : 「오른쪽 선택바들이 깔끔하지
+     않네」). 세 가지가 어수선하게 보이고 있었습니다 —
+       ① 단추 묶음이 세로 **가운데**에 떠서 종이 윗변과 어긋났습니다.
+       ② 글자가 두 줄로 접히는 단추만 키가 커서 **높이가 들쭉날쭉**했습니다.
+       ③ 인쇄 모양 알약 둘이 낱개로 떠 있어 한 묶음으로 보이지 않았습니다.
+     ▸ ① 위 맞춤(flex-start) — 종이 윗변과 **같은 선**에서 시작합니다.
+     ▸ ② 단추는 **키를 하나로** 못박습니다. 글자가 한 줄이든 두 줄이든
+          같은 크기라야 줄이 곧게 섭니다.
+     ▸ ③ 인쇄 모양은 **옅은 상자 하나**로 묶습니다 (이름표 + 알약 둘). */
+.pd-side{
+  flex:0 0 auto; width:clamp(12rem, 23%, 16rem);
+  display:flex; flex-direction:column; align-items:stretch; gap:.45rem;
+  justify-content:flex-start;
+}
+/* 키를 하나로 — `min-height` 만으로는 두 줄짜리가 늘어납니다. `height` 까지 못박습니다. */
+.pd-side .btn{
+  width:100%; height:62px; min-height:62px;
+  font-size:1rem; line-height:1.25; padding:.2rem .7rem;
+}
+/* 오른쪽 칸에서는 인쇄 모양이 **세로 한 묶음**입니다 (가로 격자를 풉니다).
+   ⛔ 가로로 두면 「따라 쓰기 · 힌트 보고 쓰기」 두 알약이 좁은 칸에서 서로
+      겹쳐 보입니다 (2026-09-01 · 선생님이 짚어 주심). 한 줄에 하나씩 둡니다. */
+.pd-side .pd-modebar{
+  display:flex; flex-direction:column; align-items:stretch; gap:.3rem;
+  padding-bottom:.45rem; margin-bottom:.1rem; border-bottom:1px solid var(--line);
+}
+.pd-side .pd-lv{ justify-content:center; text-align:center; }
+/* 「인쇄 모양」 두 가지는 **나란히** (2026-09-01 · 선생님 말씀 —
+   「인쇄모양은 두 선택이 나란히 배열되었으면 해」).
+   ▸ 이름표는 윗줄 하나로, 알약 둘은 아랫줄에 반씩 나눠 섭니다.
+   ▸ 「힌트 보기」는 그 아래 한 줄을 통째로 씁니다 — 알약 둘 사이에 끼면
+     셋이 좁아져 글자가 접힙니다. */
+.pd-side .pd-modes{
+  display:flex; flex-direction:row; flex-wrap:wrap;
+  align-items:stretch; justify-content:center; gap:.3rem;
+  /* 이름표와 알약 둘을 **한 상자**로 묶습니다 — 낱개로 떠 있으면 이것이
+     무엇을 고르는 자리인지 눈에 안 들어옵니다. */
+  background:var(--paper-2, #f7f8fc); border:1px solid var(--line);
+  border-radius:16px; padding:.45rem;
+}
+.pd-side .pd-modes > .small{ flex:1 1 100%; text-align:center; margin-bottom:.05rem; }
+/* 알약 둘 — 반씩 나눠 **같은 키**로 나란히 (글자가 두 줄이어도 키는 같습니다) */
+.pd-side .pd-modes .tab{
+  flex:1 1 0; min-width:0; white-space:normal; line-height:1.2;
+  height:46px; min-height:46px; padding:.1rem .3rem !important;
+  display:flex; align-items:center; justify-content:center; text-align:center;
+}
+/* 「힌트 보기」는 알약 아래 한 줄을 통째로 — 셋이 한 줄에 서면 글자가 접힙니다 */
+.pd-side .pd-modes .btn{
+  flex:1 1 100%; height:42px; min-height:42px; font-size:.95rem; margin-top:.1rem;
+}
+/* 손으로 쓰는 중의 도구도 같은 칸에 **세로로** 섭니다 — 종이가 흰 칸 높이를
+   다 쓰게 하려는 것이 이 짜임의 목적이라, 쓰는 동안에도 아래로 내리지 않습니다. */
+.pd-side.pd-writebar{ justify-content:center; }
+.pd-side.pd-writebar .btn{ width:100%; }
+.pd-side.pd-writebar .pd-pens{ flex-wrap:wrap; justify-content:center; }
+.pd-side.pd-writebar .pd-writehint{ margin:0 0 .1rem; text-align:center; }
+/* 좁은 화면(태블릿 세로 · 작은 창)에서는 도구를 다시 아래로 내립니다 —
+   폭이 모자라면 옆에 세우는 편이 되레 종이를 작게 만듭니다. */
+@media screen and (max-width: 820px){
+  .pd-2col{ flex-direction:column; }
+  .pd-side{ width:auto; flex-direction:row; flex-wrap:wrap; justify-content:center; }
+  .pd-side .btn{ width:auto; }
+  .pd-side .pd-modebar{ flex-direction:row; border-bottom:0; }
+}
 .pd-scale{ transform-origin:top center; flex:0 0 auto; }
 
 /* 보통의 그림일기 양식 — 검은 선으로 나뉜 한 장짜리 서식 */
@@ -1935,6 +2042,7 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   font-size:16px; line-height:1.4;
   font-family:'NanumBarunpen',"한컴산뜻돋움","HancomSandeutDotum","학교안심 산뜻돋움",
               "Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
+  letter-spacing:var(--pen-track);   /* 자간 5% (장평은 원고지 칸에서) */
 }
 .pd-line{ flex:0 0 auto; border-bottom:2px solid #333; display:flex; align-items:center; }
 
@@ -2040,6 +2148,18 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
    글자를 키운 뒤(칸의 70%)에는 두 글자가 칸을 넘으므로 이 칸만 줄입니다. */
 .pd-box .pd-ch.two{ font-size:.8em; letter-spacing:-.02em; }
 .pd-ch{ font-weight:800; line-height:1; white-space:pre; }
+/* ★ 원고지 칸 글자 — **장평 105%** (2026-09-01 · 선생님 말씀).
+     칸이 글자 자리를 이미 잡아 주므로, 여기서는 글자를 옆으로 5% 늘려도
+     옆 글자를 밀지 않습니다. 좁은 펜 글씨가 칸을 알맞게 채웁니다.
+   ⛔ 자간은 **0 으로 되돌립니다** — 한 칸에 한 글자라 자간이 벌어질 자리가
+      없고, 그대로 두면 글자 뒤에만 빈틈이 붙어 칸 안에서 왼쪽으로
+      치우쳐 보입니다. 원고지에서 자간을 정하는 것은 **칸**입니다.
+   ▸ 값은 위 `--pen-wide` 한 곳에서 옵니다. */
+.pd-box .pd-ch,
+.pd-titlegrid .pd-ch{
+  display:inline-block; letter-spacing:0;
+  transform:scaleX(var(--pen-wide));
+}
 /* 인쇄 모양 3가지 — **단계마다 고를 수 있는 것이 다릅니다** (`MODES_BY_LEVEL`)
      t-text  1단계 `글자` · 3단계 `내가 쓴 글` : 글이 그대로 나옵니다
      t-trace 2단계 `따라 쓰기`               : 연한 회색 — 그 위에 따라 씁니다
@@ -3201,6 +3321,13 @@ input.title-input{
 }
 .tv-head{ flex:0 0 auto; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 .tv-title{ font-size:1.15rem; font-weight:900; }
+/* 이름만 **연한 노랑 바탕**으로 (2026-09-01 · 선생님 말씀).
+   교실 화면에 띄우는 제목이라 「누구의 전시관인지」가 먼저 읽혀야 합니다. */
+.tv-who{
+  display:inline-block; padding:.05rem .5rem; margin-right:.1rem;
+  border-radius:8px; background:#fdf1c9; color:#4a3608;
+  box-shadow:inset 0 -2px 0 rgba(230,191,74,.55);
+}
 .tv-count{
   font-size:.95rem; font-weight:900; color:var(--ink-soft);
   padding:.15rem .6rem; border:2px solid var(--line); border-radius:999px; background:#fff;
@@ -3653,6 +3780,27 @@ input.title-input{
   font-weight:400 700;
   font-display:swap;
 }
+/* ★★ **나눔바른펜은 장평 105% · 자간 5%** (2026-09-01 · 선생님 말씀 —
+     「나눔바른펜이 자간이 좁은데 장평105% 자간 5%로 다 통일되게」).
+     펜 글씨는 글자 폭이 좁고 사이가 붙어서, 한글이 빽빽해 보입니다.
+     한글 문서 프로그램의 **장평·자간**과 같은 값을 여기 한 곳에 적어 두고
+     나눔바른펜을 쓰는 모든 곳이 이 두 값을 함께 씁니다.
+   ▸ `--pen-track` 자간 5% — 글자 사이를 글자 크기의 5% 만큼 벌립니다.
+     한글은 글자 하나가 거의 1em 이라, .05em 이 곧 자간 5% 입니다.
+   ▸ `--pen-wide` 장평 105% — 글자 **자체**를 옆으로 5% 늘립니다.
+     CSS 에는 장평이 따로 없어 `scaleX` 로 늘립니다.
+   ⛔ 그래서 장평은 **글자마다 제 칸이 있는 곳에만** 겁니다 —
+      원고지 칸(.pd-box .pd-ch)과 제목 칸입니다. 칸이 글자 자리를 이미
+      잡아 주므로 5% 늘려도 옆 글자를 밀지 않습니다.
+   ⛔ 줄글(문장 바 · 3단계 줄글 · 표의 값)에는 장평을 걸지 마세요 —
+      `scaleX` 는 **자리는 그대로 둔 채 그림만** 늘려서, 늘어난 5% 가
+      상자 밖으로 삐져나오거나 옆 글자와 겹칩니다. 그쪽은 자간 5% 만
+      겁니다 (한글에서는 자간이 폭을 벌리는 몫이 훨씬 큽니다).
+   ▸ 자간과 장평 값을 바꾸실 때에는 **이 두 줄만** 고치시면 됩니다. */
+:root{
+  --pen-track:.05em;   /* 자간 5%  */
+  --pen-wide:1.05;     /* 장평 105% */
+}
 /* 글로 읽는 문장 — 나눔바른펜으로, 그리고 조금 더 크게.
    ★ `say` 는 **학생이 쓴 글**에 붙이는 표시입니다 (2026-08-29 · 선생님 말씀 —
      「나눔바른펜이 설정된 부분은 나눔바른펜으로 인쇄 다 되도록, 다른
@@ -3680,6 +3828,7 @@ textarea.field.diary-write,
        뒤에 오는 기본 글꼴은 **이름을 그대로** 적어야 합니다. */
   font-family:'NanumBarunpen',"한컴산뜻돋움","HancomSandeutDotum","학교안심 산뜻돋움",
               "Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
+  letter-spacing:var(--pen-track);   /* 자간 5% (장평은 원고지 칸에서) */
 }
 
 /* 나눔바른펜은 획이 얇아서, 같은 크기라도 기본 글꼴보다 작아 보입니다.
@@ -4076,6 +4225,13 @@ textarea.field.diary-write,
   grid-template-columns:repeat(3, auto);
   justify-content:center; gap:.7rem;
 }
+/* ★ 실내·실외 창 안에서는 **2열 x 2줄**(넷) 입니다 (2026-09-01 · 선생님 :
+     「좌우 그대로 두고 높이 채워줘」).
+     창 하나가 화면의 절반이라 한 줄에 둘이 한계인데, 둘만 놓으니 흰 칸
+     아래가 통째로 비었습니다(재어 확인 1230x1100 : 327px). 줄을 하나 더
+     놓아 그 자리를 채웁니다 — 쪽도 6에서 3으로 줄어듭니다.
+   ⛔ 3열로 되돌리지 마세요 — 카드가 창 테두리를 넘어 삐져나옵니다. */
+.folio-half .folio-grid.wide{ grid-template-columns:repeat(2, auto); }
 @media screen and (max-width: 620px){ .folio-grid.wide{ grid-template-columns:repeat(2, auto); } }
 /* ★ 나의 여가지도 — 실내 창 · 실외 창.
    ⚠ 예전 주석은 「위아래가 낫다(120px 대 91px)」였는데, **지금은 반대**입니다
@@ -4213,7 +4369,14 @@ textarea.field.diary-write,
   padding:clamp(.35rem,calc(.9 * var(--vh, 1vh)),.7rem) 0;
   border:0; border-radius:0; background:transparent;
 }
-.me-bar + .me-bar{ margin-top:.2rem; }
+/* ★ 두 바 사이를 **띄웁니다** (2026-09-01 · 선생님 : 「너무 다닥다닥 붙어
+     있어 복잡해 보여 간격을 좀 둘까?」).
+     0.2rem 은 두 바가 한 덩어리로 붙어 보였습니다 — 위는 **고르는 곳**,
+     아래는 **만들어진 말**이라 눈으로 갈라져야 합니다.
+   ▸ 화면이 높으면 더 벌어지고 낮으면 좁아집니다(vh). 낮은 화면에서 여백이
+     내용을 밀어내지 않게 위끝(2.6rem)을 둡니다 — 재어 확인 :
+     1230x1100 에서 흰 칸 아래가 233px 남아 있었습니다. */
+.me-bar + .me-bar{ margin-top:clamp(.8rem, calc(4.4 * var(--vh, 1vh)), 3.4rem); }
 
 /* ★ **위 바에만 상자를 둡니다** (2026-08-29 · 선생님 말씀 —
      「여기도 윗부분은 상자가 필요해보이네」).
@@ -4230,6 +4393,8 @@ textarea.field.diary-write,
   border:3px solid var(--line); border-radius:22px;
   background:rgba(255,255,255,.6);
   padding:clamp(.45rem,calc(1.1 * var(--vh, 1vh)),.85rem) clamp(.6rem,1.4vw,1.1rem);
+  /* 위 단계 줄과도 한 숨 띄웁니다 (2026-09-01 · 위 「간격」과 같은 까닭) */
+  margin-top:clamp(.3rem, calc(1.6 * var(--vh, 1vh)), 1.2rem);
 }
 
 /* ★ 아래 바 — **나 카드를 한마디 옆에 붙입니다** (2026-08-29 · 선생님 말씀 —
@@ -4357,6 +4522,12 @@ textarea.field.diary-write,
 /* 만들어지는 한마디 */
 .me-saybar{ display:flex; align-items:center; gap:.4rem; }
 .me-say{
+  /* ⚠ 글이 노란 칸 **밖으로 삐져나오지 않게** (2026-09-01 · 선생님이 빨간
+       동그라미로 짚어 주심 — 「뿌듯해요.」의 끝이 테두리를 넘었습니다).
+     `min-width:0` 인 flex 칸이라 칸이 글보다 좁아질 수 있습니다. 한글은
+     아무 데서나 줄이 바뀌지만, 마침표 하나가 남아 넘치는 일이 있어
+     **어디서든 넘겨 쓰도록** 못박습니다. */
+  overflow-wrap:anywhere;
   flex:1 1 auto; min-width:0; margin:0; padding:.4rem .9rem; text-align:center;
   font-size:clamp(1rem,.62rem + calc(.9 * var(--vh, 1vh)),1.4rem); font-weight:900;
   background:var(--note-bg,#fffdf3); border:2px solid var(--note-line,#efdb92); border-radius:14px;
@@ -4600,7 +4771,13 @@ textarea.field.diary-write,
      제 칸 안에서 넘겨 보게 하면 **어느 기기에서도 반드시 보입니다.**
    ⚠ 안쪽 것은 break-inside:auto 로 풀어 주어야 밀려나지 않습니다. */
 .me-done{
-  display:flex; justify-content:center; margin-top:.4rem;
+  /* ★ 위 단계 줄과 **한 숨 띄웁니다** (2026-09-01 · 선생님 : 「여기서도
+       오른쪽 이미지같이 간격이 있도록 · 다닥다닥 피하기, 복잡해 보임」).
+     0.4rem 은 알약 줄에 종이가 바짝 붙어 한 덩어리로 보였습니다.
+   ▸ 화면이 높으면 넉넉히, 낮으면 좁게 (vh) — 낮은 화면에서 종이를
+     밀어내지 않도록 위끝을 둡니다. */
+  display:flex; justify-content:center;
+  margin-top:clamp(.6rem, calc(3.4 * var(--vh, 1vh)), 2.6rem);
   max-height:calc(calc(100 * var(--vh, 1vh)) - 300px); min-height:180px; overflow:auto;
   break-inside:auto;
 }
@@ -4672,6 +4849,20 @@ textarea.field.diary-write,
 }
 
 /* 책 안의 여가지도 쪽 — 실내 · 실외를 위아래로, 표시 그림까지 함께 */
+/* ★ 문장 한 도막 — **문장과 문장 사이에서만** 줄이 바뀌게 (2026-09-01 ·
+     선생님 말씀 — 「일기 내용이 문장으로 끊어지지 않게」).
+     inline-block 이라 자리가 모자라면 **문장 통째로** 다음 줄로 갑니다.
+   ⚠ 한 문장이 한 줄보다 길면 그 안에서는 예전처럼 접힙니다 — 그때는
+     달리 방법이 없습니다.
+   ▸ 사이 여백은 마침표 뒤 빈칸이 이미 담겨 있어 따로 주지 않습니다. */
+.sen{ display:inline-block; }
+/* 책자 「학생 소개」 아래 한마디 — 이름표를 앞에 답니다 (2026-09-01 · 선생님 말씀) */
+.bk-word-cap{
+  display:inline-block; margin-bottom:4px;
+  padding:2px 10px; border-radius:999px;
+  background:var(--apricot,#f7d9b0); border:2px solid var(--apricot-line,#e0954f);
+  font-size:.9rem; font-weight:900; color:#5b3a12;
+}
 .bk-side + .bk-side{ margin-top:14px; }
 .bk-side-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:800; }
 .bk-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; }
@@ -4718,8 +4909,23 @@ textarea.field.diary-write,
      ⛔ 그래도 무턱대고 올리지는 마세요. 넘치면 무대가 전체를 줄여
         **되레 작아집니다** (재어 확인 — 위아래이던 때 58vh 로 올렸더니
         줄이기가 0.82 → 0.70 으로 내려가 지도가 겨우 14px 커졌습니다).
-     ▸ 66vh 는 흰 칸(458)에서 기간 줄과 여백을 뺀 만큼입니다. */
-  position:relative; height:clamp(200px, calc(66 * var(--vh, 1vh)), 900px);
+     ▸ 66vh 는 흰 칸(458)에서 기간 줄과 여백을 뺀 만큼입니다.
+   ★★ **폭 먼저, 높이는 안전선** (2026-09-01 · 선생님 말씀 — 「여가포트폴리오
+       에서도 여가지도처럼 같은 크기로」).
+     여가 지도 코너의 지도는 **흰 칸 폭을 다 씁니다** (재어 확인 —
+     1280x960 에서 그림 1215x684). 여기는 높이(66vh=634)로 먼저 잘려서
+     1091x615 로 한 뼘 작았습니다. 그래서 **폭을 먼저** 쓰고, 높이는
+     넘치지 않게 하는 **안전선**으로만 둡니다 :
+         폭 = min(흰 칸 폭, 높이 안전선 x 1671/941)
+     ⚠ 그래서 `height` 를 직접 주지 않습니다. 높이를 주고 `max-width` 로
+       자르면 **비율이 깨져** 바탕 그림이 잘리고, %로 놓은 카드가 섬 밖으로
+       어긋납니다 (카드 자리는 지도 비율에 매여 있습니다).
+     ▸ 높이 안전선 74vh = 기간 줄을 지도 안으로 넣고(아래 .mb-range)
+       흰 칸이 full 로 높이를 다 쓰게 된 뒤의 값입니다. 낮은 화면
+       (1366x768)에서도 넘치지 않습니다 — 재어 확인 : 1009x568.
+     ⛔ 74 를 더 올리지 마세요. 넘치면 무대가 **전체를 줄여** 되레 작아집니다. */
+  position:relative;
+  width:100%;                    /* 폭은 아래 .mb-stack 이 정합니다 */
   aspect-ratio:1671 / 941; max-width:100%;
   border:3px solid var(--line); border-radius:18px; overflow:hidden;
   background:#dff0fb; touch-action:none;
@@ -4819,6 +5025,23 @@ textarea.field.diary-write,
 }
 .mb-isle.in { left:23%; background:#ffe9cc; border-color:#c96a1e; color:#8a4a12; }
 .mb-isle.out{ left:77%; background:#d6ebf9; border-color:#1f6e9e; color:#14526f; }
+/* 기간 — 두 섬 이름표 **사이 하늘 자리**에 (2026-09-01 · 선생님 말씀).
+   흰 칸 위에 제 줄로 있던 것을 지도 안으로 들여, 그 46px 을 지도가 씁니다.
+   ⛔ `pointer-events:none` 을 빼지 마세요 — 지도는 끌어 놓기를 받는 자리라
+      글자가 손짓을 먹으면 가운데에서 시작한 끌기가 죽습니다.
+   ▸ 생김새는 흰 칸 위에 있던 알약(.folio-range) 그대로라 낯설지 않습니다. */
+.mb-range{
+  /* 자리는 **바닷빛 칸(.mb-stack) 맨 위**입니다 — 지도 그림보다 위,
+     흰 칸보다는 안쪽 (2026-09-01 · 선생님이 그림으로 짚어 주심).
+     크기·생김새는 그대로 두고 자리만 올렸습니다. */
+  position:absolute; top:10px; left:50%; transform:translateX(-50%);
+  pointer-events:none; z-index:2;
+  padding:.15rem .9rem; border-radius:999px;
+  border:2px solid var(--line); background:rgba(255,255,255,.92);
+  font-size:clamp(.72rem,.42rem + calc(.62 * var(--vh, 1vh)),.95rem);
+  font-weight:800; color:var(--ink); white-space:nowrap;
+  box-shadow:0 1px 0 rgba(0,0,0,.06);
+}
 
 /* ★ 「나만의 여가 지도 직접 완성하기」 — 이 코너에서 가장 재미있는 활동이라
      들어오자마자 보이는 **큰 알약**으로 올렸습니다.
@@ -5169,7 +5392,7 @@ textarea.field.diary-write,
 .me-sayart{
   flex:0 0 100%;
   display:flex; justify-content:center; align-items:flex-end;
-  gap:clamp(.8rem,3vw,2.2rem); margin-bottom:.2rem;
+  gap:clamp(1rem,3.4vw,2.6rem); margin-bottom:.2rem;
 }
 .me-sayart-one{ display:flex; flex-direction:column; align-items:center; gap:.15rem; }
 .me-sayart-pic{
@@ -5690,26 +5913,69 @@ textarea.field.diary-write,
    ══════════════════════════════════════════════════════════════════ */
 /* 지도와 띠를 겹치는 칸 — 폭은 **지도만큼만**(fit-content) 잡아야
    띠가 지도 밖으로 삐져나가지 않습니다. */
-.mb-stack{ position:relative; width:fit-content; max-width:100%; margin:.4rem auto 0; }
+/* ★ 폭을 **여기 한 곳에서** 정합니다 (2026-09-01) — 지도(.mb-board)와 띠가
+     같은 폭을 써야 띠가 지도 밖으로 나가지 않기 때문입니다.
+       폭 = min(흰 칸 폭, 높이 안전선 x 지도 비율)
+     자세한 까닭은 위 `.mb-board` 주석에 적어 두었습니다.
+   ⛔ `width:fit-content` 로 두지 마세요 — 안의 지도가 `100%` 를 쓰면
+      서로를 기다리게 되어 폭이 0 에 가깝게 접힙니다. */
+/* ★★ **여가 지도 코너와 똑같이 보이게** (2026-09-01 · 선생님 : 「이 두 개가
+     똑같이 안 되는 이유가 있어?」).
+     까닭이 있었습니다 —
+       · 여가 지도(map.js)는 지도가 **바탕 그림**이라, 칸이 남으면 남는 자리를
+         **바닷빛으로 칠해** 채웁니다(background contain + 바다색). 그래서 창이
+         세로로 길어도 파란 칸이 끝까지 찹니다.
+       · 여기(지도에 붙이기)는 학생이 붙인 카드가 **지도 그림 위 %자리**에
+         매여 있어, 칸을 늘리면 카드가 섬 밖으로 어긋납니다. 그래서 비율
+         (1671:941)을 지켜야 하고, 폭에 걸리면 **아래가 텅 비었습니다.**
+     ▸ 그래서 같은 수를 씁니다 — **바깥 칸(.mb-stack)이 바다**가 되어 흰 칸을
+       가득 채우고, 지도(.mb-board)는 그 안에서 비율대로 가운데 놓입니다.
+       카드 자리는 지도 안 %라 그대로 지켜집니다.
+   ⛔ 바깥 칸에 테두리·바다색을 주었으니 .mb-board 의 테두리는 지웁니다 —
+      두 겹이면 지도 둘레에 선이 두 줄 그려집니다. */
+.mb-stack{
+  position:relative;
+  flex:1 1 auto; min-height:0; width:100%;
+  display:flex; align-items:center; justify-content:center;
+  margin:.4rem auto 0;
+  background:#dff0fb;
+  border:3px solid var(--line); border-radius:18px; overflow:hidden;
+}
+.mb-stack > .mb-board{
+  width:min(100%, calc(clamp(200px, calc(74 * var(--vh, 1vh)), 900px) * 1671 / 941));
+  border:0; border-radius:0; flex:0 0 auto;
+}
 
-.mb-tray.in-map{
-  position:absolute; left:10px; right:10px; bottom:10px; z-index:5;
-  display:flex; align-items:center; gap:.5rem;
-  padding:.35rem .5rem;
-  background:rgba(255,255,255,.88);
-  border:2px solid var(--line); border-radius:14px;
-  box-shadow:0 2px 10px rgba(30,60,100,.14);
+/* ★ 띠는 **바다 위에 뜬 것처럼** (2026-09-01 · 선생님 제안 — 「지도를 가리지
+     않더라도 바다쪽에 붙일활동이 들어갈 수도 있을 것 같은데?」).
+     지도가 커지면서 섬 아래 **바다 띠**가 넉넉해졌습니다. 그 자리라면
+     흰 상자로 덮을 까닭이 없습니다 — 상자를 거의 지우고 **카드만** 띄웁니다.
+     카드는 저마다 흰 바탕에 테두리가 있어서 바다 위에서도 또렷합니다.
+   ▸ 아주 옅은 흰빛만 남깁니다 : 「붙일 활동」 딱지와 넘김 화살표가 물빛 위에
+     묻히지 않을 만큼입니다. 더 지우면 화살표가 안 보입니다.
+   ⛔ 자리(bottom)를 더 올리지 마세요 — 붙은 활동이 놓이는 곳이 지도 높이의
+      72% 까지라, 띠가 그보다 올라가면 학생이 붙인 것을 가립니다. */
+/* ★★ 붙일 활동 띠 = **여가 지도의 도장판과 같은 띠** (2026-09-01 · 선생님 말씀).
+     생김새를 `.stampcard` 와 맞춥니다 — 흰 바탕 · 연한 테두리 · 둥근 모서리 ·
+     왼쪽 끝 이름표 · 오른쪽에 내용. 두 화면이 한 짜임으로 읽힙니다.
+   ▸ 지도 **밖 아래**에 있으므로 이제 지도를 가리지 않습니다.
+   ⛔ 다시 지도 안으로 넣지 마세요 — 붙인 활동(높이 32/50/72%)과 겹칩니다. */
+.mb-tray.as-strip{
+  position:relative;            /* 쪽 표시(1 / 7)가 이 칸을 기준으로 놓입니다 */
+  flex:0 0 auto; display:flex; align-items:center; gap:.6rem;
+  margin-top:.45rem; padding:.35rem .6rem;
+  background:#fff; border:2px solid var(--line); border-radius:18px;
 }
 /* 카드는 **가로 한 줄**로 쭉 (선생님 말씀). 넘치면 양옆 화살표로 넘깁니다. */
-.mb-tray.in-map .mb-tray-grid{
+.mb-tray.as-strip .mb-tray-grid{
   display:flex; flex-wrap:nowrap; justify-content:center;
   gap:.45rem; min-width:0;
 }
-.mb-tray.in-map .flow{ flex:1 1 auto; min-width:0; }
-/* 「붙일 활동」 딱지는 띠 왼쪽 끝에 작게 — 자리를 적게 먹어야 카드가 큽니다 */
-.mb-tray.in-map .mb-tray-cap{
+.mb-tray.as-strip .flow{ flex:1 1 auto; min-width:0; }
+/* 「붙일 활동」 딱지는 띠 왼쪽 끝에 — 도장판의 「나의 여가 도장판」과 같은 자리 */
+.mb-tray.as-strip .mb-tray-cap{
   flex:0 0 auto; font-weight:900; white-space:nowrap;
-  font-size:clamp(.78rem,.5rem + calc(.5 * var(--vh, 1vh)),.95rem);
+  font-size:clamp(.8rem,.5rem + calc(.55 * var(--vh, 1vh)),1rem);
   padding:.15rem .6rem; border-radius:999px;
   background:var(--sel-bg,#eaf6fd); border:2px solid var(--sel-line,#7fc9ea);
 }
@@ -5755,6 +6021,7 @@ textarea.field.diary-write,
   border-radius:14px;
   font-family:'NanumBarunpen',"한컴산뜻돋움","HancomSandeutDotum","학교안심 산뜻돋움",
               "Malgun Gothic","맑은 고딕","Noto Sans KR",system-ui,sans-serif;
+  letter-spacing:var(--pen-track);   /* 자간 5% (장평은 원고지 칸에서) */
   /* 나눔바른펜은 획이 얇아 같은 크기라도 작아 보입니다 — 한 단 키우고
      두께는 낮춥니다 (계획 문장 칸과 같은 까닭). */
   font-size:clamp(1.05rem,.7rem + calc(1 * var(--vh, 1vh)),1.5rem);
@@ -5816,7 +6083,9 @@ textarea.field.diary-write,
 .me-bar.has-art:not(.slots):not(.wide){
   grid-template-columns:auto min(100%, 33rem);
   justify-content:center;
-  gap:clamp(.3rem,.8vw,.7rem);
+  /* ★ 나 카드와 한마디 사이를 조금 더 (2026-09-01 · 선생님이 빨간 V 로 짚어
+     주심). 0.7rem 은 둘이 붙어 한 덩어리로 보였습니다. */
+  gap:clamp(1.2rem,3vw,3rem);
 }
 /* 그림 줄은 제 그림만큼만 — 아래 여백을 지워야 이름표와 밑선이 맞습니다 */
 .me-bar.has-art .me-saycol > .me-sayart{ flex:0 1 auto; margin:0; }
@@ -5859,7 +6128,13 @@ textarea.field.diary-write,
   grid-template-columns:auto auto;
 }
 /* 1·2단계 — 이름표와 고른 그림은 **한 줄에 나란히** */
-.me-caprow{ display:flex; align-items:center; justify-content:center; gap:.6rem; flex-wrap:wrap; }
+/* 이름표(나의 한마디) + 고른 그림 둘.
+   ★ 폭을 아래 노란 칸과 **같게** 맞추고 사이를 벌립니다 (2026-09-01 · 선생님 :
+     「만들어지는 문장은 나의 한마디 바에서 시작해서 기분 그림이 끝나는
+      곳까지 노란색 상자 폭이 있도록」 · 빨간 V 세 곳).
+   ▸ `justify-content:space-between` 이라 이름표는 왼쪽 끝, 그림은 오른쪽
+     끝에 서고, 그 두 끝이 곧 노란 칸의 두 끝이 됩니다. */
+.me-caprow{ display:flex; align-items:center; justify-content:space-between; gap:clamp(.9rem,2.4vw,2rem); flex-wrap:wrap; }
 /* ⛔ 그림 줄의 바탕값은 flex:0 0 100%(한 줄 통째로) 입니다 — 노란 바 **안에**
      있을 때 문장 위를 온전히 쓰라는 뜻입니다. 이름표 옆으로 나오면 그 값이
      이름표를 다음 줄로 밀어냅니다 (재어 확인 : 그림줄이 319px 로 늘어남).
@@ -5868,7 +6143,7 @@ textarea.field.diary-write,
 /* 1단계는 위아래 두 줄(이름표줄 / 노란바)이라 **세로**로 쌓습니다.
    그래야 `auto` 칸이 둘 가운데 **넓은 쪽**만큼만 잡습니다. */
 .me-bar.has-art.lv1 .me-saycol{ flex-direction:column; flex-wrap:nowrap; }
-.me-bar.has-art.lv1 .me-saycol > .me-caprow{ width:auto; }
+.me-bar.has-art.lv1 .me-saycol > .me-caprow{ width:100%; }
 .me-bar.has-art.lv1 .me-saycol > .me-saybar{ flex:0 0 auto; width:auto; }
 /* 1단계 문장은 그림이 섞여 있어 32rem 으로 자르면 접힙니다 — 한 줄로 둡니다 */
 .me-bar.has-art.lv1 .me-saycol > .me-saybar > .me-say{ max-width:none; }
@@ -5955,12 +6230,12 @@ textarea.field.diary-write,
      한 줄을 없앱니다 → 90px 안팎(지도의 23%).
    ⚠ 그림은 지금도 65px 이라 고르기에 넉넉합니다 — 이 띠는 **고르는 곳**이고
      크게 보는 곳은 지도입니다. */
-.mb-tray.in-map .mb-pick{ padding:.2rem .25rem; gap:1px; }
-.mb-tray.in-map .mb-art{ width:clamp(40px, calc(7 * var(--vh, 1vh)), 64px); height:clamp(40px, calc(7 * var(--vh, 1vh)), 64px); }
-.mb-tray.in-map .mb-nm{ font-size:clamp(.68rem,.45rem + calc(.42 * var(--vh, 1vh)),.85rem); }
+.mb-tray.as-strip .mb-pick{ padding:.2rem .25rem; gap:1px; }
+.mb-tray.as-strip .mb-art{ width:clamp(40px, calc(7 * var(--vh, 1vh)), 64px); height:clamp(40px, calc(7 * var(--vh, 1vh)), 64px); }
+.mb-tray.as-strip .mb-nm{ font-size:clamp(.68rem,.45rem + calc(.42 * var(--vh, 1vh)),.85rem); }
 /* 쪽 표시는 딱지 옆으로 — 제 줄을 차지하지 않게 띄웁니다 */
-.mb-tray.in-map .flow-n{
+.mb-tray.as-strip .flow-n{
   position:absolute; left:.6rem; bottom:.15rem;
   font-size:.72rem; font-weight:800; color:var(--ink-soft);
 }
-.mb-tray.in-map .flow-mid{ min-width:0; }
+.mb-tray.as-strip .flow-mid{ min-width:0; }
