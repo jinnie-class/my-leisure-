@@ -183,6 +183,15 @@
      ⛔ 인쇄 모양을 그쪽에 따로 적지 마세요 — 단계마다 고를 수 있는 것이
         다른데 둘로 나뉘면 언젠가 어긋납니다. 여기 한 곳에서만 정합니다. */
   App.diaryPrintModes = modesFor;
+  /* ★★ **모아 인쇄는 셋입니다** (2026-09-04 · 선생님 —
+       「3단계에서도 내가 쓴 글 / 빈 줄(그림) / 빈 줄(힌트) 이렇게 3개로
+        출력 가능하게 해 줘」).
+     ⛔ 포트폴리오의 「일기장 모두 인쇄」가 여태 `modesFor`(둘)를 쓰고 있어서,
+        빈 줄이 **늘 힌트와 함께** 나왔습니다. 그림을 보며 스스로 쓰는 종이를
+        뽑을 길이 없었던 것입니다. 이제 이 목록을 씁니다.
+     ⚠ 화면 안의 인쇄 모양 탭은 그대로 `modesFor`(둘)입니다 — 거기에는
+       「힌트 보기」 단추가 따로 있어 켜고 끌 수 있습니다. */
+  App.diaryBookPrintModes = bookPrintModes;
 
   /* ★★ **「나의 일기 모음」 화면의 인쇄 단추는 셋입니다** (2026-08-30 · 선생님 :
        「여기선 인쇄가 3개가 있으면 좋겠어. 내가 쓴 글 / 빈 줄(그림) / 빈줄(힌트)」).
@@ -989,6 +998,7 @@
         </div>
       </div>
       ${bigS[0] && html`<${C.Modal} title="인쇄 모양" wide=${true}
+        style=${{ maxHeight: 'calc(100 * var(--vh, 1vh) - .8rem)' }}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
         <${C.BigPaper}>${sheet}<//>
@@ -1010,45 +1020,57 @@
   C.BigPaper = function (p) {
     var boxRef = useRef(null);
     var dvS = useState(0.5);
-    /* ⚠ 창 테두리·여백까지 셈으로 다 알 수는 없습니다. 넘친 만큼 줄인 값을
-         **기억해 두어야** 합니다 — 매번 새로 셈하면 커졌다 작아졌다
-         오르내리기만 하고 자리를 못 잡습니다 (2026-08-30 에 겪음). */
-    var shrinkRef = useRef(1);
+    /* ★★ **창 자체를 재어 맞춥니다** (2026-09-04 · 선생님 — 「스크롤이 생기는
+         작은 창이 생겨. 스크롤 없이 큰 창으로 크게 보여지게」).
+       ⛔ 예전 셈은 **자를 두 개 섞어 썼습니다.** 창의 높이 한도는 CSS px 인데
+          제목 줄·단추 줄은 `getBoundingClientRect`(눈에 보이는 px)로 재고,
+          쓸 수 있는 높이는 `window.innerHeight`(화면 전체)로 잡았습니다.
+          팝업이 줄이기(zoom) 안에 있을 때에는 두 자의 눈금이 서로 달라서,
+          재어 보니 종이가 973px 인데 창 속은 657px 뿐이라 **120px 이 넘쳐
+          스크롤**이 생겼습니다. 넘친 만큼 되줄이는 장치(shrinkRef)가 있었지만,
+          그것은 고장을 덮을 뿐 자를 맞춰 주지는 못했습니다.
+       ▸ 이제 **창 하나만** 봅니다 — 창의 높이 한도(max-height)에서
+         안쪽 여백과 제목·단추 줄을 빼면 종이가 쓸 수 있는 높이가 그대로
+         나옵니다. 모두 CSS px(offsetHeight)이라 자가 하나입니다.
+       ▸ 종이가 작아지면 창도 따라 작아지지만 **한도(max-height)는 그대로**라
+         값이 오르내리지 않습니다. 그래서 shrinkRef 되줄이기도 없앴습니다.
+       ⛔ `window.innerHeight` 로 되돌리지 마세요 — 창이 화면보다 작을 때
+          (여기가 늘 그렇습니다) 반드시 넘칩니다. */
     useLayoutEffect(function () {
       function fit() {
         var el = boxRef.current; if (!el) return;
         var host = el.parentElement; if (!host) return;
-        /* ⛔⛔ **이 창은 확인 화면의 줄이기(zoom) 안에 들어 있습니다.**
-             확인 화면이 흰 칸에 맞추려고 `.confirm-fit` 에 zoom 을 거는데,
-             팝업이 그 안에서 그려지므로 **창째로 함께 줄어듭니다**
-             (2026-08-30 재어 확인 : zoom 0.633 → css 459px 인 종이가 290px).
-           ▸ 그래서 **겉보기 배율을 재어 나눕니다.** 그러지 않으면 아무리
-             크게 잡아도 그만큼 다시 줄어듭니다. */
+        /* 겉보기 배율 — 팝업은 이제 화면 통째에 붙으므로(common.js 의 createPortal)
+           보통 1 입니다. 그래도 혹시 줄이기 안에 들어가는 날을 위해 재어 둡니다. */
         var cssH = parseFloat(window.getComputedStyle(el).height) || 1;
         var scale = el.getBoundingClientRect().height / cssH;
         if (!(scale > 0.05)) scale = 1;
-        /* 창에서 제목 줄·단추 줄이 쓰는 높이를 뺍니다 (재어 본 실제 px) */
+
         var modal = el.closest ? el.closest('.modal') : null;
-        var chrome = 0;
+        var availW, availH;
         if (modal) {
+          var mcs = window.getComputedStyle(modal);
+          var maxH = parseFloat(mcs.maxHeight);
+          if (!(maxH > 0)) maxH = window.innerHeight / scale;
+          /* 제목 줄·단추 줄이 쓰는 높이 (바깥 여백까지 함께 — 안 빼면 그만큼 넘칩니다) */
+          var chrome = 0;
           [].forEach.call(modal.children, function (c) {
-            if (!c.contains(el)) chrome += c.getBoundingClientRect().height;
+            if (c.contains(el)) return;
+            var ccs = window.getComputedStyle(c);
+            chrome += c.offsetHeight
+                    + (parseFloat(ccs.marginTop) || 0) + (parseFloat(ccs.marginBottom) || 0);
           });
+          availH = maxH - (parseFloat(mcs.paddingTop) || 0)
+                        - (parseFloat(mcs.paddingBottom) || 0) - chrome - 6;
+          availW = modal.clientWidth - (parseFloat(mcs.paddingLeft) || 0)
+                                     - (parseFloat(mcs.paddingRight) || 0) - 6;
+        } else {
+          availW = host.getBoundingClientRect().width / scale - 8;
+          availH = window.innerHeight / scale - 56;
         }
-        var availW = Math.max(120, host.getBoundingClientRect().width - 8);
-        var availH = Math.max(160, window.innerHeight - chrome - 56);
-        var s = Math.max(0.2, Math.min(1,
-          availW / (A4_W * scale),
-          availH / (A4_H * scale)) * shrinkRef.current);
-        /* ★ 그려 놓고 보아 **화면 아래로 넘치면 그만큼 되줄입니다.**
-             줄인 몫은 shrinkRef 에 남겨, 다음 번 셈에도 이어집니다. */
-        var r = el.getBoundingClientRect();
-        if (r.height > 10 && r.bottom > window.innerHeight - 10) {
-          var over = r.bottom - (window.innerHeight - 10);
-          var k = Math.max(0.5, (r.height - over) / r.height);
-          shrinkRef.current = Math.max(0.3, shrinkRef.current * k);
-          s = Math.max(0.2, s * k);
-        }
+        availW = Math.max(120, availW);
+        availH = Math.max(160, availH);
+        var s = Math.max(0.2, Math.min(1, availW / A4_W, availH / A4_H));
         dvS[1](function (prev) { return Math.abs(prev - s) < 0.004 ? prev : s; });
       }
       fit();
@@ -1213,7 +1235,12 @@
       <div class="dv dv-arrange" style=${{ '--dv': dvS[0] }}>
         <span class="dv-paper">${live}</span>
       </div>
+        <!-- ★ 종이 창은 **화면 높이를 거의 다 씁니다** (2026-09-04).
+               보통 팝업은 88% 로 두는데, 여기는 A4 한 장을 통째로 보여 주는
+               것이 목적이라 그 12% 가 그대로 종이 크기입니다.
+             ⚠ 여백을 0 으로 두지 마세요 — 창 테두리가 화면에 붙습니다. -->
       ${bigS[0] && html`<${C.Modal} title="완성된 그림일기" wide=${true}
+        style=${{ maxHeight: 'calc(100 * var(--vh, 1vh) - .8rem)' }}
         onClose=${function () { bigS[1](false); }}
         actions=${html`<${C.Btn} kind="ok" onClick=${function () { bigS[1](false); }}>다 봤어요<//>`}>
         <${C.BigPaper}>${sheet}<//>

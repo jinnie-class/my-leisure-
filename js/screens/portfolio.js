@@ -606,7 +606,11 @@
     var bookDiaries = data.diaries;
     /* 교실 TV 전시 : 전시하기로 고른 기록만. 아직 없으면 이 기간의 일기 전부 */
     var showList = data.exhibited.length ? data.exhibited : data.diaries;
-    function printJournal(mode) {
+    /* `hint` : 빈 줄로 뽑을 때 그림칸에 **완성된 글**을 띄울지.
+         빈 줄(그림) → false — 제 그림을 보며 스스로 씁니다
+         빈 줄(힌트) → true  — 완성된 글을 보고 옮겨 씁니다
+       ⛔ 예전처럼 `mode === 'empty'` 로 묶지 마세요. 그러면 둘이 같아집니다. */
+    function printJournal(mode, hint) {
       if (!bookDiaries.length) { App.ui.toast('이 기간에 쓴 일기가 없어요.'); return; }
       App.printNode(html`<div class="pd-book">
         ${bookDiaries.map(function (d) {
@@ -615,7 +619,7 @@
                (picdiary.js 의 printBook 과 같은 규칙) */
           return html`<div key=${d.id} class="pd-page">
             <${C.PicDiarySheet} diary=${d} student=${student} trace=${mode}
-              showHint=${mode === 'empty'} />
+              showHint=${mode === 'empty' && hint !== false} />
           </div>`;
         })}
       </div>`);
@@ -2065,13 +2069,17 @@
                3단계  내가 쓴 글 · 빈 줄 */
         : (view === 'pick' && folioTab[0] === 'diary' && data.diaries.length)
         ? html`<${React.Fragment}>
-            ${(App.diaryPrintModes
-                ? App.diaryPrintModes((student && student.diaryLevel) || 1)
+            <!-- ★ 모아 인쇄는 **셋**입니다 (2026-09-04 · 선생님 말씀).
+                   내가 쓴 글 / 빈 줄(그림) / 빈 줄(힌트).
+                 ⛔ 목록을 여기에 손으로 적지 마세요 — picdiary.js 의
+                    diaryBookPrintModes 한 곳에서만 정합니다. -->
+            ${(App.diaryBookPrintModes
+                ? App.diaryBookPrintModes((student && student.diaryLevel) || 1)
                 : [{ id: 'text', name: '글자' }]
               ).map(function (m, i) {
-                return html`<${C.Btn} key=${m.id} kind=${i === 0 ? 'primary' : null}
+                return html`<${C.Btn} key=${m.id + '-' + i} kind=${i === 0 ? 'primary' : null}
                   className=${i === 0 ? null : 'pastel-blue'} icon="print" title=${m.desc}
-                  onClick=${function () { printJournal(m.id); }}>
+                  onClick=${function () { printJournal(m.id, m.hint); }}>
                   일기장 모두 인쇄 · ${m.name}<//>`;
               })}
             <span class="small muted folio-print-n">${data.diaries.length}장</span>

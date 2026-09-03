@@ -249,6 +249,18 @@
           { v: 2, ids: ['grandma', 'grandpa', 'sisEl', 'nuna', 'hyeong', 'oppa', 'younger'] },
           { v: 3, ids: ['uncle', 'gomo', 'imo'] }
         ];
+        /* ⛔ **새로 생긴 기분도 켜 주어야 합니다** — 위 사람과 똑같은 까닭입니다.
+             `moodIds` 도 「켠 것 목록」이라, 목록에 없는 기분은 안 나옵니다.
+             선생님이 예전에 기분을 골라 두신 학생은, 새로 더한 「좋아요」가
+             **하나도 안 보입니다.** 끌 기회조차 없었던 것이라 켜 주는 것이 맞습니다.
+           ▸ 기분을 더할 때마다 이 표에 한 줄을 더하고 `v` 를 올리세요.
+             ⛔ 표를 고치지 않고 options.js 에만 더하면 **예전 학생에게는 안 보입니다.**
+                (2026-09-04 에 실제로 겪었습니다 — 「좋아요」를 더했는데 화면에는
+                 여덟 개만 나왔습니다) */
+        var MOOD_ADDS = [
+          { v: 1, ids: ['good'] },
+          { v: 2, ids: ['sorrowful', 'scared'] }
+        ];
         (state.students || []).forEach(function (s) {
           var ver = s.partnerVer || (s.partnersV2 ? 2 : 0);
           var last = PARTNER_ADDS[PARTNER_ADDS.length - 1].v;
@@ -262,6 +274,20 @@
               });
             }
             s.partnerVer = last; fixed++;
+          }
+          /* 기분 — 위 PARTNER_ADDS 와 같은 방식 (판 번호로 한 번만 켜 줍니다) */
+          var mver = s.moodVer || 0;
+          var mlast = MOOD_ADDS[MOOD_ADDS.length - 1].v;
+          if (mver < mlast) {
+            if (Array.isArray(s.moodIds) && s.moodIds.length) {
+              MOOD_ADDS.forEach(function (step) {
+                if (step.v <= mver) return;
+                step.ids.forEach(function (id) {
+                  if (s.moodIds.indexOf(id) < 0) s.moodIds.push(id);
+                });
+              });
+            }
+            s.moodVer = mlast; fixed++;
           }
           var h = s.hiddenActivityIds;
           if (!Array.isArray(h)) { if (h != null) { s.hiddenActivityIds = []; fixed++; } return; }

@@ -133,8 +133,11 @@ html,body{
      화면 값(12vh · 위끝 132px)을 그대로 두면 인쇄에서 쪽 높이를 기준으로
      잡혀 종이마다 달라지고, 계획표가 그만큼 길어져 학습지가 뒷장으로
      넘어갑니다 — 「한 장으로」를 지키려면 여기도 못박아야 합니다.
-   ⚠ 30mm 는 다섯 장이 A4 폭(186mm)에 넉넉히 들어가는 크기입니다. */
-.print-area .sheet-pics-item{ width:30mm !important; height:30mm !important; }
+   ⚠ **28mm** 입니다 (2026-09-04 · 재어서 고침). 30mm 로 두었더니 다섯 장이
+     계획표 안쪽 폭(175.4mm)을 0.9mm 넘어 **다섯째 그림만 아랫줄로** 떨어졌습니다
+     (그림 사이 2.4mm × 8 + 화살표 1.7mm × 4 = 26.2mm 를 빼면 한 장에 29.8mm).
+   ⛔ 다시 30mm 로 올리지 마세요 — 그 0.9mm 때문에 줄이 갈라집니다. */
+.print-area .sheet-pics-item{ width:28mm !important; height:28mm !important; }
 /* ⛔ 표와 그림은 **한 묶음으로 가운데** 입니다 (2026-08-26 · 선생님 말씀 —
       「출력창에서도 양쪽 여백을 동일하게 왼쪽 문장과 오른쪽 그림 중앙정렬」).
       화면과 **같은 규칙**을 쓰지만, 인쇄에서 어긋나지 않게 여기서도 못박습니다.
@@ -293,19 +296,33 @@ html,body{
      한쪽만 고치지 마세요.
    ▸ 칸 아래 작은 글씨(언제 · 누구와 …)는 **무엇을 붙일 자리인지** 알려 주는
      단서입니다. 지우지 마세요 — 그림만으로 헤매는 학생이 있습니다. */
+/* ★★ **칸을 크게 · 사이를 넓게** (2026-09-04 · 선생님 말씀 —
+     「네모칸을 최대로 크게 할 수 있는 만큼 크게 하고 그 밑에 날짜 · 시간 ·
+      누구와 · 어디에서 · 무엇을 글자도 조금 크게」,
+     「아래 그림도 너무 붙어 있는데 간격을 두고 자를 수 있게 하면 좋겠어.
+      특수학급 학생들은 가위질이 서툴러서 네모칸을 오려 버릴 수 있어서
+      위아래 네모칸 간격 필요함」).
+   ▸ 칸 크기(--slotw)는 plan.js 에서 개수에 따라 정합니다 (24 · 30 · 36mm).
+   ▸ 오리는 그림 사이는 **가로 8mm · 세로 7mm** 입니다. 가위가 선을 조금
+     빗나가도 옆 그림을 자르지 않을 만큼입니다. 좁히지 마세요. */
 .print-area .ws-slots{
   display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:center;
-  gap:2.5mm; margin:0 0 3mm;
+  /* 붙일 칸은 화살표로 이어지는 한 줄이라 가로 사이를 넉넉히 벌리지 않습니다
+     (벌리면 다섯 칸이 A4 폭을 넘어 두 줄로 갈라집니다).
+     ⚠ 세로 사이(row-gap)는 줄이 갈라졌을 때를 위해 넉넉히 둡니다. */
+  column-gap:1.5mm; row-gap:6mm; margin:0 0 4mm;
 }
 .print-area .ws-slotcol{
-  display:flex; flex-direction:column; align-items:center; gap:1mm; flex:0 0 auto;
+  display:flex; flex-direction:column; align-items:center; gap:1.5mm; flex:0 0 auto;
 }
 .print-area .ws-slot{
   width:var(--slotw, 26mm); height:var(--slotw, 26mm); flex:0 0 auto;
   border:1.2mm dashed #c9c9d2; border-radius:3mm;
 }
+/* 칸 아래 이름표(날짜 · 시간 · 누구와 · 어디에서 · 무엇을) —
+   9pt 는 붙일 자리를 알려 주기에 너무 작았습니다 (선생님 : 「글자도 조금 크게」). */
 .print-area .ws-slot-lab{
-  font-style:normal; font-size:9pt; font-weight:800; color:#8b8b98;
+  font-style:normal; font-size:12.5pt; font-weight:800; color:#6b6b78;
 }
 .print-area .ws-slot-sep{
   align-self:center; font-size:15pt; font-weight:900; color:#b9b9c6;
@@ -314,7 +331,8 @@ html,body{
    ⚠ 이 줄은 **오리라는 뜻**입니다. 위 따라 쓰기 판에는 이런 줄을 두지
      않았던 것과 다릅니다 (거기는 자르는 종이가 아니었습니다). */
 .print-area .ws-cutline{
-  position:relative; text-align:center; margin:1.5mm 0 3mm;
+  /* 자를 자리 위아래로 숨을 틔웁니다 — 가위가 들어갈 자리입니다 (2026-09-04) */
+  position:relative; text-align:center; margin:5mm 0 5mm;
   border-top:0.6mm dashed #b9b9c6;
 }
 .print-area .ws-cutline span{
@@ -323,7 +341,10 @@ html,body{
 }
 .print-area .ws-cuts{
   display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
-  gap:4mm;
+  /* ⛔ 사이를 좁히지 마세요 (2026-09-04 · 선생님 말씀 — 「특수학급 학생들은
+     가위질이 서툴러서 네모칸을 오려 버릴 수 있어서 위아래 네모칸 간격
+     필요함」). 4mm 는 가위가 조금만 빗나가도 옆 그림을 잘랐습니다. */
+  column-gap:8mm; row-gap:7mm; margin-top:2mm;
 }
 .print-area .ws-cut{
   width:var(--slotw, 26mm); height:var(--slotw, 26mm); flex:0 0 auto;
@@ -420,3 +441,11 @@ html,body{
       읽는 글이고, 따라 쓰기는 손으로 덧쓰는 글이라 그쪽이 커야 합니다.
    ══════════════════════════════════════════════════════════════════ */
 .print-area .sentence{ font-size:18.5pt; }
+/* ★ 1단계 계획표(그림 줄이 있는 판)만 조금 더 큽니다 — 화면에서 키운 것과
+     같은 결입니다 (2026-09-04 · 선생님 말씀 「1단계에서도 크게」).
+   ⛔⛔ 이 줄을 지우면 **인쇄가 기기마다 달라집니다.** app.css 의
+        `.sheet.sheet-l1 .sentence` 는 힘이 (0,3,0) 이라 위의
+        `.print-area .sentence` (0,2,0) 를 이깁니다. 그래서 여기서
+        (0,4,0) 으로 한 단 더 올려 **pt 로 못박아** 두어야 합니다.
+   ⛔ 따라 쓰기(.ws-trace 30pt)보다 크게 하지 마세요 — 위 421줄과 같은 까닭. */
+.print-area .sheet.sheet-l1 .sentence{ font-size:20pt; }

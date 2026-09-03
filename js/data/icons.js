@@ -121,6 +121,11 @@
     money: '<rect x="6" y="14" width="36" height="20" rx="4" fill="#c9e7bf"/><circle cx="24" cy="24" r="6" fill="#fff"/>',
 
     /* ------------------------- 기분 ------------------------- */
+    /* ★ 「좋아요」 — 가장 자주 쓰는 기분입니다 (2026-09-04 · 선생님 말씀으로 더함).
+         눈은 여느 얼굴과 같은 점눈(EYES)이고 입만 크게 웃습니다.
+       ⚠ 선생님이 `images/얼굴표정/좋았어요.png` 를 넣으시면 그 그림이 먼저입니다 —
+         이 선 그림은 그림이 아직 없을 때 대신 나옵니다. */
+    moodGood: face('#ffe1a8', EYES + '<path d="M15 27c3 6 15 6 18 0" fill="#fff"/>'),
     moodExcited: face('#fdeeb0', '<path d="M14 19l5-4M34 19l-5-4"/><circle cx="18" cy="22" r="2.2" fill="' + L + '" stroke="none"/><circle cx="30" cy="22" r="2.2" fill="' + L + '" stroke="none"/><path d="M16 28c2 5 14 5 16 0" fill="#fff"/>'),
     moodFun: face('#fbcfd8', '<path d="M15 20c1.5-2 4-2 5.5 0M27.5 20c1.5-2 4-2 5.5 0"/><path d="M16 29c2 4 14 4 16 0"/>'),
     moodCalm: face('#cceee4', '<path d="M15 22h5M28 22h5"/><path d="M18 30c2 2 10 2 12 0"/>'),
@@ -128,6 +133,13 @@
     moodSorry: face('#dfe7f3', EYES + '<path d="M18 31c2-2 10-2 12 0"/>'),
     moodTired: face('#e7dcc9', '<path d="M15 21l5 2M33 21l-5 2"/><path d="M18 31h12"/>'),
     moodSad: face('#bfe4f6', EYES + '<path d="M18 32c2-3 10-3 12 0"/><path d="M18 25c0 4-1 6-1 6" stroke="#7fc4e6" stroke-width="3"/>'),
+    /* ★ 「슬퍼요」 — 속상해요(moodSad)와 **눈물 크기로** 갈립니다.
+         두 낱말이 뜻이 가까워서 얼굴까지 같으면 학생이 못 가릅니다.
+       ⚠ 선생님이 `images/얼굴표정/슬펐어요.png` 를 넣으시면 그 그림이 먼저입니다. */
+    moodTear: face('#cfe3f7', '<path d="M15 21h5M28 21h5"/><path d="M18 33c2-3 10-3 12 0"/><path d="M18 25c0 5-1.5 8-1.5 8" stroke="#5fb0dd" stroke-width="3.4"/><path d="M30 25c0 5 1.5 8 1.5 8" stroke="#5fb0dd" stroke-width="3.4"/>'),
+    /* ★ 「무서워요」 — 눈을 크게 뜨고 입이 떨립니다 (놀란 얼굴과 다릅니다).
+       ⚠ `images/얼굴표정/무서웠어요.png` 를 넣으시면 그 그림이 먼저입니다. */
+    moodScared: face('#e2dcf3', '<circle cx="18" cy="22" r="4" fill="#fff"/><circle cx="30" cy="22" r="4" fill="#fff"/><circle cx="18" cy="22" r="1.9" fill="' + L + '" stroke="none"/><circle cx="30" cy="22" r="1.9" fill="' + L + '" stroke="none"/><path d="M17 32c1.5-2 3-0 4.5-2s3 2 4.5 0 3-2 4.5 0"/>'),
     moodAngry: face('#f6c6b6', '<path d="M14 17l6 3M34 17l-6 3"/><circle cx="18" cy="23" r="2.1" fill="' + L + '" stroke="none"/><circle cx="30" cy="23" r="2.1" fill="' + L + '" stroke="none"/><path d="M18 32h12"/>'),
 
     /* ------------------------- 함께하는 사람 ------------------------- */

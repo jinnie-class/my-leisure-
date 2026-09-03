@@ -76,6 +76,16 @@
      pre  : 이름 앞에 붙는 꼴 — 일기 제목에 씁니다 ("재미있는 곤충 키우기")
      stem : 예전 기록에만 남아 있는 줄기. App.moodWord() 가 past 로 바꿔 읽습니다 */
   D.moods = [
+    /* ★★ 「좋아요」를 **맨 앞에** 더했습니다 (2026-09-04 · 선생님 말씀).
+         아이들이 일기에 가장 많이 쓰는 말인데 여덟 가지 안에 없었습니다.
+         맨 앞에 두면 한 쪽에 셋씩 나오는 첫 쪽이
+         `좋아요 · 신나요 · 재미있어요` 가 되어, 1단계 학생이 첫 화면에서
+         바로 고를 수 있습니다.
+       ⚠ 그림은 `images/얼굴표정/좋았어요.png` 를 넣으면 붙습니다
+         (파일 이름은 `imageKey` 와 같아야 합니다). 아직 없으면 코드로 그린
+         `moodGood` 얼굴이 대신 나옵니다.
+       ⛔ id 를 바꾸지 마세요 — 이미 쓴 일기가 이 id 로 기분을 찾습니다. */
+    { id: 'good',    name: '좋아요',     past: '좋았어요',     conn: '좋고',     stem: '좋',       pre: '좋은',     icon: 'moodGood',    imageKey: '좋았어요' },
     { id: 'excited', name: '신나요',     past: '신났어요',     conn: '신나고',   stem: '신나',     pre: '신나는',   icon: 'moodExcited', imageKey: '신났어요' },
     { id: 'fun',     name: '재미있어요', past: '재미있었어요', conn: '재미있고', stem: '재미있',   pre: '재미있는', icon: 'moodFun',     imageKey: '재미있었어요' },
     { id: 'calm',    name: '편안해요',   past: '편안했어요',   conn: '편안하고', stem: '편안',     pre: '편안한',   icon: 'moodCalm',    imageKey: '편안했어요' },
@@ -83,7 +93,20 @@
     { id: 'sorry',   name: '아쉬워요',   past: '아쉬웠어요',   conn: '아쉽고',   stem: '아쉬웠',   pre: '아쉬운',   icon: 'moodSorry',   imageKey: '아쉬웠어요' },
     { id: 'tired',   name: '힘들어요',   past: '힘들었어요',   conn: '힘들고',   stem: '힘들었',   pre: '힘든',     icon: 'moodTired',   imageKey: '힘들었어요' },
     { id: 'sad',     name: '속상해요',   past: '속상했어요',   conn: '속상하고', stem: '속상',     pre: '속상한',   icon: 'moodSad',     imageKey: '속상했어요' },
-    { id: 'angry',   name: '화나요',     past: '화났어요',     conn: '화나고',   stem: '화났',     pre: '화난',     icon: 'moodAngry',   imageKey: '화났어요' }
+    /* ★★ 「슬퍼요 · 무서워요」를 더했습니다 (2026-09-04 · 선생님 말씀).
+         ⚠ 「속상해요」와 「슬퍼요」는 뜻이 가깝습니다. 얼굴 그림을 **눈물 크기**로
+           갈라 두었으니(icons.js 의 moodSad · moodTear), 그림도 그렇게 그려
+           주시면 학생이 두 낱말을 가릅니다.
+         ▸ 차례는 **한 쪽에 셋**씩 끊어 갈래가 섞이지 않게 놓았습니다 :
+             1쪽 좋아요 · 신나요 · 재미있어요
+             2쪽 편안해요 · 뿌듯해요 · 아쉬워요
+             3쪽 힘들어요 · 속상해요 · 슬퍼요
+             4쪽 화나요 · 무서워요
+         ⛔ 기분을 더하면 store.js 의 MOOD_ADDS 에도 **꼭** 한 줄 더하세요 —
+            안 그러면 예전 학생 화면에는 안 나옵니다. */
+    { id: 'sorrowful', name: '슬퍼요',   past: '슬펐어요',     conn: '슬프고',   stem: '슬프',     pre: '슬픈',     icon: 'moodTear',    imageKey: '슬펐어요' },
+    { id: 'angry',   name: '화나요',     past: '화났어요',     conn: '화나고',   stem: '화났',     pre: '화난',     icon: 'moodAngry',   imageKey: '화났어요' },
+    { id: 'scared',  name: '무서워요',   past: '무서웠어요',   conn: '무섭고',   stem: '무섭',     pre: '무서운',   icon: 'moodScared',  imageKey: '무서웠어요' }
   ];
 
   /* ------------------------- 또 하고 싶나요? ------------------------- */
@@ -231,7 +254,8 @@
     '○○에서 활동을 했어요.',
     '가장 재미있었던 것은 ○○이에요.',
     '조금 어려웠던 것은 ○○이에요.',
-    '활동을 하고 나서 기분이 ○○했어요.',
+    /* ★ 「기분이」를 뺐습니다 (2026-09-04) — 까닭은 korean.js 의 S.diaryMood 주석. */
+    '활동을 하고 나서 ○○했어요.',
     '다음에는 ○○을 해보고 싶어요.'
   ];
 

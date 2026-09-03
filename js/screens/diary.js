@@ -373,6 +373,36 @@
     var writeS = useState(false);      // 손글씨 일기 판이 열려 있는지 (3단계)
     var paperS = useState(false);      // 원고지 따라쓰기 판이 열려 있는지 (모든 단계)
 
+    /* ═══════ 「문장 도움 보기」 칸 — **세 자리가 함께 씁니다** ═══════
+       ① 키보드로 쓰기 — 쓰는 칸 오른쪽
+       ② 손글씨로 쓰기 — 손글씨 단추 오른쪽
+       ③ 손글씨 판 안 — 판 오른쪽 (쓰는 동안에도 보입니다)
+       ⛔ 세 곳에 베껴 쓰지 마세요 — 한 곳만 고치면 나머지 둘이 어긋납니다.
+       `읽기만` : 손글씨에서는 도움 문장이 **누르는 단추가 아닙니다.**
+         눌러서 넣을 글 칸이 없기 때문입니다. 보고 따라 쓰는 글이라
+         읽는 글로 둡니다 (키보드에서는 눌러서 글에 넣습니다). */
+    function helpAside(읽기만) {
+      return html`<aside class="write-help" aria-label="문장 도움 보기">
+        <div class="write-help-top">
+          <b>문장 도움 보기</b>
+          <${C.Btn} size="small" icon="close"
+            onClick=${function () { helpS[1](false); }}>닫기<//>
+        </div>
+        <p class="small muted">${읽기만
+          ? '아래 문장을 보면서 내 이야기로 바꾸어 손으로 써 보아요.'
+          : '아래 문장을 참고해서 내 이야기로 바꾸어 써 보아요. 누르면 글에 넣어져요.'}</p>
+        <div class="write-help-list">
+          ${App.DATA.writingHelp.map(function (t, i) {
+            return 읽기만
+              ? html`<p key=${i} class="write-help-line">${t}</p>`
+              : html`<button key=${i} type="button" class="btn wide"
+                  style=${{ justifyContent: 'flex-start' }}
+                  onClick=${function () { patch({ text: (draft.text ? draft.text + '\n' : '') + t }); }}>${t}<//>`;
+          })}
+        </div>
+      </aside>`;
+    }
+
 
     var level = draft.level;
     /* 확인 화면이 **한 쪽을 넘지 않게** 통째로 줄여 주는 장치 (위 useFitOnePage).
@@ -827,7 +857,11 @@
       }
       if (step > 4 && draft.moodIds.length) {
         var mo = App.mood(draft.moodIds[0]);
-        if (mo) bits.push('기분이 ' + mo.name + '.');
+        /* ★ 「기분이」를 뺐습니다 (2026-09-04) — 까닭은 korean.js 의
+             S.diaryMood 주석에 적어 두었습니다.
+           ★ 끝맺은 꼴(past)을 씁니다. 앞이 「… 했어요.」인데 여기만
+             「신나요.」면 때가 어긋나 보이고, **저장된 일기와도 달라집니다.** */
+        if (mo) bits.push(mo.past + '.');
       }
       /* 활동을 아직 안 골랐으면 문장이 끝나지 않았다는 뜻으로 … 를 붙입니다 */
       return bits.join(' ') + ((step > 3 && a) ? '' : ' …');
@@ -980,7 +1014,7 @@
           ? html`<${React.Fragment}>
               <div class="frame-row">
                 <div class="frame-line">
-                  ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+                  ${html`<i class="frame-cue" aria-hidden="true">기분</i>`}
                   ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
                 </div>
                 <div class="frame-line">
@@ -1001,7 +1035,7 @@
           : level === 3
           ? html`<div class="frame-row">
               <div class="frame-line">
-                ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+                ${html`<i class="frame-cue" aria-hidden="true">기분</i>`}
                 ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
               </div>
               <div class="frame-line">
@@ -1009,7 +1043,7 @@
               </div>
             </div>`
           : html`<div class="frame-line">
-              ${headWord(howWord, '기분이') && html`<b>기분이</b>`}
+              ${html`<i class="frame-cue" aria-hidden="true">기분</i>`}
               ${tie(blank(howWord), html`<b>${dotOf(howWord)}</b>`)}
             </div>`}
       <//>`;
@@ -1772,43 +1806,74 @@
                   <${C.Speak} text=${draft.text} label="내가 쓴 글 들어보기" />
                 </div>
               </div>
-              ${helpS[0] && html`<aside class="write-help" aria-label="문장 도움 보기">
-                <div class="write-help-top">
-                  <b>문장 도움 보기</b>
-                  <${C.Btn} size="small" icon="close"
-                    onClick=${function () { helpS[1](false); }}>닫기<//>
-                </div>
-                <p class="small muted">아래 문장을 참고해서 내 이야기로 바꾸어 써 보아요.
-                  누르면 글에 넣어져요.</p>
-                <div class="write-help-list">
-                  ${App.DATA.writingHelp.map(function (s, i) {
-                    return html`<button key=${i} type="button" class="btn wide"
-                      style=${{ justifyContent: 'flex-start' }}
-                      onClick=${function () { patch({ text: (draft.text ? draft.text + '\n' : '') + s }); }}>${s}<//>`;
-                  })}
-                </div>
-              </aside>`}
+              ${helpS[0] && helpAside(false)}
             </div>
           <//>`}
-          ${(draft.writeWay || 'key') === 'hand' && html`<div class="stack">
-            ${draft.writePhotoId
-              ? html`<${React.Fragment}>
-                  <img class="hw-shot" src=${App.photos.url(draft.writePhotoId)} alt="손으로 쓴 일기" />
-                  <div class="wrap">
-                    <${C.Btn} size="small" icon="pencil" className="pastel-blue"
-                      onClick=${function () { writeS[1](true); }}>이어서 쓰기<//>
-                    <${C.Btn} size="small" icon="trash" onClick=${function () {
-                      var old = draft.writePhotoId;
-                      patch({ writePhotoId: null });
-                      if (old) App.photos.remove(old);
-                    }}>지우고 다시 쓰기<//>
-                  </div>
-                <//>`
-              : html`<${C.Btn} kind="primary" icon="pencil"
-                  onClick=${function () { writeS[1](true); }}>손글씨로 일기 쓰기<//>`}
-            <p class="small muted">전자칠판·태블릿에서 손가락이나 펜으로 씁니다.
-              줄이 그려진 종이에 쓰는 것처럼 나옵니다.</p>
-          </div>`}
+          <!-- ★★ **손글씨도 「보면서 쓰기」입니다** (2026-09-04 · 선생님 말씀 —
+                 「키보드 쓰기나 손글씨로 쓸 때 문장 도움 보기를 누르면 오른쪽에
+                  문장 도움 보기가 고정되어서 보고 왼쪽편에서 키보드로 쓰거나
+                  손글씨로 쓸 수 있게 해 줘」).
+               ⛔ 예전에는 손글씨일 때만 **덮는 창**이 떴습니다. 도움 문장을 보려면
+                  쓰던 자리가 가려지고, 닫으면 문장이 사라져서 학생이 **외워서**
+                  옮겨 적어야 했습니다. 키보드 쪽은 이미 옆에 나란히 두었는데
+                  손글씨만 예전 방식으로 남아 있었습니다.
+               ▸ 이제 키보드와 **똑같은 .write-2col** 을 씁니다.
+                 손글씨 판 안에서도 오른쪽에 그대로 붙어 있습니다 (아래 판 창).
+               ⚠ 손글씨에서는 도움 문장이 **누르는 단추가 아닙니다** — 눌러 넣을
+                 글 칸이 없습니다. 보고 따라 쓰는 글이라 읽는 글로 둡니다. -->
+          ${(draft.writeWay || 'key') === 'hand' && html`
+            <div class=${'write-2col' + (helpS[0] ? ' on' : '')}>
+              <div class="write-left stack">
+                <!-- ★★★ **판을 팝업으로 띄우지 않고 그 자리에 펼칩니다**
+                       (2026-09-04 · 선생님 말씀 — 「손글씨로 일기 쓰기를 누르면
+                        그 아래로 창이 떠서 위의 문장들을 볼 수 있으면 좋겠어」).
+                     ⛔ 예전에는 덮는 창이라, 판이 열리는 순간 위의 뼈대 문장
+                        (나는 오늘 친구와 …)이 통째로 가려졌습니다. 3단계 학생은
+                        그 문장을 보고 살을 붙여 쓰는데, 정작 쓸 때 그것이
+                        안 보였습니다.
+                     ▸ 이제 단추가 있던 자리에 판이 그대로 펼쳐집니다.
+                       위의 문장 · 아래 다음 단추가 모두 그대로 보입니다.
+                     ⛔ 다시 팝업(C.Modal)으로 되돌리지 마세요. -->
+                ${writeS[0]
+                  ? html`<${C.DrawPad} inline=${true} w=${1600} h=${620}
+                      ruled=${true} ruleHeight=${88}
+                      startFrom=${draft.writePhotoId ? App.photos.url(draft.writePhotoId) : null}
+                      doneText="일기 다 썼어요"
+                      hintText="손가락·펜으로 줄에 맞춰 써요. 색과 굵기를 고를 수 있어요."
+                      onCancel=${function () { writeS[1](false); }}
+                      onDone=${function (url) {
+                        App.photos.addDataUrl(url, student.id, 'write').then(function (id) {
+                          var old = draft.writePhotoId;
+                          patch({ writePhotoId: id, writeWay: 'hand' });
+                          if (old) App.photos.remove(old);
+                          writeS[1](false);
+                          App.ui.toast('손글씨 일기를 넣었어요.');
+                        })['catch'](function (err) {
+                          App.ui.toast(err && err.message ? err.message : '손글씨를 저장하지 못했어요.');
+                        });
+                      }} />`
+                  : (draft.writePhotoId
+                    ? html`<${React.Fragment}>
+                        <img class="hw-shot" src=${App.photos.url(draft.writePhotoId)} alt="손으로 쓴 일기" />
+                        <div class="wrap">
+                          <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+                            onClick=${function () { writeS[1](true); }}>이어서 쓰기<//>
+                          <${C.Btn} size="small" icon="trash" onClick=${function () {
+                            var old = draft.writePhotoId;
+                            patch({ writePhotoId: null });
+                            if (old) App.photos.remove(old);
+                          }}>지우고 다시 쓰기<//>
+                        </div>
+                      <//>`
+                    : html`<${React.Fragment}>
+                        <${C.Btn} kind="primary" icon="pencil"
+                          onClick=${function () { writeS[1](true); }}>손글씨로 일기 쓰기<//>
+                        <p class="small muted">전자칠판·태블릿에서 손가락이나 펜으로 씁니다.
+                          줄이 그려진 종이에 쓰는 것처럼 나옵니다.</p>
+                      <//>`)}
+              </div>
+              ${helpS[0] && helpAside(true)}
+            </div>`}
 
           <!-- ⚠ 「종이에 쓰기」 안내 칸을 뺐습니다 (위 WRITE_WAYS 주석).
                  종이에 쓰는 길은 그림일기의 **빈 줄** 인쇄에 그대로 있습니다. -->
@@ -2013,19 +2078,11 @@
         </div>
       <//>`}
 
-      <!-- ⚠ 덮는 창은 **손글씨로 쓰기**일 때만 남깁니다 (2026-08-30).
-             키보드로 쓸 때는 위에서 옆에 나란히 보여 주므로,
-             여기까지 뜨면 같은 것이 두 번 나옵니다. -->
-      ${helpS[0] && (draft.writeWay || 'key') === 'hand' && html`<${C.Modal} title="문장 도움 보기" onClose=${function () { helpS[1](false); }}
-        actions=${html`<${C.Btn} onClick=${function () { helpS[1](false); }}>닫기<//>`}>
-        <p class="small muted">아래 문장을 참고해서 내 이야기로 바꾸어 써 보아요. 누르면 글에 넣어져요.</p>
-        <div class="stack" style=${{ marginTop: '.5rem' }}>
-          ${App.DATA.writingHelp.map(function (s, i) {
-            return html`<button key=${i} type="button" class="btn wide" style=${{ justifyContent: 'flex-start' }}
-              onClick=${function () { patch({ text: (draft.text ? draft.text + '\n' : '') + s }); }}>${s}<//>`;
-          })}
-        </div>
-      <//>`}
+      <!-- ⛔ **덮는 창은 없앴습니다** (2026-09-04 · 선생님 말씀 — 오른쪽에
+             고정해서 보면서 쓰기). 손글씨도 이제 옆에 나란히 붙습니다 —
+             쓰기 화면에서는 손글씨 단추 오른쪽에, 손글씨 판에서는 판 오른쪽에.
+           ⛔ 모달을 되살리지 마세요. 그러면 도움 문장이 쓰는 자리를 가리고,
+              닫으면 사라져서 학생이 외워서 옮겨 적게 됩니다. -->
 
       <!-- ★ 바꾸기 창을 **네 쪽**으로 나눴습니다.
              예전에는 날짜 · 날씨 · 사람 · 장소 · 활동을 한 창에 다 넣어서
@@ -2079,27 +2136,12 @@
           }} />
       <//>`}
 
-      <!-- 손글씨 일기 판 (3단계) — 줄공책처럼 줄이 그려진 넓은 판입니다 -->
-      ${writeS[0] && html`<${C.Modal} title="손글씨로 일기를 써요" wide=${true}
-        onClose=${function () { writeS[1](false); }}
-        actions=${html`<${C.Btn} onClick=${function () { writeS[1](false); }}>그만두기<//>`}>
-        <${C.DrawPad} w=${1400} h=${800} ruled=${true} ruleHeight=${88}
-          startFrom=${draft.writePhotoId ? App.photos.url(draft.writePhotoId) : null}
-          doneText="일기 다 썼어요"
-          hintText="손가락·펜으로 줄에 맞춰 써요. 색과 굵기를 고를 수 있어요."
-          onDone=${function (url) {
-            App.photos.addDataUrl(url, student.id, 'write').then(function (id) {
-              var old = draft.writePhotoId;
-              patch({ writePhotoId: id, writeWay: 'hand' });
-              if (old) App.photos.remove(old);
-              writeS[1](false);
-              App.ui.toast('손글씨 일기를 넣었어요.');
-            })['catch'](function (err) {
-              App.ui.toast(err && err.message ? err.message : '손글씨를 저장하지 못했어요.');
-            });
-          }} />
-      <//>`}
-
+      <!-- ⛔ **손글씨 판 팝업은 없앴습니다** (2026-09-04 · 선생님 말씀 —
+             「손글씨로 일기 쓰기를 누르면 그 아래로 창이 떠서 위의 문장들을
+              볼 수 있으면 좋겠어」).
+             판은 이제 쓰기 화면 **그 자리에 펼쳐집니다** (위 write-left 안).
+             그래야 위의 뼈대 문장을 보면서 손으로 씁니다.
+           ⛔ 여기에 팝업을 되살리지 마세요 — 되살리면 문장이 다시 가려집니다. -->
       <!-- 사진 고르기 팝업 — '사진 넣기' 를 누르면 바로 열립니다 -->
       <!-- 사진이 없으면 속이 '사진 넣기' 단추 하나뿐이라 좁은 창으로,
            사진이 있으면 격자를 펼쳐야 하니 보통 폭(760px)으로 엽니다.

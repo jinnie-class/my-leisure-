@@ -1334,6 +1334,22 @@ textarea.field.diary-write:focus{
     ▸ 아래 표(무엇을 · 누구와 …)도 **같은 자리에서 시작**합니다 —
       `--sheet-inset` 하나를 둘이 함께 씁니다. 따로 적으면 언젠가 어긋납니다. */
 .sheet{ --sheet-inset:14%; }
+/* ★★ **1단계 계획표만 문장을 키웁니다** (2026-09-04 · 선생님 말씀 —
+     「2단계는 노란 바탕의 문장 글자가 조금 크게 보였는데 1단계는 작게 보인다
+      … 2단계에서는 그림이 없어서 글자가 크게 나왔던 거구나. 그래도
+      1단계에서도 크게 나올 수 있을 만큼은 크게」).
+   까닭 : 1단계 계획표에는 위에 **그림 줄**이 한 줄 더 있습니다. 계획표는
+   남는 높이에 맞춰 통째로 줄어들므로(C.GrowToFit), 그림이 먹은 높이만큼
+   **문장까지 함께** 작아졌습니다. 같은 CSS 인데 두 단계가 달라 보인 까닭입니다.
+ ▸ 여백을 14% → **10%** 로 줄여 (문장 처음과 끝에 다 합쳐 20%) 자리를 내고,
+   그 자리만큼 글자를 키웁니다.
+ ⛔ `.sheet .sentence` (2·3단계까지 함께 걸리는 자리)는 건드리지 마세요 —
+    2026-08-30 에 선생님이 「원래대로 돌려줘」 하신 값입니다. 여기는
+    **1단계 계획표에만** 걸리는 `.sheet-l1` 이라 그 말씀과 어긋나지 않습니다. */
+.sheet.sheet-l1 .sentence-center{ margin-left:10%; margin-right:10%; }
+.sheet.sheet-l1 .sentence{
+  font-size:clamp(1.2rem,.7rem + calc(1.75 * var(--vh, 1vh)),2.2rem);
+}
 /* ⛔ 학습지의 따라 쓰기 바(.ws 안)도 **같이** 걸어야 합니다 —
       그 바는 `.sheet` **밖**에 있어서, 빼놓으면 위(25.5px)보다 작은
       기본 크기(22.1px)로 나옵니다. 선생님이 「글자크기 그대로」라고
@@ -2698,6 +2714,25 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   touch-action:none;              /* 그리는 중에 화면이 밀리지 않게 */
   cursor:crosshair;
 }
+/* ★★ **화면 안에 펼치는 손글씨 판** (2026-09-04 · 선생님 말씀 —
+     「손글씨로 일기 쓰기를 누르면 그 아래로 창이 떠서 위의 문장들을 볼 수
+      있으면 좋겠어」). 팝업이 아니라 단추가 있던 자리에 그대로 펼칩니다.
+   ▸ 비율은 칸 크기(1600x620)에서 오므로 여기서는 **폭과 높이 한도만** 줍니다.
+     위 10/7 규칙을 꺼야(aspect-ratio:auto) 옆으로 넓은 판이 나옵니다.
+   ▸ 높이는 남는 자리에 맞춰 늘었다 줄었다 합니다 — 위 문장 줄과 아래
+     「다음」 단추가 늘 함께 보여야 하기 때문입니다.
+   ⛔ 높이를 크게 잡지 마세요. 판이 길어지면 무대가 화면 전체를 줄여서
+      (Stage 의 줄이기) 오히려 글씨가 작아집니다. */
+.dp.inline{ gap:.4rem; }
+.dp.inline .dp-canvas{
+  width:100%; height:auto; max-width:100%;
+  aspect-ratio:auto;
+  max-height:clamp(160px, calc(34 * var(--vh, 1vh)), 420px);
+  border-width:2px; border-radius:12px;
+}
+/* 판을 펼친 동안에는 안내글을 한 줄로 얇게 (자리를 아낍니다) */
+.dp.inline .dp-hint{ margin:0; }
+.dp.inline .dp-done{ margin-top:.2rem; }
 /* 손글씨 판은 옆으로 넓어서 비율을 따로 둡니다 */
 
 /* ===========================================================
@@ -2942,6 +2977,19 @@ input.cs-name{ width:9em; max-width:100%; text-align:center; }
   flex:0 1 auto; min-width:0; margin-bottom:0;
 }
 .frame-line .blank.on{ background:#fff; border-bottom-color:var(--ok); }
+/* ★★ 「기분」 단서 — **문장의 말이 아니라 안내 딱지**입니다 (2026-09-04).
+     예전에는 이 자리에 문장의 말로 「기분이」가 굵게 붙어 있었습니다. 그런데
+     「기분이 신났어요 · 기분이 재미있었어요 · 기분이 화났어요」는 어색합니다
+     (까닭은 korean.js 의 S.diaryMood 주석). 그래서 문장에서는 뺐습니다.
+   ▸ 그렇다고 그냥 지우면 빈칸만 덩그러니 남아 **무엇을 쓰는 칸인지** 알 수
+     없습니다. 단서는 빼는 것이 아니라 주는 것이므로, 문장의 말과 **눈에 띄게
+     다른 모양**(작고 흐린 딱지)으로 남겨 둡니다.
+   ⛔ 굵게·검게 만들지 마세요 — 그러면 학생이 문장의 한 낱말로 읽습니다. */
+.frame-cue{
+  font-style:normal; font-size:.62em; font-weight:800; color:#9a9aa8;
+  background:#f2f2f6; border-radius:.5em; padding:.12em .5em;
+  align-self:center; flex:0 0 auto;
+}
 .blank.wide{ min-width:10em; }
 /* ★ 제목 칸이 곧 입력칸 (2026-08-26) — 노란 띠의 빈칸 모양 그대로,
      테두리 없이 밑줄만 남깁니다. 글자 상자 티가 나면 띠가 지저분해집니다. */
@@ -5854,6 +5902,25 @@ textarea.field.diary-write,
   margin-bottom:.25rem;
 }
 .write-help-top b{ font-size:1.05rem; font-weight:900; }
+/* ★ 손글씨일 때의 도움 문장 — **읽는 글**입니다 (2026-09-04).
+     키보드에서는 눌러서 글에 넣는 단추지만, 손글씨에서는 넣을 글 칸이 없어
+     단추로 두면 눌러도 아무 일이 안 일어납니다. 그래서 줄글로 둡니다.
+   ▸ 모양은 단추와 비슷하게(흰 바탕·둥근 모서리) 두어, 두 길을 오가는
+     학생이 같은 칸으로 알아봅니다. */
+/* ★ 손글씨 판 안에서는 도움 칸을 **좁게** 잡습니다 (2026-09-04).
+     판이 주인공이라 도움 칸이 넓어지면 쓸 자리가 그만큼 줄어듭니다.
+   ⛔ 위 1100px 규칙(width:auto · max-width:46%)을 이기려고 뒤에 둡니다 —
+      자리를 옮기면 판이 다시 좁아집니다. */
+@media screen and (min-width: 900px){
+  .write-2col.hw-2col.on > .write-help{ width:clamp(230px, 26%, 360px); max-width:34%; }
+  .write-2col.hw-2col .write-help-list .btn,
+  .write-2col.hw-2col .write-help-line{ white-space:normal; }
+}
+.write-help-line{
+  margin:0; padding:.42rem .6rem; border-radius:12px;
+  background:#fff; border:2px solid var(--line);
+  font-weight:800; line-height:1.45;
+}
 .write-help-list{
   display:flex; flex-direction:column; gap:.4rem; margin-top:.5rem;
   /* ⚠ 이 칸이 **왼쪽 쓰는 칸보다 길어지면 안 됩니다.**

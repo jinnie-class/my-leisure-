@@ -162,7 +162,22 @@
       var f = el.querySelector('button,[href],input,select,textarea,[tabindex]');
       if (f) f.focus();
     }, []);
-    return html`<div class="mask"
+    /* ★★★ **팝업은 화면 통째에 붙입니다** (2026-09-04 · 선생님 —
+         「3단계 일기 눌러서 크게 보이는데 스크롤이 생기는 작은 창이 생겨.
+          스크롤 없이 큰 창으로 크게 보여지게 해 줘」).
+       까닭 : 몇몇 화면은 내용을 한 쪽에 담으려고 통째로 **줄입니다**(zoom).
+       팝업이 그 안에서 그려지면 **팝업까지 함께 줄어듭니다.** 재어 보니
+       일기 완성 화면(zoom 0.66)에서 창이 792px 로 잡혔는데 눈에 보이는
+       크기는 523px 이었습니다 — 화면 높이 900px 가운데 **58% 만** 쓴 셈이라,
+       「크게 보기」인데 작은 창에 스크롤이 생겼습니다.
+     ▸ `createPortal` 로 팝업만 `document.body` 밑에 내보냅니다. 그러면
+       줄이기 밖이라 화면 크기를 온전히 씁니다. 리액트 쪽은 그대로라
+       상태·이벤트는 하나도 달라지지 않습니다.
+     ⛔ 되돌리지 마세요 — 되돌리면 줄이는 화면의 모든 팝업이 다시 쪼그라듭니다
+        (그림일기 크게 보기 · 손글씨 판 · 사진 고르기 …).
+     ⚠ `.mask` 는 position:fixed 인데, zoom 안에서는 그 zoom 칸을 기준으로
+       잡혀서 화면을 다 덮지도 못했습니다. 이 고침으로 함께 해결됩니다. */
+    var 창 = html`<div class="mask"
         onMouseDown=${function (e) { if (e.target === e.currentTarget && p.onClose) p.onClose(); }}
         onKeyDown=${function (e) { if (e.key === 'Escape' && p.onClose) p.onClose(); }}>
       <!-- 창 폭은 **속에 든 것에 맞춰** 고릅니다.
@@ -189,6 +204,9 @@
         ${p.actions && html`<div class="acts">${p.actions}</div>`}
       </div>
     </div>`;
+    return (window.ReactDOM && window.ReactDOM.createPortal)
+      ? window.ReactDOM.createPortal(창, document.body)
+      : 창;
   };
 
   /* ======================= 폭죽 =======================
@@ -1626,7 +1644,11 @@
          그리는 일이 끝나는 자리(그림판 아래)에 있어야 차례가 이어집니다.
        ⚠ 마치는 줄은 **늘 자리를 차지**합니다(그만두기가 없어도). 그래야
          그림을 그리는 동안 그림판 크기가 흔들리지 않습니다. */
-    return html`<div class="dp">
+    /* ★ inline : 팝업이 아니라 **화면 안에 그대로 펼치는** 꼴입니다
+         (2026-09-04 · 선생님 — 「손글씨로 일기 쓰기를 누르면 그 아래로 창이
+          떠서 위의 문장들을 볼 수 있으면 좋겠어」).
+         판이 옆으로 넓고 낮아지므로 칸 크기(w·h)도 그에 맞게 받습니다. */
+    return html`<div class=${'dp' + (p.inline ? ' inline' : '')}>
       <div class="dp-tools">
         ${DRAW_COLORS.map(swatch)}
         <button type="button" class=${'btn small' + (eraserS[0] ? ' ok' : '')}
@@ -1646,7 +1668,11 @@
       <p class="small muted dp-hint">
         ${p.hintText || '손가락·펜·마우스로 그려요. 색과 굵기를 고를 수 있어요.'}</p>
 
+      <!-- ⚠ 비율은 **칸 크기(W·H)에서 그대로** 옵니다. css 에 10/7 로 박아 두면
+             옆으로 넓은 손글씨 판이 찌그러집니다. 손끝 자리는 at() 이
+             가로세로 같은 배로 셈하므로 어떤 비율에서도 맞습니다. -->
       <canvas class="dp-canvas" ref=${cvRef} width=${W} height=${H}
+        style=${p.inline ? { aspectRatio: W + ' / ' + H } : null}
         aria-label="그림 그리는 곳"
         onPointerDown=${begin} onPointerMove=${move}
         onPointerUp=${end} onPointerCancel=${end} onPointerLeave=${end} />
@@ -1857,9 +1883,12 @@
   };
 
   /* ═══════ 기분 더하기 ═══════
-     ⚠ 기분은 **일기 문장에 그대로 들어갑니다** (기분이 ○○○.).
-       `설레요` 를 그대로 쓰면 `기분이 설레요.` 가 되어 어색하므로,
-       일기에 쓸 말(`설렜어요`)을 따로 받습니다. 비워 두면 이름을 그대로 씁니다. */
+     ⚠ 기분은 **일기 문장에 그대로 들어갑니다** (「○○○.」 한 문장이 됩니다).
+       `설레요` 를 그대로 쓰면 일기가 `설레요.` 로 끝나 앞의 `… 했어요.` 와
+       때가 어긋나므로, 일기에 쓸 말(`설렜어요`)을 따로 받습니다.
+       비워 두면 이름을 그대로 씁니다.
+     ★ 앞에 붙던 「기분이」는 뺐습니다 (2026-09-04 · 선생님 말씀) —
+       까닭은 korean.js 의 S.diaryMood 주석에 적어 두었습니다. */
   var MOOD_ICONS = ['moodFun', 'moodExcited', 'moodCalm', 'moodProud',
                     'moodSorry', 'moodTired', 'moodSad', 'moodAngry', 'heart', 'star'];
 
@@ -1897,7 +1926,7 @@
         ${pic.ui(MOOD_ICONS, iconS)}
         ${name && html`<${C.Banner} icon="check">
           <div class="small">일기 문장은 이렇게 만들어져요.</div>
-          <div><b>${'기분이 ' + past + '.'}</b></div>
+          <div><b>${past + '.'}</b></div>
         <//>`}
       </div>
     <//>`;
