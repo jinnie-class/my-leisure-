@@ -4503,9 +4503,13 @@ textarea.field.diary-write,
   content:""; position:absolute; inset:0; z-index:-1;
   border-radius:inherit; background:rgba(255,255,255,.8);
 }
-/* 나 캐릭터는 크게 — 여기가 **누구의 것인지**를 알려 주는 자리입니다 */
+/* 나 캐릭터는 크게 — 여기가 **누구의 것인지**를 알려 주는 자리입니다.
+   ★ 한 단 더 키웠습니다 (2026-09-04 · 선생님 : 「나 카드 크게 해 주고」).
+     18vh(1080 화면에서 194px)는 옆 노란 칸에 견주어 작아 보였습니다.
+   ⚠ 이 아래 바는 화면 아래쪽에 자리가 넉넉히 남는 곳입니다 — 재어 보고
+     키운 값입니다. 더 키우면 낮은 화면에서 흰 칸을 넘칩니다. */
 .me-who-face{
-  width:clamp(96px,calc(18 * var(--vh, 1vh)),220px); height:clamp(96px,calc(18 * var(--vh, 1vh)),220px);
+  width:clamp(112px,calc(22 * var(--vh, 1vh)),260px); height:clamp(112px,calc(22 * var(--vh, 1vh)),260px);
   display:block; border-radius:999px; overflow:hidden;
   border:2px solid var(--line); background:var(--paper-2);
 }
@@ -4635,12 +4639,21 @@ textarea.field.diary-write,
    ⚠ 320px 아래로 내리지 마세요 — 오른쪽 단추 셋의 글자가 줄어듭니다. */
 .folio-diaries{
   display:grid; gap:.6rem;
-  /* ★ 한 줄에 **둘** — 카드가 넓어야 제목이 한 줄에 들어가고 그림도 큽니다 */
+  /* ★★ 한 줄에 **셋** (2026-09-04 · 선생님 : 「여가 포트폴리오 일기 부분이
+       2개씩 배열되는데 간격을 보니 3개씩 해도 될 것 같은데 어때?」).
+     ⚠ 한 쪽에 담는 장수는 2026-08-30 부터 이미 **셋**이었는데(portfolio.js 의
+       pageOf … 3), 이 줄만 둘로 남아 있어서 `2 + 1` 로 놓이고 오른쪽 아래가
+       휑했습니다. 이제 한 줄에 나란히 셋입니다.
+     ⚠ 좁은 화면에서는 둘로 돌아갑니다 — 셋으로 두면 카드가 좁아져 제목이
+       두 줄로 접힙니다 (2026-08-29 에 넷 → 둘로 줄였던 까닭입니다). */
   grid-template-columns:repeat(2, minmax(0, 1fr));
   /* ⚠ `start` 가 아니라 `stretch` 입니다 — 제목이 두 줄인 카드가 있어도
        **한 줄 안의 카드들이 같은 높이**가 됩니다 (2026-08-29).
        `start` 로 두면 카드마다 높이가 달라 줄이 들쭉날쭉해집니다. */
   align-items:stretch;
+}
+@media screen and (min-width: 1080px){
+  .folio-diaries{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
 }
 /* 눈에 띄게 — 테두리를 두껍게 하고, 전시할 일기는 색으로 한 번 더 알려 줍니다 */
 .dcard{
@@ -6073,10 +6086,24 @@ textarea.field.diary-write,
    ▸ 문장이 **끊기지 않게** 칸을 넓히고, 앞뒤로 20% 씩 숨 쉴 자리를 둡니다
      (선생님 : 「한 문장의 앞뒤 간격 20% 여유있게」).
    ══════════════════════════════════════════════════════════════════ */
+/* ★★ **3단계도 나 카드와 문장을 한 덩어리로 가운데** (2026-09-04 · 선생님 —
+     「3단계 나 카드가 줄어들었고 같이 중앙정렬. 아래 칸에 있는 것들 모두
+      다 같이 가운데 정렬이 필요」 · 「나 카드 크게 해 주고 전반적인 문장과
+      나 카드는 가운데 정렬」).
+   ⛔ 예전 값 `auto minmax(0,1fr)` + `justify-content:stretch` 가 탈이었습니다.
+      오른쪽 칸이 남는 폭을 **끝까지** 가져가니 두 칸이 화면 양끝으로 갈라졌고,
+      왼쪽 `auto` 칸은 격자에서 **내용보다 작게도 눌리므로** 나 카드가 90px 로
+      쪼그라들어 얼굴 그림이 테두리 밖으로 삐져나왔습니다.
+      (1·2단계는 `auto auto` + `center` 라 멀쩡했습니다 — 3단계만 달랐습니다)
+   ▸ 왼쪽은 `max-content` 로 **눌리지 않게**, 오른쪽은 34rem 을 위끝으로 두고
+     둘을 통째로 가운데에 모읍니다. 1·2단계와 같은 자리에 섭니다.
+   ⛔ `stretch` 로 되돌리지 마세요 — 두 칸이 다시 양끝으로 갈라집니다. */
 .me-bar.has-write:not(.slots):not(.wide){
-  grid-template-columns:auto minmax(0,1fr);
-  justify-content:stretch;
+  grid-template-columns:max-content minmax(0, 34rem);
+  justify-content:center;
 }
+/* 나 카드는 **세 단계가 같은 크기**입니다 — 3단계만 작아 보이면 다른 화면 같습니다 */
+.me-bar.has-write .me-who{ justify-self:center; }
 .me-bar.has-write .me-saycol{ align-self:stretch; }
 .me-bar.has-write .me-write{ align-self:stretch; }
 /* 이름표(내 말로 스스로 적어요)와 쓰는 칸 사이를 띄웁니다 */
@@ -6288,11 +6315,24 @@ textarea.field.diary-write,
      쓰는 칸이 화면 한가운데에 서고, 나 카드는 그 왼쪽에 바짝 붙습니다.
        [남는 자리] [나 카드][말 칸] [남는 자리]
    ⚠ 나 카드는 `justify-self:end` 로 오른쪽 끝(=말 칸 쪽)에 붙입니다. */
+/* ★★ **2026-09-04 에 다시 두 칸으로 되돌립니다** (선생님 : 「3단계 나 카드가
+     줄어들었고 같이 중앙정렬 … 나 카드 크게 해 주고 **전반적인 문장과
+     나 카드는 가운데 정렬**」).
+   ⛔ 위의 세 칸짜리([남는 자리][나 카드][말 칸][남는 자리])는 **말 칸만**
+      화면 한가운데에 세우려던 짜임이었습니다. 그런데 나 카드가 들어가는
+      바깥 칸이 `minmax(0,1fr)` 이라 남는 폭에 따라 **101px 까지 눌렸고**,
+      카드보다 얼굴 그림이 커서 그림이 테두리 밖으로 삐져나왔습니다
+      (2026-09-04 재어 확인 : 칸 101px · 얼굴 238px).
+   ▸ 이제 **나 카드와 말 칸을 한 덩어리로** 두고 통째로 가운데에 놓습니다.
+     카드 칸은 `max-content` 라 어떤 화면에서도 눌리지 않습니다.
+   ⚠ 그래서 말 칸은 화면 한가운데에서 카드 폭의 절반만큼 오른쪽에 섭니다 —
+     이것이 선생님이 말씀하신 「둘이 같이 가운데」입니다.
+   ⛔ 세 칸으로 되돌리지 마세요. 되돌리면 나 카드가 다시 눌립니다. */
 .me-bar.has-write:not(.slots):not(.wide){
-  grid-template-columns:minmax(0,1fr) minmax(0,46rem) minmax(0,1fr);
+  grid-template-columns:max-content minmax(0,46rem);
   justify-content:center;
 }
-.me-bar.has-write > .me-who{ justify-self:end; }
+.me-bar.has-write > .me-who{ justify-self:center; }
 
 /* ★ 지도 안 띠는 **얇아야** 합니다 — 두꺼우면 지도를 그만큼 가립니다.
    재어 확인 : 처음 130px(지도의 34%)이었습니다.
