@@ -500,6 +500,7 @@
     /* 나의 한마디 — 일기와 **같은 세 단계**. 처음에는 그 학생의 일기 단계로 엽니다. */
     var meLvS = useState(function () { return (student && student.diaryLevel) || 1; });
     var meRowS = useState('r1');       // 돌아보기에서 지금 채우고 있는 줄
+    var inkRowS = useState(null);      // 손글씨 판을 펴 놓은 줄 (2026-09-04)
     var mePartS = useState('word');    // 보는 쪽 : word(한마디) | review(돌아보기)
     var meSlotS = useState('act');     // 한마디에서 채우는 자리 : act | mood
     var mePageS = useState({});        // 고르는 칸이 지금 몇 쪽을 보고 있는지
@@ -767,6 +768,14 @@
       rp[id] = actId;
       App.store.updateStudent(student.id, { reviewPick: rp });
     }
+    /* 줄마다 담아 둔 **손글씨 그림**. `review`(글자)와 나란히 둡니다 —
+       글자는 읽어주기·모아보기가 쓰고, 그림은 화면과 종이에 보입니다. */
+    function inkOf(id) { return (student.reviewInk || {})[id] || null; }
+    function saveReviewInk(id, photoId) {
+      var next = Object.assign({}, student.reviewInk || {});
+      if (photoId) next[id] = photoId; else delete next[id];
+      App.store.updateStudent(student.id, { reviewInk: next });
+    }
     function saveReview(id, v) {
       var rv = Object.assign({}, student.review || {});
       rv[id] = v;
@@ -912,6 +921,21 @@
               <span>.</span>
             </span>
           </p>
+          <!-- ★★ **2단계도 손으로 씁니다** (2026-09-04 · 선생님 말씀 —
+                 「여기에서 전자칠판이나 태블릿에서 손이나 펜으로 직접 쓸 수
+                  있게 해 줘. 키보드뿐 아니라」).
+               ▸ 빈칸 둘은 그대로 둡니다 — 글자판으로 쓰는 학생은 그대로 씁니다.
+                 손으로 쓰는 학생에게는 **문장 한 줄을 통째로** 쓸 줄공책을
+                 아래에 펼쳐 줍니다. 빈칸 하나하나에 손글씨를 받으면 칸이 너무
+                 작아 글씨가 안 들어갑니다.
+               ⛔ 팝업으로 만들지 마세요 — 위 문장이 가려집니다. -->
+          <!-- ⚠ 담아 둔 글씨는 InkField 가 스스로 보여 줍니다 — 여기에
+                 그림을 또 두면 한 문장이 두 번 나옵니다. -->
+          <${C.InkField} noText=${true}
+            studentId=${student.id}
+            inkId=${student.wordInk || null}
+            onInk=${function (id) { App.store.updateStudent(student.id, { wordInk: id }); }}
+            w=${1400} h=${280} ruleHeight=${140} />
           <${C.Speak} text=${student.word || '나는 무엇을 할 때 어떤 기분이에요.'} />
         </div>`;
       }
@@ -962,7 +986,10 @@
           /* 3단계는 칸이 비어 있으므로 **따로 담아 둔 것**으로 그림을 찾습니다 */
           var got = actByName(val)
             || ((meLvS[0] === 3) ? App.act((student.reviewPick || {})[f.id]) : null);
-          return html`<div key=${f.id} class=${'me-row' + (on ? ' on' : '')}>
+          /* 손글씨 판은 줄 **밖**에 폅니다 — 줄 안에 두면 단추가 아래로
+             떨어져 네 줄이 들쭉날쭉해집니다 (2026-09-04 재어 확인). */
+          return html`<${React.Fragment} key=${f.id}>
+          <div class=${'me-row' + (on ? ' on' : '')}>
             <!-- ★ 채워 넣은 활동의 **그림을 줄 맨 왼쪽에 크게**.
                    1단계 학생은 글을 못 읽습니다. 그림이 없으면 어느 줄에
                    무엇을 넣었는지 소리로 들어야만 알 수 있었습니다.
@@ -972,14 +999,25 @@
             <span class=${'me-row-art' + (got ? '' : ' none')}
                   role=${got ? 'img' : null} aria-label=${got ? got.name : null}>
               ${got && html`<${C.ActivityArt} activity=${got} />`}</span>
+            <!-- ★★ **줄마다 손으로도 씁니다** (2026-09-04 · 선생님 말씀 —
+                   「여기서도 전자칠판이랑 태블릿에 직접 적을 수 있게」).
+                 ▸ 담아 둔 글씨가 있으면 그 자리에 **글씨가 그대로** 보입니다.
+                 ▸ 「손으로」를 누르면 그 줄 아래에 줄공책이 펼쳐집니다.
+                 ⛔ 팝업으로 만들지 마세요 — 위 문장이 가려집니다. -->
             ${writeIn
-              ? html`<span class="me-row-txt">
+              ? (inkOf(f.id)
+                ? html`<span class="me-row-txt">
+                    <span>${f.before}</span>
+                    <img class="me-row-ink" src=${App.photos.url(inkOf(f.id))} alt="손으로 쓴 글씨" />
+                    <span>${tail + f.after}</span>
+                  </span>`
+                : html`<span class="me-row-txt">
                   <span>${f.before}</span>
                   <input class="field me-row-in" value=${val}
                     onFocus=${function () { meRowS[1](f.id); }}
                     onChange=${function (e) { saveReview(f.id, e.target.value); }} />
                   <span>${tail + f.after}</span>
-                </span>`
+                </span>`)
               : html`<button type="button" class="me-row-txt"
                     aria-pressed=${on ? 'true' : 'false'}
                     onClick=${function () { meRowS[1](f.id); }}>
@@ -988,7 +1026,31 @@
                   <span>${tail + f.after}</span>
                 <//>`}
             <${C.Speak} text=${say} />
-          </div>`;
+            ${writeIn && html`<${C.Btn} size="small" icon="pencil"
+              className=${'pastel-blue' + (inkRowS[0] === f.id ? ' on' : '')}
+              onClick=${function () { inkRowS[1](inkRowS[0] === f.id ? null : f.id); }}>
+              ${inkOf(f.id) ? '다시' : '손으로'}<//>`}
+            ${writeIn && inkOf(f.id) && html`<${C.Btn} size="small" icon="trash"
+              onClick=${function () { var old = inkOf(f.id); saveReviewInk(f.id, null);
+                if (old) App.photos.remove(old); }}>지우기<//>`}
+          </div>
+          ${writeIn && inkRowS[0] === f.id && html`<div class="me-row-pad">
+              <${C.DrawPad} inline=${true} w=${1400} h=${260} ruled=${true} ruleHeight=${130}
+                startFrom=${inkOf(f.id) ? App.photos.url(inkOf(f.id)) : null}
+                doneText="다 썼어요"
+                hintText=${'손가락·펜으로 써요 — ' + f.before + ' ___ ' + f.after}
+                onCancel=${function () { inkRowS[1](null); }}
+                onDone=${function (url) {
+                  App.photos.addDataUrl(url, student.id, 'ink').then(function (id) {
+                    var old = inkOf(f.id);
+                    saveReviewInk(f.id, id);
+                    if (old) App.photos.remove(old);
+                    inkRowS[1](null);
+                    App.ui.toast('손으로 쓴 글씨를 담았어요.');
+                  })['catch'](function () { App.ui.toast('글씨를 담지 못했어요.'); });
+                }} />
+          </div>`}
+          <//>`;
         })}
       </div>`;
     }
@@ -1038,7 +1100,14 @@
               ${mo && html`<span class="me-print-pic"><${C.MoodArt} mood=${mo} /></span>`}
             </span>`;
           })()}
-          <span class="me-print-txt">${student.word || '　'}</span>
+          <!-- ★★ **손으로 쓴 한마디는 그 글씨를 그대로 냅니다** (2026-09-04).
+                 글자판으로 쓴 학생은 글자가, 손으로 쓴 학생은 제 글씨가 나옵니다.
+                 종이에 제 글씨가 있어야 집에 가져가서도 제 것으로 보입니다.
+               ⚠ 글자(word)도 그대로 남아 있습니다 — 읽어주기와 모아보기가 씁니다. -->
+          ${student.wordInk
+            ? html`<img class="me-print-ink" src=${App.photos.url(student.wordInk)}
+                alt="손으로 쓴 한마디" />`
+            : html`<span class="me-print-txt">${student.word || '　'}</span>`}
         </div>
         <!-- ★ **돌아보기도 나의 한마디처럼 그림과 함께** (2026-08-26 ·
                선생님 말씀 — 「1단계 돌아보기도 나의 한마디처럼 같은 구성으로」).
@@ -1073,9 +1142,14 @@
               ${got && html`<span class="me-print-art">
                 <span class="me-print-pic"><${C.ActivityArt} activity=${got} /></span>
               </span>`}
+              <!-- ★ 줄마다 손글씨가 있으면 빈칸 자리에 **그 글씨**를 넣습니다 -->
               <span class="me-print-txt">
-                ${txt || html`<${React.Fragment}>${f.before}
-                  <u style=${{ padding: '0 .5rem' }}>　　　　　　</u>${f.after}<//>`}
+                ${(student.reviewInk || {})[f.id]
+                  ? html`<${React.Fragment}>${f.before}
+                      <img class="me-print-rowink" src=${App.photos.url((student.reviewInk || {})[f.id])}
+                        alt="손으로 쓴 글씨" />${f.after}<//>`
+                  : (txt || html`<${React.Fragment}>${f.before}
+                  <u style=${{ padding: '0 .5rem' }}>　　　　　　</u>${f.after}<//>`)}
               </span>
             </div>`;
           })}
@@ -1719,11 +1793,22 @@
               <!-- ⛔ 2단계에는 이 칸을 두지 마세요. 위 노란 바가 이미
                      **빈칸을 채우는 자리**라, 같은 일을 두 번 하게 됩니다
                      (2026-08-24 · 선생님 말씀). 3단계만 씁니다. -->
-              ${meLv === 3 && html`<div class="me-write wide"><${C.Field}
+              <!-- ★★ **키보드로도, 손으로도 씁니다** (2026-09-04 · 선생님 말씀 —
+                     「전자칠판이나 태블릿에 바로 적을 수 있게. 키보드뿐 아니라」).
+                     글자판을 못 치는 학생도 3단계일 수 있습니다.
+                   ▸ 「손으로 쓰기」를 누르면 그 자리에 줄공책이 펼쳐집니다.
+                     팝업이 아니라 **그 자리**입니다 (여가 일기와 같은 규칙).
+                   ⛔ 글씨를 담아도 글자(word)는 지우지 않습니다 — 읽어주기와
+                      모아보기가 그 글자를 씁니다. -->
+              ${meLv === 3 && html`<div class="me-write wide"><${C.InkField}
                 label="내 말로 스스로 적어요"
                 value=${student.word || ''}
                 placeholder="예) 친구와 함께하는 여가가 제일 즐거워요."
-                onChange=${saveWord} /></div>`}
+                onChange=${saveWord}
+                studentId=${student.id}
+                inkId=${student.wordInk || null}
+                onInk=${function (id) { App.store.updateStudent(student.id, { wordInk: id }); }}
+                w=${1400} h=${300} ruleHeight=${140} /></div>`}
             </div>
           </div>
         <//>`;

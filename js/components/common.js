@@ -1389,6 +1389,75 @@
     </label>`;
   };
 
+  /* ═══════ 손으로 쓰는 칸 (2026-09-04) ═══════
+     선생님 말씀 — 「전자칠판이나 태블릿에서 손이나 펜으로 직접 쓸 수 있게.
+     키보드뿐 아니라」 (나의 한마디 · 돌아보기에서 세 번 말씀하셨습니다).
+
+     쓰는 길이 **둘**입니다. 학생마다 되는 것이 다릅니다 —
+     글자판을 못 치는 학생도, 손으로는 쓸 수 있습니다.
+       ① 키보드 : 여느 때처럼 글자를 칩니다
+       ② 손글씨 : 그 자리에 줄공책이 펼쳐지고 손가락·펜으로 씁니다
+
+     ▸ 손글씨는 **그림 한 장**으로 담깁니다 (App.photos — 기기 안 보관소).
+       그래서 어느 컴퓨터에서나 되고, 저장한 뒤에도 그대로 남습니다.
+     ▸ 담고 나면 그 자리에 글씨가 보이고 「다시 쓰기 · 지우기」가 붙습니다.
+     ⛔ 팝업으로 만들지 마세요 — 여가 일기에서 겪은 그대로입니다. 덮는 창은
+        위에 있던 문장을 가려서, 학생이 무엇을 쓰는지 잊어버립니다.
+     ⚠ 글씨를 담아도 **글자(value)는 지우지 않습니다.** 선생님이 나중에
+        글자로 고칠 수도 있고, 읽어주기·모아보기가 글자를 씁니다. */
+  C.InkField = function (p) {
+    var openS = useState(false);
+    var url = p.inkId && App.photos ? App.photos.url(p.inkId) : null;
+
+    function done(dataUrl) {
+      App.photos.addDataUrl(dataUrl, p.studentId, 'ink').then(function (id) {
+        var old = p.inkId;
+        p.onInk(id);
+        if (old) App.photos.remove(old);
+        openS[1](false);
+        App.ui.toast('손으로 쓴 글씨를 담았어요.');
+      })['catch'](function () { App.ui.toast('글씨를 담지 못했어요.'); });
+    }
+
+    if (url && !openS[0]) {
+      return html`<div class="inkf">
+        ${p.label && html`<span class="lab">${p.label}</span>`}
+        <img class="inkf-shot" src=${url} alt="손으로 쓴 글씨" />
+        <div class="wrap inkf-acts">
+          <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+            onClick=${function () { openS[1](true); }}>다시 쓰기<//>
+          <${C.Btn} size="small" icon="trash" onClick=${function () {
+            var old = p.inkId; p.onInk(null); if (old) App.photos.remove(old);
+          }}>지우기<//>
+        </div>
+      </div>`;
+    }
+
+    if (openS[0]) {
+      return html`<div class="inkf">
+        ${p.label && html`<span class="lab">${p.label}</span>`}
+        <${C.DrawPad} inline=${true} w=${p.w || 1400} h=${p.h || 330}
+          ruled=${true} ruleHeight=${p.ruleHeight || 110}
+          startFrom=${url}
+          doneText="다 썼어요"
+          hintText="손가락·펜으로 줄에 맞춰 써요."
+          onCancel=${function () { openS[1](false); }}
+          onDone=${done} />
+      </div>`;
+    }
+
+    /* `noText` : 글자 칸은 이미 딴 데 있고 **손글씨 단추만** 필요할 때
+       (나의 한마디 2단계 — 빈칸 둘은 그대로 두고 손글씨를 더해 줍니다) */
+    return html`<div class="inkf">
+      ${!p.noText && html`<${C.Field} label=${p.label} value=${p.value}
+        placeholder=${p.placeholder} onChange=${p.onChange} />`}
+      <div class="wrap inkf-acts">
+        <${C.Btn} size="small" icon="pencil" className="pastel-blue"
+          onClick=${function () { openS[1](true); }}>${p.openText || '손으로 쓰기'}<//>
+      </div>
+    </div>`;
+  };
+
   /* `className` — 칸 모양을 바꿔 끼울 때 씁니다
      (예 : 3단계 일기 쓰기 칸의 `diary-write` — 노란 바탕에 큰 글씨). */
   C.Area = function (p) {

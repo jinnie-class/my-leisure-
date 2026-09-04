@@ -4600,6 +4600,9 @@ textarea.field.diary-write,
   width:min(100%, 35rem); margin:0 auto;
 }
 .me-row{
+  /* ⛔ `wrap` 을 주지 마세요 (2026-09-04 에 넣었다 되돌림) — 손글씨 단추가
+       문장 아래로 떨어져 네 줄이 들쭉날쭉해집니다. 손글씨 판은 줄 **안**이
+       아니라 줄 **밖**(.me-rows 의 다음 칸)에 폅니다. */
   display:flex; align-items:center; gap:.3rem;
   padding:.12rem .35rem .12rem .12rem;
   background:#fff; border:3px solid var(--line); border-radius:14px;
@@ -6350,3 +6353,32 @@ textarea.field.diary-write,
   font-size:.72rem; font-weight:800; color:var(--ink-soft);
 }
 .mb-tray.as-strip .flow-mid{ min-width:0; }
+
+/* ═══════ 손으로 쓰는 칸 (2026-09-04) ═══════
+   선생님 말씀 — 「전자칠판이나 태블릿에 바로 적을 수 있게. 키보드뿐 아니라」.
+   글자 칸 · 손글씨 판 · 담아 둔 글씨가 **같은 자리**를 씁니다.
+   ⛔ 담아 둔 글씨(.inkf-shot)에 테두리를 두껍게 두지 마세요 — 학생 글씨가
+      상자에 갇힌 것처럼 보입니다. 종이처럼 옅은 선 하나면 됩니다. */
+.inkf{ display:block; width:100%; }
+.inkf-acts{ justify-content:center; margin-top:.35rem; }
+.inkf-shot{
+  display:block; width:100%; height:auto;
+  border:2px solid var(--line); border-radius:14px;
+  background:#fff;
+}
+/* 돌아보기 한 줄 안에 담긴 글씨 — 줄 높이에 맞춰 눕힙니다 */
+.me-row-ink{
+  display:inline-block; height:2.2em; width:auto; max-width:min(100%, 22em);
+  vertical-align:middle; border-bottom:2px solid var(--ok); background:#fff;
+}
+/* 돌아보기 한 줄 아래에 펼쳐지는 손글씨 판 — 줄 폭을 다 씁니다 */
+.me-row-pad{ flex:0 0 100%; width:100%; margin-top:.4rem; }
+/* 손글씨 판이 펼쳐진 줄은 **그 줄만** 커집니다 — 다른 줄은 그대로입니다 */
+.me-row-pad .dp.inline .dp-canvas{ max-height:clamp(110px, calc(18 * var(--vh, 1vh)), 220px); }
+.me-row-pad .dp.inline .dp-tools{ justify-content:center; }
+/* 종이에 나오는 손글씨 — 한마디 한 줄 · 돌아보기 한 칸 */
+.me-print-ink{ display:block; width:100%; height:auto; max-height:9em; object-fit:contain; }
+.me-print-rowink{
+  display:inline-block; height:2em; width:auto; max-width:min(100%, 20em);
+  vertical-align:middle; border-bottom:2px solid #333;
+}

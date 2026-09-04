@@ -450,11 +450,23 @@
                   잡아야 글씨가 칸과 어긋나지 않습니다.
        ⛔ 여기 숫자를 눈대중으로 바꾸지 마세요 — cellSize 와 같은 셈이라야
           화면에서 쓴 자리와 인쇄된 자리가 맞습니다. */
-    var writeInk = (!useLines && d.writeInkId) ? App.photos.url(d.writeInkId) : null;
-    var writing = !!p.writing && !useLines;
+    /* ★★ **3단계(밑줄)에도 손글씨를 얹습니다** (2026-09-04 · 선생님 말씀 —
+         「3단계에서도 2단계 원고지 쓰기처럼 빈 줄에 전자칠판이나 태블릿에서
+          바로 쓸 수 있게 쓰기 기능을 하나 추가해 줘」).
+       ⛔ 예전에는 `!useLines` 라 3단계만 이 길이 막혀 있었습니다. 원고지가
+          아니라는 까닭이었는데, 얹는 방식은 칸이든 줄이든 **똑같습니다** —
+          아래 종이는 그대로 두고 투명한 글씨 한 겹만 위에 올립니다. */
+    var writeInk = d.writeInkId ? App.photos.url(d.writeInkId) : null;
+    var writing = !!p.writing;
     var padRef = p.padRef;
     var gridPx = { w: Math.round(A4_W - 4),
                    h: Math.round((g.rows.length || 1) * cellSize(g.cols || 10)) };
+    /* 3단계 줄 판의 종이 좌표 크기 — 줄 높이 × 줄 수입니다.
+       ⛔ gridPx 를 그대로 쓰지 마세요. 줄일 때 g.rows 가 비어 있어서
+          79px 짜리 판이 나오고, 글씨가 종이 맨 위에 짜부라집니다. */
+    var linesPx = useLines
+      ? { w: Math.round(A4_W - 4), h: Math.round(lineFit.lh * lineFit.rows) }
+      : gridPx;
     /* ★★ 제목은 **짧으면 칸, 길면 줄글**입니다 (2026-08-26 · 선생님 말씀).
        ▸ 짧은 제목은 원고지 칸에 넣습니다. 그러면 제목 글자와 본문 칸 글자가
          **정확히 같은 크기**가 되어, 한 장 안에서 크기가 어긋나 보이지 않습니다.
@@ -791,7 +803,7 @@
             ? html`<div class="pd-lines pd-hw">
                 <img src=${handwriting} alt="손으로 쓴 일기" />
               </div>`
-            : html`<div class="pd-lines"
+            : html`<div class="pd-lines pd-writewrap"
                  style=${{ '--lh': lineFit.lh + 'px', '--rows': lineFit.rows,
                            '--fs': lineFit.fs + 'px' }}>
                 <!-- ⛔⛔ 줄은 **진짜 선 하나하나**로 그립니다 (2026-08-28 ·
@@ -813,6 +825,18 @@
                 ${lines.map(function (s, i) {
                   return html`<p key=${i} class="pd-ln pd-ch">${s}</p>`;
                 })}
+                <!-- ★★ 줄 위에 얹히는 **손글씨 한 겹** (2026-09-04).
+                       2단계 원고지와 **똑같은 방식**입니다 — 줄은 선 그대로 두고
+                       글씨만 투명한 겹으로 올립니다. 그래서 인쇄해도 줄은
+                       또렷한 선이고 글씨만 그 위에 앉습니다.
+                     ⛔ 줄과 글씨를 한 장으로 합치지 마세요. -->
+                ${writeInk && !writing && html`<img class="pd-writeink" src=${writeInk}
+                  alt="손으로 쓴 글씨" />`}
+                ${writing && html`<canvas class="pd-writepad" ref=${padRef}
+                  width=${linesPx.w} height=${linesPx.h}
+                  onPointerDown=${p.onPenDown} onPointerMove=${p.onPenMove}
+                  onPointerUp=${p.onPenUp} onPointerCancel=${p.onPenUp}
+                  onPointerLeave=${p.onPenUp} />`}
               </div>`)
         /* 1·2단계는 원고지 칸에 한 글자씩.
            ★ 손으로 따라 쓴 원고지가 있으면 **그것을 그대로** 넣습니다. */
@@ -1534,11 +1558,16 @@
               A4 인쇄하기<//>
             <!-- ★ **보고 있는 이 종이 위에 그대로 씁니다** (2026-08-26 · 선생님 말씀).
                    팝업을 열지 않습니다. 누르면 종이가 커지고 칸 위에 바로 씁니다.
-                 ⛔ 1·2단계만 내놓습니다. 3단계는 칸이 아니라 밑줄이라
-                    원고지 판이 맞지 않고, 그쪽에는 「손글씨로 쓰기」가 따로 있습니다. -->
-            ${!useLines && html`<${C.Btn} icon="pencil" className="pastel-blue"
+                 ★★ **3단계도 함께 내놓습니다** (2026-09-04 · 선생님 말씀 —
+                    「3단계에서도 2단계 원고지 쓰기처럼 빈 줄에 전자칠판이나
+                     태블릿에서 바로 쓸 수 있게」).
+                    1·2단계는 원고지 칸 위에, 3단계는 밑줄 위에 씁니다 —
+                    얹는 방식은 똑같아서 단추 이름만 갈라 줍니다.
+                 ⛔ 3단계를 다시 빼지 마세요. -->
+            <${C.Btn} icon="pencil" className="pastel-blue"
               onClick=${function () { writeS[1](true); }}>
-              ${d && d.writeInkId ? '이어서 쓰기' : '원고지에 손으로 쓰기'}<//>`}
+              ${d && d.writeInkId ? '이어서 쓰기'
+                : (useLines ? '빈 줄에 손으로 쓰기' : '원고지에 손으로 쓰기')}<//>
             ${d && d.writeInkId && html`<${C.Btn} size="small" icon="back"
               onClick=${function () {
                 var old = d.writeInkId;
